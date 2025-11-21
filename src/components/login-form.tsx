@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -31,7 +32,7 @@ export default function LoginForm() {
           title: "Connexion réussie",
           description: "Bienvenue sur STUD'IN!",
         });
-        const from = searchParams.get('from') || '/';
+        const from = searchParams.get('from') || '/social';
         router.push(from);
       } else {
         toast({

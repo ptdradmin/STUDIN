@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -54,7 +55,7 @@ export default function RegisterForm() {
         title: "Inscription réussie!",
         description: "Votre compte a été créé. Vous êtes maintenant connecté.",
       });
-      router.push('/');
+      router.push('/social');
     }, 1000);
   };
 
