@@ -3,12 +3,13 @@ import { getPosts } from "@/lib/mock-data";
 import { Camera } from 'lucide-react';
 import Navbar from "@/components/navbar";
 import Link from "next/link";
+import Footer from "@/components/footer";
 
 export default async function SocialPage() {
     const posts = await getPosts();
     
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col min-h-screen">
             <Navbar />
             <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                  <div className="container flex h-16 items-center justify-between">
@@ -22,7 +23,7 @@ export default async function SocialPage() {
                     </button>
                 </div>
             </header>
-            <main className="container mx-auto px-0 md:px-4 py-4">
+            <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
                 <div className="max-w-xl mx-auto">
                     <div className="space-y-4">
                         {posts.map(post => (
@@ -31,6 +32,7 @@ export default async function SocialPage() {
                     </div>
                 </div>
             </main>
+            <Footer />
         </div>
     );
 }

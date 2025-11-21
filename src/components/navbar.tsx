@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Info, MessageSquare, Settings } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Info, MessageSquare, Settings, Users } from "lucide-react";
 
 const navLinks = [
   { href: "/housing", label: "Logement", icon: <Home className="mr-2 h-4 w-4" /> },
@@ -21,6 +21,7 @@ const navLinks = [
   { href: "/events", label: "Événements", icon: <PartyPopper className="mr-2 h-4 w-4" /> },
   { href: "/social", label: "Social", icon: <MessageSquare className="mr-2 h-4 w-4" /> },
   { href: "/about", label: "À Propos", icon: <Info className="mr-2 h-4 w-4" /> },
+  { href: "/who-we-are", label: "Qui sommes-nous ?", icon: <Users className="mr-2 h-4 w-4" /> },
 ];
 
 export default function Navbar() {

@@ -1,19 +1,23 @@
 import ProfileClientPage from "@/components/profile-client-page";
 import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 export default function ProfilePage() {
     return (
-        <>
+        <div className="flex flex-col min-h-screen">
             <Navbar />
-            <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-                <div className="container mx-auto px-4 py-12 text-center">
-                    <h1 className="text-4xl font-bold">Mon Profil</h1>
-                    <p className="mt-2 text-lg opacity-90">Gérez vos informations personnelles</p>
-                </div>
-            </div>
-            <div className="container mx-auto px-4 py-8">
-                <ProfileClientPage />
-            </div>
-        </>
+            <main className="flex-grow">
+              <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+                  <div className="container mx-auto px-4 py-12 text-center">
+                      <h1 className="text-4xl font-bold">Mon Profil</h1>
+                      <p className="mt-2 text-lg opacity-90">Gérez vos informations personnelles</p>
+                  </div>
+              </div>
+              <div className="container mx-auto px-4 py-8">
+                  <ProfileClientPage />
+              </div>
+            </main>
+            <Footer />
+        </div>
     );
 }
