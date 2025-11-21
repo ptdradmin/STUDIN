@@ -1,7 +1,66 @@
+
+'use client';
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Navbar from "@/components/navbar";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import Footer from "@/components/footer";
-import { Settings as SettingsIcon } from "lucide-react";
+import Navbar from "@/components/navbar";
+import {
+  Bell,
+  ChevronRight,
+  HelpCircle,
+  Info,
+  Lock,
+  Palette,
+  Shield,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+
+const SettingsItem = ({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+  action: React.ReactNode;
+}) => (
+  <div className="flex items-center justify-between py-3">
+    <div className="flex items-center gap-4">
+      <div className="text-muted-foreground">{icon}</div>
+      <div>
+        <p className="font-medium">{title}</p>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+    </div>
+    {action}
+  </div>
+);
+
+const SettingsLink = ({
+  title,
+}: {
+  title: string;
+}) => (
+    <div className="flex items-center justify-between py-4">
+        <p className="font-medium">{title}</p>
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+    </div>
+);
+
 
 export default function SettingsPage() {
   return (
@@ -11,22 +70,125 @@ export default function SettingsPage() {
         <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
           <div className="container mx-auto px-4 py-12 text-center">
             <h1 className="text-4xl font-bold">Paramètres</h1>
-            <p className="mt-2 text-lg opacity-90">Gérez les paramètres de votre compte et de l'application</p>
+            <p className="mt-2 text-lg opacity-90">
+              Gérez les paramètres de votre compte et de l'application
+            </p>
           </div>
         </div>
         <div className="container mx-auto px-4 py-8">
           <Card className="mx-auto max-w-2xl">
-              <CardHeader>
-                  <CardTitle className="flex items-center">
-                      <SettingsIcon className="mr-2 h-6 w-6" />
+            <CardContent className="p-0">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="account">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                    <div className="flex items-center gap-3">
+                      <User />
                       Paramètres du compte
-                  </CardTitle>
-              </CardHeader>
-              <CardContent>
-                   <div className="text-center py-10">
-                      <p className="text-muted-foreground">D'autres paramètres seront bientôt disponibles.</p>
-                  </div>
-              </CardContent>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 space-y-2">
+                     <Link href="/profile"><SettingsLink title="Informations personnelles" /></Link>
+                     <SettingsLink title="Mot de passe" />
+                     <SettingsLink title="Comptes liés" />
+                     <Button variant="destructive" className="w-full mt-4">Déconnexion</Button>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="privacy">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                    <div className="flex items-center gap-3">
+                      <Shield />
+                      Confidentialité
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
+                    <SettingsItem
+                      icon={<User className="h-5 w-5"/>}
+                      title="Profil privé"
+                      description="Seuls les abonnés que vous approuvez peuvent voir votre profil."
+                      action={<Switch id="private-profile" />}
+                    />
+                    <SettingsLink title="Liste des utilisateurs bloqués" />
+                    <SettingsLink title="Contrôle des interactions" />
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="security">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <Lock />
+                      Sécurité
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
+                    <SettingsLink title="Authentification à deux facteurs" />
+                    <SettingsLink title="Appareils connectés" />
+                    <SettingsLink title="Historique des connexions" />
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="notifications">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <Bell />
+                      Notifications
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
+                     <SettingsItem
+                      icon={<Bell className="h-5 w-5"/>}
+                      title="Tout mettre en pause"
+                      action={<Switch id="pause-notifications" />}
+                    />
+                    <SettingsLink title="Notifications générales (Posts, Commentaires...)" />
+                    <SettingsLink title="Notifications de Logement" />
+                    <SettingsLink title="Notifications de Covoiturage" />
+                  </AccordionContent>
+                </AccordionItem>
+
+                 <AccordionItem value="content">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <Palette />
+                      Préférences de contenu
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
+                    <SettingsLink title="Préférences du fil" />
+                    <SettingsLink title="Mots masqués" />
+                  </AccordionContent>
+                </AccordionItem>
+
+                 <AccordionItem value="help">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <HelpCircle />
+                      Aide et support
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
+                    <SettingsLink title="Centre d’aide" />
+                    <SettingsLink title="Déclarer un problème" />
+                    <SettingsLink title="Règles de la communauté" />
+                  </AccordionContent>
+                </AccordionItem>
+
+                 <AccordionItem value="about">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <Info />
+                      À propos
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
+                    <SettingsLink title="Version de l’application" />
+                    <SettingsLink title="Conditions d'utilisation" />
+                    <SettingsLink title="Politique de Confidentialité" />
+                  </AccordionContent>
+                </AccordionItem>
+
+              </Accordion>
+            </CardContent>
           </Card>
         </div>
       </main>
