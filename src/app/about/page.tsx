@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Car, BookOpen, PartyPopper } from "lucide-react";
 import Image from 'next/image';
+import Navbar from "@/components/navbar";
 
 const features = [
   {
@@ -30,6 +31,7 @@ const features = [
 export default function AboutPage() {
   return (
     <div className="flex flex-col">
+      <Navbar />
       <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">

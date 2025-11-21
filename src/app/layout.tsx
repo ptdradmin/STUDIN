@@ -1,7 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import {AuthProvider} from '@/contexts/auth-context';
-import Navbar from '@/components/navbar';
 import {Toaster} from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
@@ -30,10 +29,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">{children}</main>
-          </div>
+          <main>{children}</main>
           <Toaster />
         </AuthProvider>
       </body>

@@ -1,11 +1,13 @@
 import HousingListings from "@/components/housing-listings";
 import { getHousings } from "@/lib/mock-data";
+import Navbar from "@/components/navbar";
 
 export default async function HousingPage() {
     const initialHousings = await getHousings();
     
     return (
-        <>
+        <div className="flex flex-col">
+            <Navbar />
             <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 <div className="container mx-auto px-4 py-12 text-center">
                     <h1 className="text-4xl font-bold">🏠 Logements Étudiants</h1>
@@ -15,6 +17,6 @@ export default async function HousingPage() {
             <div className="container mx-auto px-4 py-8">
                 <HousingListings initialHousings={initialHousings} />
             </div>
-        </>
+        </div>
     );
 }

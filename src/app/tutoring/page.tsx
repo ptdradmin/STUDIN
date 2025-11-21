@@ -1,8 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
+import Navbar from "@/components/navbar";
 
 export default function TutoringPage() {
   return (
     <>
+        <Navbar />
         <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
             <div className="container mx-auto px-4 py-12 text-center">
                 <h1 className="text-4xl font-bold">📚 Tutorat</h1>

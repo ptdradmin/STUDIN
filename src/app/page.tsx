@@ -10,6 +10,8 @@ import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Home as HomeIcon, Car, BookOpen, PartyPopper} from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Navbar from '@/components/navbar';
+
 
 const features = [
   {
@@ -44,6 +46,7 @@ const features = [
 export default function Home() {
   return (
     <div className="flex flex-col">
+       <Navbar />
       <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
         <div className="container mx-auto flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-4 py-20 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl">

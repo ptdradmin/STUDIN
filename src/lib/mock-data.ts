@@ -17,6 +17,21 @@ export interface Housing {
   }
 }
 
+export interface Post {
+    id: number;
+    user: {
+        name: string;
+        avatarUrl: string;
+    };
+    imageUrl: string;
+    caption: string;
+    likes: number;
+    comments: {
+        user: string;
+        text: string;
+    }[];
+}
+
 const housingsData: Housing[] = [
     {
         id: 1,
@@ -124,6 +139,34 @@ const housingsData: Housing[] = [
     },
 ];
 
+const postsData: Post[] = [
+    {
+        id: 1,
+        user: { name: 'Alice', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=alice' },
+        imageUrl: 'https://picsum.photos/seed/social1/1080/1080',
+        caption: 'Journée d\'étude à la bibliothèque ! 📚 #studentlife',
+        likes: 128,
+        comments: [{ user: 'Bob', text: 'Bon courage !' }]
+    },
+    {
+        id: 2,
+        user: { name: 'Bob', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=bob' },
+        imageUrl: 'https://picsum.photos/seed/social2/1080/1080',
+        caption: 'Petite pause café entre deux cours ☕',
+        likes: 95,
+        comments: [{ user: 'Charlie', text: 'Bien mérité !' }, { user: 'Alice', text: 'La même !' }]
+    },
+     {
+        id: 3,
+        user: { name: 'Charlie', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=charlie' },
+        imageUrl: 'https://picsum.photos/seed/social3/1080/1080',
+        caption: 'Soirée BDE ce soir ! 🎉 Qui vient ?',
+        likes: 230,
+        comments: []
+    }
+];
+
+
 export const getHousings = async (filters: { city?: string; type?: string; min_price?: string; max_price?: string } = {}): Promise<Housing[]> => {
     // Simuler un appel API
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -144,4 +187,11 @@ export const getHousings = async (filters: { city?: string; type?: string; min_p
     }
     
     return filteredHousings;
+}
+
+
+export const getPosts = async (): Promise<Post[]> => {
+    // Simuler un appel API
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return postsData;
 }
