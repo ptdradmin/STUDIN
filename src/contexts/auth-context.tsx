@@ -27,8 +27,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you'd verify a token with your backend
-    // For this example, we'll just keep the user state in memory
+    // Dans une vraie application, vous vérifieriez un jeton avec votre backend
+    // Pour cet exemple, nous allons simplement conserver l'état de l'utilisateur en mémoire
     setLoading(false);
   }, []);
 
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth doit être utilisé au sein d'un AuthProvider");
   }
   return context;
 };

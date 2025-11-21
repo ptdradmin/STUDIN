@@ -2,51 +2,51 @@
   "placeholderImages": [
     {
       "id": "housing-1",
-      "description": "A modern student apartment living room.",
+      "description": "Un salon d'appartement étudiant moderne.",
       "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhcGFydG1lbnQlMjBpbnRlcmlvcnxlbnwwfHx8fDE3NjM3NTg1OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "apartment interior"
+      "imageHint": "intérieur appartement"
     },
     {
       "id": "housing-2",
-      "description": "A cozy student room with a desk.",
+      "description": "Une chambre d'étudiant confortable avec un bureau.",
       "imageUrl": "https://images.unsplash.com/photo-1486304873000-235643847519?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwcm9vbXxlbnwwfHx8fDE3NjM2NTUzNTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "student room"
+      "imageHint": "chambre étudiant"
     },
     {
       "id": "housing-3",
-      "description": "A shared kitchen in a student co-location.",
+      "description": "Une cuisine commune dans une colocation étudiante.",
       "imageUrl": "https://images.unsplash.com/photo-1717429541792-5c59021d6ceb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwa2l0Y2hlbnxlbnwwfHx8fDE3NjM2NzAwOTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "modern kitchen"
+      "imageHint": "cuisine moderne"
     },
     {
       "id": "housing-4",
-      "description": "Exterior of a modern apartment building near a campus.",
+      "description": "Extérieur d'un immeuble d'appartements moderne près d'un campus.",
       "imageUrl": "https://images.unsplash.com/photo-1516501312919-d0cb0b7b60b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YXBhcnRtZW50JTIwYnVpbGRpbmd8ZW58MHx8fHwxNzYzNzQ1MzYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "apartment building"
+      "imageHint": "immeuble appartements"
     },
     {
       "id": "housing-5",
-      "description": "A bright and airy studio apartment.",
+      "description": "Un studio lumineux et aéré.",
       "imageUrl": "https://images.unsplash.com/photo-1702014862053-946a122b920d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkaW8lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzYzNzMyMjg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "studio apartment"
+      "imageHint": "studio appartement"
     },
     {
       "id": "housing-6",
-      "description": "A quiet study nook in a student housing complex.",
+      "description": "Un coin d'étude tranquille dans une résidence étudiante.",
       "imageUrl": "https://images.unsplash.com/photo-1567168544999-b8ca00a3d9c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdHVkeSUyMGFyZWF8ZW58MHx8fHwxNzYzNzM0MTYyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "study area"
+      "imageHint": "coin étude"
     },
     {
       "id": "housing-7",
-      "description": "A comfortable bedroom in a student kot.",
+      "description": "Une chambre confortable dans un kot étudiant.",
       "imageUrl": "https://images.unsplash.com/photo-1595526051245-4506e0005bd0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiZWRyb29tJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzYzNzI4MjYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "bedroom interior"
+      "imageHint": "intérieur chambre"
     },
     {
       "id": "housing-8",
-      "description": "A shared living space for students.",
+      "description": "Un espace de vie partagé pour les étudiants.",
       "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaXZpbmclMjByb29tfGVufDB8fHx8MTc2MzczMjA4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "living room"
+      "imageHint": "salle de séjour"
     }
   ]
 }

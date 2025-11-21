@@ -91,7 +91,7 @@ export default function Navbar() {
             </div>
           )}
            <div className="md:hidden">
-            {/* Mobile menu trigger can be added here */}
+            {/* Le déclencheur du menu mobile peut être ajouté ici */}
           </div>
         </div>
       </div>

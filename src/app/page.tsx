@@ -1,10 +1,10 @@
 import {Button} from '@/components/ui/button';
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
 } from '@/components/ui/card';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Home as HomeIcon, Car, BookOpen, PartyPopper} from 'lucide-react';
@@ -30,7 +30,7 @@ const features = [
     icon: <BookOpen className="h-10 w-10" />,
     title: 'Tutorat',
     description:
-      'Obtenez de l\'aide ou proposez vos compétences dans toutes les matières',
+      "Obtenez de l'aide ou proposez vos compétences dans toutes les matières",
     href: '/tutoring',
   },
   {
@@ -112,7 +112,7 @@ export default function Home() {
             <Card className="mt-12 text-left shadow-lg">
               <CardContent className="flex flex-col items-center gap-6 p-8 sm:flex-row">
                 <Avatar className="h-24 w-24">
-                   <Image src="https://picsum.photos/seed/founder/100/100" alt="Gui Doba" width={100} height={100} data-ai-hint="man portrait"/>
+                   <Image src="https://picsum.photos/seed/founder/100/100" alt="Gui Doba" width={100} height={100} data-ai-hint="portrait homme"/>
                   <AvatarFallback>GD</AvatarFallback>
                 </Avatar>
                 <div className="text-center sm:text-left">

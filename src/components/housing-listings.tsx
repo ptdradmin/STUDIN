@@ -124,4 +124,3 @@ export default function HousingListings({ initialHousings }: HousingListingsProp
     </div>
   );
 }
-

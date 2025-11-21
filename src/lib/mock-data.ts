@@ -125,7 +125,7 @@ const housingsData: Housing[] = [
 ];
 
 export const getHousings = async (filters: { city?: string; type?: string; min_price?: string; max_price?: string } = {}): Promise<Housing[]> => {
-    // Simulate API call
+    // Simuler un appel API
     await new Promise(resolve => setTimeout(resolve, 500));
 
     let filteredHousings = housingsData;
