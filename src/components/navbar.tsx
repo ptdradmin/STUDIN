@@ -19,7 +19,6 @@ const navLinks = [
   { href: "/carpooling", label: "Covoiturage", icon: <Car className="mr-2 h-4 w-4" /> },
   { href: "/tutoring", label: "Tutorat", icon: <BookOpen className="mr-2 h-4 w-4" /> },
   { href: "/events", label: "Événements", icon: <PartyPopper className="mr-2 h-4 w-4" /> },
-  { href: "/social", label: "Social", icon: <MessageSquare className="mr-2 h-4 w-4" /> },
 ];
 
 export default function Navbar() {
@@ -46,6 +45,11 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+           {user && (
+              <Link href="/social" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+                Social
+              </Link>
+            )}
         </nav>
         <div className="flex items-center gap-4">
           {user ? (
