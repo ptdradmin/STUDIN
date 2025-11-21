@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Info, MessageSquare } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Info, MessageSquare, Settings } from "lucide-react";
 
 const navLinks = [
   { href: "/housing", label: "Logement", icon: <Home className="mr-2 h-4 w-4" /> },
@@ -73,6 +73,12 @@ export default function Navbar() {
                   <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
                     <span>Profil</span>
+                  </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Paramètres</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
