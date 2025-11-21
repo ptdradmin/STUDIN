@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useTransition } from 'react';
@@ -35,7 +36,7 @@ export default function HousingListings({ initialHousings }: HousingListingsProp
   const handleTypeChange = (value: string) => {
     setFilters({
       ...filters,
-      type: value
+      type: value === 'all' ? '' : value,
     });
   };
 
@@ -58,12 +59,12 @@ export default function HousingListings({ initialHousings }: HousingListingsProp
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Type</label>
-                         <Select value={filters.type} onValueChange={handleTypeChange}>
+                         <Select value={filters.type || 'all'} onValueChange={handleTypeChange}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Tous" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Tous</SelectItem>
+                                <SelectItem value="all">Tous</SelectItem>
                                 <SelectItem value="kot">Kot</SelectItem>
                                 <SelectItem value="studio">Studio</SelectItem>
                                 <SelectItem value="colocation">Colocation</SelectItem>
@@ -123,3 +124,4 @@ export default function HousingListings({ initialHousings }: HousingListingsProp
     </div>
   );
 }
+
