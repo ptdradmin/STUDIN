@@ -115,10 +115,10 @@ export default function AboutPage() {
               Notre Histoire
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Lancé en 2024 comme un projet de fin d'études, STUD'IN a rapidement gagné en popularité au sein de la communauté étudiante namuroise. Face à la demande croissante, le projet s'est transformé en une véritable startup avec une ambition claire : devenir l'outil indispensable de chaque étudiant en Belgique francophone.
+              Actuellement en cours de développement, STUD'IN est un projet né de l'ambition de devenir l'outil indispensable de chaque étudiant en Belgique francophone. L'application est développée avec passion pour répondre concrètement aux défis de la vie étudiante.
             </p>
             <blockquote className="mt-8 font-code text-lg italic text-muted-foreground relative">
-                <p className="relative z-10">"Ce qui a commencé comme un besoin personnel est devenu une aventure collective. Chaque jour, nous innovons pour mieux répondre aux besoins réels des étudiants."</p>
+                <p className="relative z-10">"Ce qui a commencé comme un besoin personnel est en train de devenir une aventure collective. Chaque jour, nous innovons pour mieux répondre aux besoins réels des étudiants."</p>
             </blockquote>
           </div>
         </div>
