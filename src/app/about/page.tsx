@@ -97,7 +97,7 @@ export default function AboutPage() {
                     </p>
                   </div>
                   <p className="text-muted-foreground">
-                    Ancien étudiant de l'Université de Namur, Gui Doba a vécu lui-même les difficultés de la vie étudiante. Frustré par l'éparpillement des informations et des services, il a décidé de créer la plateforme qu'il aurait rêvé d'avoir : STUD'IN.
+                    Étudiant en Belgique francophone, Gui Doba a vécu lui-même les difficultés de la vie étudiante. Frustré par l'éparpillement des informations et des services, il a décidé de créer la plateforme qu'il aurait rêvé d'avoir : STUD'IN.
                   </p>
                   <blockquote className="font-code text-lg italic text-muted-foreground border-l-4 pl-4">
                     "Ma vision est de créer un véritable écosystème digital où chaque étudiant de la Fédération Wallonie-Bruxelles peut s'épanouir, soutenu par sa communauté."
