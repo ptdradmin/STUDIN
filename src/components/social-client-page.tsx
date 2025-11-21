@@ -6,9 +6,21 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import PostCard from "@/components/post-card";
 import { getPosts, Post } from "@/lib/mock-data";
-import { Camera } from 'lucide-react';
+import { Camera, Home } from 'lucide-react';
 import Link from "next/link";
 import { Skeleton } from './ui/skeleton';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User, LogOut, Settings } from "lucide-react";
+
 
 function SocialSkeleton() {
     return (
@@ -45,7 +57,7 @@ function CardSkeleton() {
 
 
 export default function SocialClientPage() {
-    const { user, loading } = useAuth();
+    const { user, logout, loading } = useAuth();
     const router = useRouter();
     const [posts, setPosts] = useState<Post[]>([]);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
@@ -67,15 +79,20 @@ export default function SocialClientPage() {
 
     if (loading || !user || isPostsLoading) {
         return (
-            <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
-                <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-4">
+            <>
+                <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <div className="container flex h-16 items-center justify-between">
                         <Skeleton className="h-8 w-40" />
-                        <Skeleton className="h-6 w-6" />
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-8 w-8" />
+                             <Skeleton className="h-10 w-10 rounded-full" />
+                        </div>
                     </div>
                 </header>
-                <SocialSkeleton />
-            </main>
+                <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
+                    <SocialSkeleton />
+                </main>
+            </>
         )
     }
 
@@ -88,9 +105,54 @@ export default function SocialClientPage() {
                             STUD'IN Social
                         </h1>
                     </Link>
-                    <button>
-                        <Camera className="h-6 w-6" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href="/">
+                                <Home className="h-6 w-6" />
+                            </Link>
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <Camera className="h-6 w-6" />
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                <Avatar className="h-10 w-10">
+                                    <AvatarImage src={`https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} alt={user.first_name} />
+                                    <AvatarFallback>{user.first_name.charAt(0)}{user.last_name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56" align="end" forceMount>
+                                <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">{user.first_name} {user.last_name}</p>
+                                    <p className="text-xs leading-none text-muted-foreground">
+                                    {user.email}
+                                    </p>
+                                </div>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                <Link href="/profile">
+                                    <User className="mr-2 h-4 w-4" />
+                                    <span>Profil</span>
+                                </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                <Link href="/settings">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Paramètres</span>
+                                </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={logout}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Déconnexion</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
             </header>
             <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
