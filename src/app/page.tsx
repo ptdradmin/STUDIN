@@ -4,12 +4,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
 } from '@/components/ui/card';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Home as HomeIcon, Car, BookOpen, PartyPopper} from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 
@@ -98,40 +95,6 @@ export default function Home() {
                 </Card>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-card py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Notre Mission
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              STUD'IN est né d'un constat simple : la vie étudiante est remplie
-              de défis qui vont bien au-delà des salles de cours. Notre
-              objectif est de rassembler tous les services essentiels sur une
-              plateforme unique, intuitive et communautaire.
-            </p>
-            <Card className="mt-12 text-left shadow-lg">
-              <CardContent className="flex flex-col items-center gap-6 p-8 sm:flex-row">
-                <Avatar className="h-24 w-24">
-                   <Image src="https://picsum.photos/seed/founder/100/100" alt="Gui Doba" width={100} height={100} data-ai-hint="portrait homme"/>
-                  <AvatarFallback>GD</AvatarFallback>
-                </Avatar>
-                <div className="text-center sm:text-left">
-                  <p className="font-code text-lg italic text-muted-foreground">
-                    "Ce qui a commencé comme un besoin personnel est devenu une
-                    aventure collective."
-                  </p>
-                  <p className="mt-4 text-lg font-semibold">Gui Doba</p>
-                  <p className="text-sm text-muted-foreground">
-                    Fondateur & CEO
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>
