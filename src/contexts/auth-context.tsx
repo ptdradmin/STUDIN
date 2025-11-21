@@ -1,0 +1,62 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
+
+interface User {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  university?: string;
+  field_of_study?: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  login: (userData: Omit<User, "id">) => void;
+  register: (userData: Omit<User, "id">) => void;
+  logout: () => void;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // In a real app, you'd verify a token with your backend
+    // For this example, we'll just keep the user state in memory
+    setLoading(false);
+  }, []);
+
+  const login = (userData: Omit<User, "id">) => {
+    const loggedInUser = { ...userData, id: 1 };
+    setUser(loggedInUser);
+  };
+
+  const register = (userData: Omit<User, "id">) => {
+    const registeredUser = { ...userData, id: Date.now() };
+    setUser(registeredUser);
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

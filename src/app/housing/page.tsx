@@ -1,0 +1,20 @@
+import HousingListings from "@/components/housing-listings";
+import { getHousings } from "@/lib/mock-data";
+
+export default async function HousingPage() {
+    const initialHousings = await getHousings();
+    
+    return (
+        <>
+            <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+                <div className="container mx-auto px-4 py-12 text-center">
+                    <h1 className="text-4xl font-bold">🏠 Logements Étudiants</h1>
+                    <p className="mt-2 text-lg opacity-90">Trouvez votre kot, studio ou colocation idéale</p>
+                </div>
+            </div>
+            <div className="container mx-auto px-4 py-8">
+                <HousingListings initialHousings={initialHousings} />
+            </div>
+        </>
+    );
+}
