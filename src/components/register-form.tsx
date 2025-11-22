@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -48,8 +48,7 @@ export default function RegisterForm() {
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth } = useAuth();
-  const firestore = useFirestore();
+  const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,6 +171,7 @@ export default function RegisterForm() {
   };
 
   const passwordsMatch = formData.password === formData.confirm_password;
+  const servicesReady = !!auth && !!firestore;
 
   return (
     <Card className="w-full max-w-lg shadow-2xl">
@@ -181,7 +181,7 @@ export default function RegisterForm() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading || !servicesReady}>
             <GoogleIcon className="mr-2 h-4 w-4" />
             S'inscrire avec Google
           </Button>
@@ -197,25 +197,25 @@ export default function RegisterForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first_name">Prénom</Label>
-                <Input id="first_name" name="first_name" placeholder="Jean" required onChange={handleChange} />
+                <Input id="first_name" name="first_name" placeholder="Jean" required onChange={handleChange} disabled={!servicesReady} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="last_name">Nom</Label>
-                <Input id="last_name" name="last_name" placeholder="Dupont" required onChange={handleChange} />
+                <Input id="last_name" name="last_name" placeholder="Dupont" required onChange={handleChange} disabled={!servicesReady} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="votre.email@example.com" required onChange={handleChange} />
+              <Input id="email" name="email" type="email" placeholder="votre.email@example.com" required onChange={handleChange} disabled={!servicesReady} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
-                <Input id="password" name="password" type="password" placeholder="Minimum 6 caractères" required minLength={6} onChange={handleChange} />
+                <Input id="password" name="password" type="password" placeholder="Minimum 6 caractères" required minLength={6} onChange={handleChange} disabled={!servicesReady} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm_password">Confirmer le mot de passe</Label>
-                <Input id="confirm_password" name="confirm_password" type="password" placeholder="••••••••" required onChange={handleChange} />
+                <Input id="confirm_password" name="confirm_password" type="password" placeholder="••••••••" required onChange={handleChange} disabled={!servicesReady} />
               </div>
             </div>
             {!passwordsMatch && formData.confirm_password && (
@@ -224,7 +224,7 @@ export default function RegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="university">Université</Label>
-              <Select name="university" onValueChange={handleSelectChange}>
+              <Select name="university" onValueChange={handleSelectChange} disabled={!servicesReady}>
                   <SelectTrigger>
                       <SelectValue placeholder="Sélectionnez votre université" />
                   </SelectTrigger>
@@ -237,9 +237,9 @@ export default function RegisterForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="field_of_study">Domaine d'études</Label>
-              <Input id="field_of_study" name="field_of_study" placeholder="Ex: Informatique, Droit, Médecine..." onChange={handleChange} />
+              <Input id="field_of_study" name="field_of_study" placeholder="Ex: Informatique, Droit, Médecine..." onChange={handleChange} disabled={!servicesReady} />
             </div>
-            <Button type="submit" className="w-full" disabled={loading || !passwordsMatch || !formData.password}>
+            <Button type="submit" className="w-full" disabled={loading || !passwordsMatch || !formData.password || !servicesReady}>
               {loading ? 'Inscription en cours...' : "S'inscrire"}
             </Button>
           </form>
@@ -256,5 +256,3 @@ export default function RegisterForm() {
     </Card>
   );
 }
-
-    

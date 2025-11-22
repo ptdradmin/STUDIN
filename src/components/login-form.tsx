@@ -9,10 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Separator } from './ui/separator';
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -32,7 +32,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore } = useAuth();
+  const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const createUserDocument = async (user: User) => {
@@ -123,6 +123,8 @@ export default function LoginForm() {
       setLoading(false);
     }
   };
+  
+  const servicesReady = !!auth && !!firestore;
 
   return (
     <Card className="w-full max-w-md shadow-2xl">
@@ -132,7 +134,7 @@ export default function LoginForm() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading || !servicesReady}>
             <GoogleIcon className="mr-2 h-4 w-4" />
             Se connecter avec Google
           </Button>
@@ -154,6 +156,7 @@ export default function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={!servicesReady}
               />
             </div>
             <div className="space-y-2">
@@ -165,9 +168,10 @@ export default function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={!servicesReady}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading || !servicesReady}>
               {loading ? 'Connexion...' : 'Se connecter'}
             </Button>
           </form>
