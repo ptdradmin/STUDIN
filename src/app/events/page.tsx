@@ -1,6 +1,12 @@
-import { Card, CardContent } from "@/components/ui/card";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar, MapPin, Tag, University } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function EventsPage() {
   return (
@@ -14,12 +20,55 @@ export default function EventsPage() {
               </div>
           </div>
           <div className="container mx-auto px-4 py-8">
-              <Card className="text-center py-20">
+              <Card>
+                  <CardHeader>
+                      <CardTitle>Filtrer les événements</CardTitle>
+                  </CardHeader>
                   <CardContent>
-                      <h3 className="text-2xl font-semibold">Bientôt disponible !</h3>
-                      <p className="text-muted-foreground mt-2">La section événements est en cours de construction.</p>
+                      <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                          <div className="space-y-2">
+                              <Label htmlFor="city">Ville</Label>
+                              <Input id="city" placeholder="Ex: Louvain-la-Neuve" />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="university">Université</Label>
+                               <Select>
+                                  <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="all">Toutes</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="category">Catégorie</Label>
+                              <Select>
+                                  <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                                  <SelectContent>
+                                      <SelectItem value="all">Toutes</SelectItem>
+                                      <SelectItem value="party">Soirée</SelectItem>
+                                      <SelectItem value="conference">Conférence</SelectItem>
+                                      <SelectItem value="culture">Culture</SelectItem>
+                                      <SelectItem value="sport">Sport</SelectItem>
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="lg:col-span-2">
+                            <Button type="submit" className="w-full" disabled>Filtrer</Button>
+                          </div>
+                      </form>
                   </CardContent>
               </Card>
+
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Prochainement...</h2>
+                 <Card className="text-center py-20 bg-muted/40 border-dashed">
+                  <CardContent>
+                      <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold mt-4">Les listes d'événements arrivent bientôt</h3>
+                      <p className="text-muted-foreground mt-2">Découvrez les meilleures soirées, conférences et activités de votre campus.</p>
+                  </CardContent>
+              </Card>
+              </div>
           </div>
         </main>
         <Footer />

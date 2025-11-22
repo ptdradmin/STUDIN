@@ -1,6 +1,13 @@
-import { Card, CardContent } from "@/components/ui/card";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { BookMarked, BrainCircuit, GraduationCap, Star } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function TutoringPage() {
   return (
@@ -14,12 +21,48 @@ export default function TutoringPage() {
               </div>
           </div>
           <div className="container mx-auto px-4 py-8">
-              <Card className="text-center py-20">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trouver un tuteur</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                      <div className="space-y-2">
+                          <Label htmlFor="subject">Matière</Label>
+                          <Input id="subject" placeholder="Ex: Mathématiques, Droit..." />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="level">Niveau</Label>
+                          <Select>
+                            <SelectTrigger><SelectValue placeholder="Tous niveaux" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tous niveaux</SelectItem>
+                                <SelectItem value="b1">Bachelier 1</SelectItem>
+                                <SelectItem value="b2">Bachelier 2</SelectItem>
+                                <SelectItem value="b3">Bachelier 3</SelectItem>
+                                <SelectItem value="m1">Master 1</SelectItem>
+                                <SelectItem value="m2">Master 2</SelectItem>
+                            </SelectContent>
+                          </Select>
+                      </div>
+                      <div className="lg:col-span-2">
+                          <Button type="submit" className="w-full" disabled>Rechercher un tuteur</Button>
+                      </div>
+                  </form>
+                </CardContent>
+              </Card>
+
+               <div className="mt-8">
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Prochainement...</h2>
+                 <Card className="text-center py-20 bg-muted/40 border-dashed">
                   <CardContent>
-                      <h3 className="text-2xl font-semibold">Bientôt disponible !</h3>
-                      <p className="text-muted-foreground mt-2">La section tutorat est en cours de construction.</p>
+                      <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold mt-4">La mise en relation avec des tuteurs arrive bientôt</h3>
+                      <p className="text-muted-foreground mt-2">Proposez votre aide ou trouvez le soutien académique dont vous avez besoin.</p>
                   </CardContent>
               </Card>
+              </div>
+
           </div>
         </main>
         <Footer />

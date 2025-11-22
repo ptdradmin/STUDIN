@@ -1,6 +1,11 @@
-import { Card, CardContent } from "@/components/ui/card";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Car, MapPin } from "lucide-react";
 
 export default function CarpoolingPage() {
   return (
@@ -14,12 +19,41 @@ export default function CarpoolingPage() {
               </div>
           </div>
           <div className="container mx-auto px-4 py-8">
-              <Card className="text-center py-20">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trouver un trajet</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                      <div className="space-y-2">
+                          <Label htmlFor="departure">Lieu de départ</Label>
+                          <Input id="departure" placeholder="Ex: Bruxelles" />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="arrival">Lieu d'arrivée</Label>
+                          <Input id="arrival" placeholder="Ex: Namur" />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="date">Date</Label>
+                          <Input id="date" type="date" />
+                      </div>
+                       <div className="space-y-2 lg:col-span-2">
+                           <Button type="submit" className="w-full" disabled>Rechercher un covoiturage</Button>
+                      </div>
+                  </form>
+                </CardContent>
+              </Card>
+
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Prochainement...</h2>
+                 <Card className="text-center py-20 bg-muted/40 border-dashed">
                   <CardContent>
-                      <h3 className="text-2xl font-semibold">Bientôt disponible !</h3>
-                      <p className="text-muted-foreground mt-2">La section covoiturage est en cours de construction.</p>
+                      <Car className="mx-auto h-12 w-12 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold mt-4">La recherche de trajets sera bientôt disponible</h3>
+                      <p className="text-muted-foreground mt-2">Vous pourrez bientôt trouver des conducteurs et des passagers pour vos trajets quotidiens.</p>
                   </CardContent>
               </Card>
+              </div>
           </div>
         </main>
         <Footer />
