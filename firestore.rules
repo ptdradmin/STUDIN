@@ -115,8 +115,8 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
       
       /**
        * @description Manages notifications for a user.
@@ -326,5 +326,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
