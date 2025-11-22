@@ -9,6 +9,8 @@ import type { Post } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import CreatePostForm from '@/components/create-post-form';
 import { PageSkeleton } from '@/components/page-skeleton';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 const reelsUsers = [
   { name: "Alice", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alice" },
@@ -22,7 +24,7 @@ const reelsUsers = [
 
 function ReelsTray() {
   return (
-    <div className="w-full max-w-xl mx-auto px-4 md:px-0 py-3 border-b md:border-x md:rounded-t-lg">
+    <div className="w-full max-w-xl mx-auto px-4 md:px-0 py-3 border-b md:border-x md:rounded-t-lg bg-card">
       <div className="flex space-x-4 overflow-x-auto pb-2 -mb-2">
         {reelsUsers.map((user) => (
           <div key={user.name} className="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer group">
@@ -58,12 +60,16 @@ export default function SocialPageContent() {
              <main className="flex-grow container mx-auto px-0 md:px-4 pt-4">
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
-                   {isLoading && <PageSkeleton />}
-                   {!isLoading && posts && (
+                   {isLoading ? <PageSkeleton /> : (
                      <>
                         <ReelsTray />
                         <div className="space-y-4 pt-4">
-                            {posts.map(post => (
+                            <div className="text-right px-4 md:px-0">
+                                <Button onClick={() => setShowCreateForm(true)}>
+                                    <Plus className="mr-2 h-4 w-4" /> Créer une publication
+                                </Button>
+                            </div>
+                            {posts && posts.map(post => (
                                 <PostCard key={post.id} post={post} />
                             ))}
                         </div>
