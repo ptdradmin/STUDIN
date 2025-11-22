@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import SearchPanel from '@/components/search-panel';
 import { useState } from 'react';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import CreatePostForm from '@/components/create-post-form';
@@ -22,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { Input } from '@/components/ui/input';
 
 
 const mainNavItems = [
@@ -59,7 +59,6 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
     const { auth } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
-    const [activePanel, setActivePanel] = useState<string | null>(null);
     const [showCreatePost, setShowCreatePost] = useState(false);
 
     const handleLogout = async () => {
@@ -97,16 +96,6 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
             {mainNavItems.map((item) => (
               <NavLink key={item.label} item={item} />
             ))}
-             <Button 
-                variant={"ghost"}
-                size="lg" 
-                aria-label="Recherche" 
-                className={`justify-start items-center gap-4 h-12 w-full text-base font-normal text-sidebar-foreground/80 hover:bg-muted`}
-                onClick={() => setActivePanel(activePanel === 'search' ? null : 'search')}
-            >
-                <Search className="h-6 w-6" strokeWidth={2}/>
-                <span>Recherche</span>
-            </Button>
           </nav>
           <div className="flex flex-col gap-2">
             <DropdownMenu>
@@ -139,11 +128,10 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
         </aside>
         
         <div className="flex flex-col flex-1 relative">
-          <SearchPanel activePanel={activePanel} setActivePanel={setActivePanel} />
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
           
           {/* Top Header */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-end gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex-1 md:hidden">
                  <Link href="/social" className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-md bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
@@ -152,11 +140,17 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                       <h1 className="text-lg font-bold">STUD'IN</h1>
                   </Link>
             </div>
+            
+            <div className="hidden md:flex flex-1 max-w-md items-center relative">
+                <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Rechercher..." className="pl-10 bg-muted border-none"/>
+            </div>
+
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden" onClick={() => setActivePanel('search')}>
+                <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden">
                   <Search className="h-5 w-5" />
                 </Button>
-                 <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
+                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     Créer
                 </Button>
