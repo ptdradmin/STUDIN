@@ -16,7 +16,7 @@ import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebas
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
-import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -61,13 +61,14 @@ export default function CarpoolingPage() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleReserve = () => {
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "La réservation en ligne sera bientôt disponible.",
-    });
+  const handleReserve = (driverId: string) => {
+    if (!user) {
+        router.push('/login?from=/carpooling');
+        return;
+    }
+    router.push(`/messages?recipient=${driverId}`);
   };
   
   return (
@@ -181,7 +182,7 @@ export default function CarpoolingPage() {
 
                                   <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                       <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                      {user && <Button size="sm" onClick={handleReserve}>Réserver</Button>}
+                                      {user && <Button size="sm" onClick={() => handleReserve(trip.driverId)}>Réserver</Button>}
                                   </div>
 
                               </CardContent>

@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
-import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -37,13 +37,14 @@ export default function TutoringPage() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleContact = () => {
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "La messagerie interne sera bientôt disponible.",
-    });
+  const handleContact = (tutorId: string) => {
+    if (!user) {
+        router.push('/login?from=/tutoring');
+        return;
+    }
+    router.push(`/messages?recipient=${tutorId}`);
   };
 
   const renderList = () => {
@@ -85,7 +86,7 @@ export default function TutoringPage() {
                       </div>
                       <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.pricePerHour}€/h</p>
                     </div>
-                    {user && <Button className="w-full mt-4" onClick={handleContact}>Contacter</Button>}
+                    {user && <Button className="w-full mt-4" onClick={() => handleContact(tutor.tutorId)}>Contacter</Button>}
                   </Card>
             ))}
              {!isLoading && tutors?.length === 0 && (
