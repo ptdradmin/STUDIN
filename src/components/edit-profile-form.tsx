@@ -22,6 +22,7 @@ import { UserProfile } from '@/lib/types';
 import { Separator } from './ui/separator';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { updateUserPosts } from '@/lib/social';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
@@ -117,51 +118,64 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     }
     setLoading(true);
     
-    try {
-      const userDocRef = doc(firestore, 'users', user.uid);
-      let newPhotoURL = userProfile.profilePicture;
+    let newPhotoURL = userProfile.profilePicture;
+    const userDocRef = doc(firestore, 'users', user.uid);
 
+    try {
       if (profilePictureFile) {
         const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
         await uploadBytes(fileRef, profilePictureFile);
         newPhotoURL = await getDownloadURL(fileRef);
       }
+    } catch (error) {
+       toast({ variant: 'destructive', title: "Erreur de téléversement", description: "Impossible de changer la photo de profil." });
+       setLoading(false);
+       return;
+    }
       
-      const dataToUpdate: any = {
+    const dataToUpdate = {
         ...data,
         profilePicture: newPhotoURL,
         updatedAt: serverTimestamp()
-      };
-      
-      Object.keys(dataToUpdate).forEach(keyStr => {
+    };
+    
+    Object.keys(dataToUpdate).forEach(keyStr => {
         const key = keyStr as keyof typeof dataToUpdate;
         if (dataToUpdate[key] === undefined) {
-          delete dataToUpdate[key];
+            delete (dataToUpdate as any)[key];
         }
-      });
+    });
       
-      await updateDoc(userDocRef, dataToUpdate);
-      
-      const displayName = `${data.firstName} ${data.lastName}`;
-      const currentUser = auth.currentUser;
-      if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
-          await updateProfile(currentUser, { 
-              displayName,
-              photoURL: newPhotoURL,
-          });
-      }
+    try {
+        await updateDoc(userDocRef, dataToUpdate);
+        
+        const displayName = `${data.firstName} ${data.lastName}`;
+        const currentUser = auth.currentUser;
+        if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
+            await updateProfile(currentUser, { 
+                displayName,
+                photoURL: newPhotoURL,
+            });
+        }
 
-      toast({ title: 'Succès', description: 'Profil mis à jour !' });
-      onClose();
+        // Update posts after profile update
+        if(data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture) {
+            await updateUserPosts(firestore, user.uid, { username: data.username, profilePicture: newPhotoURL });
+        }
+
+        toast({ title: 'Succès', description: 'Profil mis à jour !' });
+        onClose();
+
     } catch (error) {
-      const contextualError = new FirestorePermissionError({
-        path: `users/${user.uid}`,
-        operation: 'update',
-        requestResourceData: data,
-      });
-      errorEmitter.emit('permission-error', contextualError);
+        console.error("Erreur de mise à jour du profil: ", error);
+        const contextualError = new FirestorePermissionError({
+            path: `users/${user.uid}`,
+            operation: 'update',
+            requestResourceData: dataToUpdate,
+        });
+        errorEmitter.emit('permission-error', contextualError);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
@@ -278,5 +292,3 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
-
-    
