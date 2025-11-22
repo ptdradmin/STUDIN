@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 interface HousingCardProps {
     housing: Housing;
@@ -26,6 +27,7 @@ export default function HousingCard({ housing, onEdit }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const router = useRouter();
     
     const isOwner = user && user.uid === housing.userId;
 
@@ -39,10 +41,16 @@ export default function HousingCard({ housing, onEdit }: HousingCardProps) {
     };
 
     const handleContact = () => {
-        toast({
-            title: "Fonctionnalité en développement",
-            description: "La messagerie interne sera bientôt disponible.",
-        });
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: "Connexion requise",
+                description: "Vous devez être connecté pour contacter un propriétaire.",
+            });
+            router.push('/login?from=/housing');
+            return;
+        }
+        router.push(`/messages?recipient=${housing.userId}`);
     }
 
     return (

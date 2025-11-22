@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, Compass } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, Compass, MessageSquare } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
@@ -82,9 +82,14 @@ export default function Navbar() {
               </NavLink>
             ))}
             {user && (
-              <NavLink href="/social">
-                <div className="flex items-center"><Compass className="mr-2 h-4 w-4" /> Social</div>
-              </NavLink>
+              <>
+                <NavLink href="/social">
+                  <div className="flex items-center"><Compass className="mr-2 h-4 w-4" /> Social</div>
+                </NavLink>
+                <NavLink href="/messages">
+                  <div className="flex items-center"><MessageSquare className="mr-2 h-4 w-4" /> Messages</div>
+                </NavLink>
+              </>
             )}
           </nav>
            <div className="mt-auto">
@@ -143,9 +148,14 @@ export default function Navbar() {
             </NavLink>
           ))}
            {user && (
-              <NavLink href="/social">
-                Social
-              </NavLink>
+              <>
+                <NavLink href="/social">
+                  Social
+                </NavLink>
+                <NavLink href="/messages">
+                  Messages
+                </NavLink>
+              </>
             )}
         </nav>
         <div className="flex items-center gap-4">
