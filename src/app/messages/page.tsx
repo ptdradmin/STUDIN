@@ -14,6 +14,10 @@ import { collection, query, where, getDocs, doc, addDoc, serverTimestamp, update
 import type { Conversation, ChatMessage, UserProfile } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+
 
 function ConversationListSkeleton() {
     return (
@@ -104,39 +108,63 @@ export default function MessagesPage() {
                 if (existingConversation) {
                     setSelectedConversation(existingConversation);
                 } else {
-                    // Create a new conversation
-                    const recipientDoc = await getDocs(query(collection(firestore, 'users'), where('id', '==', recipientId)));
-                    if (recipientDoc.empty) {
-                        console.error("Recipient user not found");
-                        return;
+                    try {
+                        // Create a new conversation
+                        const recipientQuery = query(collection(firestore, 'users'), where('id', '==', recipientId));
+                        const recipientDoc = await getDocs(recipientQuery);
+                        if (recipientDoc.empty) {
+                            console.error("Recipient user not found");
+                            return;
+                        }
+                        const recipientProfile = { id: recipientDoc.docs[0].id, ...recipientDoc.docs[0].data() } as UserProfile;
+                        
+                        const currentUserQuery = query(collection(firestore, 'users'), where('id', '==', user.uid));
+                        const currentUserDoc = await getDocs(currentUserQuery);
+                        if(currentUserDoc.empty) return;
+                        const currentUserProfile = { id: currentUserDoc.docs[0].id, ...currentUserDoc.docs[0].data()} as UserProfile;
+
+                        const newConversationData = {
+                            participantIds: [user.uid, recipientId],
+                            participants: {
+                                [user.uid]: currentUserProfile,
+                                [recipientId]: recipientProfile
+                            },
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp(),
+                        };
+
+                        const newConversationRef = await addDoc(collection(firestore, 'conversations'), newConversationData)
+                            .catch(serverError => {
+                                const permissionError = new FirestorePermissionError({
+                                    path: 'conversations',
+                                    operation: 'create',
+                                    requestResourceData: newConversationData,
+                                });
+                                errorEmitter.emit('permission-error', permissionError);
+                                throw permissionError; // Re-throw to be caught by the outer catch block
+                            });
+                        
+                        setSelectedConversation({
+                            id: newConversationRef.id,
+                            participantIds: [user.uid, recipientId],
+                            participants: {
+                                [user.uid]: currentUserProfile,
+                                [recipientId]: recipientProfile
+                            },
+                            createdAt: new Date(),
+                            updatedAt: new Date(),
+                        });
+                    } catch (error) {
+                        if (!(error instanceof FirestorePermissionError)) {
+                            const permissionError = new FirestorePermissionError({
+                                path: 'users',
+                                operation: 'get',
+                                requestResourceData: { note: `Querying user with ID: ${recipientId} or ${user.uid}` }
+                            });
+                            errorEmitter.emit('permission-error', permissionError);
+                        }
+                        console.error("Error creating or fetching user for conversation:", error);
                     }
-                    const recipientProfile = { id: recipientDoc.docs[0].id, ...recipientDoc.docs[0].data() } as UserProfile;
-                    
-                    const currentUserDoc = await getDocs(query(collection(firestore, 'users'), where('id', '==', user.uid)));
-                    if(currentUserDoc.empty) return;
-                    const currentUserProfile = { id: currentUserDoc.docs[0].id, ...currentUserDoc.docs[0].data()} as UserProfile;
-
-
-                    const newConversationRef = await addDoc(collection(firestore, 'conversations'), {
-                        participantIds: [user.uid, recipientId],
-                        participants: {
-                            [user.uid]: currentUserProfile,
-                            [recipientId]: recipientProfile
-                        },
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp(),
-                    });
-                    
-                     setSelectedConversation({
-                        id: newConversationRef.id,
-                        participantIds: [user.uid, recipientId],
-                        participants: {
-                            [user.uid]: currentUserProfile,
-                            [recipientId]: recipientProfile
-                        },
-                        createdAt: new Date(),
-                        updatedAt: new Date(),
-                    });
                 }
             };
             findAndSetConversation();
@@ -167,14 +195,24 @@ export default function MessagesPage() {
             createdAt: serverTimestamp()
         };
 
-        await addDoc(messagesColRef, messageData);
-        await updateDoc(conversationDocRef, {
+        // Use non-blocking addDoc for messages
+        addDocumentNonBlocking(messagesColRef, messageData);
+        
+        // Non-blocking update for conversation metadata
+        updateDoc(conversationDocRef, {
             lastMessage: {
                 text: newMessage,
                 senderId: user.uid,
                 timestamp: serverTimestamp()
             },
             updatedAt: serverTimestamp()
+        }).catch(error => {
+             const permissionError = new FirestorePermissionError({
+                path: `conversations/${selectedConversation.id}`,
+                operation: 'update',
+                requestResourceData: { lastMessage: messageData }
+            });
+            errorEmitter.emit('permission-error', permissionError);
         });
 
         setNewMessage('');
