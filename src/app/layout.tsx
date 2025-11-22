@@ -4,8 +4,7 @@ import './globals.css';
 import {Toaster} from '@/components/ui/toaster';
 import FirebaseClientProvider from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
+import MainLayout from '@/components/main-layout';
 
 export const metadata: Metadata = {
   title: "STUD'IN - L'écosystème étudiant",
@@ -34,11 +33,9 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <LanguageProvider>
           <FirebaseClientProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-            </div>
+            <MainLayout>
+              {children}
+            </MainLayout>
             <Toaster />
           </FirebaseClientProvider>
         </LanguageProvider>
