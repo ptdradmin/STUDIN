@@ -14,7 +14,7 @@ export interface Housing {
   imageHint: string;
   coordinates: [number, number];
   userId: string;
-  ownerUsername?: string;
+  ownerUsername: string;
   ownerAvatarUrl?: string;
   createdAt: string;
   availableFrom?: string;
@@ -43,7 +43,7 @@ export interface Post {
 export interface Event {
     id: string;
     organizerId: string;
-    organizerUsername?: string;
+    organizerUsername: string;
     organizerAvatarUrl?: string;
     title: string;
     description: string;
@@ -67,7 +67,7 @@ export interface Event {
 export interface Tutor {
     id: string;
     tutorId: string;
-    tutorUsername?: string;
+    tutorUsername: string;
     tutorAvatarUrl?: string;
     subject: string;
     level: string;
@@ -83,7 +83,7 @@ export interface Tutor {
 export interface Trip {
     id: string;
     driverId: string;
-    driverUsername?: string;
+    driverUsername: string;
     driverAvatarUrl?: string;
     departureCity: string;
     arrivalCity: string;
@@ -126,7 +126,7 @@ export interface ChatMessage {
 export interface Conversation {
     id: string;
     participantIds: string[];
-    participants: { [key: string]: UserProfile };
+    participants: { [key: string]: { username: string; profilePicture?: string } };
     lastMessage?: {
         text: string;
         senderId: string;

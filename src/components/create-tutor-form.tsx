@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -50,7 +49,12 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     
     try {
         const userDocRef = doc(firestore, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
+        const userDocSnap = await getDoc(userDocRef).catch(e => {
+            const permError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
+            errorEmitter.emit('permission-error', permError);
+            throw permError;
+        });
+
         if (!userDocSnap.exists()) {
             throw new Error("Profil utilisateur introuvable.");
         }
@@ -72,11 +76,9 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
         onClose();
     } catch (error) {
-        console.error("Erreur de création de profil de tuteur:", error);
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer le profil.' });
-        if (error instanceof Error && error.message.includes('permission-denied')) {
-            const permissionError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
-            errorEmitter.emit('permission-error', permissionError);
+        if (!(error instanceof FirestorePermissionError)) {
+            console.error("Erreur de création de profil de tuteur:", error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer le profil.' });
         }
     } finally {
         setLoading(false);

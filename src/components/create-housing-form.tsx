@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -105,7 +104,12 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
             const userDocRef = doc(firestore, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
+            const userDocSnap = await getDoc(userDocRef).catch(e => {
+                const permError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
+                errorEmitter.emit('permission-error', permError);
+                throw permError;
+            });
+
             if (!userDocSnap.exists()) {
                 throw new Error("Profil utilisateur introuvable.");
             }
@@ -127,11 +131,9 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
         }
         onClose();
     } catch(error) {
-        console.error("Erreur lors de la soumission du logement:", error);
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de soumettre l\'annonce.' });
-        if (error instanceof Error && error.message.includes('permission-denied')) {
-            const permissionError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
-            errorEmitter.emit('permission-error', permissionError);
+        if (!(error instanceof FirestorePermissionError)) {
+            console.error("Erreur lors de la soumission du logement:", error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de soumettre l\'annonce.' });
         }
     } finally {
         setLoading(false);

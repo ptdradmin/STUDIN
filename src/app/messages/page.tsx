@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Send, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, getDocs, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDoc, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, deleteDoc } from 'firebase/firestore';
 import type { Conversation, ChatMessage, UserProfile } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -140,43 +139,47 @@ export default function MessagesPage() {
                     setSelectedConversation(existingConversation);
                 } else {
                     try {
-                        const recipientQuery = query(collection(firestore, 'users'), where('id', '==', recipientId));
-                        const recipientSnap = await getDocs(recipientQuery).catch(error => {
+                        const recipientDocRef = doc(firestore, 'users', recipientId);
+                        const recipientSnap = await getDoc(recipientDocRef).catch(error => {
                             const permError = new FirestorePermissionError({
-                                path: 'users', operation: 'list',
-                                requestResourceData: { note: `Querying user with ID: ${'${recipientId}'}` }
+                                path: `users/${recipientId}`, operation: 'get',
                             });
                             errorEmitter.emit('permission-error', permError);
                             throw permError;
                         });
 
-                        if (recipientSnap.empty) {
+                        if (!recipientSnap.exists()) {
                              toast({ variant: 'destructive', title: 'Erreur', description: 'Destinataire non trouvé.' });
                              return;
                         }
-                        const recipientProfile = { id: recipientSnap.docs[0].id, ...recipientSnap.docs[0].data() } as UserProfile;
+                        const recipientProfile = recipientSnap.data() as UserProfile;
                         
-                        const currentUserQuery = query(collection(firestore, 'users'), where('id', '==', user.uid));
-                        const currentUserSnap = await getDocs(currentUserQuery).catch(error => {
+                        const currentUserDocRef = doc(firestore, 'users', user.uid);
+                        const currentUserSnap = await getDoc(currentUserDocRef).catch(error => {
                             const permError = new FirestorePermissionError({
-                                path: 'users', operation: 'list',
-                                requestResourceData: { note: `Querying current user with ID: ${'${user.uid}'}` }
+                                path: `users/${user.uid}`, operation: 'get',
                             });
                             errorEmitter.emit('permission-error', permError);
                             throw permError;
                         });
 
-                        if(currentUserSnap.empty) {
+                        if(!currentUserSnap.exists()) {
                              toast({ variant: 'destructive', title: 'Erreur', description: 'Profil utilisateur non trouvé.' });
                              return;
                         }
-                        const currentUserProfile = { id: currentUserSnap.docs[0].id, ...currentUserSnap.docs[0].data()} as UserProfile;
+                        const currentUserProfile = currentUserSnap.data() as UserProfile;
 
                         const newConversationData = {
                             participantIds: [user.uid, recipientId],
                             participants: {
-                                [user.uid]: currentUserProfile,
-                                [recipientId]: recipientProfile
+                                [user.uid]: {
+                                    username: currentUserProfile.username,
+                                    profilePicture: currentUserProfile.profilePicture,
+                                },
+                                [recipientId]: {
+                                    username: recipientProfile.username,
+                                    profilePicture: recipientProfile.profilePicture,
+                                }
                             },
                             createdAt: serverTimestamp(),
                             updatedAt: serverTimestamp(),
@@ -190,7 +193,7 @@ export default function MessagesPage() {
                                     requestResourceData: newConversationData,
                                 });
                                 errorEmitter.emit('permission-error', permissionError);
-                                throw permissionError; // Re-throw to be caught by the outer catch block
+                                throw permissionError;
                             });
                         
                         setSelectedConversation({
@@ -200,8 +203,8 @@ export default function MessagesPage() {
                             updatedAt: new Date(),
                         } as Conversation);
                     } catch (error) {
-                        console.error("Error creating or fetching user for conversation:", error);
-                         if (!(error instanceof FirestorePermissionError)) {
+                        if (!(error instanceof FirestorePermissionError)) {
+                           console.error("Error creating or fetching user for conversation:", error);
                            toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de démarrer la conversation." });
                         }
                     }
@@ -324,11 +327,11 @@ export default function MessagesPage() {
                                         <div className="flex items-center gap-3">
                                             <Avatar>
                                                 <AvatarImage src={otherUser?.profilePicture} />
-                                                <AvatarFallback>{getInitials(otherUser?.firstName)}</AvatarFallback>
+                                                <AvatarFallback>{getInitials(otherUser?.username)}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex-grow overflow-hidden">
                                                 <div className="flex justify-between items-baseline">
-                                                    <p className="font-semibold truncate">{otherUser?.firstName} {otherUser?.lastName}</p>
+                                                    <p className="font-semibold truncate">{otherUser?.username}</p>
                                                     <p className="text-xs text-muted-foreground flex-shrink-0">{lastMessageTime}</p>
                                                 </div>
                                                 <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
@@ -380,9 +383,9 @@ export default function MessagesPage() {
                             <div className="p-4 border-b flex items-center gap-3 flex-shrink-0">
                                     <Avatar>
                                     <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
-                                    <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.firstName)}</AvatarFallback>
+                                    <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.username)}</AvatarFallback>
                                 </Avatar>
-                                <h3 className="font-semibold">{getOtherParticipant(selectedConversation)?.firstName} {getOtherParticipant(selectedConversation)?.lastName}</h3>
+                                <h3 className="font-semibold">{getOtherParticipant(selectedConversation)?.username}</h3>
                             </div>
                             <div className="flex-grow p-4 space-y-4 overflow-y-auto">
                                 {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
@@ -422,4 +425,3 @@ export default function MessagesPage() {
         </div>
     );
 }
-
