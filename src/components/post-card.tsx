@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
@@ -137,7 +137,15 @@ export default function PostCard({ post }: PostCardProps) {
                             <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
                             <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
                         </Avatar>
-                        <span className="font-semibold text-sm">{post.userDisplayName}</span>
+                        <div>
+                            <span className="font-semibold text-sm">{post.userDisplayName}</span>
+                            {post.location && (
+                                <p className="text-xs text-muted-foreground flex items-center">
+                                    <MapPin className="h-3 w-3 mr-1" />
+                                    {post.location}
+                                </p>
+                            )}
+                        </div>
                     </div>
                      <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{timeAgo}</span>

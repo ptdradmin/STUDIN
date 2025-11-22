@@ -23,6 +23,7 @@ export interface Post {
     id: string;
     caption: string;
     imageUrl?: string;
+    location?: string;
     userId: string;
     userDisplayName: string;
     userAvatarUrl: string;
