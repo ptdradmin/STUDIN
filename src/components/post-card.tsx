@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin, Bookmark } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
@@ -133,11 +133,11 @@ export default function PostCard({ post }: PostCardProps) {
         }
     };
 
-    const displayedComments = showAllComments ? optimisticComments : optimisticComments.slice(0, 2);
+    const displayedComments = showAllComments ? optimisticComments : optimisticComments.slice(0, 1);
 
 
     return (
-        <Card className="rounded-none md:rounded-lg border-x-0 md:border-x">
+        <Card className="rounded-none md:rounded-lg border-b md:border md:border-stone-300">
             <CardHeader className="p-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -146,17 +146,15 @@ export default function PostCard({ post }: PostCardProps) {
                             <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <span className="font-semibold text-sm">{post.userDisplayName}</span>
+                            <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
                             {post.location && (
-                                <p className="text-xs text-muted-foreground flex items-center">
-                                    <MapPin className="h-3 w-3 mr-1" />
+                                <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
                                     {post.location}
                                 </p>
                             )}
                         </div>
                     </div>
                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{timeAgo}</span>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -202,12 +200,15 @@ export default function PostCard({ post }: PostCardProps) {
                 )}
             </CardContent>
             <CardFooter className="p-3 flex flex-col items-start">
-                <div className="flex items-center gap-2 -ml-2">
-                    <Button variant="ghost" size="icon" onClick={handleLike}>
-                        <Heart className={`h-6 w-6 transition-colors ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
-                    </Button>
-                    <Button variant="ghost" size="icon"><MessageCircle className="h-6 w-6" /></Button>
-                    <Button variant="ghost" size="icon"><Send className="h-6 w-6" /></Button>
+                <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2 -ml-2">
+                        <Button variant="ghost" size="icon" onClick={handleLike}>
+                            <Heart className={`h-6 w-6 transition-colors ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
+                        </Button>
+                        <Button variant="ghost" size="icon"><MessageCircle className="h-6 w-6" /></Button>
+                        <Button variant="ghost" size="icon"><Send className="h-6 w-6" /></Button>
+                    </div>
+                     <Button variant="ghost" size="icon"><Bookmark className="h-6 w-6" /></Button>
                 </div>
                 {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-2">{optimisticLikes.length} J'aime</p>}
                 <div className="text-sm mt-1">
@@ -215,44 +216,40 @@ export default function PostCard({ post }: PostCardProps) {
                     <span className="ml-2">{post.caption}</span>
                 </div>
                 
-                {optimisticComments.length > 2 && !showAllComments && (
-                    <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-2" onClick={() => setShowAllComments(true)}>
+                {optimisticComments.length > 1 && !showAllComments && (
+                    <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1" onClick={() => setShowAllComments(true)}>
                         Voir les {optimisticComments.length} commentaires
                     </Button>
                 )}
                 
                 {optimisticComments.length > 0 && (
-                     <div className="mt-2 text-sm w-full space-y-2">
+                     <div className="mt-2 text-sm w-full space-y-1">
                         {displayedComments.map((comment, index) => (
-                             <div key={index} className="flex items-start gap-2">
-                                 <Avatar className="h-6 w-6">
-                                     <AvatarImage src={comment.userAvatarUrl} />
-                                     <AvatarFallback>{getInitials(comment.userDisplayName)}</AvatarFallback>
-                                 </Avatar>
-                                <div>
-                                    <span className="font-semibold">{comment.userDisplayName}</span>
-                                    <span className="ml-2 text-muted-foreground">{comment.text}</span>
-                                </div>
+                            <div key={index} className="flex items-start gap-2">
+                                <span className="font-semibold">{comment.userDisplayName}</span>
+                                <span className="text-muted-foreground">{comment.text}</span>
                             </div>
                         ))}
                     </div>
                 )}
 
-                {optimisticComments.length > 2 && showAllComments && (
-                     <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-2" onClick={() => setShowAllComments(false)}>
+                {optimisticComments.length > 1 && showAllComments && (
+                     <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1" onClick={() => setShowAllComments(false)}>
                         Masquer les commentaires
                     </Button>
                 )}
+
+                <p className="text-xs text-muted-foreground mt-2 uppercase">{timeAgo}</p>
                 
                 {user && (
-                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-3 mt-3 border-t">
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t border-stone-300">
                         <Input 
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Ajouter un commentaire..." 
-                            className="h-8 border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+                            className="h-8 border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 bg-transparent text-sm"
                         />
-                        <Button type="submit" variant="ghost" size="sm" disabled={!comment.trim()}>
+                        <Button type="submit" variant="ghost" size="sm" disabled={!comment.trim()} className="text-primary font-semibold hover:text-primary">
                             Publier
                         </Button>
                     </form>

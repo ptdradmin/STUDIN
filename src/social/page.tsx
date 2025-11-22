@@ -20,11 +20,13 @@ const reelsUsers = [
   { name: "Eva", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=eva" },
   { name: "Frank", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=frank" },
   { name: "Grace", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=grace" },
+  { name: "Heidi", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=heidi" },
+  { name: "Ivan", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=ivan" },
 ];
 
 function ReelsTray() {
   return (
-    <div className="w-full max-w-xl mx-auto px-4 md:px-0 py-3 border-b md:border-x md:rounded-t-lg bg-card">
+    <div className="w-full py-4">
       <div className="flex space-x-4 overflow-x-auto pb-2 -mb-2">
         {reelsUsers.map((user) => (
           <div key={user.name} className="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer group">
@@ -61,10 +63,10 @@ export default function SocialPageContent() {
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
                    {isLoading ? <PageSkeleton /> : (
-                     <>
+                     <div className="flex flex-col items-center">
                         <ReelsTray />
-                        <div className="space-y-4 pt-4">
-                            <div className="text-right px-4 md:px-0">
+                        <div className="space-y-4 pt-4 w-full">
+                            <div className="text-right px-4 md:px-0 hidden">
                                 <Button onClick={() => setShowCreateForm(true)}>
                                     <Plus className="mr-2 h-4 w-4" /> Créer une publication
                                 </Button>
@@ -73,7 +75,7 @@ export default function SocialPageContent() {
                                 <PostCard key={post.id} post={post} />
                             ))}
                         </div>
-                     </>
+                     </div>
                    )}
                 </div>
             </main>
