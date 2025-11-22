@@ -43,16 +43,19 @@ export default function Home() {
     const router = useRouter();
 
     useEffect(() => {
+        // Si l'utilisateur est authentifié, le rediriger vers le fil d'actualité.
         if (!isUserLoading && user) {
             router.replace('/social');
         }
     }, [user, isUserLoading, router]);
 
+    // Afficher un skeleton pendant la vérification de l'auth ou si l'utilisateur est connecté (avant la redirection)
     if (isUserLoading || user) {
         return <PageSkeleton />;
     }
-
-  return (
+    
+    // Si l'utilisateur n'est pas connecté, afficher la page d'accueil publique.
+    return (
     <>
             <section className="relative bg-gradient-to-br from-primary/10 via-background to-background text-center py-20 md:py-32">
                 <div className="container mx-auto px-4 relative z-10">

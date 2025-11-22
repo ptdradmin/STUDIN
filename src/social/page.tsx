@@ -1,3 +1,4 @@
+
 'use client';
 
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
@@ -9,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 function SuggestionsSkeleton() {
     return (
@@ -95,7 +98,7 @@ function Suggestions() {
 }
 
 
-export default function SocialPageContent() {
+export default function SocialPage() {
     const firestore = useFirestore();
 
     const postsQuery = useMemoFirebase(
@@ -108,6 +111,7 @@ export default function SocialPageContent() {
     if (postsLoading && !posts) {
         return <PageSkeleton />;
     }
+
 
     return (
        <div className="w-full">
