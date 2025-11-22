@@ -70,23 +70,30 @@ export default function RegisterForm() {
     setFormData({ ...formData, university: value });
   };
   
-  const createUserDocument = async (user: User, additionalData?: any) => {
+  const createUserDocument = async (user: User, additionalData: any = {}) => {
       if (!firestore) return;
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
         const { email, displayName, photoURL } = user;
-        const [firstName, lastName] = displayName?.split(' ') || [additionalData?.firstName || '', additionalData?.lastName || ''];
+        const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
+
+        const firstName = additionalData.firstName || firstNameFromProvider;
+        const lastName = additionalData.lastName || lastNameFromProvider;
+        const username = additionalData.username || email?.split('@')[0] || `user_${user.uid.substring(0,6)}`;
 
         const userData = {
             id: user.uid,
             email,
+            username,
             firstName,
             lastName,
-            university: additionalData?.university || '',
-            fieldOfStudy: additionalData?.fieldOfStudy || '',
+            university: additionalData.university || '',
+            fieldOfStudy: additionalData.fieldOfStudy || '',
             profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+            followerIds: [],
+            followingIds: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         };
@@ -178,6 +185,7 @@ export default function RegisterForm() {
         await createUserDocument(user, {
             firstName: formData.first_name,
             lastName: formData.last_name,
+            username: formData.email.split('@')[0],
             university: formData.university,
             fieldOfStudy: formData.field_of_study
         });
