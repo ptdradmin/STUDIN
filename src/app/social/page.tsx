@@ -15,8 +15,6 @@ import CreatePostForm from '@/components/create-post-form';
 import { collection, orderBy, query } from 'firebase/firestore';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 import { PageSkeleton } from '@/components/page-skeleton';
 
 const reelsUsers = [
@@ -110,9 +108,8 @@ export default function SocialPage() {
     }
 
     return (
-         <div className="flex flex-col min-h-screen">
-            <Navbar />
-             <main className="flex-grow container mx-auto px-0 md:px-4 pt-4">
+         <>
+             <div className="container mx-auto px-0 md:px-4 pt-4">
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
                    {postsLoading && <SocialSkeleton />}
@@ -127,8 +124,7 @@ export default function SocialPage() {
                      </>
                    )}
                 </div>
-            </main>
-            <Footer />
-        </div>
+            </div>
+        </>
     );
 }

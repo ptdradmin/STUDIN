@@ -10,8 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import {
   Bell,
   ChevronRight,
@@ -132,9 +130,7 @@ export default function SettingsPage() {
 
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
+    <>
         <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
           <div className="container mx-auto px-4 py-12 text-center">
             <h1 className="text-4xl font-bold">Paramètres</h1>
@@ -333,8 +329,6 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

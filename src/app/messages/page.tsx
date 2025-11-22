@@ -4,8 +4,6 @@
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,12 +57,8 @@ function ChatWindowSkeleton() {
 
 function PageSkeleton() {
     return (
-         <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow container mx-auto my-8">
-                <Skeleton className="h-[calc(100vh-200px)] w-full" />
-            </main>
-            <Footer />
+         <div className="container mx-auto my-8">
+            <Skeleton className="h-[calc(100vh-200px)] w-full" />
         </div>
     )
 }
@@ -201,102 +195,98 @@ export default function MessagesPage() {
     }
     
     return (
-        <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow container mx-auto my-8">
-                <Card className="h-[calc(100vh-200px)] flex">
-                    {/* Conversations List */}
-                    <div className="w-1/3 border-r">
-                        <div className="p-4 border-b">
-                            <h2 className="text-xl font-bold">Messages</h2>
-                        </div>
-                        {conversationsLoading ? <ConversationListSkeleton /> : (
-                            <div className="divide-y h-[calc(100%-65px)] overflow-y-auto">
-                                {conversations && conversations.map(conv => {
-                                    const otherUser = getOtherParticipant(conv);
-                                    const lastMessageTime = conv.lastMessage?.timestamp ? formatDistanceToNow(new Date((conv.lastMessage.timestamp as Timestamp).toDate().toISOString()), { addSuffix: true, locale: fr }) : '';
+        <div className="container mx-auto my-8">
+            <Card className="h-[calc(100vh-200px)] flex">
+                {/* Conversations List */}
+                <div className="w-1/3 border-r">
+                    <div className="p-4 border-b">
+                        <h2 className="text-xl font-bold">Messages</h2>
+                    </div>
+                    {conversationsLoading ? <ConversationListSkeleton /> : (
+                        <div className="divide-y h-[calc(100%-65px)] overflow-y-auto">
+                            {conversations && conversations.map(conv => {
+                                const otherUser = getOtherParticipant(conv);
+                                const lastMessageTime = conv.lastMessage?.timestamp ? formatDistanceToNow(new Date((conv.lastMessage.timestamp as Timestamp).toDate().toISOString()), { addSuffix: true, locale: fr }) : '';
 
-                                    return (
-                                        <div 
-                                            key={conv.id} 
-                                            className={`p-4 cursor-pointer hover:bg-muted/50 ${selectedConversation?.id === conv.id ? 'bg-muted' : ''}`}
-                                            onClick={() => setSelectedConversation(conv)}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Avatar>
-                                                    <AvatarImage src={otherUser?.profilePicture} />
-                                                    <AvatarFallback>{getInitials(otherUser?.firstName)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-grow overflow-hidden">
-                                                    <div className="flex justify-between items-baseline">
-                                                        <p className="font-semibold truncate">{otherUser?.firstName} {otherUser?.lastName}</p>
-                                                        <p className="text-xs text-muted-foreground flex-shrink-0">{lastMessageTime}</p>
-                                                    </div>
-                                                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
+                                return (
+                                    <div 
+                                        key={conv.id} 
+                                        className={`p-4 cursor-pointer hover:bg-muted/50 ${selectedConversation?.id === conv.id ? 'bg-muted' : ''}`}
+                                        onClick={() => setSelectedConversation(conv)}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage src={otherUser?.profilePicture} />
+                                                <AvatarFallback>{getInitials(otherUser?.firstName)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-grow overflow-hidden">
+                                                <div className="flex justify-between items-baseline">
+                                                    <p className="font-semibold truncate">{otherUser?.firstName} {otherUser?.lastName}</p>
+                                                    <p className="text-xs text-muted-foreground flex-shrink-0">{lastMessageTime}</p>
                                                 </div>
+                                                <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                                {_self.nextSibling && (
+                                 <div className="p-8 text-center text-sm text-muted-foreground">
+                                    Commencez une nouvelle conversation depuis la page d'une annonce.
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Chat Window */}
+                <div className="w-2/3 flex flex-col">
+                    {!selectedConversation ? (
+                        <div className="flex-grow flex items-center justify-center">
+                            {conversationsLoading ? <ChatWindowSkeleton /> : <p className="text-muted-foreground">Sélectionnez une conversation pour commencer</p>}
+                        </div>
+                    ) : (
+                        <>
+                            <div className="p-4 border-b flex items-center gap-3">
+                                    <Avatar>
+                                    <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
+                                    <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.firstName)}</AvatarFallback>
+                                </Avatar>
+                                <h3 className="font-semibold">{getOtherParticipant(selectedConversation)?.firstName} {getOtherParticipant(selectedConversation)?.lastName}</h3>
+                            </div>
+                            <CardContent className="flex-grow p-4 space-y-4 overflow-y-auto">
+                                {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
+                                {!messagesLoading && messages?.map((msg, index) => {
+                                    const msgTime = msg.createdAt ? new Date((msg.createdAt as Timestamp).toDate().toISOString()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                                    return (
+                                            <div key={index} className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.senderId === user.uid ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                                <p>{msg.text}</p>
+                                                <p className="text-xs text-right mt-1 opacity-70">{msgTime}</p>
                                             </div>
                                         </div>
                                     )
                                 })}
-                                 {!conversations?.length && (
-                                     <div className="p-8 text-center text-sm text-muted-foreground">
-                                        Commencez une nouvelle conversation depuis la page d'une annonce.
-                                    </div>
-                                )}
+                                <div ref={messagesEndRef} />
+                            </CardContent>
+                            <div className="p-4 border-t bg-background">
+                                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                                    <Input 
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        placeholder="Écrivez votre message..." 
+                                        className="flex-grow"
+                                        disabled={messagesLoading}
+                                    />
+                                    <Button type="submit" size="icon" disabled={!newMessage.trim() || messagesLoading}>
+                                        <Send className="h-5 w-5" />
+                                    </Button>
+                                </form>
                             </div>
-                        )}
-                    </div>
-
-                    {/* Chat Window */}
-                    <div className="w-2/3 flex flex-col">
-                        {!selectedConversation ? (
-                            <div className="flex-grow flex items-center justify-center">
-                                {conversationsLoading ? <ChatWindowSkeleton /> : <p className="text-muted-foreground">Sélectionnez une conversation pour commencer</p>}
-                            </div>
-                        ) : (
-                            <>
-                                <div className="p-4 border-b flex items-center gap-3">
-                                     <Avatar>
-                                        <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
-                                        <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.firstName)}</AvatarFallback>
-                                    </Avatar>
-                                    <h3 className="font-semibold">{getOtherParticipant(selectedConversation)?.firstName} {getOtherParticipant(selectedConversation)?.lastName}</h3>
-                                </div>
-                                <CardContent className="flex-grow p-4 space-y-4 overflow-y-auto">
-                                    {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
-                                    {!messagesLoading && messages?.map((msg, index) => {
-                                        const msgTime = msg.createdAt ? new Date((msg.createdAt as Timestamp).toDate().toISOString()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                                        return (
-                                             <div key={index} className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.senderId === user.uid ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                                    <p>{msg.text}</p>
-                                                    <p className="text-xs text-right mt-1 opacity-70">{msgTime}</p>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                    <div ref={messagesEndRef} />
-                                </CardContent>
-                                <div className="p-4 border-t bg-background">
-                                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                                        <Input 
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                            placeholder="Écrivez votre message..." 
-                                            className="flex-grow"
-                                            disabled={messagesLoading}
-                                        />
-                                        <Button type="submit" size="icon" disabled={!newMessage.trim() || messagesLoading}>
-                                            <Send className="h-5 w-5" />
-                                        </Button>
-                                    </form>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </Card>
-            </main>
-            <Footer />
+                        </>
+                    )}
+                </div>
+            </Card>
         </div>
     );
 }

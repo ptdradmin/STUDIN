@@ -14,8 +14,6 @@ import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import { collection, doc, query, where } from 'firebase/firestore';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
@@ -111,9 +109,7 @@ export default function ProfilePage() {
 
 
   return (
-    <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
+    <>
           <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
               <div className="container mx-auto px-4 py-12 text-center">
                   <h1 className="text-4xl font-bold text-foreground">Mon Profil</h1>
@@ -202,8 +198,6 @@ export default function ProfilePage() {
                 </div>
             )}
           </div>
-        </main>
-        <Footer />
-    </div>
+    </>
   );
 }

@@ -1,13 +1,9 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 
 export default function PressPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
+    <>
             <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 <div className="container mx-auto px-4 py-12 text-center">
                     <h1 className="text-4xl font-bold">Espace Presse</h1>
@@ -36,8 +32,6 @@ export default function PressPage() {
                     </CardContent>
                 </Card>
             </div>
-        </main>
-        <Footer />
-    </div>
+    </>
   );
 }

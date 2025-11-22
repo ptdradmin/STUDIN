@@ -2,8 +2,6 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, GraduationCap, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
@@ -38,9 +36,7 @@ const services = [
 export default function Home() {
 
   return (
-    <div className="flex flex-col min-h-screen">
-       <Navbar />
-       <main className="flex-grow">
+    <>
             <section className="relative bg-gradient-to-br from-primary/10 via-background to-background text-center py-20 md:py-32">
                 <div className="container mx-auto px-4 relative">
                     <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-foreground">
@@ -82,8 +78,6 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-      </main>
-      <Footer />
-    </div>
+      </>
   );
 }

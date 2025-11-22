@@ -3,8 +3,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,9 +181,7 @@ export default function TutoringPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
+    <>
           <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
               <div className="container mx-auto px-4 py-12 text-center">
                   <h1 className="text-4xl font-bold text-foreground">📚 Tutorat</h1>
@@ -255,8 +251,6 @@ export default function TutoringPage() {
                 {viewMode === 'list' ? renderList() : renderMap()}
               </div>
           </div>
-        </main>
-        <Footer />
-    </div>
+    </>
   );
 }

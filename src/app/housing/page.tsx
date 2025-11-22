@@ -14,8 +14,6 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 import HousingDetailModal from '@/components/housing-detail-modal';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -112,9 +110,7 @@ export default function HousingPage() {
   const isLoading = housingsLoading || profilesLoading;
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
+    <>
         <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
             <div className="container mx-auto px-4 py-12 text-center">
                 <h1 className="text-4xl font-bold text-foreground">🏠 Logements Étudiants</h1>
@@ -200,8 +196,6 @@ export default function HousingPage() {
             </Card>
           )}
         </div>
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

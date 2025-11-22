@@ -2,15 +2,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from 'next/image';
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Check } from "lucide-react";
 
 export default function WhoWeArePage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
+    <>
         <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
           <div className="container mx-auto px-4 py-16 text-center">
             <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
@@ -106,8 +102,6 @@ export default function WhoWeArePage() {
             </blockquote>
           </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

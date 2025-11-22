@@ -4,8 +4,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Users, LayoutGrid, Map, Plus, Star } from "lucide-react";
@@ -159,9 +157,7 @@ export default function CarpoolingPage() {
   const isLoading = tripsLoading || profilesLoading;
 
   return (
-    <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
+    <>
           <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
               <div className="container mx-auto px-4 py-12 text-center">
                   <h1 className="text-4xl font-bold text-foreground">🚗 Covoiturage</h1>
@@ -301,8 +297,6 @@ export default function CarpoolingPage() {
                 )}
               </div>
           </div>
-        </main>
-        <Footer />
-    </div>
+    </>
   );
 }

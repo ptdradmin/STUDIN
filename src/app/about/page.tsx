@@ -1,8 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, Car, BookOpen, PartyPopper } from "lucide-react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -36,9 +34,7 @@ const features = [
 
 export default function AboutPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow">
+    <>
         <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
           <div className="container mx-auto px-4 py-16 text-center">
             <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
@@ -102,8 +98,6 @@ export default function AboutPage() {
               </div>
             </div>
         </section>
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

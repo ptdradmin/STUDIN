@@ -1,16 +1,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { LifeBuoy, BookOpen, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function HelpPage() {
   return (
-    <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
+    <>
             <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 <div className="container mx-auto px-4 py-12 text-center">
                     <h1 className="text-4xl font-bold">Centre d'Aide</h1>
@@ -66,8 +62,6 @@ export default function HelpPage() {
                      </Link>
                  </div>
             </div>
-        </main>
-        <Footer />
-    </div>
+    </>
   );
 }
