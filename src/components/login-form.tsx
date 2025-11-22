@@ -55,7 +55,7 @@ export default function LoginForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      setDocumentNonBlocking(userDocRef, userData, { merge: false });
+      setDocumentNonBlocking(userDocRef, userData, { merge: true });
     }
   }
 
@@ -72,7 +72,6 @@ export default function LoginForm() {
   }
 
   const handleError = (error: any) => {
-     console.error(error);
       let description = "Une erreur est survenue.";
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         description = "Email ou mot de passe incorrect."
@@ -124,7 +123,7 @@ export default function LoginForm() {
     }
   };
   
-  const servicesReady = !!auth && !!firestore;
+  const servicesReady = auth && firestore && !isUserLoading;
 
   return (
     <Card className="w-full max-w-md shadow-2xl">
