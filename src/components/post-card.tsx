@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from "next/image";
@@ -205,8 +204,8 @@ export default function PostCard({ post }: PostCardProps) {
 
 
     return (
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-            <div className="flex items-center justify-between p-4">
+        <div className="rounded-lg border bg-card text-card-foreground">
+            <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
                         <Avatar className="h-9 w-9">
@@ -214,11 +213,10 @@ export default function PostCard({ post }: PostCardProps) {
                             <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
                         </Avatar>
                     </Link>
-                    <div>
+                    <div className="grid gap-0.5">
                         <Link href={`/profile/${post.userId}`}>
                             <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
                         </Link>
-                        <span className="text-sm text-muted-foreground"> • {timeAgo}</span>
                         {post.location && (
                             <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
                                 {post.location}
@@ -258,12 +256,12 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
             
             {post.imageUrl && (
-                <div className="relative aspect-square bg-muted">
+                <div className="relative aspect-square bg-muted border-y">
                     <Image
                         src={post.imageUrl}
                         alt={`Post by ${post.userDisplayName}`}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         data-ai-hint="social media post"
                     />
                 </div>
@@ -271,7 +269,7 @@ export default function PostCard({ post }: PostCardProps) {
 
             <div className="p-3 flex flex-col items-start">
                 <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2 -ml-2">
+                    <div className="flex items-center gap-1 -ml-2">
                         <Button variant="ghost" size="icon" onClick={handleLike}>
                             <Heart className={`h-6 w-6 transition-colors ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
                         </Button>
@@ -286,8 +284,8 @@ export default function PostCard({ post }: PostCardProps) {
                         <Bookmark className={`h-6 w-6 ${isSaved ? 'fill-current' : ''}`} />
                     </Button>
                 </div>
-                {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-1">{optimisticLikes.length} J'aime</p>}
-                <div className="text-sm mt-1">
+                {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-1 px-2">{optimisticLikes.length} J'aime</p>}
+                <div className="text-sm mt-1 px-2">
                     <Link href={`/profile/${post.userId}`}>
                         <span className="font-semibold cursor-pointer hover:underline">{post.userDisplayName}</span>
                     </Link>
@@ -295,13 +293,13 @@ export default function PostCard({ post }: PostCardProps) {
                 </div>
                 
                 {optimisticComments.length > 1 && !showAllComments && (
-                    <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1" onClick={() => setShowAllComments(true)}>
+                    <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1 px-2" onClick={() => setShowAllComments(true)}>
                         Voir les {optimisticComments.length} commentaires
                     </Button>
                 )}
                 
                 {optimisticComments.length > 0 && (
-                     <div className="mt-2 text-sm w-full space-y-1">
+                     <div className="mt-2 text-sm w-full space-y-1 px-2">
                         {displayedComments.map((comment, index) => (
                             <div key={index} className="flex items-start gap-2">
                                 <Link href={`/profile/${comment.userId}`}>
@@ -314,10 +312,11 @@ export default function PostCard({ post }: PostCardProps) {
                 )}
 
                 {optimisticComments.length > 1 && showAllComments && (
-                     <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1" onClick={() => setShowAllComments(false)}>
+                     <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1 px-2" onClick={() => setShowAllComments(false)}>
                         Masquer les commentaires
                     </Button>
                 )}
+                 <p className="text-xs text-muted-foreground uppercase mt-2 px-2">{timeAgo}</p>
                 
                 {user && (
                     <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t">
