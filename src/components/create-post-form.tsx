@@ -97,70 +97,66 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg p-0">
-        <DialogHeader className="p-6 pb-0 text-center">
-           <DialogTitle className="text-lg font-semibold">Créer une nouvelle publication</DialogTitle>
+        <DialogHeader className="p-4 pb-0 border-b text-center">
+           <DialogTitle className="text-base font-semibold">Créer une nouvelle publication</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-           <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-            {imageUrl ? (
-                <div className="relative aspect-square border-y">
-                    <Image src={imageUrl} alt="Aperçu de l'image" fill objectFit="cover" />
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center aspect-square border-y">
-                    <ImageIcon className="h-16 w-16 text-muted-foreground" strokeWidth={1} />
-                    <p className="mt-4 text-muted-foreground">Téléchargez une photo ici</p>
-                </div>
-            )}
-             <div className="px-6 space-y-4">
-                 {user && (
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.photoURL ?? undefined} />
-                            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                        </Avatar>
-                        <p className="font-semibold">{user.displayName}</p>
-                    </div>
-                 )}
-                <div>
-                    <Textarea
-                        id="caption"
-                        {...register('caption')}
-                        placeholder="Écrivez une légende..."
-                        className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[60px]"
-                    />
-                    {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+           <div className="grid grid-cols-[1fr_40%] max-h-[70vh]">
+                <div className="flex flex-col items-center justify-center aspect-square border-r">
+                    {imageUrl ? (
+                         <div className="relative w-full h-full">
+                            <Image src={imageUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
+                        </div>
+                    ) : (
+                        <>
+                            <ImageIcon className="h-16 w-16 text-muted-foreground" strokeWidth={1} />
+                            <p className="mt-4 text-muted-foreground">Téléchargez une photo ici</p>
+                             <Button type="button" variant="link" asChild className="mt-2">
+                                <Label htmlFor="image-upload" className="cursor-pointer">
+                                    Sélectionner depuis l'ordinateur
+                                </Label>
+                            </Button>
+                            <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
+                        </>
+                    )}
                 </div>
 
-                <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        id="location" 
-                        placeholder="Ajouter un lieu" 
-                        {...register('location')}
-                        className="pl-9"
-                    />
+                <div className="p-4 flex flex-col">
+                    {user && (
+                        <div className="flex items-center gap-3 mb-4">
+                            <Avatar className="h-7 w-7">
+                                <AvatarImage src={user.photoURL ?? undefined} />
+                                <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-sm">{user.displayName}</p>
+                        </div>
+                    )}
+                    <div>
+                        <Textarea
+                            id="caption"
+                            {...register('caption')}
+                            placeholder="Écrivez une légende..."
+                            className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[150px] h-full"
+                        />
+                        {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+                    </div>
+
+                    <div className="border-t mt-auto pt-4">
+                        <div className="relative">
+                             <Input 
+                                id="location" 
+                                placeholder="Ajouter un lieu" 
+                                {...register('location')}
+                                className="border-none p-0 focus-visible:ring-0"
+                            />
+                        </div>
+                    </div>
                 </div>
-             </div>
            </div>
-          <DialogFooter className="p-4 flex justify-between items-center bg-background border-t">
-             <div className="relative">
-                <Button type="button" variant="outline" size="icon" asChild>
-                    <Label htmlFor="image-upload" className="cursor-pointer">
-                        <ImageIcon className="h-5 w-5" />
-                        <span className="sr-only">Télécharger une image</span>
-                    </Label>
-                </Button>
-                <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
-            </div>
-            <div className="flex gap-2">
-                 <DialogClose asChild>
-                    <Button type="button" variant="ghost">Annuler</Button>
-                </DialogClose>
-                <Button type="submit" disabled={loading}>
-                {loading ? 'Publication...' : 'Publier'}
-                </Button>
-            </div>
+          <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
+            <Button type="submit" disabled={loading} variant="link" className="font-bold">
+              {loading ? 'Publication...' : 'Partager'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

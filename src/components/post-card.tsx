@@ -237,7 +237,7 @@ export default function PostCard({ post }: PostCardProps) {
                 )}
                 
                 {user && (
-                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-1 mt-1">
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-1 mt-1 border-t">
                         <Input 
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}

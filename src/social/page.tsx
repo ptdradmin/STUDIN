@@ -65,14 +65,14 @@ export default function SocialPageContent() {
                 <div className="flex flex-col md:flex-row md:gap-8">
                     <div className="w-full md:max-w-[470px] mx-auto">
                         <UsersTray users={users || []} />
-                        <div className="space-y-4 pt-4 w-full">
+                        <div className="w-full">
                             {isLoading && <PageSkeleton />}
                             {!isLoading && posts && posts.map(post => (
                                 <PostCard key={post.id} post={post} />
                             ))}
                             {!isLoading && posts?.length === 0 && (
                                  <div className="text-center py-20">
-                                    <h3 className="text-2xl font-semibold">Bienvenue !</h3>
+                                    <h3 className="text-2xl font-semibold">Bienvenue sur Stud'in</h3>
                                     <p className="text-muted-foreground mt-2">Commencez par suivre des gens pour voir leurs publications ici.</p>
                                  </div>
                              )}
