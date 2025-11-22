@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -43,7 +44,7 @@ export default function NotificationsDropdown() {
             orderBy('createdAt', 'desc'),
             limit(10)
         );
-    }, [firestore, user]);
+    }, [firestore, user?.uid]);
 
     const { data: notifications, isLoading } = useCollection<Notification>(notificationsQuery);
     
@@ -108,5 +109,3 @@ export default function NotificationsDropdown() {
         </DropdownMenu>
     )
 }
-
-    

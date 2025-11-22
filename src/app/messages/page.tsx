@@ -102,7 +102,7 @@ export default function MessagesPage() {
     const messagesQuery = useMemoFirebase(() => {
         if (!firestore || !selectedConversation) return null;
         return query(collection(firestore, 'conversations', selectedConversation.id, 'messages'), orderBy('createdAt', 'asc'));
-    }, [firestore, selectedConversation]);
+    }, [firestore, selectedConversation?.id]);
     const { data: messages, isLoading: messagesLoading } = useCollection<ChatMessage>(messagesQuery);
 
     const getSafeDate = (dateValue: any): Date | null => {

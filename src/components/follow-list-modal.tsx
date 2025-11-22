@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, documentId } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
@@ -100,5 +100,3 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
     </Dialog>
   );
 }
-
-    

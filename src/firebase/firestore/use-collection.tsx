@@ -42,8 +42,8 @@ export interface InternalQuery extends Query<DocumentData> {
  * Handles nullable references/queries.
  * 
  *
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
+ * IMPORTANT! YOU MUST MEMOIZE the inputted targetRefOrQuery or BAD THINGS WILL HAPPEN
+ * use useMemoFirebase to memoize it per React guidence.  Also make sure that it's dependencies are stable
  * references
  *  
  * @template T Optional type for document data. Defaults to any.
@@ -52,7 +52,7 @@ export interface InternalQuery extends Query<DocumentData> {
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
-    memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
+    targetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>))  | null | undefined,
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
@@ -63,7 +63,7 @@ export function useCollection<T = any>(
 
   useEffect(() => {
     // If the query is null or undefined, reset state and do nothing.
-    if (!memoizedTargetRefOrQuery) {
+    if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -74,7 +74,7 @@ export function useCollection<T = any>(
     setError(null);
 
     const unsubscribe = onSnapshot(
-      memoizedTargetRefOrQuery,
+      targetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const results: ResultItemType[] = [];
         snapshot.forEach((doc) => {
@@ -87,10 +87,10 @@ export function useCollection<T = any>(
       (error: FirestoreError) => {
         let path = 'unknown_path';
         try {
-            if (memoizedTargetRefOrQuery.type === 'collection') {
-                path = (memoizedTargetRefOrQuery as CollectionReference).path;
-            } else if ((memoizedTargetRefOrQuery as any)._query?.path) {
-                path = (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
+            if (targetRefOrQuery.type === 'collection') {
+                path = (targetRefOrQuery as CollectionReference).path;
+            } else if ((targetRefOrQuery as any)._query?.path) {
+                path = (targetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
             }
         } catch (e) {
             console.error("Could not extract path from query/ref for error reporting.", e);
@@ -110,11 +110,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]);
-  
-  if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
-    throw new Error('useCollection query was not properly memoized using useMemoFirebase. This will cause performance issues.');
-  }
+  }, [targetRefOrQuery]);
 
   return { data, isLoading, error };
 }

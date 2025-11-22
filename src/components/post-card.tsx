@@ -44,7 +44,7 @@ export default function PostCard({ post }: PostCardProps) {
             where('userId', '==', user.uid),
             where('itemType', '==', 'post')
         );
-    }, [firestore, user]);
+    }, [firestore, user?.uid]);
 
     const { data: favoriteItems } = useCollection<Favorite>(favoritesQuery);
 

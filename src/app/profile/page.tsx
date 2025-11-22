@@ -183,7 +183,7 @@ export default function CurrentUserProfilePage() {
                                     </button>
                                      <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline">
                                         <span className="font-semibold">{followingCount}</span> abonnements
-                                    </button>
+                                     </button>
                                 </div>
                                 <div>
                                     <p className="font-semibold">{userProfile?.firstName} {userProfile?.lastName}</p>
