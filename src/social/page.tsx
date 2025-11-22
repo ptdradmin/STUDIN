@@ -65,7 +65,7 @@ export default function SocialPageContent() {
                     <h1 className="text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <StatCard 
                         title="Sessions de tutorat actives" 
                         value={tutors?.length ?? 0}
