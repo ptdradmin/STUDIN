@@ -23,7 +23,7 @@ const eventSchema = z.object({
   city: z.string().min(1, 'La ville est requise'),
   address: z.string().min(1, 'L\'adresse est requise'),
   price: z.preprocess((val) => Number(val), z.number().min(0, 'Le prix est requis')),
-  imageUrl: z.string().url('URL invalide').min(1, "L'URL de l'image est requise"),
+  imageUrl: z.string().min(1, "L'image est requise"),
 });
 
 type EventFormInputs = z.infer<typeof eventSchema>;
@@ -33,7 +33,7 @@ interface CreateEventFormProps {
 }
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
-  const { register, handleSubmit, control, formState: { errors } } = useForm<EventFormInputs>({
+  const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
   });
 
@@ -41,6 +41,17 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const firestore = useFirestore();
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setValue('imageUrl', reader.result as string, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit: SubmitHandler<EventFormInputs> = (data) => {
     if (!user || !firestore) {
@@ -126,8 +137,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
               {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
             </div>
           <div>
-            <Label htmlFor="imageUrl">URL de l'image</Label>
-            <Input id="imageUrl" placeholder="https://picsum.photos/..." {...register('imageUrl')} />
+            <Label htmlFor="imageUrl">Image</Label>
+            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
             {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
           </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">

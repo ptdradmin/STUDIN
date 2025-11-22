@@ -27,7 +27,7 @@ const housingSchema = z.object({
   city: z.string().min(1, 'La ville est requise'),
   bedrooms: z.preprocess((val) => Number(val), z.number().min(1, 'Le nombre de chambres est requis')),
   surface_area: z.preprocess((val) => Number(val), z.number().min(1, 'La surface est requise')),
-  imageUrl: z.string().url('URL invalide').min(1, "L'URL de l'image est requise"),
+  imageUrl: z.string().min(1, "L'image est requise"),
 });
 
 type HousingFormInputs = z.infer<typeof housingSchema>;
@@ -38,7 +38,7 @@ interface CreateHousingFormProps {
 }
 
 export default function CreateHousingForm({ onClose, housingToEdit }: CreateHousingFormProps) {
-  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<HousingFormInputs>({
+  const { register, handleSubmit, control, formState: { errors }, reset, setValue } = useForm<HousingFormInputs>({
     resolver: zodResolver(housingSchema),
     defaultValues: housingToEdit ? {
         title: housingToEdit.title,
@@ -76,6 +76,18 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
   const { user } = useAuth();
   const firestore = useFirestore();
   const isEditing = !!housingToEdit;
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setValue('imageUrl', reader.result as string, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const onSubmit: SubmitHandler<HousingFormInputs> = async (data) => {
     if (!user || !firestore) {
@@ -182,8 +194,8 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
               {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
             </div>
            <div>
-            <Label htmlFor="imageUrl">URL de l'image</Label>
-            <Input id="imageUrl" placeholder="https://picsum.photos/..." {...register('imageUrl')} />
+            <Label htmlFor="imageUrl">Image</Label>
+            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
             {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
           </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
