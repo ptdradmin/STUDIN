@@ -64,16 +64,16 @@ export default function ProfileClientPage() {
     return (
         <div className="mx-auto max-w-4xl">
             <div className="p-4 md:p-6">
-                <div className="flex items-center space-x-4 md:space-x-8">
-                    <Skeleton className="h-20 w-20 md:h-36 md:w-36 rounded-full" />
-                    <div className="space-y-2">
-                        <Skeleton className="h-6 w-40" />
-                        <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
+                    <Skeleton className="h-24 w-24 md:h-36 md:w-36 rounded-full flex-shrink-0" />
+                    <div className="space-y-3 text-center sm:text-left">
+                        <Skeleton className="h-6 w-40 mx-auto sm:mx-0" />
+                        <div className="flex justify-center sm:justify-start gap-4">
                            <Skeleton className="h-4 w-20" />
                            <Skeleton className="h-4 w-20" />
                            <Skeleton className="h-4 w-20" />
                         </div>
-                        <Skeleton className="h-4 w-48 pt-2" />
+                        <Skeleton className="h-4 w-48 pt-2 mx-auto sm:mx-0" />
                     </div>
                 </div>
             </div>
@@ -94,19 +94,23 @@ export default function ProfileClientPage() {
   return (
     <div className="mx-auto max-w-4xl">
         <div className="p-4 md:p-6">
-            <div className="flex items-center space-x-4 md:space-x-8">
-                 <Avatar className="h-20 w-20 md:h-36 md:w-36">
+            <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                 <Avatar className="h-24 w-24 md:h-36 md:w-36 flex-shrink-0">
                     <AvatarImage src={user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} />
                     <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                 </Avatar>
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
+                <div className="space-y-4 text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
                         <h2 className="text-2xl font-light">{user.displayName || user.email?.split('@')[0]}</h2>
-                        <Button onClick={handleLogout} variant="destructive" size="sm" className="md:hidden">
-                            <LogOut className="h-4 w-4"/>
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button variant="secondary" size="sm">Modifier le profil</Button>
+                            <Button variant="destructive" size="sm" onClick={handleLogout}>
+                                <LogOut className="h-4 w-4"/>
+                                <span className="ml-2 hidden sm:inline">Déconnexion</span>
+                            </Button>
+                        </div>
                     </div>
-                    <div className="flex gap-4 md:gap-8 text-sm">
+                    <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
                         <p><span className="font-semibold">{userPosts.length}</span> publications</p>
                         <p><span className="font-semibold">1.2k</span> abonnés</p>
                         <p><span className="font-semibold">543</span> abonnements</p>
@@ -116,13 +120,6 @@ export default function ProfileClientPage() {
                         {/* <p className="text-muted-foreground text-sm">{user.university || 'Université non spécifiée'}</p> */}
                     </div>
                 </div>
-            </div>
-            <div className="mt-6 flex gap-2">
-                <Button variant="secondary" className="flex-grow">Modifier le profil</Button>
-                <Button variant="secondary" className="flex-grow">Partager le profil</Button>
-                 <Button onClick={handleLogout} variant="destructive" className="shrink-0 hidden md:flex">
-                    Déconnexion
-                </Button>
             </div>
         </div>
 
@@ -134,7 +131,7 @@ export default function ProfileClientPage() {
                 </TabsTrigger>
                 <TabsTrigger value="saved" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                     <Bookmark className="h-5 w-5" />
-                    <span className="hidden md:inline ml-2">Enregistrements</span>
+                    <span className="hidden md:inline ml-2">Enregistrés</span>
                 </TabsTrigger>
                 <TabsTrigger value="tagged" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                     <AtSign className="h-5 w-5" />
