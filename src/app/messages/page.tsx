@@ -16,7 +16,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { deleteConversation } from '@/ai/flows/delete-conversation-flow';
 
 
 function ConversationListSkeleton() {
@@ -172,7 +173,7 @@ export default function MessagesPage() {
                             const permissionError = new FirestorePermissionError({
                                 path: 'users',
                                 operation: 'get',
-                                requestResourceData: { note: `Querying user with ID: ${recipientId} or ${user.uid}` }
+                                requestResourceData: { note: `Querying user with ID: ${'${recipientId}'} or ${'${user.uid}'}` }
                             });
                             errorEmitter.emit('permission-error', permissionError);
                         }
@@ -195,15 +196,24 @@ export default function MessagesPage() {
         return <PageSkeleton />;
     }
 
-    const handleDeleteConversation = (conversationId: string) => {
+    const handleDeleteConversation = async (conversationId: string) => {
         if (!firestore) return;
-        deleteDocumentNonBlocking(doc(firestore, 'conversations', conversationId));
-        toast({
-            title: "Conversation supprimée",
-            description: "La conversation a été définitivement supprimée.",
-        });
-        if (selectedConversation?.id === conversationId) {
-            setSelectedConversation(null);
+        try {
+            await deleteConversation(conversationId);
+            toast({
+                title: "Conversation supprimée",
+                description: "La conversation a été définitivement supprimée.",
+            });
+            if (selectedConversation?.id === conversationId) {
+                setSelectedConversation(null);
+            }
+        } catch (error) {
+             console.error('Failed to delete conversation', error);
+             toast({
+                title: "Erreur",
+                description: "Impossible de supprimer la conversation.",
+                variant: 'destructive',
+             });
         }
     };
 
