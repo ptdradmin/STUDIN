@@ -7,6 +7,7 @@ import { initializeFirebase } from '@/firebase';
 import { FirebaseApp } from 'firebase/app';
 import { Auth } from 'firebase/auth';
 import { Firestore } from 'firebase/firestore';
+import { FirebaseStorage } from 'firebase/storage';
 import { PageSkeleton } from '@/components/page-skeleton';
 
 interface FirebaseClientProviderProps {
@@ -17,6 +18,7 @@ interface FirebaseServices {
   app: FirebaseApp;
   auth: Auth;
   firestore: Firestore;
+  storage: FirebaseStorage;
 }
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
@@ -24,8 +26,8 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const { firebaseApp, auth, firestore } = initializeFirebase();
-      setFirebaseServices({ app: firebaseApp, auth, firestore });
+      const { firebaseApp, auth, firestore, storage } = initializeFirebase();
+      setFirebaseServices({ app: firebaseApp, auth, firestore, storage });
     }
   }, []);
 
@@ -38,6 +40,7 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
       firebaseApp={firebaseServices.app}
       auth={firebaseServices.auth}
       firestore={firebaseServices.firestore}
+      storage={firebaseServices.storage}
     >
       {children}
     </FirebaseProvider>

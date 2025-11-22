@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { updateProfile } from 'firebase/auth';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
 
@@ -28,7 +29,7 @@ const profileSchema = z.object({
   bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
   website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
-  // profilePicture: z.string().optional(), // Removed to prevent upload errors
+  profilePicture: z.string().optional(),
 });
 
 type ProfileFormInputs = z.infer<typeof profileSchema>;
@@ -62,15 +63,27 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         bio: userProfile?.bio || '',
         website: userProfile?.website || '',
         gender: userProfile?.gender,
-        // profilePicture: userProfile?.profilePicture,
+        profilePicture: userProfile?.profilePicture,
     }
   });
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(userProfile?.profilePicture);
   
-  const currentAvatar = userProfile?.profilePicture;
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        setProfilePictureFile(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviewUrl(reader.result as string);
+        }
+        reader.readAsDataURL(file);
+    }
+  }
 
   const getInitials = (name?: string) => {
     if (!name) return "..";
@@ -90,9 +103,18 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     
     try {
       const userDocRef = doc(firestore, 'users', user.uid);
+      let newPhotoURL = userProfile.profilePicture;
+
+      if (profilePictureFile) {
+        const storage = getStorage();
+        const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
+        await uploadBytes(fileRef, profilePictureFile);
+        newPhotoURL = await getDownloadURL(fileRef);
+      }
       
-      const dataToUpdate: Partial<Omit<UserProfile, 'profilePicture'>> & { updatedAt: any } = {
+      const dataToUpdate: any = {
         ...data,
+        profilePicture: newPhotoURL,
         updatedAt: serverTimestamp()
       };
       
@@ -106,9 +128,10 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
       await updateDoc(userDocRef, dataToUpdate);
       
       const displayName = `${data.firstName} ${data.lastName}`;
-      if(user.displayName !== displayName) {
+      if(user.displayName !== displayName || user.photoURL !== newPhotoURL) {
         await updateProfile(user, { 
             displayName,
+            photoURL: newPhotoURL,
         });
       }
 
@@ -131,12 +154,15 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
             <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage src={currentAvatar} />
+                    <AvatarImage src={previewUrl || undefined} />
                     <AvatarFallback>{getInitials(userProfile?.firstName)}</AvatarFallback>
                 </Avatar>
                 <div>
                     <p className="font-semibold">{userProfile.username}</p>
-                    <p className="text-sm text-muted-foreground">La modification de la photo est temporairement désactivée.</p>
+                    <Label htmlFor="photo-upload" className="text-sm text-primary cursor-pointer hover:underline">
+                        Changer la photo de profil
+                    </Label>
+                    <Input id="photo-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageChange}/>
                 </div>
             </div>
 
