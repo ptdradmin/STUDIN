@@ -5,6 +5,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, GraduationCap, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { PageSkeleton } from '@/components/page-skeleton';
 
 const services = [
     {
@@ -34,6 +38,19 @@ const services = [
 ]
 
 export default function Home() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/social');
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || user) {
+    return <PageSkeleton />;
+  }
+
 
   return (
     <>
