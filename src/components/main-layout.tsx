@@ -8,7 +8,7 @@ import { PageSkeleton } from './page-skeleton';
 import { usePathname } from 'next/navigation';
 import SocialLayout from '@/social/layout';
 
-const socialRoutes = ['/social', '/profile', '/settings', '/messages'];
+const publicRoutes = ['/login', '/register', '/about', '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact', '/faq', '/community-rules', '/housing', '/carpooling', '/tutoring', '/events'];
 
 export default function MainLayout({
     children,
@@ -22,18 +22,13 @@ export default function MainLayout({
         return <PageSkeleton />;
     }
 
-    if (user && socialRoutes.includes(pathname)) {
+    // If user is logged in, always show the app layout
+    if (user) {
         return <SocialLayout>{children}</SocialLayout>;
     }
-    
-    if (user && !socialRoutes.includes(pathname)) {
-        return (
-            <SocialLayout>
-                {/* This will render the main social page content if a logged-in user lands on a public route */}
-            </SocialLayout>
-        )
-    }
 
+    // If user is not logged in, show public site
+    // This also handles the root path "/" when not logged in
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
