@@ -114,7 +114,7 @@ export default function SocialClientPage() {
 
                     <div className="flex items-center gap-1 md:gap-2">
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href="/">
+                            <Link href="/social">
                                 <Home className="h-6 w-6" />
                             </Link>
                         </Button>
