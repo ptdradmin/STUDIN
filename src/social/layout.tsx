@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Search, Compass, MessageSquare, Heart, PlusSquare, User, Menu, Film, LogOut, Settings, Bookmark } from "lucide-react";
+import { Home, Search, Compass, MessageSquare, Heart, PlusSquare, User, Menu, Film, LogOut, Settings, Bookmark, Phone, GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
 import { useUser } from "@/firebase";
 import {
   Tooltip,
@@ -27,11 +27,14 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home },
-  { id: "search", label: "Recherche", icon: Search },
-  { href: "/events", label: "Découvrir", icon: Compass },
-  { href: "/reels", label: "Reels", icon: Film },
+  { href: "#", label: "Appels", icon: Phone },
   { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/tutoring", label: "Tutorat", icon: GraduationCap },
+  { href: "/carpooling", label: "Covoiturage", icon: Car },
+  { href: "/housing", label: "Logements", icon: Bed },
+  { href: "/events", label: "Événements", icon: PartyPopper },
 ];
+
 
 function NavLink({ item, onClick }: { item: { href?: string, id?: string, label: string, icon: React.ElementType }, onClick: (id?: string) => void }) {
   const pathname = usePathname();
