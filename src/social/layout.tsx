@@ -27,7 +27,6 @@ import { useRouter } from 'next/navigation';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home },
-  { href: "#", label: "Appels", icon: Phone },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/tutoring", label: "Tutorat", icon: GraduationCap },
   { href: "/carpooling", label: "Covoiturage", icon: Car },
