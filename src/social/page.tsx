@@ -111,9 +111,9 @@ export default function SocialPageContent() {
 
     return (
        <div className="w-full">
-            <div className="container mx-auto px-0 md:px-4 max-w-5xl py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    <div className="lg:col-span-2 space-y-6">
+            <div className="container mx-auto px-0 sm:px-4 max-w-4xl py-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    <div className="md:col-span-2 space-y-4">
                          {posts && posts.length > 0 ? (
                             posts.map(post => <PostCard key={post.id} post={post} />)
                         ) : (
@@ -123,7 +123,7 @@ export default function SocialPageContent() {
                             </div>
                         )}
                     </div>
-                    <div className="hidden lg:block space-y-6">
+                    <div className="hidden md:block">
                          <div className="sticky top-20">
                             <Suggestions />
                          </div>
