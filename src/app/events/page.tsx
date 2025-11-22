@@ -5,7 +5,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, MapPin, Tag, University } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function EventsPage() {
@@ -53,19 +53,19 @@ export default function EventsPage() {
                               </Select>
                           </div>
                           <div className="lg:col-span-2">
-                            <Button type="submit" className="w-full" disabled>Filtrer</Button>
+                            <Button type="submit" className="w-full">Filtrer</Button>
                           </div>
                       </form>
                   </CardContent>
               </Card>
 
               <div className="mt-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-4">Prochainement...</h2>
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Événements à venir</h2>
                  <Card className="text-center py-20 bg-muted/40 border-dashed">
                   <CardContent>
                       <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mt-4">Les listes d'événements arrivent bientôt</h3>
-                      <p className="text-muted-foreground mt-2">Découvrez les meilleures soirées, conférences et activités de votre campus.</p>
+                      <h3 className="text-xl font-semibold mt-4">Aucun événement à venir</h3>
+                      <p className="text-muted-foreground mt-2">Revenez bientôt ou élargissez votre recherche pour découvrir les activités.</p>
                   </CardContent>
               </Card>
               </div>

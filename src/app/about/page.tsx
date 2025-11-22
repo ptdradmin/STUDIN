@@ -1,28 +1,35 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, Car, BookOpen, PartyPopper } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const features = [
   {
     icon: <Home className="h-8 w-8" />,
     title: 'Logement',
     description: 'Trouvez un kot, un studio ou une colocation près de votre campus.',
+    href: "/housing",
   },
   {
     icon: <Car className="h-8 w-8" />,
     title: 'Covoiturage',
     description: 'Partagez vos trajets et économisez sur vos frais de déplacement.',
+    href: "/carpooling",
   },
   {
     icon: <BookOpen className="h-8 w-8" />,
     title: 'Tutorat',
     description: "Obtenez de l'aide ou proposez vos compétences dans toutes les matières.",
+    href: "/tutoring",
   },
   {
     icon: <PartyPopper className="h-8 w-8" />,
     title: 'Événements',
     description: 'Ne manquez aucune soirée, conférence ou activité étudiante.',
+    href: "/events",
   },
 ];
 
@@ -65,20 +72,35 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((feature) => (
-                <Card key={feature.title} className="h-full text-center border-0 shadow-none bg-transparent">
-                  <CardHeader>
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      {feature.icon}
-                    </div>
-                    <CardTitle>{feature.title}</CardTitle>
-                    <CardContent className="pt-2 text-muted-foreground">
-                      <p>{feature.description}</p>
-                    </CardContent>
-                  </CardHeader>
-                </Card>
+                 <Link href={feature.href} key={feature.title} className="block">
+                  <Card className="h-full text-center border-0 shadow-lg bg-transparent transition-transform hover:-translate-y-2">
+                    <CardHeader>
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        {feature.icon}
+                      </div>
+                      <CardTitle>{feature.title}</CardTitle>
+                      <CardContent className="pt-2 text-muted-foreground">
+                        <p>{feature.description}</p>
+                      </CardContent>
+                    </CardHeader>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
+        </section>
+        <section className="py-16 md:py-24">
+           <div className="container mx-auto px-4 text-center">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Prêt à nous rejoindre ?</h2>
+              <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+                Créez votre compte gratuitement et découvrez une nouvelle façon de vivre votre vie étudiante.
+              </p>
+              <div className="mt-8">
+                <Button asChild size="lg">
+                  <Link href="/register">S'inscrire sur STUD'IN</Link>
+                </Button>
+              </div>
+            </div>
         </section>
       </main>
       <Footer />

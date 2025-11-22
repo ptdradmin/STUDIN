@@ -38,19 +38,19 @@ export default function CarpoolingPage() {
                           <Input id="date" type="date" />
                       </div>
                        <div className="space-y-2 lg:col-span-2">
-                           <Button type="submit" className="w-full" disabled>Rechercher un covoiturage</Button>
+                           <Button type="submit" className="w-full">Rechercher un covoiturage</Button>
                       </div>
                   </form>
                 </CardContent>
               </Card>
 
               <div className="mt-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-4">Prochainement...</h2>
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Résultats de recherche</h2>
                  <Card className="text-center py-20 bg-muted/40 border-dashed">
                   <CardContent>
                       <Car className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mt-4">La recherche de trajets sera bientôt disponible</h3>
-                      <p className="text-muted-foreground mt-2">Vous pourrez bientôt trouver des conducteurs et des passagers pour vos trajets quotidiens.</p>
+                      <h3 className="text-xl font-semibold mt-4">Aucun trajet trouvé</h3>
+                      <p className="text-muted-foreground mt-2">Essayez d'ajuster vos filtres de recherche.</p>
                   </CardContent>
               </Card>
               </div>

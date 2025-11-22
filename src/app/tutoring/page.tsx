@@ -5,9 +5,8 @@ import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookMarked, BrainCircuit, GraduationCap, Star } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function TutoringPage() {
   return (
@@ -46,19 +45,19 @@ export default function TutoringPage() {
                           </Select>
                       </div>
                       <div className="lg:col-span-2">
-                          <Button type="submit" className="w-full" disabled>Rechercher un tuteur</Button>
+                          <Button type="submit" className="w-full">Rechercher un tuteur</Button>
                       </div>
                   </form>
                 </CardContent>
               </Card>
 
                <div className="mt-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-4">Prochainement...</h2>
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Tuteurs disponibles</h2>
                  <Card className="text-center py-20 bg-muted/40 border-dashed">
                   <CardContent>
                       <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mt-4">La mise en relation avec des tuteurs arrive bientôt</h3>
-                      <p className="text-muted-foreground mt-2">Proposez votre aide ou trouvez le soutien académique dont vous avez besoin.</p>
+                      <h3 className="text-xl font-semibold mt-4">Aucun tuteur trouvé</h3>
+                      <p className="text-muted-foreground mt-2">Ajustez vos critères pour trouver le tuteur idéal.</p>
                   </CardContent>
               </Card>
               </div>
