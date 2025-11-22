@@ -14,10 +14,10 @@ import {
   getDocs,
   query,
   where,
+  addDoc,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
-import { addDoc } from 'firebase/firestore';
 import type { UserProfile } from './types';
 
 
@@ -50,26 +50,6 @@ export const toggleFollowUser = async (
     // Suivre : ajouter les IDs aux listes respectives
     batch.update(currentUserRef, { followingIds: arrayUnion(targetUserId) });
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
-
-    // Créer une notification pour l'utilisateur suivi
-    const senderProfileSnap = await getDoc(currentUserRef);
-    if(senderProfileSnap.exists()) {
-        const senderProfile = senderProfileSnap.data();
-        const notificationRef = doc(collection(firestore, `users/${targetUserId}/notifications`));
-        
-        batch.set(notificationRef, {
-            id: notificationRef.id,
-            type: 'new_follower',
-            senderId: currentUserId,
-            senderProfile: {
-                username: senderProfile.username,
-                profilePicture: senderProfile.profilePicture,
-            },
-            recipientId: targetUserId,
-            read: false,
-            createdAt: serverTimestamp(),
-        });
-    }
   }
 
   // Exécuter le batch et gérer les erreurs de permissions
@@ -89,8 +69,57 @@ export const toggleFollowUser = async (
     errorEmitter.emit('permission-error', permissionError);
     // Afficher l'erreur dans la console pour un débogage immédiat
     console.error("Erreur de permission lors de la tentative de suivi/non-suivi :", serverError);
+    // Rethrow to signal failure to the caller
+    throw serverError;
   }
 };
+
+
+/**
+ * Creates a notification for a new follower.
+ *
+ * @param firestore - The Firestore instance.
+ * @param currentUserId - The ID of the user who initiated the follow.
+ * @param targetUserId - The ID of the user who is being followed.
+ */
+export const createFollowNotification = async (
+  firestore: Firestore,
+  currentUserId: string,
+  targetUserId: string
+) => {
+    try {
+        const senderProfileSnap = await getDoc(doc(firestore, 'users', currentUserId));
+        if (senderProfileSnap.exists()) {
+            const senderProfile = senderProfileSnap.data() as UserProfile;
+            const notificationRef = collection(firestore, `users/${targetUserId}/notifications`);
+            
+            await addDoc(notificationRef, {
+                type: 'new_follower',
+                senderId: currentUserId,
+                senderProfile: {
+                    username: senderProfile.username,
+                    profilePicture: senderProfile.profilePicture,
+                },
+                recipientId: targetUserId,
+                read: false,
+                createdAt: serverTimestamp(),
+            });
+        }
+    } catch (serverError) {
+         const permissionError = new FirestorePermissionError({
+            path: `users/${targetUserId}/notifications`,
+            operation: 'create',
+            requestResourceData: {
+                type: 'new_follower',
+                senderId: currentUserId,
+                recipientId: targetUserId,
+            }
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Erreur lors de la création de la notification de suivi :", serverError);
+        throw serverError;
+    }
+}
 
 
 export const updateUserPosts = async (firestore: Firestore, userId: string, updatedProfile: Partial<UserProfile>) => {
@@ -126,4 +155,3 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
         console.error("Erreur de permission lors de la mise à jour des publications :", serverError);
     }
 };
-

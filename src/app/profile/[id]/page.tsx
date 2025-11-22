@@ -15,7 +15,7 @@ import type { Post, UserProfile, Favorite } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where, documentId } from 'firebase/firestore';
-import { toggleFollowUser } from '@/lib/social';
+import { toggleFollowUser, createFollowNotification } from '@/lib/social';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
@@ -117,11 +117,16 @@ export default function UserProfilePage() {
         return;
     }
 
+    const wasFollowing = isFollowing;
     try {
-        await toggleFollowUser(firestore, user.uid, userProfile.id, isFollowing);
-        toast({ title: isFollowing ? "Ne plus suivre" : "Suivi", description: `Vous ${isFollowing ? 'ne suivez plus' : 'suivez maintenant'} ${userProfile.username}.`})
+        await toggleFollowUser(firestore, user.uid, userProfile.id, wasFollowing);
+        if (!wasFollowing) {
+            // If the user just followed, create the notification
+            await createFollowNotification(firestore, user.uid, userProfile.id);
+        }
+        toast({ title: wasFollowing ? "Ne plus suivre" : "Suivi", description: `Vous ${wasFollowing ? 'ne suivez plus' : 'suivez maintenant'} ${userProfile.username}.`})
     } catch(error) {
-        toast({ title: "Erreur", description: "Une erreur est survenue.", variant: "destructive"})
+        toast({ title: "Erreur", description: "Une erreur est survenue lors de la tentative de suivi.", variant: "destructive"})
     }
   }
   
