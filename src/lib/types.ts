@@ -85,3 +85,36 @@ export interface Trip {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface UserProfile {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    university: string;
+    fieldOfStudy: string;
+    bio: string;
+    profilePicture: string;
+    createdAt: any;
+    updatedAt: any;
+}
+
+export interface ChatMessage {
+    id: string;
+    text: string;
+    senderId: string;
+    createdAt: any;
+}
+
+export interface Conversation {
+    id: string;
+    participantIds: string[];
+    participants: { [key: string]: UserProfile };
+    lastMessage?: {
+        text: string;
+        senderId: string;
+        timestamp: any;
+    };
+    createdAt: any;
+    updatedAt: any;
+}

@@ -553,45 +553,6 @@
         "userId"
       ]
     },
-    "Message": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Message",
-      "type": "object",
-      "description": "Represents a message between two users.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the message entity."
-        },
-        "senderId": {
-          "type": "string",
-          "description": "Reference to User (Sender). (Relationship: User 1:N Message)"
-        },
-        "receiverId": {
-          "type": "string",
-          "description": "Reference to User (Receiver). (Relationship: User 1:N Message)"
-        },
-        "content": {
-          "type": "string",
-          "description": "Content of the message."
-        },
-        "isRead": {
-          "type": "boolean",
-          "description": "Indicates whether the message has been read."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the message was created.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "senderId",
-        "receiverId",
-        "content"
-      ]
-    },
     "Favorite": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Favorite",
@@ -626,6 +587,77 @@
         "itemType",
         "itemId"
       ]
+    },
+    "Conversation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Conversation",
+      "type": "object",
+      "description": "Represents a chat conversation between users.",
+      "properties": {
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Array of user IDs participating in the conversation."
+        },
+        "participants": {
+          "type": "object",
+          "description": "Map of participant user profiles."
+        },
+        "lastMessage": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "senderId": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "participantIds"
+      ]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "type": "object",
+      "description": "Represents a single message within a conversation.",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The content of the message."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "The user ID of the message sender."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of when the message was sent."
+        }
+      },
+      "required": [
+        "text",
+        "senderId",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -644,13 +676,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles. Accessible only to the user with the matching userId.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            }
-          ]
+          "description": "Stores user profiles. Accessible only to the user with the matching userId."
         }
       },
       {
@@ -660,13 +686,7 @@
           "schema": {
             "$ref": "#/backend/entities/Housing"
           },
-          "description": "Stores housing listings. Includes userId for ownership validation.",
-          "params": [
-            {
-              "name": "housingId",
-              "description": "The unique identifier of the housing."
-            }
-          ]
+          "description": "Stores housing listings. Includes userId for ownership validation."
         }
       },
       {
@@ -676,13 +696,7 @@
           "schema": {
             "$ref": "#/backend/entities/Carpooling"
           },
-          "description": "Stores carpooling offers. Includes driverId for ownership validation.",
-          "params": [
-            {
-              "name": "carpoolingId",
-              "description": "The unique identifier of the carpooling offer."
-            }
-          ]
+          "description": "Stores carpooling offers. Includes driverId for ownership validation."
         }
       },
       {
@@ -692,17 +706,7 @@
           "schema": {
             "$ref": "#/backend/entities/CarpoolBooking"
           },
-          "description": "Stores bookings for carpooling. Includes passengerId and the carpooling's driverId.",
-          "params": [
-            {
-              "name": "carpoolingId",
-              "description": "The unique identifier of the carpooling offer."
-            },
-            {
-              "name": "carpoolBookingId",
-              "description": "The unique identifier of the carpool booking."
-            }
-          ]
+          "description": "Stores bookings for carpooling. Includes passengerId and the carpooling's driverId."
         }
       },
       {
@@ -712,13 +716,7 @@
           "schema": {
             "$ref": "#/backend/entities/Tutoring"
           },
-          "description": "Stores tutoring offers. Includes tutorId for ownership validation.",
-          "params": [
-            {
-              "name": "tutoringId",
-              "description": "The unique identifier of the tutoring offer."
-            }
-          ]
+          "description": "Stores tutoring offers. Includes tutorId for ownership validation."
         }
       },
       {
@@ -728,13 +726,7 @@
           "schema": {
             "$ref": "#/backend/entities/TutoringReview"
           },
-          "description": "Stores reviews for tutoring. Includes studentId and the tutoring's tutorId.",
-          "params": [
-            {
-              "name": "tutoringReviewId",
-              "description": "The unique identifier of the tutoring review."
-            }
-          ]
+          "description": "Stores reviews for tutoring. Includes studentId and the tutoring's tutorId."
         }
       },
       {
@@ -744,13 +736,7 @@
           "schema": {
             "$ref": "#/backend/entities/Event"
           },
-          "description": "Stores events. Includes organizerId for ownership validation.",
-          "params": [
-            {
-              "name": "eventId",
-              "description": "The unique identifier of the event."
-            }
-          ]
+          "description": "Stores events. Includes organizerId for ownership validation."
         }
       },
       {
@@ -760,29 +746,7 @@
           "schema": {
             "$ref": "#/backend/entities/EventAttendee"
           },
-          "description": "Stores records of users attending events. Includes userId for attendance validation.",
-          "params": [
-            {
-              "name": "eventAttendeeId",
-              "description": "The unique identifier of the event attendee record."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/messages/{messageId}",
-        "definition": {
-          "entityName": "Message",
-          "schema": {
-            "$ref": "#/backend/entities/Message"
-          },
-          "description": "Stores messages between users. Includes senderId and receiverId.",
-          "params": [
-            {
-              "name": "messageId",
-              "description": "The unique identifier of the message."
-            }
-          ]
+          "description": "Stores records of users attending events. Includes userId for attendance validation."
         }
       },
       {
@@ -792,16 +756,31 @@
           "schema": {
             "$ref": "#/backend/entities/Favorite"
           },
-          "description": "Stores user favorites. Includes userId for ownership validation.",
-          "params": [
-            {
-              "name": "favoriteId",
-              "description": "The unique identifier of the favorite item."
-            }
-          ]
+          "description": "Stores user favorites. Includes userId for ownership validation."
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}",
+        "definition": {
+          "entityName": "Conversation",
+          "schema": {
+            "$ref": "#/backend/entities/Conversation"
+          },
+          "description": "Stores metadata for a chat conversation between users."
+        }
+      },
+      {
+        "path": "/conversations/{conversationId}/messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores the individual messages for a specific conversation."
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the STUD'IN application. It follows the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).\n\n*   **Authorization Independence:** Achieved through denormalization. Specifically, the `userId` is included in `housings`, `carpoolings`, `tutorings`, `events`, and `favorites`. This allows security rules to validate ownership without needing to perform expensive `get()` operations to retrieve the user ID from a parent document. This ensures atomic operations and simplifies rule logic.\n*   **Clarity of Intent:** The structure uses consistent naming conventions and explicit state modeling to enhance debuggability. For example, `userId` is consistently used to denote the owner of a document. Clear naming conventions are used everywhere.\n*   **DBAC (No Custom Claims):** The structure relies solely on `request.auth.uid` for authorization. Roles are not stored in custom claims, but rather can be managed directly in the database if needed (e.g., via a separate `/roles_admin/{uid}` collection, which is not implemented here, since it's not needed).\n*   **QAPs (Rules are not Filters):** The structure supports secure list operations. By segregating data with different access needs into separate collections and using path-based ownership for private data, the security rules can efficiently validate access without acting as filters. For example, housing listings are stored in `/housings` and are accessible to all users, but only the owner can modify their listings. Carpool bookings can be listed/read by the Carpool's driver using query parameter filtering in rules.\n\n**Explanation of Specific Paths:**\n\n*   `/users/{userId}`: Stores user profiles. This is private data, accessible only to the user with the matching `userId`.\n*   `/housings/{housingId}`: Stores housing listings. Includes `userId` for ownership validation.\n*   `/carpoolings/{carpoolingId}`: Stores carpooling offers. Includes `driverId` for ownership validation.\n*   `/carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}`: Stores bookings for carpooling. Includes `passengerId` and the carpooling's `driverId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/tutorings/{tutoringId}`: Stores tutoring offers. Includes `tutorId` for ownership validation.\n*   `/tutoring_reviews/{tutoringReviewId}`: Stores reviews for tutoring. Includes `studentId` and the tutoring's `tutorId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/events/{eventId}`: Stores events. Includes `organizerId` for ownership validation.\n*   `/event_attendees/{eventAttendeeId}`: Stores records of users attending events. The `userId` is included so security rules can validate the attendance.\n*   `/messages/{messageId}`: Stores messages between users. Both `senderId` and `receiverId` are included, enabling security rules to validate that only the sender or receiver can access the message.  Consider using subcollections under each user to improve query performance for chat applications if scaling requires it.\n*   `/favorites/{favoriteId}`: Stores user favorites. Includes `userId` for ownership validation."
+    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the STUD'IN application. It follows the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).\n\n*   **Authorization Independence:** Achieved through denormalization. Specifically, the `userId` is included in `housings`, `carpoolings`, `tutorings`, `events`, and `favorites`. This allows security rules to validate ownership without needing to perform expensive `get()` operations to retrieve the user ID from a parent document. This ensures atomic operations and simplifies rule logic.\n*   **Clarity of Intent:** The structure uses consistent naming conventions and explicit state modeling to enhance debuggability. For example, `userId` is consistently used to denote the owner of a document. Clear naming conventions are used everywhere.\n*   **DBAC (No Custom Claims):** The structure relies solely on `request.auth.uid` for authorization. Roles are not stored in custom claims, but rather can be managed directly in the database if needed (e.g., via a separate `/roles_admin/{uid}` collection, which is not implemented here, since it's not needed).\n*   **QAPs (Rules are not Filters):** The structure supports secure list operations. By segregating data with different access needs into separate collections and using path-based ownership for private data, the security rules can efficiently validate access without acting as filters. For example, housing listings are stored in `/housings` and are accessible to all users, but only the owner can modify their listings. Carpool bookings can be listed/read by the Carpool's driver using query parameter filtering in rules.\n\n**Explanation of Specific Paths:**\n\n*   `/users/{userId}`: Stores user profiles. This is private data, accessible only to the user with the matching `userId`.\n*   `/housings/{housingId}`: Stores housing listings. Includes `userId` for ownership validation.\n*   `/carpoolings/{carpoolingId}`: Stores carpooling offers. Includes `driverId` for ownership validation.\n*   `/carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}`: Stores bookings for carpooling. Includes `passengerId` and the carpooling's `driverId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/tutorings/{tutoringId}`: Stores tutoring offers. Includes `tutorId` for ownership validation.\n*   `/tutoring_reviews/{tutoringReviewId}`: Stores reviews for tutoring. Includes `studentId` and the tutoring's `tutorId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/events/{eventId}`: Stores events. Includes `organizerId` for ownership validation.\n*   `/event_attendees/{eventAttendeeId}`: Stores records of users attending events. The `userId` is included so security rules can validate the attendance.\n*   `/messages/{messageId}`: (DEPRECATED) Stores messages between users. Both `senderId` and `receiverId` are included, enabling security rules to validate that only the sender or receiver can access the message.  Consider using subcollections under each user to improve query performance for chat applications if scaling requires it.\n*   `/favorites/{favoriteId}`: Stores user favorites. Includes `userId` for ownership validation.\n*   `/conversations/{conversationId}`: Stores metadata for a chat conversation. The `participantIds` array is used in security rules to ensure only participants can access it.\n*   `/conversations/{conversationId}/messages/{messageId}`: A subcollection for messages. Security rules inherit the context from the parent conversation, ensuring only participants can read/write messages."
   }
 }
+    
