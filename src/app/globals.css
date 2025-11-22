@@ -85,3 +85,34 @@
     @apply font-headline;
   }
 }
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.leaflet-control-zoom a,
+.leaflet-control-locate a {
+    border-radius: 8px !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    font-size: 20px !important;
+    line-height: 28px !important;
+    color: hsl(var(--primary));
+    background-color: hsl(var(--card)) !important;
+}
+.leaflet-control-geocoder-form input {
+    border-radius: 20px !important;
+    padding: 8px 15px !important;
+    border: 1px solid hsl(var(--border)) !important;
+    background-color: hsl(var(--card)) !important;
+}
+
+.leaflet-routing-container {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: var(--radius);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.leaflet-routing-icon {
+     background-image: url('https://unpkg.com/leaflet-routing-machine@3.2.12/dist/routing-icon.png') !important;
+}

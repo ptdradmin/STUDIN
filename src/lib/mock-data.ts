@@ -15,7 +15,8 @@ export interface Housing {
   image: {
     url: string;
     hint: string;
-  }
+  };
+  coordinates: [number, number];
 }
 
 export interface Post {
@@ -79,7 +80,8 @@ const housingsData: Housing[] = [
         bedrooms: 1,
         surface_area: 18,
         university_nearby: "Université de Namur",
-        image: { url: PlaceHolderImages[0].imageUrl, hint: PlaceHolderImages[0].imageHint }
+        image: { url: PlaceHolderImages[0].imageUrl, hint: PlaceHolderImages[0].imageHint },
+        coordinates: [50.4674, 4.8654]
     },
     {
         id: 2,
@@ -92,7 +94,8 @@ const housingsData: Housing[] = [
         bedrooms: 1,
         surface_area: 30,
         university_nearby: "Université de Liège",
-        image: { url: PlaceHolderImages[1].imageUrl, hint: PlaceHolderImages[1].imageHint }
+        image: { url: PlaceHolderImages[1].imageUrl, hint: PlaceHolderImages[1].imageHint },
+        coordinates: [50.5857, 5.5683]
     },
     {
         id: 3,
@@ -105,7 +108,8 @@ const housingsData: Housing[] = [
         bedrooms: 4,
         surface_area: 120,
         university_nearby: "UCLouvain",
-        image: { url: PlaceHolderImages[2].imageUrl, hint: PlaceHolderImages[2].imageHint }
+        image: { url: PlaceHolderImages[2].imageUrl, hint: PlaceHolderImages[2].imageHint },
+        coordinates: [50.6693, 4.6154]
     },
     {
         id: 4,
@@ -118,7 +122,8 @@ const housingsData: Housing[] = [
         bedrooms: 1,
         surface_area: 28,
         university_nearby: "ULB - Université Libre de Bruxelles",
-        image: { url: PlaceHolderImages[3].imageUrl, hint: PlaceHolderImages[3].imageHint }
+        image: { url: PlaceHolderImages[3].imageUrl, hint: PlaceHolderImages[3].imageHint },
+        coordinates: [50.8124, 4.3828]
     },
     {
         id: 5,
@@ -131,7 +136,8 @@ const housingsData: Housing[] = [
         bedrooms: 1,
         surface_area: 20,
         university_nearby: "UMons",
-        image: { url: PlaceHolderImages[4].imageUrl, hint: PlaceHolderImages[4].imageHint }
+        image: { url: PlaceHolderImages[4].imageUrl, hint: PlaceHolderImages[4].imageHint },
+        coordinates: [50.4578, 3.9535]
     },
     {
         id: 6,
@@ -144,7 +150,8 @@ const housingsData: Housing[] = [
         bedrooms: 3,
         surface_area: 110,
         university_nearby: "HEC Liège",
-        image: { url: PlaceHolderImages[5].imageUrl, hint: PlaceHolderImages[5].imageHint }
+        image: { url: PlaceHolderImages[5].imageUrl, hint: PlaceHolderImages[5].imageHint },
+        coordinates: [50.6358, 5.5645]
     },
     {
         id: 7,
@@ -157,7 +164,8 @@ const housingsData: Housing[] = [
         bedrooms: 1,
         surface_area: 15,
         university_nearby: "Université de Namur",
-        image: { url: PlaceHolderImages[6].imageUrl, hint: PlaceHolderImages[6].imageHint }
+        image: { url: PlaceHolderImages[6].imageUrl, hint: PlaceHolderImages[6].imageHint },
+        coordinates: [50.4651, 4.8689]
     },
     {
         id: 8,
@@ -170,7 +178,8 @@ const housingsData: Housing[] = [
         bedrooms: 1,
         surface_area: 35,
         university_nearby: "UCLouvain",
-        image: { url: PlaceHolderImages[7].imageUrl, hint: PlaceHolderImages[7].imageHint }
+        image: { url: PlaceHolderImages[7].imageUrl, hint: PlaceHolderImages[7].imageHint },
+        coordinates: [50.668, 4.618]
     },
 ];
 
