@@ -123,6 +123,7 @@ export default function RegisterForm() {
         description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
       });
       router.push('/social');
+      router.refresh();
   }
 
   const handleError = (error: any) => {

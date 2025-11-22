@@ -69,12 +69,14 @@ export default function LoginForm() {
     }
   }
 
-  const handleSuccess = (user?: User) => {
+  const handleSuccess = () => {
       toast({
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      router.push('/social');
+      const from = searchParams.get('from') || '/social';
+      router.push(from);
+      router.refresh();
   }
 
   const handleError = (error: any) => {
@@ -134,8 +136,8 @@ export default function LoginForm() {
     }
 
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      handleSuccess(result.user);
+      await signInWithEmailAndPassword(auth, email, password);
+      handleSuccess();
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -223,5 +225,3 @@ export default function LoginForm() {
     </Card>
   );
 }
-
-    
