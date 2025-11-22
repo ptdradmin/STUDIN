@@ -230,7 +230,7 @@ export default function MessagesPage() {
                                     </div>
                                 )
                             })}
-                                {_self.nextSibling && (
+                            {!conversationsLoading && conversations?.length === 0 && (
                                  <div className="p-8 text-center text-sm text-muted-foreground">
                                     Commencez une nouvelle conversation depuis la page d'une annonce.
                                 </div>
