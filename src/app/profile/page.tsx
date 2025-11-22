@@ -114,12 +114,6 @@ export default function ProfilePage() {
 
   return (
     <>
-          <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
-              <div className="container mx-auto px-4 py-12 text-center">
-                  <h1 className="text-4xl font-bold text-foreground">Mon Profil</h1>
-                  <p className="mt-2 text-lg text-muted-foreground">Gérez vos informations personnelles</p>
-              </div>
-          </div>
           <div className="container mx-auto px-4 py-8">
             {loading || !user || !userProfile ? <ProfilePageSkeleton /> : (
                 <div className="mx-auto max-w-4xl">
