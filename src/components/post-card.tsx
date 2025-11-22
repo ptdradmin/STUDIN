@@ -137,70 +137,66 @@ export default function PostCard({ post }: PostCardProps) {
 
 
     return (
-        <Card className="rounded-none md:rounded-lg border-b border-border md:border-none">
-            <CardHeader className="p-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
-                            <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
-                             <span className="text-sm text-muted-foreground"> • {timeAgo}</span>
-                            {post.location && (
-                                <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
-                                    {post.location}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                     <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="h-5 w-5" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                {isOwner ? (
-                                     <>
-                                        <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                                            Supprimer
-                                        </DropdownMenuItem>
-                                     </>
-                                ) : (
-                                    <>
-                                        <DropdownMenuItem onClick={handleReport}>
-                                            <AlertCircle className="mr-2 h-4 w-4" />
-                                            Signaler
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={handleBlock}>
-                                            <UserX className="mr-2 h-4 w-4" />
-                                            Bloquer cet utilisateur
-                                        </DropdownMenuItem>
-                                    </>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+        <div className="border-b border-border">
+            <div className="flex items-center justify-between p-3">
+                <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
+                        <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
+                        <span className="text-sm text-muted-foreground"> • {timeAgo}</span>
+                        {post.location && (
+                            <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
+                                {post.location}
+                            </p>
+                        )}
                     </div>
                 </div>
-            </CardHeader>
-            <CardContent className="p-0 border-y border-border">
-                {post.imageUrl && (
-                    <div className="relative aspect-square">
-                        <Image
-                            src={post.imageUrl}
-                            alt={`Post by ${post.userDisplayName}`}
-                            fill
-                            className="object-cover"
-                            data-ai-hint="social media post"
-                        />
-                    </div>
-                )}
-            </CardContent>
-            <CardFooter className="p-3 flex flex-col items-start">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        {isOwner ? (
+                            <>
+                                <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                                    Supprimer
+                                </DropdownMenuItem>
+                            </>
+                        ) : (
+                            <>
+                                <DropdownMenuItem onClick={handleReport}>
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    Signaler
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleBlock}>
+                                    <UserX className="mr-2 h-4 w-4" />
+                                    Bloquer cet utilisateur
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            
+            {post.imageUrl && (
+                <div className="relative aspect-square bg-muted">
+                    <Image
+                        src={post.imageUrl}
+                        alt={`Post by ${post.userDisplayName}`}
+                        fill
+                        className="object-cover"
+                        data-ai-hint="social media post"
+                    />
+                </div>
+            )}
+
+            <div className="p-3 flex flex-col items-start">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2 -ml-2">
                         <Button variant="ghost" size="icon" onClick={handleLike}>
@@ -211,7 +207,7 @@ export default function PostCard({ post }: PostCardProps) {
                     </div>
                      <Button variant="ghost" size="icon"><Bookmark className="h-6 w-6" /></Button>
                 </div>
-                {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-2">{optimisticLikes.length} J'aime</p>}
+                {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-1">{optimisticLikes.length} J'aime</p>}
                 <div className="text-sm mt-1">
                     <span className="font-semibold">{post.userDisplayName}</span>
                     <span className="ml-2">{post.caption}</span>
@@ -228,7 +224,7 @@ export default function PostCard({ post }: PostCardProps) {
                         {displayedComments.map((comment, index) => (
                             <div key={index} className="flex items-start gap-2">
                                 <span className="font-semibold">{comment.userDisplayName}</span>
-                                <span className="text-muted-foreground">{comment.text}</span>
+                                <span className="">{comment.text}</span>
                             </div>
                         ))}
                     </div>
@@ -241,7 +237,7 @@ export default function PostCard({ post }: PostCardProps) {
                 )}
                 
                 {user && (
-                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t border-border">
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-1 mt-1">
                         <Input 
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
@@ -253,7 +249,7 @@ export default function PostCard({ post }: PostCardProps) {
                         </Button>
                     </form>
                 )}
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     );
 }

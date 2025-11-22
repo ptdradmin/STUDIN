@@ -20,7 +20,7 @@ import Image from 'next/image';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home },
-  { href: "#", label: "Recherche", icon: Search },
+  { href: "#search", label: "Recherche", icon: Search },
   { href: "/explore", label: "Découvrir", icon: Compass },
   { href: "/messages", label: "Messages", icon: MessageSquare },
 ];
@@ -59,24 +59,27 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
 
     const getInitials = (email?: string | null) => {
         if (!email) return '..';
-        return email.substring(0, 2).toUpperCase();
+        const nameParts = email.split('@')[0].replace('.', ' ');
+        const initials = nameParts.split(' ').map(n => n[0]).join('');
+        return initials.substring(0, 2).toUpperCase();
     }
 
   return (
     <TooltipProvider>
       {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
-      <div className="flex min-h-screen bg-background">
-        <aside className="fixed left-0 top-0 h-full z-10 w-[72px] lg:w-60 flex flex-col p-3 bg-background border-r">
+      <div className="flex min-h-screen bg-background text-foreground">
+        <aside className="fixed left-0 top-0 h-full z-10 w-[72px] lg:w-60 flex flex-col p-3 bg-background border-r border-border">
           <Link href="/social" className="px-3 mb-8 hidden lg:block">
-            <Image src="/logo-text-light.png" alt="Instagram" width={103} height={29}/>
+            {/* Using a simple text logo for dark mode compatibility */}
+            <h1 className="text-2xl font-serif font-bold">Stud'in</h1>
           </Link>
            <Link href="/social" className="mb-8 lg:hidden self-center">
-              <Image src="/logo-icon.png" alt="Instagram" width={24} height={24} />
+              <Compass className="h-7 w-7" />
           </Link>
 
           <nav className="flex flex-col gap-2 flex-grow">
             {mainNavItems.map((item) => (
-              <NavLink key={item.label} {...item} />
+              <NavLink key={item.href} {...item} />
             ))}
              <Tooltip>
                 <TooltipTrigger asChild>
