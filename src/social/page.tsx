@@ -23,7 +23,7 @@ import { useState } from 'react';
 const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
         <Link href={href} className="block group">
-            <Card className={cn("relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-48", className)}>
+            <Card className={cn("overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-48", className)}>
                 <div className="p-5 h-full flex flex-col">
                     <div className="p-3 bg-white/20 rounded-lg w-min">
                        {icon}
