@@ -9,39 +9,12 @@ import { Calendar, MapPin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { getEvents, Event } from "@/lib/mock-data";
 
 
-const mockEvents = [
-    {
-        id: 1,
-        title: "Soirée d'intégration BDE Info",
-        category: "Soirée",
-        date: "25 Octobre",
-        location: "Salons de l'ULB",
-        imageUrl: "https://picsum.photos/seed/event1/600/400",
-        imageHint: "party people"
-    },
-    {
-        id: 2,
-        title: "Conférence sur l'IA",
-        category: "Conférence",
-        date: "28 Octobre",
-        location: "UNamur - Auditoire Pedro A.",
-        imageUrl: "https://picsum.photos/seed/event2/600/400",
-        imageHint: "conference stage"
-    },
-    {
-        id: 3,
-        title: "Tournoi de foot inter-facs",
-        category: "Sport",
-        date: "02 Novembre",
-        location: "Centre Sportif de Louvain-la-Neuve",
-        imageUrl: "https://picsum.photos/seed/event3/600/400",
-        imageHint: "soccer game"
-    }
-]
+export default async function EventsPage() {
+  const mockEvents: Event[] = await getEvents();
 
-export default function EventsPage() {
   return (
     <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -96,14 +69,14 @@ export default function EventsPage() {
                 <h2 className="text-2xl font-bold tracking-tight mb-4">Événements à venir</h2>
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {mockEvents.map(event => (
-                        <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl">
+                        <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
                             <div className="relative">
                                 <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
                                 <Badge className="absolute top-2 right-2">{event.category}</Badge>
                             </div>
-                            <CardContent className="p-4">
+                            <CardContent className="p-4 flex flex-col flex-grow">
                                 <p className="font-semibold text-primary">{event.date}</p>
-                                <h3 className="text-lg font-bold mt-1">{event.title}</h3>
+                                <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
                                 <p className="text-sm text-muted-foreground flex items-center mt-2">
                                     <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                                     {event.location}

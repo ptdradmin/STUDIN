@@ -32,6 +32,40 @@ export interface Post {
     }[];
 }
 
+export interface Event {
+    id: number;
+    title: string;
+    category: string;
+    date: string;
+    location: string;
+    imageUrl: string;
+    imageHint: string;
+}
+
+export interface Tutor {
+    id: number;
+    name: string;
+    avatar: string;
+    subject: string;
+    level: string;
+    university: string;
+    rate: string;
+    rating: number;
+}
+
+export interface Trip {
+    id: number;
+    driver: string;
+    avatar: string;
+    departure: string;
+    arrival: string;
+    date: string;
+    time: string;
+    price: string;
+    seats: number;
+}
+
+
 const housingsData: Housing[] = [
     {
         id: 1,
@@ -166,6 +200,94 @@ const postsData: Post[] = [
     }
 ];
 
+const eventsData: Event[] = [
+    {
+        id: 1,
+        title: "Soirée d'intégration BDE Info",
+        category: "Soirée",
+        date: "25 Octobre",
+        location: "Salons de l'ULB",
+        imageUrl: "https://picsum.photos/seed/event1/600/400",
+        imageHint: "party people"
+    },
+    {
+        id: 2,
+        title: "Conférence sur l'IA et l'avenir du travail",
+        category: "Conférence",
+        date: "28 Octobre",
+        location: "UNamur - Auditoire Pedro A.",
+        imageUrl: "https://picsum.photos/seed/event2/600/400",
+        imageHint: "conference stage"
+    },
+    {
+        id: 3,
+        title: "Tournoi de foot inter-facultés",
+        category: "Sport",
+        date: "02 Novembre",
+        location: "Centre Sportif de Louvain-la-Neuve",
+        imageUrl: "https://picsum.photos/seed/event3/600/400",
+        imageHint: "soccer game"
+    }
+]
+
+const tutorsData: Tutor[] = [
+    {
+        id: 1,
+        name: "Léa Dubois",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=lea",
+        subject: "Mathématiques",
+        level: "Master 1",
+        university: "UCLouvain",
+        rate: "20€/h",
+        rating: 4.9,
+    },
+    {
+        id: 2,
+        name: "Hugo Lambert",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=hugo",
+        subject: "Droit Constitutionnel",
+        level: "Master 2",
+        university: "ULB",
+        rate: "25€/h",
+        rating: 5.0,
+    },
+    {
+        id: 3,
+        name: "Chloé Simon",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=chloe",
+        subject: "Chimie Organique",
+        level: "Bachelier 3",
+        university: "UNamur",
+        rate: "18€/h",
+        rating: 4.8,
+    }
+]
+
+const tripsData: Trip[] = [
+    {
+        id: 1,
+        driver: "Alexandre D.",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alex",
+        departure: "Bruxelles-Midi",
+        arrival: "Namur",
+        date: "Demain",
+        time: "08:30",
+        price: "5€",
+        seats: 2,
+    },
+    {
+        id: 2,
+        driver: "Marie L.",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=marie",
+        departure: "Liège-Guillemins",
+        arrival: "Louvain-la-Neuve",
+        date: "Demain",
+        time: "07:45",
+        price: "7€",
+        seats: 1,
+    }
+]
+
 
 export const getHousings = async (filters: { city?: string; type?: string; min_price?: string; max_price?: string } = {}): Promise<Housing[]> => {
     // Simuler un appel API
@@ -194,4 +316,19 @@ export const getPosts = async (): Promise<Post[]> => {
     // Simuler un appel API
     await new Promise(resolve => setTimeout(resolve, 300));
     return postsData;
+}
+
+export const getEvents = async (): Promise<Event[]> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return eventsData;
+}
+
+export const getTutors = async (): Promise<Tutor[]> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return tutorsData;
+}
+
+export const getTrips = async (): Promise<Trip[]> => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return tripsData;
 }

@@ -63,7 +63,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section id="features" className="bg-card py-16 md:py-24">
+        <section id="features" className="bg-muted/40 py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto mb-12 max-w-3xl text-center">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
@@ -72,17 +72,17 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {features.map((feature) => (
-                 <Link href={feature.href} key={feature.title} className="block">
-                  <Card className="h-full text-center border-0 shadow-lg bg-transparent transition-transform hover:-translate-y-2">
+                 <Link href={feature.href} key={feature.title} className="block h-full">
+                  <Card className="h-full text-center shadow-lg transition-transform hover:-translate-y-2">
                     <CardHeader>
                       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
                         {feature.icon}
                       </div>
                       <CardTitle>{feature.title}</CardTitle>
-                      <CardContent className="pt-2 text-muted-foreground">
-                        <p>{feature.description}</p>
-                      </CardContent>
                     </CardHeader>
+                    <CardContent className="text-muted-foreground">
+                        <p>{feature.description}</p>
+                    </CardContent>
                   </Card>
                 </Link>
               ))}
