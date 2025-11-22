@@ -15,7 +15,7 @@ const footerLinks = {
         { href: '/help', label: 'Centre d\'aide' },
         { href: '/contact', label: 'Contact' },
         { href: '/faq', label: 'FAQ' },
-        { href: '/language', label: 'Langue' },
+        { href: '/language', label: 'FR | EN' },
     ]
 };
 
