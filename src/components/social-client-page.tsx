@@ -87,7 +87,11 @@ export default function SocialClientPage() {
         return email.substring(0, 2).toUpperCase();
     }
     
-    const sortedPosts = posts ? [...posts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : [];
+    const sortedPosts = posts ? [...posts].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    }) : [];
 
     if (userLoading || !user) {
         return (
@@ -135,9 +139,11 @@ export default function SocialClientPage() {
                         <Button variant="ghost" size="icon">
                             <MessageSquare className="h-6 w-6" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setShowCreateForm(true)}>
-                            <Plus className="h-6 w-6" />
-                        </Button>
+                        {user && (
+                            <Button variant="ghost" size="icon" onClick={() => setShowCreateForm(true)}>
+                                <Plus className="h-6 w-6" />
+                            </Button>
+                        )}
                         <Button variant="ghost" size="icon">
                             <Heart className="h-6 w-6" />
                         </Button>

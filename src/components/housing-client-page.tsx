@@ -7,7 +7,7 @@ import HousingListings from '@/components/housing-listings';
 import { LayoutGrid, Map, Plus } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import dynamic from 'next/dynamic';
-import { useCollection } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 import type { Housing } from '@/lib/types';
 import CreateHousingForm from './create-housing-form';
 
@@ -21,6 +21,7 @@ export default function HousingClientPage() {
   const { data: housings, loading } = useCollection<Housing>('housings');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHousing, setEditingHousing] = useState<Housing | null>(null);
+  const { user } = useUser();
 
   const handleEdit = (housing: Housing) => {
     setEditingHousing(housing);
@@ -35,10 +36,12 @@ export default function HousingClientPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <Button onClick={() => setShowCreateForm(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
-        </Button>
-        <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+        {user && (
+          <Button onClick={() => setShowCreateForm(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
+          </Button>
+        )}
+        <div className="flex items-center gap-1 rounded-md bg-muted p-1 ml-auto">
           <Button
             variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
             size="sm"
