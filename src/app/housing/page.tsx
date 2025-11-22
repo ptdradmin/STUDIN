@@ -122,12 +122,6 @@ export default function HousingPage() {
 
   return (
     <>
-        <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground pt-4 pb-4">
-            <div className="container mx-auto px-4 text-center">
-                <h1 className="text-4xl font-bold text-foreground"></h1>
-                <p className="mt-2 text-lg text-muted-foreground"></p>
-            </div>
-        </div>
         <div className="container mx-auto px-4 py-8">
             <Card className="mb-8">
                 <CardHeader>
