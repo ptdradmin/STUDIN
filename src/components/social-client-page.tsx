@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import PostCard from "@/components/post-card";
 import { getPosts, Post } from "@/lib/mock-data";
-import { Camera, Home } from 'lucide-react';
+import { Camera, Compass, Heart, Home, MessageSquare, Search } from 'lucide-react';
 import Link from "next/link";
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings } from "lucide-react";
+import { Input } from './ui/input';
 
 
 function SocialSkeleton() {
@@ -99,17 +100,35 @@ export default function SocialClientPage() {
     return (
          <>
             <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                 <div className="container flex h-16 items-center justify-between">
-                    <Link href="/social">
+                 <div className="container flex h-16 items-center justify-between gap-4">
+                    <Link href="/social" className="hidden md:block">
                         <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500">
                             STUD'IN Social
                         </h1>
                     </Link>
-                    <div className="flex items-center gap-2">
+
+                     <div className="relative flex-grow max-w-xs hidden md:block">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Rechercher" className="pl-8" />
+                    </div>
+
+                    <div className="flex items-center gap-1 md:gap-2">
                         <Button variant="ghost" size="icon" asChild>
                             <Link href="/">
                                 <Home className="h-6 w-6" />
                             </Link>
+                        </Button>
+                         <Button variant="ghost" size="icon" className="md:hidden">
+                            <Search className="h-6 w-6" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <MessageSquare className="h-6 w-6" />
+                        </Button>
+                         <Button variant="ghost" size="icon">
+                            <Compass className="h-6 w-6" />
+                        </Button>
+                        <Button variant="ghost" size="icon">
+                            <Heart className="h-6 w-6" />
                         </Button>
                         <Button variant="ghost" size="icon">
                             <Camera className="h-6 w-6" />
