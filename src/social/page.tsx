@@ -12,22 +12,28 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import CreatePostForm from "@/components/create-post-form";
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
-const StatCard = ({ title, value, icon, isLoading }: { title: string, value: number, icon: React.ReactNode, isLoading: boolean }) => {
+const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                <div className="text-muted-foreground">{icon}</div>
-            </CardHeader>
-            <CardContent>
-                {isLoading ? (
-                    <div className="h-9 w-12 bg-muted rounded animate-pulse" />
-                ) : (
-                    <div className="text-2xl font-bold">{value}</div>
-                )}
-            </CardContent>
-        </Card>
+        <Link href={href}>
+            <Card className={cn("relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg", className)}>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 p-4">
+                    <div className="space-y-1">
+                        <CardTitle className="text-sm font-medium text-background/80">{title}</CardTitle>
+                         {isLoading ? (
+                            <div className="h-9 w-12 bg-black/10 rounded animate-pulse" />
+                        ) : (
+                            <div className="text-3xl font-bold text-white">{value}</div>
+                        )}
+                    </div>
+                </CardHeader>
+                <div className="absolute -right-4 -bottom-4 opacity-15">
+                    {icon}
+                </div>
+            </Card>
+        </Link>
     )
 }
 
@@ -71,28 +77,36 @@ export default function SocialPageContent() {
 
                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-6">
                         <StatCard 
-                            title="Sessions de tutorat actives" 
+                            title="Tutorat" 
                             value={tutors?.length ?? 0}
-                            icon={<GraduationCap className="h-5 w-5" />}
+                            icon={<GraduationCap className="h-24 w-24" />}
                             isLoading={isLoading}
+                            href="/tutoring"
+                            className="bg-gradient-to-br from-blue-400 to-blue-600 text-white"
                         />
                         <StatCard 
-                            title="Trajets disponibles" 
+                            title="Covoiturage" 
                             value={trips?.length ?? 0}
-                            icon={<Car className="h-5 w-5" />}
+                            icon={<Car className="h-24 w-24" />}
                             isLoading={isLoading}
+                            href="/carpooling"
+                            className="bg-gradient-to-br from-green-400 to-green-600 text-white"
                         />
                         <StatCard 
-                            title="Logements disponibles" 
+                            title="Logements" 
                             value={housings?.length ?? 0}
-                            icon={<Bed className="h-5 w-5" />}
+                            icon={<Bed className="h-24 w-24" />}
                             isLoading={isLoading}
+                            href="/housing"
+                            className="bg-gradient-to-br from-orange-400 to-orange-600 text-white"
                         />
                         <StatCard 
-                            title="Événements à venir" 
+                            title="Événements" 
                             value={events?.length ?? 0}
-                            icon={<PartyPopper className="h-5 w-5" />}
+                            icon={<PartyPopper className="h-24 w-24" />}
                             isLoading={isLoading}
+                            href="/events"
+                            className="bg-gradient-to-br from-purple-400 to-purple-600 text-white"
                         />
                      </div>
                 </div>
