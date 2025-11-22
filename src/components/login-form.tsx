@@ -9,9 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { useAuth, useFirestore } from '@/firebase';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Separator } from './ui/separator';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -30,10 +31,36 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth } = useAuth();
+  const { auth, firestore } = useAuth();
   const { toast } = useToast();
 
-  const handleSuccess = () => {
+  const createUserDocument = async (user: User) => {
+      if (!firestore) return;
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        const { email, displayName, photoURL } = user;
+        const [firstName, lastName] = displayName?.split(' ') || ['', ''];
+
+        await setDoc(userDocRef, {
+            id: user.uid,
+            email,
+            firstName,
+            lastName,
+            university: '',
+            fieldOfStudy: '',
+            profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+      }
+  }
+
+  const handleSuccess = (user?: User) => {
+     if(user) {
+        createUserDocument(user);
+     }
      toast({
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
@@ -62,8 +89,8 @@ export default function LoginForm() {
     setLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      handleSuccess();
+      const result = await signInWithPopup(auth, provider);
+      handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -86,8 +113,8 @@ export default function LoginForm() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      handleSuccess();
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
     } finally {
