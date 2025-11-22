@@ -1,10 +1,11 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { LifeBuoy, Mail, MessageSquare } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function HelpPage() {
   return (
@@ -13,55 +14,51 @@ export default function HelpPage() {
         <main className="flex-grow">
             <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 <div className="container mx-auto px-4 py-12 text-center">
-                    <h1 className="text-4xl font-bold">Aide & Support</h1>
-                    <p className="mt-2 text-lg opacity-90">Nous sommes là pour vous aider</p>
+                    <h1 className="text-4xl font-bold">Contacter le support</h1>
+                    <p className="mt-2 text-lg opacity-90">Un problème, une question ? Nous sommes là pour vous aider.</p>
                 </div>
             </div>
             <div className="container mx-auto px-4 py-8">
-                 <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                    <Card className="flex flex-col">
-                        <CardHeader className="items-center text-center">
-                            <div className="p-3 rounded-full bg-primary/10">
-                                <LifeBuoy className="h-8 w-8 text-primary" />
+                 <Card className="max-w-4xl mx-auto">
+                    <CardContent className="p-8">
+                      <div className="grid md:grid-cols-2 gap-12">
+                        <div className="space-y-6">
+                            <h2 className="text-2xl font-bold">Contact</h2>
+                            <div className="space-y-4 text-muted-foreground">
+                                <p><strong>Email:</strong> contact@studin.online</p>
+                                <p><strong>Siège social:</strong> Namur, Belgique</p>
                             </div>
-                            <CardTitle>FAQ</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-center flex-grow flex flex-col justify-between">
-                            <p className="text-muted-foreground mb-4">Trouvez des réponses aux questions fréquemment posées.</p>
-                            <Button asChild>
-                                <Link href="/faq">Consulter la FAQ</Link>
+                            <div className="pt-4 border-t">
+                                <p className="text-sm text-muted-foreground">
+                                    Notre équipe s'efforce de répondre à toutes les demandes dans un délai de 24 à 48 heures ouvrables.
+                                </p>
+                            </div>
+                        </div>
+
+                        <form className="space-y-4">
+                            <div>
+                                <Label htmlFor="name">Votre Nom</Label>
+                                <Input id="name" placeholder="John Doe" />
+                            </div>
+                             <div>
+                                <Label htmlFor="email">Votre Email</Label>
+                                <Input id="email" type="email" placeholder="john.doe@example.com" />
+                            </div>
+                            <div>
+                                <Label htmlFor="subject">Sujet</Label>
+                                <Input id="subject" placeholder="ex: Problème avec mon compte" />
+                            </div>
+                            <div>
+                                <Label htmlFor="message">Message</Label>
+                                <Textarea id="message" placeholder="Décrivez votre problème en détail..." className="min-h-[120px]" />
+                            </div>
+                            <Button type="submit" className="w-full">
+                                Envoyer le message
                             </Button>
-                        </CardContent>
-                    </Card>
-                    <Card className="flex flex-col">
-                        <CardHeader className="items-center text-center">
-                           <div className="p-3 rounded-full bg-primary/10">
-                                <Mail className="h-8 w-8 text-primary" />
-                            </div>
-                            <CardTitle>Email</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-center flex-grow flex flex-col justify-between">
-                             <p className="text-muted-foreground mb-4">Envoyez-nous directement un e-mail pour une assistance personnalisée.</p>
-                             <Button asChild>
-                                <Link href="mailto:support@studin.app">support@studin.app</Link>
-                             </Button>
-                        </CardContent>
-                    </Card>
-                    <Card className="flex flex-col">
-                        <CardHeader className="items-center text-center">
-                           <div className="p-3 rounded-full bg-primary/10">
-                                <MessageSquare className="h-8 w-8 text-primary" />
-                            </div>
-                            <CardTitle>Ticket de Support</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-center flex-grow flex flex-col justify-between">
-                             <p className="text-muted-foreground mb-4">Ouvrez un ticket de support et notre équipe vous répondra rapidement.</p>
-                              <Button asChild>
-                                <Link href="mailto:support@studin.app?subject=Demande%20de%20Support%20STUD'IN">Ouvrir un ticket</Link>
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </form>
+                      </div>
+                    </CardContent>
+                 </Card>
             </div>
         </main>
         <Footer />
