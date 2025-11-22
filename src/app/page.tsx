@@ -9,6 +9,8 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { PageSkeleton } from '@/components/page-skeleton';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 
 
 const services = [
@@ -43,20 +45,19 @@ export default function Home() {
     const router = useRouter();
 
     useEffect(() => {
-        // Si l'utilisateur est authentifié, le rediriger vers le fil d'actualité.
         if (!isUserLoading && user) {
             router.replace('/social');
         }
     }, [user, isUserLoading, router]);
 
-    // Afficher un skeleton pendant la vérification de l'auth ou si l'utilisateur est connecté (avant la redirection)
     if (isUserLoading || user) {
         return <PageSkeleton />;
     }
     
-    // Si l'utilisateur n'est pas connecté, afficher la page d'accueil publique.
     return (
-    <>
+    <div className="flex flex-col min-h-screen dark:bg-background">
+      <Navbar />
+      <main className="flex-grow">
             <section className="relative bg-gradient-to-br from-primary/10 via-background to-background text-center py-20 md:py-32">
                 <div className="container mx-auto px-4 relative z-10">
                     <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-foreground">
@@ -98,6 +99,8 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-      </>
+      </main>
+      <Footer />
+    </div>
   );
 }

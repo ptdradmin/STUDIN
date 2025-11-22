@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import SocialLayout from '@/social/layout';
 
 function SuggestionsSkeleton() {
     return (
@@ -122,26 +123,28 @@ export default function SocialPage() {
 
 
     return (
-       <div className="w-full">
-            <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
-                    <div className="space-y-4 w-full max-w-[470px] mx-auto">
-                         {posts && posts.length > 0 ? (
-                            posts.map(post => <PostCard key={post.id} post={post} />)
-                        ) : (
-                            <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                <p className="text-lg font-semibold">Le fil d'actualité est vide.</p>
-                                <p className="text-sm">Soyez le premier à poster quelque chose !</p>
-                            </div>
-                        )}
-                    </div>
-                    <div className="hidden md:block">
-                         <div className="sticky top-20">
-                            <Suggestions />
-                         </div>
+       <SocialLayout>
+            <div className="w-full">
+                <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
+                        <div className="space-y-4 w-full max-w-[470px] mx-auto">
+                             {posts && posts.length > 0 ? (
+                                posts.map(post => <PostCard key={post.id} post={post} />)
+                            ) : (
+                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
+                                    <p className="text-lg font-semibold">Le fil d'actualité est vide.</p>
+                                    <p className="text-sm">Soyez le premier à poster quelque chose !</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="hidden md:block">
+                             <div className="sticky top-20">
+                                <Suggestions />
+                             </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-       </div>
+           </div>
+       </SocialLayout>
     );
 }
