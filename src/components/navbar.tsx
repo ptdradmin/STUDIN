@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, Compass, MessageSquare } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -67,8 +67,12 @@ export default function Navbar() {
           <span className="sr-only">Ouvrir le menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64">
-        <div className="flex flex-col h-full">
+      <SheetContent side="left" className="w-64 p-0">
+         <SheetHeader className="p-6">
+            <SheetTitle className="sr-only">Menu principal</SheetTitle>
+            <SheetDescription className="sr-only">Naviguez entre les différentes sections de l'application.</SheetDescription>
+         </SheetHeader>
+        <div className="flex flex-col h-full px-6 pb-6">
             <Link href="/" className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
               <div className="flex flex-col">
                  <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
