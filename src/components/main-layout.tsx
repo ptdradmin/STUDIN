@@ -5,7 +5,6 @@ import { useUser } from '@/firebase';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { PageSkeleton } from './page-skeleton';
-import { usePathname } from 'next/navigation';
 import SocialLayout from '@/social/layout';
 
 export default function MainLayout({
@@ -24,7 +23,7 @@ export default function MainLayout({
     }
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen dark:bg-background">
             <Navbar />
             <main className="flex-grow">{children}</main>
             <Footer />

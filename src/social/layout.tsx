@@ -4,25 +4,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, PlusSquare, User, Menu, Film, LogOut, Settings, Bookmark, GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
+import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Bell } from "lucide-react";
 import { useUser } from "@/firebase";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
-import CreatePostForm from '@/components/create-post-form';
-import { signOut } from 'firebase/auth';
-import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -33,47 +16,32 @@ const mainNavItems = [
   { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/events", label: "Événements", icon: PartyPopper },
-  { href: "/profile", label: "Profil", icon: User },
-  { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
 
-function NavLink({ item, onClick }: { item: { href?: string, id?: string, label: string, icon: React.ElementType }, onClick: (id?: string) => void }) {
+function NavLink({ item }: { item: { href?: string, id?: string, label: string, icon: React.ElementType }}) {
   const pathname = usePathname();
-  const { href, label, icon: Icon, id } = item;
-  const isActive = href ? pathname.startsWith(href) : false;
+  const { href, label, icon: Icon } = item;
+  const isActive = href ? pathname === href : false;
 
-  const content = (
-    <Button 
-      variant="ghost" 
-      size="lg" 
-      aria-label={label} 
-      className="justify-start items-center gap-4 h-12 w-full"
-      onClick={() => onClick(id)}
-    >
-      <Icon className={`h-6 w-6 ${isActive ? 'fill-current' : ''}`} />
-      <span className={`text-base ${isActive ? 'font-bold' : 'font-normal'}`}>{label}</span>
-    </Button>
+  return (
+    <Link href={href || '#'}>
+      <Button 
+        variant={isActive ? "secondary" : "ghost"} 
+        size="lg" 
+        aria-label={label} 
+        className={`justify-start items-center gap-3 h-12 w-full text-base ${isActive ? 'font-semibold text-primary-foreground bg-primary/10' : 'font-normal text-sidebar-foreground/80 hover:bg-primary/5 hover:text-sidebar-foreground'}`}
+      >
+        <Icon className={`h-6 w-6 ${isActive ? 'text-primary' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+        <span>{label}</span>
+      </Button>
+    </Link>
   );
-
-  return href ? <Link href={href}>{content}</Link> : <div>{content}</div>;
 }
 
 export default function SocialLayout({ children }: { children: React.ReactNode }) {
     const { user } = useUser();
-    const { auth } = useAuth();
     const router = useRouter();
-
-    const handleNavClick = (id?: string) => {
-      // Future use for panels
-    }
-    
-    const handleLogout = async () => {
-        if (auth) {
-          await signOut(auth);
-          router.push('/');
-        }
-    };
     
     const getInitials = (email?: string | null) => {
         if (!email) return '..';
@@ -84,35 +52,44 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
         return email.substring(0, 2).toUpperCase();
     }
 
-
   return (
-    <TooltipProvider>
       <div className="flex min-h-screen bg-background text-foreground">
         <aside 
-            className={`fixed left-0 top-0 h-full z-20 flex flex-col p-3 bg-card border-r border-border transition-all duration-300 w-60`}
+            className="fixed left-0 top-0 h-full z-20 flex flex-col p-3 bg-sidebar-background border-r border-border/10 transition-all duration-300 w-64"
         >
-          <Link href="/social" className={`mb-8 px-3 pt-3`}>
-            <h1 className="text-2xl font-serif font-bold">Stud'in</h1>
+          <Link href="/social" className="mb-8 px-3 pt-3 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
+                <GraduationCap className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-xl font-bold text-sidebar-foreground">STUD'IN</h1>
           </Link>
 
           <nav className="flex flex-col gap-2 flex-grow">
             {mainNavItems.map((item) => (
-              <NavLink key={item.label} item={item} onClick={handleNavClick} />
+              <NavLink key={item.label} item={item} />
             ))}
           </nav>
-          
-          <div className="mt-auto flex flex-col gap-2">
-                 <Button variant="ghost" size="lg" className="justify-start items-center gap-4 h-12 w-full" onClick={handleLogout}>
-                      <LogOut className="h-6 w-6" />
-                      <span className={`text-base font-normal`}>Déconnexion</span>
-                </Button>
-          </div>
         </aside>
         
-        <main className={`flex-1 transition-all duration-300 ml-60`}>
-          {children}
-        </main>
+        <div className="flex flex-col flex-1 transition-all duration-300 ml-64">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-end gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <Button variant="ghost" size="icon">
+              <Search className="h-5 w-5" />
+            </Button>
+             <Button variant="ghost" size="icon">
+              <Bell className="h-5 w-5" />
+            </Button>
+            <Link href="/profile">
+               <Avatar className="h-9 w-9 cursor-pointer">
+                  <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
+                  <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
+                </Avatar>
+            </Link>
+          </header>
+          <main className="flex-1 p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </TooltipProvider>
   );
 }

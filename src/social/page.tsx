@@ -1,41 +1,30 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { Housing, Trip, Tutor, Event } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { GraduationCap, Car, Bed, PartyPopper, Plus, PlusSquare } from "lucide-react";
+import { GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useState } from 'react';
-import CreatePostForm from '@/components/create-post-form';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 
 const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
-        <Link href={href}>
-            <Card className={cn("relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg", className)}>
-                <CardHeader className="flex flex-row items-start justify-between space-y-0 p-4">
-                    <div className="space-y-1">
-                        <CardTitle className="text-sm font-medium text-background/80">{title}</CardTitle>
-                         {isLoading ? (
-                            <div className="h-9 w-12 bg-black/10 rounded animate-pulse" />
-                        ) : (
-                            <div className="text-3xl font-bold text-white">{value}</div>
-                        )}
+        <Link href={href} className="block group">
+            <Card className={cn("relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-full flex flex-col justify-between p-5", className)}>
+                <div className="z-10">
+                    <div className="p-3 bg-white/20 rounded-lg inline-block mb-4">
+                       {icon}
                     </div>
-                </CardHeader>
-                <div className="absolute -right-4 -bottom-4 opacity-15">
-                    {icon}
+                    {isLoading ? (
+                        <div className="h-10 w-16 bg-black/10 rounded animate-pulse" />
+                    ) : (
+                        <div className="text-5xl font-bold text-white">{value}</div>
+                    )}
                 </div>
+                 <h3 className="text-lg font-semibold text-white/90 z-10 mt-2">{title}</h3>
             </Card>
         </Link>
     )
@@ -45,8 +34,6 @@ export default function SocialPageContent() {
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
     
-    const [showCreatePostForm, setShowCreatePostForm] = useState(false);
-
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
@@ -73,75 +60,44 @@ export default function SocialPageContent() {
 
     return (
         <>
-            {showCreatePostForm && <CreatePostForm onClose={() => setShowCreatePostForm(false)} />}
-            <div className="container mx-auto py-8">
-                <div className="flex flex-col space-y-8">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || '👋'}</h1>
-                        <p className="text-muted-foreground">Voici un aperçu de l'activité sur la plateforme.</p>
-                    </div>
+            <div className="flex flex-col space-y-8">
+                <div>
+                    <h1 className="text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
+                </div>
 
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <StatCard 
-                            title="Tutorat" 
-                            value={tutors?.length ?? 0}
-                            icon={<GraduationCap className="h-24 w-24" />}
-                            isLoading={isLoading}
-                            href="/tutoring"
-                            className="bg-gradient-to-br from-blue-400 to-blue-600 text-white"
-                        />
-                        <StatCard 
-                            title="Covoiturage" 
-                            value={trips?.length ?? 0}
-                            icon={<Car className="h-24 w-24" />}
-                            isLoading={isLoading}
-                            href="/carpooling"
-                            className="bg-gradient-to-br from-green-400 to-green-600 text-white"
-                        />
-                        <StatCard 
-                            title="Logements" 
-                            value={housings?.length ?? 0}
-                            icon={<Bed className="h-24 w-24" />}
-                            isLoading={isLoading}
-                            href="/housing"
-                            className="bg-gradient-to-br from-orange-400 to-orange-600 text-white"
-                        />
-                        <StatCard 
-                            title="Événements" 
-                            value={events?.length ?? 0}
-                            icon={<PartyPopper className="h-24 w-24" />}
-                            isLoading={isLoading}
-                            href="/events"
-                            className="bg-gradient-to-br from-purple-400 to-purple-600 text-white"
-                        />
-                    </div>
-                
-                    <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-bold tracking-tight">Accès rapide</h2>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Créer
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => setShowCreatePostForm(true)}>
-                                        <PlusSquare className="mr-2 h-4 w-4" />
-                                        <span>Publication</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href="/housing"><Bed className="mr-2 h-4 w-4" /><span>Annonce de logement</span></Link></DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href="/carpooling"><Car className="mr-2 h-4 w-4" /><span>Offre de covoiturage</span></Link></DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href="/tutoring"><GraduationCap className="mr-2 h-4 w-4" /><span>Offre de tutorat</span></Link></DropdownMenuItem>
-                                    <DropdownMenuItem asChild><Link href="/events"><PartyPopper className="mr-2 h-4 w-4" /><span>Événement</span></Link></DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                            {/* Placeholder for quick access cards */}
-                        </div>
-                    </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                     <StatCard 
+                        title="Sessions de tutorat actives" 
+                        value={tutors?.length ?? 0}
+                        icon={<GraduationCap className="h-8 w-8 text-white" />}
+                        isLoading={isLoading}
+                        href="/tutoring"
+                        className="bg-blue-500"
+                    />
+                    <StatCard 
+                        title="Trajets disponibles" 
+                        value={trips?.length ?? 0}
+                        icon={<Car className="h-8 w-8 text-white" />}
+                        isLoading={isLoading}
+                        href="/carpooling"
+                        className="bg-purple-500"
+                    />
+                    <StatCard 
+                        title="Logements disponibles" 
+                        value={housings?.length ?? 0}
+                        icon={<Bed className="h-8 w-8 text-white" />}
+                        isLoading={isLoading}
+                        href="/housing"
+                        className="bg-pink-500"
+                    />
+                    <StatCard 
+                        title="Événements à venir" 
+                        value={events?.length ?? 0}
+                        icon={<PartyPopper className="h-8 w-8 text-white" />}
+                        isLoading={isLoading}
+                        href="/events"
+                        className="bg-orange-500"
+                    />
                 </div>
             </div>
         </>
