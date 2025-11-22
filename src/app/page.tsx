@@ -1,32 +1,35 @@
 
 'use client';
 
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, GraduationCap, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 const services = [
     {
         name: "Logements",
+        description: "Trouvez le kot ou studio parfait.",
         icon: <Bed className="h-8 w-8 text-primary"/>,
         href: "/housing"
     },
     {
         name: "Covoiturage",
+        description: "Partagez vos trajets, économisez.",
         icon: <Car className="h-8 w-8 text-primary"/>,
         href: "/carpooling"
     },
      {
         name: "Tutorat",
+        description: "De l'aide pour réussir vos examens.",
         icon: <GraduationCap className="h-8 w-8 text-primary"/>,
         href: "/tutoring"
     },
      {
         name: "Événements",
+        description: "Découvrez les soirées étudiantes.",
         icon: <PartyPopper className="h-8 w-8 text-primary"/>,
         href: "/events"
     },
@@ -38,16 +41,12 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
        <Navbar />
        <main className="flex-grow">
-            <section className="relative bg-gradient-to-br from-primary to-secondary text-primary-foreground text-center py-20 md:py-32">
-                <div
-                    className="absolute inset-0 bg-cover bg-center opacity-10"
-                    style={{ backgroundImage: "url('https://images.unsplash.com/photo-1519452575417-5e04802f7b20?w=1200')" }}
-                ></div>
+            <section className="relative bg-gradient-to-br from-primary/10 via-background to-background text-center py-20 md:py-32">
                 <div className="container mx-auto px-4 relative">
-                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-foreground">
                         L'écosystème qui simplifie votre vie étudiante.
                     </h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl opacity-90">
+                    <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
                         Trouvez un logement, partagez un trajet, réussissez vos cours et ne manquez aucun événement.
                     </p>
                     <div className="mt-8">
@@ -70,10 +69,13 @@ export default function Home() {
                     </div>
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                         {services.map(service => (
-                             <Link href={service.href} key={service.name}>
-                                <Card className="h-full text-center p-6 shadow-md transition-transform hover:-translate-y-2 hover:shadow-xl flex flex-col items-center justify-center gap-4">
-                                     {service.icon}
-                                    <span className="font-semibold text-lg">{service.name}</span>
+                             <Link href={service.href} key={service.name} className="block h-full">
+                                <Card className="h-full text-center p-6 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col items-center justify-start gap-4">
+                                     <div className="p-4 bg-primary/10 rounded-full">
+                                        {service.icon}
+                                     </div>
+                                    <h3 className="font-bold text-lg">{service.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{service.description}</p>
                                 </Card>
                             </Link>
                         ))}

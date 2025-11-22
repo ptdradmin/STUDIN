@@ -74,7 +74,6 @@ export default function Navbar() {
                  <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
                   STUD'IN
                 </span>
-                <span className="text-xs -mt-1 text-muted-foreground">Wallonie-Bruxelles</span>
               </div>
             </Link>
           <nav className="flex flex-col gap-4">
@@ -142,7 +141,6 @@ export default function Navbar() {
              <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
               STUD'IN
             </span>
-            <span className="text-xs -mt-1 text-muted-foreground">Wallonie-Bruxelles</span>
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
