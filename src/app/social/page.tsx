@@ -113,7 +113,7 @@ export default function SocialPage() {
 
     useEffect(() => {
         if (!isUserLoading && !user) {
-            router.push('/login?from=/social');
+            router.push('/');
         }
     }, [user, isUserLoading, router]);
 

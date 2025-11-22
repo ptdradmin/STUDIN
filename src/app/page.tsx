@@ -1,16 +1,16 @@
 
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
+import { PageSkeleton } from '@/components/page-skeleton';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, GraduationCap, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
-import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { PageSkeleton } from '@/components/page-skeleton';
 
 const services = [
     {
@@ -44,15 +44,19 @@ export default function HomePage() {
     const router = useRouter();
 
     useEffect(() => {
+        // Si l'utilisateur est authentifié, le rediriger vers le fil social.
+        // Ne rien faire si l'état de l'utilisateur est encore en cours de chargement.
         if (!isUserLoading && user) {
             router.replace('/social');
         }
     }, [user, isUserLoading, router]);
 
+    // Affiche un squelette de chargement pendant la vérification de l'auth ou si l'utilisateur est sur le point d'être redirigé.
     if (isUserLoading || user) {
         return <PageSkeleton />;
     }
     
+    // Si l'utilisateur n'est pas connecté, afficher la page d'accueil publique.
     return (
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />

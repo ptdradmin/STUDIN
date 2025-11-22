@@ -68,7 +68,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                 title: "Déconnexion",
                 description: "Vous avez été déconnecté avec succès.",
             });
-            router.push('/login');
+            router.push('/');
         }
     };
     
