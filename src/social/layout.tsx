@@ -107,16 +107,6 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                 <Search className="h-6 w-6" strokeWidth={2}/>
                 <span>Recherche</span>
             </Button>
-            <Button 
-                variant="default"
-                size="lg" 
-                aria-label="Créer" 
-                className="justify-center items-center gap-4 h-12 w-full text-base mt-4"
-                onClick={() => setShowCreatePost(true)}
-            >
-                <Plus className="h-6 w-6" />
-                <span>Créer</span>
-            </Button>
           </nav>
           <div className="flex flex-col gap-2">
             <DropdownMenu>
@@ -153,7 +143,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
           
           {/* Top Header */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-end gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-end gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex-1 md:hidden">
                  <Link href="/social" className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-md bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
@@ -162,16 +152,22 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                       <h1 className="text-lg font-bold">STUD'IN</h1>
                   </Link>
             </div>
-            <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden" onClick={() => setActivePanel('search')}>
-              <Search className="h-5 w-5" />
-            </Button>
-             <NotificationsDropdown />
-            <Link href="/profile" className="md:hidden">
-               <Avatar className="h-9 w-9 cursor-pointer">
-                  <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
-                  <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
-                </Avatar>
-            </Link>
+            <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden" onClick={() => setActivePanel('search')}>
+                  <Search className="h-5 w-5" />
+                </Button>
+                 <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Créer
+                </Button>
+                 <NotificationsDropdown />
+                <Link href="/profile" className="md:hidden">
+                   <Avatar className="h-9 w-9 cursor-pointer">
+                      <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
+                      <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
+                    </Avatar>
+                </Link>
+            </div>
           </header>
           
           <main className="flex-1 overflow-y-auto">
