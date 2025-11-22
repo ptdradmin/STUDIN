@@ -15,7 +15,6 @@ import Navbar from "@/components/navbar";
 import {
   Bell,
   ChevronRight,
-  Globe,
   HelpCircle,
   Info,
   Lock,
@@ -76,7 +75,6 @@ export default function SettingsPage() {
   const { auth } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { language, setLanguage } = useLanguage();
 
   const handleLogout = async () => {
     if (auth) {
@@ -130,35 +128,6 @@ export default function SettingsPage() {
                         <LogOut className="mr-2 h-4 w-4" />
                         Déconnexion
                      </Button>
-                  </AccordionContent>
-                </AccordionItem>
-
-                 <AccordionItem value="language">
-                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
-                    <div className="flex items-center gap-3">
-                      <Globe />
-                      Langue
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 space-y-2">
-                     <Button
-                        className="w-full justify-between"
-                        variant={language === 'fr' ? 'secondary' : 'outline'}
-                        onClick={() => setLanguage('fr')}
-                      >
-                        <span>🇫🇷 Français</span>
-                        {language === 'fr' && <span className="text-xs text-muted-foreground">Actif</span>}
-                      </Button>
-                      <Button
-                        className="w-full justify-between"
-                        variant={language === 'en' ? 'secondary' : 'outline'}
-                        onClick={() => setLanguage('en')}
-                        disabled
-                      >
-                        <span>🇬🇧 English</span>
-                        {language === 'en' && <span className="text-xs text-muted-foreground">Actif</span>}
-                         <span className="text-xs text-muted-foreground">Bientôt</span>
-                      </Button>
                   </AccordionContent>
                 </AccordionItem>
 

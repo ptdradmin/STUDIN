@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/contexts/language-context";
+import { Button } from "./ui/button";
 
 const footerLinks = {
     'Société': [
@@ -22,7 +23,7 @@ const footerLinks = {
 };
 
 export default function Footer() {
-    const { language } = useLanguage();
+    const { language, setLanguage } = useLanguage();
 
     return (
         <footer className="bg-card border-t">
@@ -40,6 +41,24 @@ export default function Footer() {
                         <p className="text-muted-foreground text-sm mt-4">
                             La plateforme tout-en-un pour les étudiants.
                         </p>
+                        <div className="mt-4 flex gap-2">
+                             <Button
+                                size="sm"
+                                variant={language === 'fr' ? 'secondary' : 'ghost'}
+                                onClick={() => setLanguage('fr')}
+                              >
+                                🇫🇷 FR
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={language === 'en' ? 'secondary' : 'ghost'}
+                                onClick={() => setLanguage('en')}
+                                disabled
+                              >
+                                🇬🇧 EN
+                                <span className="text-xs ml-2 opacity-70">(bientôt)</span>
+                              </Button>
+                        </div>
                     </div>
 
                     {Object.entries(footerLinks).map(([title, links]) => (
