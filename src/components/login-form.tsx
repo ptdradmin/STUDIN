@@ -74,12 +74,7 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from');
-      if (from && from !== '/login' && from !== '/') {
-        router.push(from);
-      } else {
-        router.push('/social');
-      }
+      router.push('/social');
   }
 
   const handleError = (error: any) => {
