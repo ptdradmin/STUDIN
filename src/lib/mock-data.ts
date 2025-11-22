@@ -1,3 +1,4 @@
+
 import { PlaceHolderImages } from "./placeholder-images";
 
 export interface Housing {

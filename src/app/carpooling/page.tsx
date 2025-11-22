@@ -1,40 +1,19 @@
 
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Car, MapPin, User, Users } from "lucide-react";
+import { MapPin, Users } from "lucide-react";
 import Image from "next/image";
-
-const mockTrips = [
-    {
-        id: 1,
-        driver: "Alexandre D.",
-        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alex",
-        departure: "Bruxelles-Midi",
-        arrival: "Namur",
-        date: "Demain",
-        time: "08:30",
-        price: "5€",
-        seats: 2,
-    },
-    {
-        id: 2,
-        driver: "Marie L.",
-        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=marie",
-        departure: "Liège-Guillemins",
-        arrival: "Louvain-la-Neuve",
-        date: "Demain",
-        time: "07:45",
-        price: "7€",
-        seats: 1,
-    }
-]
+import { getTrips, Trip } from "@/lib/mock-data";
 
 
-export default function CarpoolingPage() {
+export default async function CarpoolingPage() {
+  const mockTrips: Trip[] = await getTrips();
+  
   return (
     <div className="flex flex-col min-h-screen">
         <Navbar />
