@@ -42,7 +42,7 @@ export default function HelpPage() {
                                         <LifeBuoy className="h-8 w-8" />
                                     </div>
                                 </div>
-                                <CardTitle className="text-center">Contacter le Support</CardTitle>
+                                <CardTitle className="text-center">Ouvrir un ticket</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <CardDescription className="text-center">Notre équipe est là pour vous aider avec tout problème technique ou question.</CardDescription>

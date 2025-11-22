@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 const footerLinks = {
@@ -11,8 +12,9 @@ const footerLinks = {
         { href: '/privacy', label: 'Confidentialité' },
     ],
     'Support': [
+        { href: '/help', label: 'Centre d\'aide' },
         { href: '/contact', label: 'Contact' },
-        { href: '/language', label: 'Langue' },
+        { href: '/faq', label: 'FAQ' },
     ]
 };
 
