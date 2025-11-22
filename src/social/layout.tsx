@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Bell } from "lucide-react";
+import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Bell, User, Settings, LogOut } from "lucide-react";
 import { useUser } from "@/firebase";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +16,10 @@ const mainNavItems = [
   { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/events", label: "Événements", icon: PartyPopper },
+];
+const secondaryNavItems = [
+    { href: "/profile", label: "Profil", icon: User },
+    { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
 
@@ -30,9 +34,9 @@ function NavLink({ item }: { item: { href?: string, id?: string, label: string, 
         variant={isActive ? "secondary" : "ghost"} 
         size="lg" 
         aria-label={label} 
-        className={`justify-start items-center gap-3 h-12 w-full text-base ${isActive ? 'font-semibold text-primary-foreground bg-primary/10' : 'font-normal text-sidebar-foreground/80 hover:bg-primary/5 hover:text-sidebar-foreground'}`}
+        className={`justify-start items-center gap-3 h-12 w-full text-base ${isActive ? 'font-semibold text-sidebar-foreground bg-white/10' : 'font-normal text-sidebar-foreground/80 hover:bg-white/5 hover:text-sidebar-foreground'}`}
       >
-        <Icon className={`h-6 w-6 ${isActive ? 'text-primary' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+        <Icon className={`h-6 w-6 ${isActive ? '' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
         <span>{label}</span>
       </Button>
     </Link>
@@ -53,9 +57,9 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
     }
 
   return (
-      <div className="flex min-h-screen bg-background text-foreground">
+      <div className="grid md:grid-cols-[256px_1fr] min-h-screen bg-background text-foreground">
         <aside 
-            className="fixed left-0 top-0 h-full z-20 flex flex-col p-3 bg-sidebar-background border-r border-border/10 transition-all duration-300 w-64"
+            className="fixed md:relative left-0 top-0 h-full z-20 flex-col p-3 bg-sidebar-background border-r border-border/10 transition-all duration-300 w-64 hidden md:flex"
         >
           <Link href="/social" className="mb-8 px-3 pt-3 flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
@@ -69,9 +73,23 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
               <NavLink key={item.label} item={item} />
             ))}
           </nav>
+          <div className="flex flex-col gap-2">
+            {secondaryNavItems.map((item) => (
+                <NavLink key={item.label} item={item} />
+            ))}
+             <Button 
+                variant="ghost" 
+                size="lg" 
+                aria-label="Déconnexion" 
+                className="justify-start items-center gap-3 h-12 w-full text-base font-normal text-sidebar-foreground/80 hover:bg-white/5 hover:text-sidebar-foreground"
+             >
+                <LogOut className="h-6 w-6" />
+                <span>Déconnexion</span>
+            </Button>
+          </div>
         </aside>
         
-        <div className="flex flex-col flex-1 transition-all duration-300 ml-64">
+        <div className="flex flex-col flex-1 transition-all duration-300">
           <header className="sticky top-0 z-10 flex h-16 items-center justify-end gap-4 border-b bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <Button variant="ghost" size="icon">
               <Search className="h-5 w-5" />
@@ -86,7 +104,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                 </Avatar>
             </Link>
           </header>
-          <main className="flex-1 p-8">
+          <main className="flex-1 p-4 sm:p-6 md:p-8">
             {children}
           </main>
         </div>
