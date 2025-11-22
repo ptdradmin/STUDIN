@@ -12,8 +12,9 @@ import { MapPin, Users, LayoutGrid, Map, Plus } from "lucide-react";
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser } from "@/firebase";
+import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import { collection } from "firebase/firestore";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -48,7 +49,12 @@ function TripListSkeleton() {
 
 
 export default function CarpoolingPage() {
-  const {data: trips, isLoading} = useCollection<Trip>('carpoolings');
+  const firestore = useFirestore();
+  const tripsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'carpoolings');
+  }, [firestore]);
+  const {data: trips, isLoading} = useCollection<Trip>(tripsCollection);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
   

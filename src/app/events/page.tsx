@@ -15,7 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -24,7 +25,12 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 
 export default function EventsPage() {
-  const { data: events, isLoading } = useCollection<Event>('events');
+  const firestore = useFirestore();
+  const eventsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'events');
+  }, [firestore]);
+  const { data: events, isLoading } = useCollection<Event>(eventsCollection);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
 

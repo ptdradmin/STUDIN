@@ -7,9 +7,10 @@ import HousingListings from '@/components/housing-listings';
 import { LayoutGrid, Map, Plus } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import dynamic from 'next/dynamic';
-import { useCollection, useUser } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Housing } from '@/lib/types';
 import CreateHousingForm from './create-housing-form';
+import { collection } from 'firebase/firestore';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -18,7 +19,14 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 export default function HousingClientPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  const { data: housings, isLoading } = useCollection<Housing>('housings');
+  const firestore = useFirestore();
+
+  const housingsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'housings');
+  }, [firestore]);
+
+  const { data: housings, isLoading } = useCollection<Housing>(housingsCollection);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHousing, setEditingHousing] = useState<Housing | null>(null);
   const { user } = useUser();
