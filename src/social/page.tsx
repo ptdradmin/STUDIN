@@ -5,28 +5,38 @@ import { collection, query, where, doc } from 'firebase/firestore';
 import type { Housing, Trip, Tutor, Event } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
+import { GraduationCap, Car, Bed, PartyPopper, Plus } from "lucide-react";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import CreatePostForm from '@/components/create-post-form';
+import { useState } from 'react';
 
 const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
         <Link href={href} className="block group">
-            <Card className={cn("relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-full flex flex-col justify-between p-5", className)}>
-                <div className="flex justify-between items-start">
-                    <div className="p-3 bg-white/20 rounded-lg">
+            <Card className={cn("relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-48", className)}>
+                <div className="p-5 h-full flex flex-col">
+                    <div className="p-3 bg-white/20 rounded-lg w-min">
                        {icon}
                     </div>
-                </div>
-                <div>
-                    {isLoading ? (
-                        <Skeleton className="h-12 w-20 bg-white/20" />
-                    ) : (
-                        <div className="text-5xl font-bold text-white">{value}</div>
-                    )}
-                    <h3 className="text-lg font-semibold text-white/90 mt-1">{title}</h3>
+                    <div className="flex-grow" />
+                    <div>
+                        {isLoading ? (
+                            <Skeleton className="h-10 w-16 bg-white/20" />
+                        ) : (
+                            <div className="text-4xl font-bold text-white">{value}</div>
+                        )}
+                        <h3 className="text-md font-semibold text-white/90">{title}</h3>
+                    </div>
                 </div>
             </Card>
         </Link>
@@ -36,6 +46,7 @@ const StatCard = ({ title, value, icon, href, className, isLoading }: { title: s
 export default function SocialPageContent() {
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
+    const [showCreatePost, setShowCreatePost] = useState(false);
     
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -101,6 +112,25 @@ export default function SocialPageContent() {
                     className="bg-orange-500"
                 />
             </div>
+             <div className="space-y-4">
+                <h2 className="text-2xl font-bold tracking-tight">Accès rapide</h2>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Créer
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => setShowCreatePost(true)}>Publication</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Logement</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Covoiturage</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Événement</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Tutorat</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
         </div>
     );
 }
