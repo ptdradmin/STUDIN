@@ -25,7 +25,7 @@ export interface Post {
     userDisplayName: string;
     userAvatarUrl: string;
     createdAt: string;
-    likes?: number;
+    likes: string[];
     comments?: {
         user: string;
         text: string;

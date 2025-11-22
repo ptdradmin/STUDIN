@@ -10,7 +10,7 @@ import { Heart, MessageCircle, Send, MoreHorizontal } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
-import { doc, deleteDoc } from "firebase/firestore";
+import { doc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +40,36 @@ export default function PostCard({ post }: PostCardProps) {
     const timeAgo = post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: fr }) : '';
 
     const isOwner = user && user.uid === post.userId;
+    const hasLiked = user && post.likes?.includes(user.uid);
+
+    const handleLike = async () => {
+        if (!user || !firestore) {
+            toast({
+                variant: 'destructive',
+                title: 'Erreur',
+                description: 'Vous devez être connecté pour aimer une publication.'
+            });
+            return;
+        }
+
+        const postRef = doc(firestore, "posts", post.id);
+
+        try {
+            if (hasLiked) {
+                await updateDoc(postRef, {
+                    likes: arrayRemove(user.uid)
+                });
+            } else {
+                await updateDoc(postRef, {
+                    likes: arrayUnion(user.uid)
+                });
+            }
+        } catch (error) {
+            console.error("Error liking post: ", error);
+            toast({ variant: "destructive", title: "Erreur", description: "Impossible de mettre à jour le like." });
+        }
+    };
+
 
     const handleDelete = async () => {
         if (!firestore || !isOwner) return;
@@ -99,11 +129,13 @@ export default function PostCard({ post }: PostCardProps) {
             </CardContent>
             <CardFooter className="p-3 flex flex-col items-start">
                 <div className="flex items-center gap-2 -ml-2">
-                    <Button variant="ghost" size="icon"><Heart className="h-6 w-6" /></Button>
+                    <Button variant="ghost" size="icon" onClick={handleLike}>
+                        <Heart className={`h-6 w-6 ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
+                    </Button>
                     <Button variant="ghost" size="icon"><MessageCircle className="h-6 w-6" /></Button>
                     <Button variant="ghost" size="icon"><Send className="h-6 w-6" /></Button>
                 </div>
-                <p className="font-semibold text-sm mt-2">{post.likes || 0} J'aime</p>
+                <p className="font-semibold text-sm mt-2">{post.likes?.length || 0} J'aime</p>
                 <div className="text-sm mt-1">
                     <span className="font-semibold">{post.userDisplayName}</span>
                     <span className="ml-2">{post.caption}</span>

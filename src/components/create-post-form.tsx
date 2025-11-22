@@ -47,7 +47,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         userDisplayName: user.displayName,
         userAvatarUrl: user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`,
         createdAt: serverTimestamp(),
-        likes: 0,
+        likes: [],
         comments: []
       });
       toast({ title: 'Succès', description: 'Publication créée !' });
