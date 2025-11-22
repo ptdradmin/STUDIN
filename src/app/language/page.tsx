@@ -1,11 +1,15 @@
+'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/language-context";
 
 export default function LanguagePage() {
+  const { language, setLanguage } = useLanguage();
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -25,12 +29,22 @@ export default function LanguagePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button className="w-full justify-between" variant="secondary">
+              <Button
+                className="w-full justify-between"
+                variant={language === 'fr' ? 'secondary' : 'outline'}
+                onClick={() => setLanguage('fr')}
+              >
                 <span>🇫🇷 FR</span>
-                <span className="text-xs text-muted-foreground">Actif</span>
+                {language === 'fr' && <span className="text-xs text-muted-foreground">Actif</span>}
               </Button>
-              <Button className="w-full justify-between" variant="outline" disabled>
+              <Button
+                className="w-full justify-between"
+                variant={language === 'en' ? 'secondary' : 'outline'}
+                onClick={() => setLanguage('en')}
+                disabled
+              >
                 <span>🇬🇧 EN</span>
+                {language === 'en' && <span className="text-xs text-muted-foreground">Actif</span>}
                  <span className="text-xs text-muted-foreground">Bientôt</span>
               </Button>
                <p className="text-sm text-center text-muted-foreground pt-4">La prise en charge multilingue est en cours de développement.</p>

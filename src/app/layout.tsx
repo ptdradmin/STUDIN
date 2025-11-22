@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import {Toaster} from '@/components/ui/toaster';
 import FirebaseClientProvider from '@/firebase/client-provider';
+import { LanguageProvider } from '@/contexts/language-context';
 
 export const metadata: Metadata = {
   title: "STUD'IN - L'écosystème étudiant",
@@ -28,12 +29,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <FirebaseClientProvider>
-          <div className="flex flex-col min-h-screen">
-            <main className="flex-grow">{children}</main>
-          </div>
-          <Toaster />
-        </FirebaseClientProvider>
+        <LanguageProvider>
+          <FirebaseClientProvider>
+            <div className="flex flex-col min-h-screen">
+              <main className="flex-grow">{children}</main>
+            </div>
+            <Toaster />
+          </FirebaseClientProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

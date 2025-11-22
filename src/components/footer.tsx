@@ -1,5 +1,7 @@
+'use client';
 
 import Link from "next/link";
+import { useLanguage } from "@/contexts/language-context";
 
 const footerLinks = {
     'Société': [
@@ -15,11 +17,12 @@ const footerLinks = {
         { href: '/help', label: 'Centre d\'aide' },
         { href: '/contact', label: 'Contact' },
         { href: '/faq', label: 'FAQ' },
-        { href: '/language', label: 'FR | EN' },
     ]
 };
 
 export default function Footer() {
+    const { language } = useLanguage();
+
     return (
         <footer className="bg-card border-t">
             <div className="container mx-auto px-4 py-12">
@@ -52,6 +55,19 @@ export default function Footer() {
                             </ul>
                         </div>
                     ))}
+                    <div>
+                        <h3 className="font-semibold tracking-wide text-foreground">Support</h3>
+                        <ul className="mt-4 space-y-2">
+                            <li><Link href="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">Centre d'aide</Link></li>
+                            <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
+                            <li><Link href="/faq" className="text-sm text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
+                            <li>
+                                <Link href="/language" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                                    {language === 'fr' ? '🇫🇷 FR' : '🇬🇧 EN'}
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
                 <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
                     <p>&copy; {new Date().getFullYear()} STUD'IN. Tous droits réservés.</p>
