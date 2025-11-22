@@ -90,14 +90,9 @@ export default function Navbar() {
             ))}
             {user && (
               <>
-                <NavLink href="/social">
-                  <div className="flex items-center"><Compass className="mr-2 h-4 w-4" /> Social</div>
-                </NavLink>
-                
                 <NavLink href="/messages">
                   <div className="flex items-center"><MessageSquare className="mr-2 h-4 w-4" /> Messages</div>
                 </NavLink>
-                
               </>
             )}
           </nav>
@@ -157,9 +152,6 @@ export default function Navbar() {
           ))}
            {user && (
               <>
-                <NavLink href="/social">
-                  Social
-                </NavLink>
                 <NavLink href="/messages">
                   Messages
                 </NavLink>
