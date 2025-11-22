@@ -27,7 +27,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 export default function EventsPage() {
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -154,81 +154,77 @@ export default function EventsPage() {
   }
 
   return (
-    <>
-          <div className="container mx-auto px-4 py-8">
-              <Card>
-                  <CardHeader>
-                      <CardTitle>Filtrer les événements</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <form className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
-                          <div className="space-y-2">
-                              <Label htmlFor="city">Ville</Label>
-                              <Input id="city" placeholder="Ex: Louvain-la-Neuve" value={cityFilter} onChange={e => setCityFilter(e.target.value)} />
-                          </div>
-                          <div className="space-y-2">
-                              <Label htmlFor="university">Université</Label>
-                                <Select value={universityFilter} onValueChange={setUniversityFilter}>
-                                  <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
-                                  <SelectContent>
-                                      <SelectItem value="all">Toutes</SelectItem>
-                                      {universities.map(uni => <SelectItem key={uni} value={uni}>{uni}</SelectItem>)}
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                          <div className="space-y-2">
-                              <Label htmlFor="category">Catégorie</Label>
-                              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                                  <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
-                                  <SelectContent>
-                                      <SelectItem value="all">Toutes</SelectItem>
-                                      <SelectItem value="soirée">Soirée</SelectItem>
-                                      <SelectItem value="conférence">Conférence</SelectItem>
-                                      <SelectItem value="culture">Culture</SelectItem>
-                                      <SelectItem value="sport">Sport</SelectItem>
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                      </form>
-                  </CardContent>
-              </Card>
-
-              {showCreateForm && <CreateEventForm onClose={() => setShowCreateForm(false)} />}
-
-              <div className="mt-8">
-                <div className="flex justify-between items-center mb-4 gap-4">
-                  <h2 className="text-2xl font-bold tracking-tight">Événements à venir</h2>
-                   <div className="flex items-center gap-2">
-                    {user && (
-                      <Button onClick={() => setShowCreateForm(true)}>
-                        <Plus className="mr-2 h-4 w-4" /> Créer un événement
-                      </Button>
-                    )}
-                    <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                      <Button
-                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('list')}
-                        className="px-3"
-                      >
-                        <LayoutGrid className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('map')}
-                        className="px-3"
-                      >
-                        <Map className="h-5 w-5" />
-                      </Button>
+    <div className="container mx-auto px-4 py-8">
+        <Card>
+            <CardHeader>
+                <CardTitle>Filtrer les événements</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
+                    <div className="space-y-2">
+                        <Label htmlFor="city">Ville</Label>
+                        <Input id="city" placeholder="Ex: Louvain-la-Neuve" value={cityFilter} onChange={e => setCityFilter(e.target.value)} />
                     </div>
-                  </div>
-                </div>
-                
-                {viewMode === 'list' ? renderList() : renderMap()}
+                    <div className="space-y-2">
+                        <Label htmlFor="university">Université</Label>
+                          <Select value={universityFilter} onValueChange={setUniversityFilter}>
+                            <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Toutes</SelectItem>
+                                {universities.map(uni => <SelectItem key={uni} value={uni}>{uni}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="category">Catégorie</Label>
+                        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                            <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Toutes</SelectItem>
+                                <SelectItem value="soirée">Soirée</SelectItem>
+                                <SelectItem value="conférence">Conférence</SelectItem>
+                                <SelectItem value="culture">Culture</SelectItem>
+                                <SelectItem value="sport">Sport</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
 
+        {showCreateForm && <CreateEventForm onClose={() => setShowCreateForm(false)} />}
+
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4 gap-4">
+            <h2 className="text-2xl font-bold tracking-tight">Événements à venir</h2>
+              <div className="flex items-center gap-2">
+              <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
+                <Plus className="mr-2 h-4 w-4" /> Créer un événement
+              </Button>
+              <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                <Button
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="px-3"
+                >
+                  <LayoutGrid className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('map')}
+                  className="px-3"
+                >
+                  <Map className="h-5 w-5" />
+                </Button>
               </div>
+            </div>
           </div>
-    </>
+          
+          {viewMode === 'list' ? renderList() : renderMap()}
+
+        </div>
+    </div>
   );
 }

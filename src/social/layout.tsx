@@ -55,7 +55,7 @@ function NavLink({ item }: { item: { href?: string, id?: string, label: string, 
 }
 
 export default function SocialLayout({ children }: { children: React.ReactNode }) {
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const { auth } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -166,7 +166,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                 <div className="md:hidden">
                     <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
                 </div>
-                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
+                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2" disabled={isUserLoading || !user}>
                     <Plus className="h-4 w-4" />
                     Créer
                 </Button>
@@ -188,7 +188,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
           <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 flex justify-around z-40">
             <Link href="/social" className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5"><Home className="h-6 w-6" /><span className="text-xs">Accueil</span></Link>
             <Link href="/messages" className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5"><MessageSquare className="h-6 w-6" /><span className="text-xs">Messages</span></Link>
-            <button className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5" onClick={() => setShowCreatePost(true)}>
+            <button className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5" onClick={() => setShowCreatePost(true)} disabled={isUserLoading || !user}>
                 <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center -mt-6 border-4 border-background">
                     <Plus className="h-6 w-6"/>
                 </div>

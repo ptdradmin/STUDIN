@@ -26,7 +26,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 export default function TutoringPage() {
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -142,70 +142,66 @@ export default function TutoringPage() {
   }
 
   return (
-    <>
-          <div className="container mx-auto px-4 py-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Trouver un tuteur</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end" onSubmit={e => e.preventDefault()}>
-                      <div className="space-y-2">
-                          <Label htmlFor="subject">Matière</Label>
-                          <Input id="subject" placeholder="Ex: Mathématiques, Droit..." value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                          <Label htmlFor="level">Niveau</Label>
-                          <Select value={levelFilter} onValueChange={setLevelFilter}>
-                            <SelectTrigger><SelectValue placeholder="Tous niveaux" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tous niveaux</SelectItem>
-                                <SelectItem value="bachelier">Bachelier</SelectItem>
-                                <SelectItem value="master">Master</SelectItem>
-                                <SelectItem value="secondaire">Secondaire</SelectItem>
-                            </SelectContent>
-                          </Select>
-                      </div>
-                      <div className="lg:col-span-2">
-                      </div>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {showCreateForm && <CreateTutorForm onClose={() => setShowCreateForm(false)} />}
-
-               <div className="mt-8">
-                <div className="flex justify-between items-center mb-4 gap-4">
-                  <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
-                  <div className="flex items-center gap-2">
-                    {user && (
-                      <Button onClick={() => setShowCreateForm(true)}>
-                        <Plus className="mr-2 h-4 w-4" /> Devenir tuteur
-                      </Button>
-                    )}
-                    <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                      <Button
-                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('list')}
-                        className="px-3"
-                      >
-                        <LayoutGrid className="h-5 w-5" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('map')}
-                        className="px-3"
-                      >
-                        <Map className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </div>
+    <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Trouver un tuteur</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end" onSubmit={e => e.preventDefault()}>
+                <div className="space-y-2">
+                    <Label htmlFor="subject">Matière</Label>
+                    <Input id="subject" placeholder="Ex: Mathématiques, Droit..." value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} />
                 </div>
-                {viewMode === 'list' ? renderList() : renderMap()}
+                <div className="space-y-2">
+                    <Label htmlFor="level">Niveau</Label>
+                    <Select value={levelFilter} onValueChange={setLevelFilter}>
+                      <SelectTrigger><SelectValue placeholder="Tous niveaux" /></SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="all">Tous niveaux</SelectItem>
+                          <SelectItem value="bachelier">Bachelier</SelectItem>
+                          <SelectItem value="master">Master</SelectItem>
+                          <SelectItem value="secondaire">Secondaire</SelectItem>
+                      </SelectContent>
+                    </Select>
+                </div>
+                <div className="lg:col-span-2">
+                </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {showCreateForm && <CreateTutorForm onClose={() => setShowCreateForm(false)} />}
+
+          <div className="mt-8">
+          <div className="flex justify-between items-center mb-4 gap-4">
+            <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
+                <Plus className="mr-2 h-4 w-4" /> Devenir tuteur
+              </Button>
+              <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                <Button
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="px-3"
+                >
+                  <LayoutGrid className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('map')}
+                  className="px-3"
+                >
+                  <Map className="h-5 w-5" />
+                </Button>
               </div>
+            </div>
           </div>
-    </>
+          {viewMode === 'list' ? renderList() : renderMap()}
+        </div>
+    </div>
   );
 }
