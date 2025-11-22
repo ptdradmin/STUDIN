@@ -158,7 +158,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
             });
         }
 
-        // Update posts after profile update
         if(data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture) {
             await updateUserPosts(firestore, user.uid, { username: data.username, profilePicture: newPhotoURL });
         }
