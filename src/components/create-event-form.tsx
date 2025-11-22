@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
@@ -40,7 +40,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,8 +62,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     setLoading(true);
 
     try {
+        const eventsCollection = collection(firestore, 'events');
+        const newDocRef = doc(eventsCollection);
         const eventData = {
             ...data,
+            id: newDocRef.id,
             organizerId: user.uid,
             organizerUsername: user.displayName || user.email?.split('@')[0],
             organizerAvatarUrl: user.photoURL,
@@ -75,7 +78,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             imageHint: "student event"
         };
 
-        addDocumentNonBlocking(collection(firestore, 'events'), eventData);
+        setDocumentNonBlocking(newDocRef, eventData, {});
 
         toast({ title: 'Succès', description: 'Événement créé !' });
         onClose();
@@ -156,7 +159,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || isUserLoading}>
               {loading ? 'Création...' : 'Créer l\'événement'}
             </Button>
           </DialogFooter>

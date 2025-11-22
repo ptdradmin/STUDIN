@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
@@ -36,7 +36,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
   const onSubmit: SubmitHandler<TutorFormInputs> = async (data) => {
@@ -47,8 +47,12 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     setLoading(true);
     
     try {
+        const tutoringsCollection = collection(firestore, 'tutorings');
+        const newDocRef = doc(tutoringsCollection);
+
         const tutorData = {
             ...data,
+            id: newDocRef.id,
             tutorId: user.uid,
             tutorUsername: user.displayName || user.email?.split('@')[0],
             tutorAvatarUrl: user.photoURL,
@@ -58,7 +62,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
             coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
         };
 
-        addDocumentNonBlocking(collection(firestore, 'tutorings'), tutorData);
+        setDocumentNonBlocking(newDocRef, tutorData, {});
         
         toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
         onClose();
@@ -123,7 +127,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || isUserLoading}>
               {loading ? 'Création...' : 'Créer le profil'}
             </Button>
           </DialogFooter>

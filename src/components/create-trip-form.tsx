@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
@@ -40,7 +40,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
   const onSubmit: SubmitHandler<TripFormInputs> = async (data) => {
@@ -51,8 +51,12 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     setLoading(true);
 
     try {
+        const carpoolingsCollection = collection(firestore, 'carpoolings');
+        const newDocRef = doc(carpoolingsCollection);
+
         const tripData = {
             ...data,
+            id: newDocRef.id,
             driverId: user.uid,
             driverUsername: user.displayName || user.email?.split('@')[0],
             driverAvatarUrl: user.photoURL,
@@ -63,7 +67,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
             coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
         };
         
-        addDocumentNonBlocking(collection(firestore, 'carpoolings'), tripData);
+        setDocumentNonBlocking(newDocRef, tripData, {});
 
         toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
         onClose();
@@ -122,7 +126,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || isUserLoading}>
               {loading ? 'Création...' : 'Proposer le trajet'}
             </Button>
           </DialogFooter>

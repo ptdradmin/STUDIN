@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, addDocumentNonBlocking, useUser } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, setDocumentNonBlocking, useUser } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
@@ -42,7 +41,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
   const imageUrl = watch('imageUrl');
@@ -75,8 +74,11 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     setLoading(true);
 
     try {
+        const postsCollection = collection(firestore, 'posts');
+        const newDocRef = doc(postsCollection);
         const postData = {
             ...data,
+            id: newDocRef.id,
             userId: user.uid,
             userDisplayName: user.displayName || user.email?.split('@')[0],
             userAvatarUrl: user.photoURL,
@@ -86,7 +88,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             comments: [],
         };
 
-        addDocumentNonBlocking(collection(firestore, 'posts'), postData);
+        setDocumentNonBlocking(newDocRef, postData, {});
         
         toast({ title: 'Succès', description: 'Publication créée !' });
         onClose();
@@ -158,7 +160,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                 </div>
            </div>
           <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
-            <Button type="submit" disabled={loading} variant="link" className="font-bold">
+            <Button type="submit" disabled={loading || isUserLoading} variant="link" className="font-bold">
               {loading ? 'Publication...' : 'Partager'}
             </Button>
           </DialogFooter>

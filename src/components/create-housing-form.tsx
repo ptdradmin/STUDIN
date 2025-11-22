@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -73,7 +73,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
   const isEditing = !!housingToEdit;
 
@@ -104,8 +104,10 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
             const housingsCollection = collection(firestore, 'housings');
+            const newDocRef = doc(housingsCollection);
             const dataToCreate = {
                 ...data,
+                id: newDocRef.id,
                 userId: user.uid,
                 ownerUsername: user.displayName || user.email?.split('@')[0],
                 ownerAvatarUrl: user.photoURL,
@@ -114,7 +116,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 coordinates: [50.8503, 4.3517], // TODO: Geocode address
                 imageHint: "student room"
             };
-            addDocumentNonBlocking(housingsCollection, dataToCreate);
+            setDocumentNonBlocking(newDocRef, dataToCreate, {});
             toast({ title: 'Succès', description: 'Annonce de logement créée !' });
         }
         onClose();
@@ -201,7 +203,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || isUserLoading}>
               {loading ? (isEditing ? 'Mise à jour...' : 'Création...') : (isEditing ? 'Mettre à jour' : 'Créer')}
             </Button>
           </DialogFooter>
