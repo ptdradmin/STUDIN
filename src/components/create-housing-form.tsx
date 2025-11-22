@@ -15,6 +15,9 @@ import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/fi
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -73,23 +76,32 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     
     try {
       if (isEditing) {
+        if (!housingToEdit) return;
         const housingRef = doc(firestore, 'housings', housingToEdit.id);
-        await updateDoc(housingRef, { ...data });
+        const dataToUpdate = { ...data, updatedAt: serverTimestamp() };
+        updateDocumentNonBlocking(housingRef, dataToUpdate);
         toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
       } else {
-        await addDoc(collection(firestore, 'housings'), {
+        const dataToCreate = {
           ...data,
           userId: user.uid,
           createdAt: serverTimestamp(),
-          coordinates: [50.8503, 4.3517],
+          updatedAt: serverTimestamp(),
+          coordinates: [50.8503, 4.3517], // TODO: Geocode address
           imageHint: "student room"
-        });
+        };
+        addDocumentNonBlocking(collection(firestore, 'housings'), dataToCreate);
         toast({ title: 'Succès', description: 'Annonce de logement créée !' });
       }
       onClose();
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'Erreur', description: isEditing ? "Impossible de mettre à jour l'annonce." : "Impossible de créer l'annonce." });
+      const contextualError = new FirestorePermissionError({
+        path: isEditing && housingToEdit ? `housings/${housingToEdit.id}` : 'housings',
+        operation: isEditing ? 'update' : 'create',
+        requestResourceData: data,
+      });
+      errorEmitter.emit('permission-error', contextualError);
     } finally {
       setLoading(false);
     }

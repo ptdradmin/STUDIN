@@ -18,7 +18,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 export default function HousingClientPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  const { data: housings, loading } = useCollection<Housing>('housings');
+  const { data: housings, isLoading } = useCollection<Housing>('housings');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHousing, setEditingHousing] = useState<Housing | null>(null);
   const { user } = useUser();
@@ -64,7 +64,7 @@ export default function HousingClientPage() {
       {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
 
       {viewMode === 'grid' && (
-        <HousingListings initialHousings={housings || []} isLoading={loading} onEdit={handleEdit} />
+        <HousingListings initialHousings={housings || []} isLoading={isLoading} onEdit={handleEdit} />
       )}
       {viewMode === 'map' && (
         <Card>
