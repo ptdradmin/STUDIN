@@ -11,15 +11,19 @@ export default function HomePage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (!isUserLoading) {
-            if (user) {
-                router.replace('/social');
-            } else {
-                router.replace('/welcome');
-            }
+        // Ne rien faire tant que l'état d'authentification n'est pas connu.
+        if (isUserLoading) {
+            return;
+        }
+
+        // Une fois l'état connu, rediriger.
+        if (user) {
+            router.replace('/social');
+        } else {
+            router.replace('/welcome');
         }
     }, [user, isUserLoading, router]);
 
-    // Affiche un squelette de chargement pendant la vérification de l'état d'authentification et la redirection.
+    // Afficher un squelette de chargement pendant la vérification et la redirection.
     return <PageSkeleton />;
 }
