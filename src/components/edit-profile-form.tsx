@@ -108,25 +108,29 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     try {
       const userDocRef = doc(firestore, 'users', user.uid);
       
-      const dataToUpdate: Partial<ProfileFormInputs> & { updatedAt: any } = {
+      const dataToUpdate: Partial<UserProfile> & { updatedAt: any } = {
         ...data,
         updatedAt: serverTimestamp()
       };
       
-      // Remove undefined fields
-      Object.keys(dataToUpdate).forEach(key => {
-        if (dataToUpdate[key as keyof typeof dataToUpdate] === undefined) {
-          delete dataToUpdate[key as keyof typeof dataToUpdate];
+      // Remove undefined fields to prevent Firestore errors
+      Object.keys(dataToUpdate).forEach(keyStr => {
+        const key = keyStr as keyof typeof dataToUpdate;
+        if (dataToUpdate[key] === undefined) {
+          delete dataToUpdate[key];
         }
       });
       
       await updateDoc(userDocRef, dataToUpdate);
       
       const displayName = `${data.firstName} ${data.lastName}`;
-      if(user.displayName !== displayName || user.photoURL !== data.profilePicture) {
+      if(user.displayName !== displayName) {
         await updateProfile(user, { 
             displayName,
-            photoURL: data.profilePicture
+            // photoURL is too long for Firebase Auth profile if it's a data URI.
+            // A real app would upload this to Firebase Storage and get a URL.
+            // For now, we'll just update it in Firestore and not in the auth profile.
+            // photoURL: data.profilePicture
         });
       }
 
@@ -245,5 +249,3 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
-
-    
