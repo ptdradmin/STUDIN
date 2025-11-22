@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,11 @@ import { Skeleton } from './ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { useUser, useAuth, useCollection, useDoc } from '@/firebase';
+import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
 import EditProfileForm from './edit-profile-form';
-import { doc } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
@@ -40,10 +40,18 @@ export default function ProfileClientPage() {
 
   const [showEditForm, setShowEditForm] = useState(false);
 
-  const userRef = user && firestore ? doc(firestore, 'users', user.uid) : null;
+  const userRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
   const { data: userProfile, loading: profileLoading } = useDoc(userRef);
 
-  const { data: allPosts, loading: postsLoading } = useCollection<Post>('posts');
+  const postsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'posts');
+  }, [firestore]);
+  const { data: allPosts, loading: postsLoading } = useCollection<Post>(postsCollection);
+
 
   useEffect(() => {
     if (!userLoading && !user) {
