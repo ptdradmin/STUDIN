@@ -4,20 +4,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PostCard from "@/components/post-card";
-import { Camera, Home, Plus, Search } from 'lucide-react';
-import Link from "next/link";
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Post } from '@/lib/types';
-import CreatePostForm from '@/components/create-post-form';
-import { collection, orderBy, query } from 'firebase/firestore';
-import NotificationsDropdown from '@/components/notifications-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { collection, orderBy, query } from 'firebase/firestore';
+import type { Post } from '@/lib/types';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import CreatePostForm from '@/components/create-post-form';
+import { PageSkeleton } from '@/components/page-skeleton';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
-import { PageSkeleton } from '@/components/page-skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const reelsUsers = [
   { name: "Alice", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alice" },
@@ -84,7 +79,7 @@ function CardSkeleton() {
     )
 }
 
-export default function SocialPage() {
+export default function SocialPageLayout() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
     const router = useRouter();
@@ -111,7 +106,6 @@ export default function SocialPage() {
 
     return (
          <div className="flex flex-col min-h-screen">
-            <Navbar />
              <main className="flex-grow container mx-auto px-0 md:px-4 pt-4">
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
@@ -128,7 +122,6 @@ export default function SocialPage() {
                    )}
                 </div>
             </main>
-            <Footer />
         </div>
     );
 }
