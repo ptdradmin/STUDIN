@@ -127,6 +127,20 @@ export default function SettingsPage() {
       description: "Votre historique de recherche a été supprimé.",
     });
   };
+  
+  const handleDeleteAccount = () => {
+    toast({
+      title: "Compte supprimé",
+      variant: "destructive",
+      description: "Votre compte et toutes vos données ont été supprimés.",
+    });
+    // In a real app, you would also call the Firebase function to delete the user account
+    // and all associated data.
+     if(auth) {
+        signOut(auth);
+     }
+    router.push('/');
+  }
 
 
   return (
@@ -154,7 +168,7 @@ export default function SettingsPage() {
                      <SettingsLink title="Informations personnelles" href="/profile" />
                      <SettingsLink title="Mot de passe" />
                      <SettingsLink title="Comptes liés" />
-                     <Button variant="destructive" className="w-full mt-4" onClick={handleLogout}>
+                     <Button variant="outline" className="w-full mt-4" onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Déconnexion
                      </Button>
@@ -216,6 +230,28 @@ export default function SettingsPage() {
                     <SettingsLink title="Authentification à deux facteurs" />
                     <SettingsLink title="Appareils connectés" />
                     <SettingsLink title="Historique des connexions" />
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full mt-4">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer le compte
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Voulez-vous vraiment supprimer votre compte ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Cette action est définitive et irréversible. Toutes vos données, y compris votre profil, vos publications et vos messages, seront définitivement supprimées.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90">
+                                    Supprimer mon compte
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                   </AccordionContent>
                 </AccordionItem>
                 

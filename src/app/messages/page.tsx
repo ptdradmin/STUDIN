@@ -7,16 +7,28 @@ import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send } from 'lucide-react';
+import { Send, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, getDocs, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, deleteDoc } from 'firebase/firestore';
 import type { Conversation, ChatMessage, UserProfile } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 
 function ConversationListSkeleton() {
@@ -73,6 +85,7 @@ export default function MessagesPage() {
     const firestore = useFirestore();
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
 
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
     const [newMessage, setNewMessage] = useState('');
@@ -182,6 +195,18 @@ export default function MessagesPage() {
         return <PageSkeleton />;
     }
 
+    const handleDeleteConversation = (conversationId: string) => {
+        if (!firestore) return;
+        deleteDocumentNonBlocking(doc(firestore, 'conversations', conversationId));
+        toast({
+            title: "Conversation supprimée",
+            description: "La conversation a été définitivement supprimée.",
+        });
+        if (selectedConversation?.id === conversationId) {
+            setSelectedConversation(null);
+        }
+    };
+
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if(newMessage.trim() === '' || !firestore || !selectedConversation) return;
@@ -249,7 +274,7 @@ export default function MessagesPage() {
                                 return (
                                     <div 
                                         key={conv.id} 
-                                        className={`p-4 cursor-pointer hover:bg-muted/50 ${selectedConversation?.id === conv.id ? 'bg-muted' : ''}`}
+                                        className={`p-4 cursor-pointer hover:bg-muted/50 group relative ${selectedConversation?.id === conv.id ? 'bg-muted' : ''}`}
                                         onClick={() => setSelectedConversation(conv)}
                                     >
                                         <div className="flex items-center gap-3">
@@ -264,6 +289,29 @@ export default function MessagesPage() {
                                                 </div>
                                                 <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
                                             </div>
+                                        </div>
+                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                             <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Supprimer la conversation ?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Cette action est irréversible. L'historique des messages sera définitivement perdu.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteConversation(conv.id)} className="bg-destructive hover:bg-destructive/90">
+                                                            Supprimer
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </div>
                                     </div>
                                 )

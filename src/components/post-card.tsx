@@ -6,7 +6,7 @@ import type { Post } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import React, { useState } from "react";
 import Link from "next/link";
+import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 
 interface PostCardProps {
@@ -122,13 +123,8 @@ export default function PostCard({ post }: PostCardProps) {
     const handleDelete = async () => {
         if (!firestore || !isOwner) return;
         if (window.confirm("Êtes-vous sûr de vouloir supprimer cette publication ?")) {
-            try {
-                await deleteDoc(doc(firestore, "posts", post.id));
-                toast({ title: "Succès", description: "Publication supprimée." });
-            } catch (error) {
-                console.error("Error deleting post: ", error);
-                toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer la publication." });
-            }
+            deleteDocumentNonBlocking(doc(firestore, "posts", post.id));
+            toast({ title: "Succès", description: "Publication supprimée." });
         }
     };
 
@@ -167,17 +163,18 @@ export default function PostCard({ post }: PostCardProps) {
                         {isOwner ? (
                             <>
                                 <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive cursor-pointer">
+                                    <Trash2 className="mr-2 h-4 w-4" />
                                     Supprimer
                                 </DropdownMenuItem>
                             </>
                         ) : (
                             <>
-                                <DropdownMenuItem onClick={handleReport}>
+                                <DropdownMenuItem onClick={handleReport} className="cursor-pointer">
                                     <AlertCircle className="mr-2 h-4 w-4" />
                                     Signaler
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleBlock}>
+                                <DropdownMenuItem onClick={handleBlock} className="text-destructive focus:text-destructive cursor-pointer">
                                     <UserX className="mr-2 h-4 w-4" />
                                     Bloquer cet utilisateur
                                 </DropdownMenuItem>
