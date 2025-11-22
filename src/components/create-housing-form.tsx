@@ -90,44 +90,33 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
   };
 
 
-  const onSubmit: SubmitHandler<HousingFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<HousingFormInputs> = (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
     }
     setLoading(true);
     
-    try {
-      if (isEditing && housingToEdit) {
-        const housingRef = doc(firestore, 'housings', housingToEdit.id);
-        const dataToUpdate = { ...data, updatedAt: serverTimestamp() };
-        updateDocumentNonBlocking(housingRef, dataToUpdate);
-        toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
-      } else {
-        const housingsCollection = collection(firestore, 'housings');
-        const dataToCreate = {
-          ...data,
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          coordinates: [50.8503, 4.3517], // TODO: Geocode address
-          imageHint: "student room"
-        };
-        addDocumentNonBlocking(housingsCollection, dataToCreate);
-        toast({ title: 'Succès', description: 'Annonce de logement créée !' });
-      }
-      onClose();
-    } catch (error) {
-      console.error("Form submission error:", error);
-      const contextualError = new FirestorePermissionError({
-        path: isEditing && housingToEdit ? `housings/${housingToEdit.id}` : 'housings',
-        operation: isEditing ? 'update' : 'create',
-        requestResourceData: data,
-      });
-      errorEmitter.emit('permission-error', contextualError);
-    } finally {
-      setLoading(false);
+    if (isEditing && housingToEdit) {
+      const housingRef = doc(firestore, 'housings', housingToEdit.id);
+      const dataToUpdate = { ...data, updatedAt: serverTimestamp() };
+      updateDocumentNonBlocking(housingRef, dataToUpdate);
+      toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
+    } else {
+      const housingsCollection = collection(firestore, 'housings');
+      const dataToCreate = {
+        ...data,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        coordinates: [50.8503, 4.3517], // TODO: Geocode address
+        imageHint: "student room"
+      };
+      addDocumentNonBlocking(housingsCollection, dataToCreate);
+      toast({ title: 'Succès', description: 'Annonce de logement créée !' });
     }
+    setLoading(false);
+    onClose();
   };
 
   return (
