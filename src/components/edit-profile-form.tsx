@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useAuth, useStorage } from '@/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { updateProfile } from 'firebase/auth';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
 import { Separator } from './ui/separator';
@@ -30,7 +30,6 @@ const profileSchema = z.object({
   bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
   website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
-  profilePicture: z.string().optional(),
 });
 
 type ProfileFormInputs = z.infer<typeof profileSchema>;
@@ -77,13 +76,14 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         bio: userProfile?.bio || '',
         website: userProfile?.website || '',
         gender: userProfile?.gender,
-        profilePicture: userProfile?.profilePicture,
     }
   });
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
+  const storage = useStorage();
+  const { auth } = useAuth();
   const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(userProfile?.profilePicture);
   
@@ -109,8 +109,8 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
   }
   
   const onSubmit: SubmitHandler<ProfileFormInputs> = async (data) => {
-    if (!user || !firestore) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
+    if (!user || !firestore || !storage || !auth) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible.' });
       return;
     }
     setLoading(true);
@@ -120,7 +120,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
       let newPhotoURL = userProfile.profilePicture;
 
       if (profilePictureFile) {
-        const storage = getStorage();
         const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
         await uploadBytes(fileRef, profilePictureFile);
         newPhotoURL = await getDownloadURL(fileRef);
@@ -142,11 +141,12 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
       await updateDoc(userDocRef, dataToUpdate);
       
       const displayName = `${data.firstName} ${data.lastName}`;
-      if(user.displayName !== displayName || user.photoURL !== newPhotoURL) {
-        await updateProfile(user, { 
-            displayName,
-            photoURL: newPhotoURL,
-        });
+      const currentUser = auth.currentUser;
+      if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
+          await updateProfile(currentUser, { 
+              displayName,
+              photoURL: newPhotoURL,
+          });
       }
 
       toast({ title: 'Succès', description: 'Profil mis à jour !' });
@@ -272,5 +272,3 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
-
-    
