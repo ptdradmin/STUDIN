@@ -12,10 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, GraduationCap } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -68,11 +68,10 @@ export default function Navbar() {
       <SheetContent side="left" className="w-64 p-0">
         <div className="flex flex-col h-full px-6 py-6">
             <Link href="/" className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
-              <div className="flex flex-col">
-                 <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                  STUD'IN
-                </span>
-              </div>
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                    <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-xl font-bold">STUD'IN</h1>
             </Link>
           <nav className="flex flex-col gap-4">
             {navLinks.map((link) => (
@@ -106,12 +105,11 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex flex-col">
-             <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              STUD'IN
-            </span>
-          </div>
+        <Link href="/" className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                <GraduationCap className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-xl font-bold">STUD'IN</h1>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
