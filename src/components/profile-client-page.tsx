@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Bookmark, AtSign } from 'lucide-react';
+import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { getPosts, Post } from '@/lib/mock-data';
 
@@ -78,7 +78,7 @@ export default function ProfileClientPage() {
     );
   }
 
-  const userPosts = posts.filter(p => p.user.name.toLowerCase() === 'alice'); // Mocking posts by current user
+  const userPosts = posts.filter(p => p.user.name.toLowerCase().includes('alice')); // Mocking posts by current user
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -89,7 +89,12 @@ export default function ProfileClientPage() {
                     <AvatarFallback>{user.first_name.charAt(0)}{user.last_name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="space-y-4">
-                    <h2 className="text-2xl font-light">{user.email.split('@')[0]}</h2>
+                    <div className="flex items-center gap-4">
+                        <h2 className="text-2xl font-light">{user.email.split('@')[0]}</h2>
+                        <Button onClick={logout} variant="destructive" size="sm" className="md:hidden">
+                            <LogOut className="h-4 w-4"/>
+                        </Button>
+                    </div>
                     <div className="flex gap-4 md:gap-8 text-sm">
                         <p><span className="font-semibold">{userPosts.length}</span> publications</p>
                         <p><span className="font-semibold">1.2k</span> abonnés</p>
@@ -104,8 +109,8 @@ export default function ProfileClientPage() {
             <div className="mt-6 flex gap-2">
                 <Button variant="secondary" className="flex-grow">Modifier le profil</Button>
                 <Button variant="secondary" className="flex-grow">Partager le profil</Button>
-                 <Button onClick={logout} variant="destructive" size="icon" className="shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-out h-4 w-4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                 <Button onClick={logout} variant="destructive" className="shrink-0 hidden md:flex">
+                    Déconnexion
                 </Button>
             </div>
         </div>
@@ -126,10 +131,20 @@ export default function ProfileClientPage() {
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="posts">
-                <ProfileGrid posts={userPosts} />
+                {userPosts.length > 0 ? <ProfileGrid posts={userPosts} /> : (
+                    <div className="text-center p-10">
+                        <h3 className="text-lg font-semibold">Aucune publication</h3>
+                        <p className="text-muted-foreground text-sm">Vos publications apparaîtront ici.</p>
+                    </div>
+                )}
             </TabsContent>
             <TabsContent value="saved">
-                 <ProfileGrid posts={posts.slice(0, 2)} />
+                 {posts.slice(0,2).length > 0 ? <ProfileGrid posts={posts.slice(0, 2)} /> : (
+                     <div className="text-center p-10">
+                        <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
+                        <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
+                    </div>
+                 )}
             </TabsContent>
             <TabsContent value="tagged">
                 <div className="text-center p-10">
