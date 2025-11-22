@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const universities = [
     'Université de Namur',
@@ -68,7 +69,7 @@ export default function RegisterForm() {
         const { email, displayName, photoURL } = user;
         const [firstName, lastName] = displayName?.split(' ') || [additionalData?.first_name || '', additionalData?.last_name || ''];
 
-        await setDoc(userDocRef, {
+        const userData = {
             id: user.uid,
             email,
             firstName,
@@ -78,8 +79,8 @@ export default function RegisterForm() {
             profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-            ...additionalData,
-        });
+        };
+        setDocumentNonBlocking(userDocRef, userData, { merge: false });
       }
   }
 

@@ -13,6 +13,7 @@ import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Separator } from './ui/separator';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -35,26 +36,27 @@ export default function LoginForm() {
   const { toast } = useToast();
 
   const createUserDocument = async (user: User) => {
-      if (!firestore) return;
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
+    if (!firestore) return;
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDoc = await getDoc(userDocRef);
 
-      if (!userDoc.exists()) {
-        const { email, displayName, photoURL } = user;
-        const [firstName, lastName] = displayName?.split(' ') || ['', ''];
-
-        await setDoc(userDocRef, {
-            id: user.uid,
-            email,
-            firstName,
-            lastName,
-            university: '',
-            fieldOfStudy: '',
-            profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        });
-      }
+    if (!userDoc.exists()) {
+      const { email, displayName, photoURL } = user;
+      const [firstName, lastName] = displayName?.split(' ') || ['', ''];
+      
+      const userData = {
+        id: user.uid,
+        email,
+        firstName,
+        lastName,
+        university: '',
+        fieldOfStudy: '',
+        profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      setDocumentNonBlocking(userDocRef, userData, { merge: false });
+    }
   }
 
   const handleSuccess = (user?: User) => {
