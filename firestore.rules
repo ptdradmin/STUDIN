@@ -114,7 +114,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow create: if isOwner(userId);
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
       
@@ -326,5 +326,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
