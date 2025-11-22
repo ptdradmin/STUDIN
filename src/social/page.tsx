@@ -8,7 +8,7 @@ import { PageSkeleton } from '@/components/page-skeleton';
 import { GraduationCap, Car, Bed, PartyPopper, Plus } from "lucide-react";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,12 +23,11 @@ import { useState } from 'react';
 const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
         <Link href={href} className="block group">
-            <Card className={cn("overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-48", className)}>
-                <div className="p-5 h-full flex flex-col">
-                    <div className="p-3 bg-white/20 rounded-lg w-min">
+            <Card className={cn("overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl", className)}>
+                <CardContent className="p-5 h-full flex flex-col justify-between">
+                     <div className="p-3 bg-white/20 rounded-lg w-min">
                        {icon}
                     </div>
-                    <div className="flex-grow" />
                     <div>
                         {isLoading ? (
                             <Skeleton className="h-10 w-16 bg-white/20" />
@@ -37,7 +36,7 @@ const StatCard = ({ title, value, icon, href, className, isLoading }: { title: s
                         )}
                         <h3 className="text-md font-semibold text-white/90">{title}</h3>
                     </div>
-                </div>
+                </CardContent>
             </Card>
         </Link>
     )
@@ -75,12 +74,12 @@ export default function SocialPageContent() {
     return (
         <div className="flex flex-col space-y-8">
             <div>
-                <h1 className="text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                  <StatCard 
-                    title="Sessions de tutorat actives" 
+                    title="Sessions de tutorat" 
                     value={tutors?.length ?? 0}
                     icon={<GraduationCap className="h-8 w-8 text-white" />}
                     isLoading={isLoading}
