@@ -14,6 +14,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { getEvents, Event } from "@/lib/mock-data";
 import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -24,10 +25,79 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getEvents().then(setEvents);
+    setIsLoading(true);
+    getEvents().then(data => {
+      setEvents(data);
+      setIsLoading(false);
+    });
   }, []);
+
+  const renderList = () => {
+    if (isLoading) {
+      return (
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+             <Card key={i} className="overflow-hidden flex flex-col">
+                <Skeleton className="aspect-video w-full" />
+                <CardContent className="p-4 flex flex-col flex-grow">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-6 w-full mt-2" />
+                    <Skeleton className="h-4 w-3/4 mt-2" />
+                    <Skeleton className="h-10 w-full mt-4" />
+                </CardContent>
+             </Card>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map(event => (
+                <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
+                    <div className="relative">
+                        <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
+                        <Badge className="absolute top-2 right-2">{event.category}</Badge>
+                    </div>
+                    <CardContent className="p-4 flex flex-col flex-grow">
+                        <p className="font-semibold text-primary">{event.date}</p>
+                        <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
+                        <p className="text-sm text-muted-foreground flex items-center mt-2">
+                            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                            {event.location}
+                        </p>
+                        <Button className="w-full mt-4">Voir les détails</Button>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+  }
+
+  const renderMap = () => {
+    if (isLoading) {
+       return (
+        <Card>
+          <CardContent className="p-2">
+            <Skeleton className="h-[600px] w-full rounded-md" />
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+        <Card>
+          <CardContent className="p-2">
+            <div className="h-[600px] w-full rounded-md overflow-hidden">
+                <MapView items={events} itemType="event" />
+            </div>
+          </CardContent>
+        </Card>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -52,7 +122,7 @@ export default function EventsPage() {
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="university">Université</Label>
-                               <Select>
+                                <Select>
                                   <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
                                   <SelectContent>
                                       <SelectItem value="all">Toutes</SelectItem>
@@ -102,35 +172,8 @@ export default function EventsPage() {
                   </div>
                 </div>
                 
-                {viewMode === 'list' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {events.map(event => (
-                          <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
-                              <div className="relative">
-                                  <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
-                                  <Badge className="absolute top-2 right-2">{event.category}</Badge>
-                              </div>
-                              <CardContent className="p-4 flex flex-col flex-grow">
-                                  <p className="font-semibold text-primary">{event.date}</p>
-                                  <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
-                                  <p className="text-sm text-muted-foreground flex items-center mt-2">
-                                      <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                                      {event.location}
-                                  </p>
-                                  <Button className="w-full mt-4">Voir les détails</Button>
-                              </CardContent>
-                          </Card>
-                      ))}
-                  </div>
-                ) : (
-                   <Card>
-                    <CardContent className="p-2">
-                      <div className="h-[600px] w-full rounded-md overflow-hidden">
-                          <MapView items={events} itemType="event" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                {viewMode === 'list' ? renderList() : renderMap()}
+
               </div>
           </div>
         </main>

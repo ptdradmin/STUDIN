@@ -89,7 +89,7 @@ const getPopupContent = (item: any, type: string) => {
 
 interface MapViewProps {
   items: any[];
-  itemType: 'housing' | 'trip' | 'event' | 'tutor' | null;
+  itemType: 'housing' | 'trip' | 'event' | 'tutor';
 }
 
 export default function MapView({ items, itemType }: MapViewProps) {
@@ -187,8 +187,11 @@ export default function MapView({ items, itemType }: MapViewProps) {
       });
 
       if (items.length > 0) {
-        const bounds = L.latLngBounds(items.map(item => item.coordinates));
-        map.fitBounds(bounds, { padding: [50, 50] });
+        const validCoords = items.filter(item => item.coordinates).map(item => item.coordinates);
+        if (validCoords.length > 0) {
+          const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
+          map.fitBounds(bounds, { padding: [50, 50] });
+        }
       }
     }
   }, [items, itemType]);

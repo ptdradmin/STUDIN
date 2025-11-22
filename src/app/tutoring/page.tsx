@@ -14,6 +14,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { getTutors, Tutor } from "@/lib/mock-data";
 import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -24,10 +25,82 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 export default function TutoringPage() {
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getTutors().then(setTutors);
+    setIsLoading(true);
+    getTutors().then(data => {
+      setTutors(data);
+      setIsLoading(false);
+    });
   }, []);
+
+  const renderList = () => {
+     if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+             <Card key={i} className="flex flex-col text-center items-center p-6">
+                <Skeleton className="h-24 w-24 rounded-full" />
+                <div className="flex flex-col flex-grow mt-4 w-full space-y-2">
+                    <Skeleton className="h-6 w-3/4 mx-auto" />
+                    <Skeleton className="h-4 w-1/2 mx-auto" />
+                    <Skeleton className="h-6 w-20 mx-auto" />
+                    <div className="pt-4 mt-auto space-y-2">
+                      <Skeleton className="h-8 w-1/2 mx-auto" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                </div>
+             </Card>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tutors.map(tutor => (
+                  <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
+                    <div className="flex-shrink-0">
+                      <Image src={tutor.avatar} alt={tutor.name} width={96} height={96} className="rounded-full" />
+                    </div>
+                    <div className="flex flex-col flex-grow mt-4">
+                      <h3 className="text-xl font-bold">{tutor.name}</h3>
+                      <p className="text-sm text-muted-foreground">{tutor.level} - {tutor.university}</p>
+                      <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
+                      <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
+                          <Star className="h-5 w-5 fill-current" />
+                          <span className="font-bold text-base text-foreground">{tutor.rating.toFixed(1)}</span>
+                      </div>
+                      <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.rate}</p>
+                    </div>
+                    <Button className="w-full mt-4">Contacter</Button>
+                  </Card>
+            ))}
+        </div>
+    );
+  }
+
+  const renderMap = () => {
+    if (isLoading) {
+      return (
+        <Card>
+          <CardContent className="p-2">
+            <Skeleton className="h-[600px] w-full rounded-md" />
+          </CardContent>
+        </Card>
+      );
+    }
+    return (
+      <Card>
+        <CardContent className="p-2">
+          <div className="h-[600px] w-full rounded-md overflow-hidden">
+              <MapView items={tutors} itemType="tutor" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -93,37 +166,7 @@ export default function TutoringPage() {
                     </Button>
                   </div>
                 </div>
-
-                {viewMode === 'list' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {tutors.map(tutor => (
-                           <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
-                              <div className="flex-shrink-0">
-                                <Image src={tutor.avatar} alt={tutor.name} width={96} height={96} className="rounded-full" />
-                              </div>
-                              <div className="flex flex-col flex-grow mt-4">
-                                <h3 className="text-xl font-bold">{tutor.name}</h3>
-                                <p className="text-sm text-muted-foreground">{tutor.level} - {tutor.university}</p>
-                                <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
-                                <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
-                                    <Star className="h-5 w-5 fill-current" />
-                                    <span className="font-bold text-base text-foreground">{tutor.rating.toFixed(1)}</span>
-                                </div>
-                                <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.rate}</p>
-                              </div>
-                              <Button className="w-full mt-4">Contacter</Button>
-                           </Card>
-                      ))}
-                  </div>
-                ) : (
-                  <Card>
-                    <CardContent className="p-2">
-                      <div className="h-[600px] w-full rounded-md overflow-hidden">
-                          <MapView items={tutors} itemType="tutor" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                {viewMode === 'list' ? renderList() : renderMap()}
               </div>
           </div>
         </main>
