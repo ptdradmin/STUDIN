@@ -28,7 +28,7 @@ const profileSchema = z.object({
   bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
   website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
-  profilePicture: z.string().optional(),
+  // profilePicture: z.string().optional(), // Removed to prevent upload errors
 });
 
 type ProfileFormInputs = z.infer<typeof profileSchema>;
@@ -62,16 +62,15 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         bio: userProfile?.bio || '',
         website: userProfile?.website || '',
         gender: userProfile?.gender,
-        profilePicture: userProfile?.profilePicture,
+        // profilePicture: userProfile?.profilePicture,
     }
   });
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const currentAvatar = watch('profilePicture');
+  const currentAvatar = userProfile?.profilePicture;
 
   const getInitials = (name?: string) => {
     if (!name) return "..";
@@ -82,22 +81,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     return name.substring(0, 2).toUpperCase();
   }
   
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  }
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setValue('profilePicture', reader.result as string, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
   const onSubmit: SubmitHandler<ProfileFormInputs> = async (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
@@ -108,12 +91,11 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     try {
       const userDocRef = doc(firestore, 'users', user.uid);
       
-      const dataToUpdate: Partial<UserProfile> & { updatedAt: any } = {
+      const dataToUpdate: Partial<Omit<UserProfile, 'profilePicture'>> & { updatedAt: any } = {
         ...data,
         updatedAt: serverTimestamp()
       };
       
-      // Remove undefined fields to prevent Firestore errors
       Object.keys(dataToUpdate).forEach(keyStr => {
         const key = keyStr as keyof typeof dataToUpdate;
         if (dataToUpdate[key] === undefined) {
@@ -127,10 +109,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
       if(user.displayName !== displayName) {
         await updateProfile(user, { 
             displayName,
-            // photoURL is too long for Firebase Auth profile if it's a data URI.
-            // A real app would upload this to Firebase Storage and get a URL.
-            // For now, we'll just update it in Firestore and not in the auth profile.
-            // photoURL: data.profilePicture
         });
       }
 
@@ -158,8 +136,7 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                 </Avatar>
                 <div>
                     <p className="font-semibold">{userProfile.username}</p>
-                    <Button type="button" variant="link" className="p-0 h-auto" onClick={handleAvatarClick}>Changer la photo de profil</Button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                    <p className="text-sm text-muted-foreground">La modification de la photo est temporairement désactivée.</p>
                 </div>
             </div>
 
