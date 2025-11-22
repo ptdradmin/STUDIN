@@ -39,7 +39,7 @@ const services = [
     },
 ]
 
-export default function WelcomePage() {
+export default function HomePage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
 
