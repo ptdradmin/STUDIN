@@ -9,9 +9,12 @@ import { Skeleton } from './ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { useUser, useAuth, useCollection } from '@/firebase';
+import { useUser, useAuth, useCollection, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
+import EditProfileForm from './edit-profile-form';
+import { doc } from 'firebase/firestore';
+
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
     <div className="grid grid-cols-3 gap-1">
@@ -32,9 +35,15 @@ const ProfileGrid = ({ posts }: { posts: Post[] }) => (
 
 export default function ProfileClientPage() {
   const { user, loading: userLoading } = useUser();
-  const { data: allPosts, loading: postsLoading } = useCollection<Post>('posts');
-  const { auth } = useAuth();
+  const { auth, firestore } = useAuth();
   const router = useRouter();
+
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  const userRef = user && firestore ? doc(firestore, 'users', user.uid) : null;
+  const { data: userProfile, loading: profileLoading } = useDoc(userRef);
+
+  const { data: allPosts, loading: postsLoading } = useCollection<Post>('posts');
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -52,13 +61,13 @@ export default function ProfileClientPage() {
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
     const parts = email.split('@')[0].replace('.', ' ').split(' ');
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[0] && parts[1]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return email.substring(0, 2).toUpperCase();
   }
 
-  const loading = userLoading || postsLoading;
+  const loading = userLoading || postsLoading || profileLoading;
 
   if (loading || !user) {
     return (
@@ -101,9 +110,9 @@ export default function ProfileClientPage() {
                 </Avatar>
                 <div className="space-y-4 text-center sm:text-left">
                     <div className="flex flex-col sm:flex-row items-center gap-4">
-                        <h2 className="text-2xl font-light">{user.displayName || user.email?.split('@')[0]}</h2>
+                        <h2 className="text-2xl font-light">{userProfile?.username || user.email?.split('@')[0]}</h2>
                         <div className="flex items-center gap-2">
-                            <Button variant="secondary" size="sm">Modifier le profil</Button>
+                            <Button variant="secondary" size="sm" onClick={() => setShowEditForm(true)}>Modifier le profil</Button>
                             <Button variant="destructive" size="sm" onClick={handleLogout}>
                                 <LogOut className="h-4 w-4"/>
                                 <span className="ml-2 hidden sm:inline">Déconnexion</span>
@@ -116,12 +125,22 @@ export default function ProfileClientPage() {
                         <p><span className="font-semibold">543</span> abonnements</p>
                     </div>
                     <div>
-                        <p className="font-semibold">{user.displayName || "Utilisateur"}</p>
-                        {/* <p className="text-muted-foreground text-sm">{user.university || 'Université non spécifiée'}</p> */}
+                        <p className="font-semibold">{userProfile?.firstName} {userProfile?.lastName}</p>
+                        <p className="text-muted-foreground text-sm">{userProfile?.university || 'Université non spécifiée'}</p>
+                         <p className="text-sm mt-1">{userProfile?.bio}</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        {showEditForm && userProfile && (
+            <EditProfileForm 
+                user={user}
+                userProfile={userProfile}
+                onClose={() => setShowEditForm(false)}
+            />
+        )}
+
 
         <Tabs defaultValue="posts" className="w-full">
             <TabsList className="grid w-full grid-cols-3 rounded-none border-y">

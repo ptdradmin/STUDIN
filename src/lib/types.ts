@@ -34,14 +34,21 @@ export interface Post {
 
 export interface Event {
     id: string;
+    organizerId: string;
     title: string;
+    description: string;
     category: string;
     startDate: string;
+    endDate: string;
+    locationName: string;
+    address: string;
     city: string;
+    latitude: number;
+    longitude: number;
+    price: number;
     imageUrl: string;
     imageHint: string;
     coordinates: [number, number];
-    organizerId: string;
 }
 
 export interface Tutor {
