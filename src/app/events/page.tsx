@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
@@ -47,13 +47,23 @@ export default function EventsPage() {
   useEffect(() => {
     if (!firestore) return;
     const fetchUniversities = async () => {
-        const q = query(collection(firestore, "users"), where("university", "!=", ""));
-        const querySnapshot = await getDocs(q);
-        const fetchedUniversities = new Set<string>();
-        querySnapshot.forEach((doc) => {
-            fetchedUniversities.add(doc.data().university);
-        });
-        setUniversities(Array.from(fetchedUniversities));
+        try {
+            const q = query(collection(firestore, "users"), where("university", "!=", ""));
+            const querySnapshot = await getDocs(q);
+            const fetchedUniversities = new Set<string>();
+            querySnapshot.forEach((doc) => {
+                fetchedUniversities.add(doc.data().university);
+            });
+            setUniversities(Array.from(fetchedUniversities));
+        } catch (error) {
+            console.error("Error fetching universities:", error);
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'list',
+                requestResourceData: { note: "Querying users to get unique university list." }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     };
     fetchUniversities();
   }, [firestore]);
