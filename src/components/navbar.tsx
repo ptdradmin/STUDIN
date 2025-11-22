@@ -68,10 +68,12 @@ export default function Navbar() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
-         <SheetHeader className="p-6">
-            <SheetTitle className="sr-only">Menu principal</SheetTitle>
-            <SheetDescription className="sr-only">Naviguez entre les différentes sections de l'application.</SheetDescription>
-         </SheetHeader>
+        <div className="p-6">
+          <SheetHeader>
+              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <SheetDescription className="sr-only">Navigation principale</SheetDescription>
+          </SheetHeader>
+        </div>
         <div className="flex flex-col h-full px-6 pb-6">
             <Link href="/" className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
               <div className="flex flex-col">
