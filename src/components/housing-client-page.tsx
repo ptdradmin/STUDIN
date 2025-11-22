@@ -20,6 +20,17 @@ export default function HousingClientPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const { data: housings, loading } = useCollection<Housing>('housings');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingHousing, setEditingHousing] = useState<Housing | null>(null);
+
+  const handleEdit = (housing: Housing) => {
+    setEditingHousing(housing);
+    setShowCreateForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowCreateForm(false);
+    setEditingHousing(null);
+  };
 
   return (
     <div>
@@ -47,10 +58,10 @@ export default function HousingClientPage() {
         </div>
       </div>
       
-      {showCreateForm && <CreateHousingForm onClose={() => setShowCreateForm(false)} />}
+      {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
 
       {viewMode === 'grid' && (
-        <HousingListings initialHousings={housings || []} isLoading={loading} />
+        <HousingListings initialHousings={housings || []} isLoading={loading} onEdit={handleEdit} />
       )}
       {viewMode === 'map' && (
         <Card>

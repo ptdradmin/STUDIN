@@ -1,26 +1,59 @@
+
+'use client';
+
 import Image from "next/image";
 import type { Post } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Send } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useUser, useFirestore } from "@/firebase";
+import { doc, deleteDoc } from "firebase/firestore";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface PostCardProps {
     post: Post;
 }
 
 export default function PostCard({ post }: PostCardProps) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
     const getInitials = (name: string) => {
         const parts = name.split(' ');
-        if (parts.length > 1) {
+        if (parts.length > 1 && parts[0] && parts[1]) {
           return (parts[0][0] + parts[1][0]).toUpperCase();
         }
         return name.substring(0, 2).toUpperCase();
     }
 
     const timeAgo = post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: fr }) : '';
+
+    const isOwner = user && user.uid === post.userId;
+
+    const handleDelete = async () => {
+        if (!firestore || !isOwner) return;
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette publication ?")) {
+            try {
+                await deleteDoc(doc(firestore, "posts", post.id));
+                toast({ title: "Succès", description: "Publication supprimée." });
+            } catch (error) {
+                console.error("Error deleting post: ", error);
+                toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer la publication." });
+            }
+        }
+    };
+
 
     return (
         <Card className="rounded-none md:rounded-lg border-x-0 md:border-x">
@@ -33,7 +66,24 @@ export default function PostCard({ post }: PostCardProps) {
                         </Avatar>
                         <span className="font-semibold text-sm">{post.userDisplayName}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{timeAgo}</span>
+                     <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{timeAgo}</span>
+                        {isOwner && (
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                                        Supprimer
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="p-0">

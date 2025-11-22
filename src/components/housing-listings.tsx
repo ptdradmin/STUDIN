@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState } from 'react';
 import type { Housing } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import HousingCard from './housing-card';
@@ -10,10 +9,10 @@ import { Skeleton } from './ui/skeleton';
 interface HousingListingsProps {
     initialHousings: Housing[];
     isLoading: boolean;
+    onEdit: (housing: Housing) => void;
 }
 
-export default function HousingListings({ initialHousings, isLoading }: HousingListingsProps) {
-  const [housings] = useState<Housing[]>(initialHousings);
+export default function HousingListings({ initialHousings, isLoading, onEdit }: HousingListingsProps) {
   
   if (isLoading) {
     return (
@@ -38,10 +37,10 @@ export default function HousingListings({ initialHousings, isLoading }: HousingL
 
   return (
     <div>
-        {housings.length > 0 ? (
+        {initialHousings.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {initialHousings.map(housing => (
-                    <HousingCard key={housing.id} housing={housing} />
+                    <HousingCard key={housing.id} housing={housing} onEdit={onEdit} />
                 ))}
             </div>
         ) : (

@@ -1,15 +1,47 @@
+
+'use client';
+
 import Image from "next/image";
 import type { Housing } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Home, MapPin } from "lucide-react";
+import { Bed, Home, MapPin, MoreHorizontal } from "lucide-react";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, deleteDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HousingCardProps {
     housing: Housing;
+    onEdit: (housing: Housing) => void;
 }
 
-export default function HousingCard({ housing }: HousingCardProps) {
+export default function HousingCard({ housing, onEdit }: HousingCardProps) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    
+    const isOwner = user && user.uid === housing.userId;
+
+    const handleDelete = async () => {
+        if (!firestore || !isOwner) return;
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette annonce ?")) {
+            try {
+                await deleteDoc(doc(firestore, "housings", housing.id));
+                toast({ title: "Succès", description: "Annonce supprimée." });
+            } catch (error) {
+                console.error("Error deleting housing: ", error);
+                toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer l'annonce." });
+            }
+        }
+    };
+
     return (
         <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full">
             <div className="relative">
@@ -24,6 +56,23 @@ export default function HousingCard({ housing }: HousingCardProps) {
                 <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                     {housing.type}
                 </Badge>
+                 {isOwner && (
+                    <div className="absolute top-1 left-1">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => onEdit(housing)}>Modifier</DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                                    Supprimer
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                )}
             </div>
             <CardContent className="p-4 flex flex-col flex-grow">
                 <h3 className="text-lg font-semibold leading-tight truncate">{housing.title}</h3>

@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -11,14 +11,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import type { Housing } from '@/lib/types';
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
   description: z.string().min(1, 'La description est requise'),
-  type: z.enum(['kot', 'studio', 'colocation']),
+  type: z.enum(['kot', 'studio', 'colocation'], { required_error: 'Le type est requis' }),
   price: z.preprocess((val) => Number(val), z.number().min(1, 'Le prix est requis')),
   address: z.string().min(1, "L'adresse est requise"),
   city: z.string().min(1, 'La ville est requise'),
@@ -31,16 +32,37 @@ type HousingFormInputs = z.infer<typeof housingSchema>;
 
 interface CreateHousingFormProps {
   onClose: () => void;
+  housingToEdit?: Housing | null;
 }
 
-export default function CreateHousingForm({ onClose }: CreateHousingFormProps) {
-  const { register, handleSubmit, control, formState: { errors } } = useForm<HousingFormInputs>({
+export default function CreateHousingForm({ onClose, housingToEdit }: CreateHousingFormProps) {
+  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<HousingFormInputs>({
     resolver: zodResolver(housingSchema),
   });
+  
+  useEffect(() => {
+    if (housingToEdit) {
+      reset(housingToEdit);
+    } else {
+      reset({
+        title: '',
+        description: '',
+        price: 0,
+        address: '',
+        city: '',
+        bedrooms: 1,
+        surface_area: 0,
+        imageUrl: '',
+        type: undefined
+      });
+    }
+  }, [housingToEdit, reset]);
+
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const firestore = useFirestore();
+  const isEditing = !!housingToEdit;
 
   const onSubmit: SubmitHandler<HousingFormInputs> = async (data) => {
     if (!user || !firestore) {
@@ -48,20 +70,26 @@ export default function CreateHousingForm({ onClose }: CreateHousingFormProps) {
       return;
     }
     setLoading(true);
+    
     try {
-      await addDoc(collection(firestore, 'housings'), {
-        ...data,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-        // Mock coordinates until we have a geocoding service
-        coordinates: [50.8503, 4.3517],
-        imageHint: "student room"
-      });
-      toast({ title: 'Succès', description: 'Annonce de logement créée !' });
+      if (isEditing) {
+        const housingRef = doc(firestore, 'housings', housingToEdit.id);
+        await updateDoc(housingRef, { ...data });
+        toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
+      } else {
+        await addDoc(collection(firestore, 'housings'), {
+          ...data,
+          userId: user.uid,
+          createdAt: serverTimestamp(),
+          coordinates: [50.8503, 4.3517],
+          imageHint: "student room"
+        });
+        toast({ title: 'Succès', description: 'Annonce de logement créée !' });
+      }
       onClose();
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer l'annonce." });
+      toast({ variant: 'destructive', title: 'Erreur', description: isEditing ? "Impossible de mettre à jour l'annonce." : "Impossible de créer l'annonce." });
     } finally {
       setLoading(false);
     }
@@ -71,9 +99,9 @@ export default function CreateHousingForm({ onClose }: CreateHousingFormProps) {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Créer une annonce de logement</DialogTitle>
+          <DialogTitle>{isEditing ? 'Modifier' : 'Créer'} une annonce de logement</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
           <div>
             <Label htmlFor="title">Titre</Label>
             <Input id="title" {...register('title')} />
@@ -90,7 +118,7 @@ export default function CreateHousingForm({ onClose }: CreateHousingFormProps) {
                     name="type"
                     control={control}
                     render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner le type" />
                             </SelectTrigger>
@@ -136,12 +164,12 @@ export default function CreateHousingForm({ onClose }: CreateHousingFormProps) {
             <Input id="imageUrl" placeholder="https://picsum.photos/..." {...register('imageUrl')} />
             {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
           </div>
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Création...' : 'Créer'}
+              {loading ? (isEditing ? 'Mise à jour...' : 'Création...') : (isEditing ? 'Mettre à jour' : 'Créer')}
             </Button>
           </DialogFooter>
         </form>
