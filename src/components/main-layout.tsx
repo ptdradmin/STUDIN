@@ -3,7 +3,6 @@
 
 import { useUser } from '@/firebase';
 import SocialLayout from '@/social/layout';
-import SocialPageContent from '@/social/page';
 import Navbar from './navbar';
 import Footer from './footer';
 import { usePathname } from 'next/navigation';
@@ -40,28 +39,17 @@ export default function MainLayout({
   if (isUserLoading) {
     return <PageSkeleton />;
   }
-
+  
   if (user) {
+    // For logged-in users, provide the full app layout
     return (
       <SocialLayout>
-        <SocialPageContent />
+        {children}
       </SocialLayout>
     );
   }
 
-  // Allow access to public pages only when not logged in
-  if (!user && publicPages.includes(pathname)) {
-    return (
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </div>
-    );
-  }
-
-  // Fallback for any other cases, e.g. trying to access a protected page while logged out
-  // This could be a redirect to login or showing the main page content
+  // For public visitors, show the marketing site
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />

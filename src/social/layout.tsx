@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -11,12 +12,21 @@ import {
   SidebarProvider,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { MessageSquare, User, Settings, LogOut, Compass } from 'lucide-react';
+import { MessageSquare, User, Settings, LogOut, Compass, Home, Car, BookOpen, PartyPopper } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+
+const appLinks = [
+  { href: "/social", label: "Social", icon: <Compass /> },
+  { href: "/housing", label: "Logement", icon: <Home /> },
+  { href: "/carpooling", label: "Covoiturage", icon: <Car /> },
+  { href: "/tutoring", label: "Tutorat", icon: <BookOpen /> },
+  { href: "/events", label: "Événements", icon: <PartyPopper /> },
+  { href: "/messages", label: "Messages", icon: <MessageSquare /> },
+];
 
 export default function SocialLayout({
   children,
@@ -25,6 +35,7 @@ export default function SocialLayout({
 }) {
   const { user, auth } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleLogout = async () => {
     if (auth) {
@@ -56,29 +67,23 @@ export default function SocialLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={true}>
-                <Link href="/social">
-                  <Compass />
-                  Fil d'actualité
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/messages">
-                  <MessageSquare />
-                  Messages
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+             {appLinks.map(link => (
+                <SidebarMenuItem key={link.href}>
+                    <SidebarMenuButton asChild isActive={pathname === link.href}>
+                        <Link href={link.href}>
+                        {link.icon}
+                        {link.label}
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
           {user && (
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild isActive={pathname === '/profile'}>
                         <Link href="/profile">
                             <Avatar className="h-6 w-6">
                                 <AvatarImage src={user.photoURL ?? undefined} />
@@ -89,7 +94,7 @@ export default function SocialLayout({
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild isActive={pathname === '/settings'}>
                         <Link href="/settings">
                         <Settings />
                         Paramètres
