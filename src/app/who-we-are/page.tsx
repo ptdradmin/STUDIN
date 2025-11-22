@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from 'next/image';
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -32,7 +32,7 @@ export default function WhoWeArePage() {
               <Card className="max-w-4xl mx-auto shadow-lg">
                 <CardContent className="flex flex-col items-center gap-8 p-8 sm:flex-row">
                   <Avatar className="h-32 w-32 flex-shrink-0">
-                     <Image src="https://picsum.photos/seed/founder/128/128" alt="Gui Doba" width={128} height={128} data-ai-hint="portrait homme"/>
+                     <AvatarImage src="https://api.dicebear.com/7.x/micah/svg?seed=guilhermedoba" alt="Gui Doba"/>
                     <AvatarFallback>GD</AvatarFallback>
                   </Avatar>
                   <div className="text-center sm:text-left space-y-4">
@@ -46,10 +46,10 @@ export default function WhoWeArePage() {
                 </CardContent>
               </Card>
               <div className="max-w-4xl mx-auto mt-8 text-muted-foreground space-y-4">
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
                   {['Trouver un logement', 'Organiser un covoiturage', "Obtenir de l’aide scolaire", "Repérer les événements importants de la vie étudiante"].map(item => (
-                     <li key={item} className="flex items-center gap-2">
-                        <Check className="h-5 w-5 text-primary"/>
+                     <li key={item} className="flex items-center gap-3">
+                        <Check className="h-5 w-5 text-primary flex-shrink-0"/>
                         <span>{item}</span>
                     </li>
                   ))}
@@ -77,20 +77,32 @@ export default function WhoWeArePage() {
                 Ce qui a commencé comme un besoin personnel est devenu une aventure collective. Chaque jour, nous innovons pour répondre aux besoins réels des étudiants.
               </p>
             </div>
-            <div className="max-w-4xl mx-auto mt-8">
-                <h3 className="text-xl font-semibold text-center mb-4">La plateforme centralise :</h3>
-                <ul className="space-y-2 text-muted-foreground">
-                    <li><strong>Logement :</strong> Trouver un appartement ou une chambre facilement</li>
-                    <li><strong>Covoiturage :</strong> Organiser des trajets partagés</li>
-                    <li><strong>Tutorat :</strong> Connecter élèves et étudiants avec des tuteurs compétents</li>
-                    <li><strong>Événements :</strong> Repérer les activités importantes liées à la vie étudiante</li>
+            <div className="max-w-2xl mx-auto mt-10">
+                <h3 className="text-xl font-semibold text-center mb-6">La plateforme centralise :</h3>
+                <ul className="space-y-4">
+                    <li className="flex items-start gap-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Check className="h-5 w-5"/></div>
+                        <div><strong className="block">Logement :</strong> Trouver un appartement ou une chambre facilement.</div>
+                    </li>
+                    <li className="flex items-start gap-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Check className="h-5 w-5"/></div>
+                        <div><strong className="block">Covoiturage :</strong> Organiser des trajets partagés.</div>
+                    </li>
+                    <li className="flex items-start gap-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Check className="h-5 w-5"/></div>
+                        <div><strong className="block">Tutorat :</strong> Connecter élèves et étudiants avec des tuteurs compétents.</div>
+                    </li>
+                     <li className="flex items-start gap-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Check className="h-5 w-5"/></div>
+                        <div><strong className="block">Événements :</strong> Repérer les activités importantes liées à la vie étudiante.</div>
+                    </li>
                 </ul>
-                <p className="mt-6 text-center">
+                <p className="mt-8 text-center text-lg">
                     Notre ambition : créer une plateforme complète, intuitive et pratique, où chaque étudiant trouve rapidement ce dont il a besoin.
                 </p>
             </div>
-            <blockquote className="mt-8 font-code text-lg italic text-muted-foreground relative text-center">
-                  <p className="relative z-10">« Ce qui a commencé comme un besoin personnel est en train de devenir une aventure collective. »</p>
+            <blockquote className="mt-12 max-w-2xl mx-auto text-lg italic text-muted-foreground relative text-center border-l-4 pl-6">
+                  <p>« Ce qui a commencé comme un besoin personnel est en train de devenir une aventure collective. »</p>
             </blockquote>
           </div>
         </section>
