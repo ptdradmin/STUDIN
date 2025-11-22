@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -13,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDoc } from 'firebase/firestore';
 
 
 /**
@@ -50,7 +51,9 @@ export const toggleFollowUser = async (
     const senderProfileSnap = await getDoc(currentUserRef);
     if(senderProfileSnap.exists()) {
         const senderProfile = senderProfileSnap.data();
-        const notificationData = {
+        const notificationRef = doc(collection(firestore, `users/${targetUserId}/notifications`));
+        
+        batch.set(notificationRef, {
             type: 'new_follower',
             senderId: currentUserId,
             senderProfile: {
@@ -60,30 +63,26 @@ export const toggleFollowUser = async (
             recipientId: targetUserId,
             read: false,
             createdAt: serverTimestamp(),
-        };
-        const notificationsColRef = collection(firestore, `users/${targetUserId}/notifications`);
-        // On utilise addDoc directement ici car il sera ajouté au batch implicitement par la logique
-        addDocumentNonBlocking(notificationsColRef, notificationData);
+        });
     }
   }
 
   // Exécuter le batch et gérer les erreurs de permissions
-  batch.commit().catch(serverError => {
-      // Emettre une erreur contextuelle pour chaque opération du batch
-      const currentUserError = new FirestorePermissionError({
-          path: currentUserRef.path,
-          operation: 'update',
-          requestResourceData: { followingIds: isCurrentlyFollowing ? `arrayRemove(${targetUserId})` : `arrayUnion(${targetUserId})` }
-      } satisfies SecurityRuleContext);
-      errorEmitter.emit('permission-error', currentUserError);
-
-      const targetUserError = new FirestorePermissionError({
-          path: targetUserRef.path,
-          operation: 'update',
-          requestResourceData: { followerIds: isCurrentlyFollowing ? `arrayRemove(${currentUserId})` : `arrayUnion(${currentUserId})` }
-      } satisfies SecurityRuleContext);
-      errorEmitter.emit('permission-error', targetUserError);
-  });
+  try {
+    await batch.commit();
+  } catch (serverError) {
+    // Si le batch échoue, émettre une erreur contextuelle pour le débogage
+    const permissionError = new FirestorePermissionError({
+        path: `users/${currentUserId} and users/${targetUserId}`,
+        operation: 'update',
+        requestResourceData: { 
+            action: isCurrentlyFollowing ? 'unfollow' : 'follow',
+            currentUserId,
+            targetUserId 
+        }
+    } satisfies SecurityRuleContext);
+    errorEmitter.emit('permission-error', permissionError);
+    // Afficher l'erreur dans la console pour un débogage immédiat
+    console.error("Erreur de permission lors de la tentative de suivi/non-suivi :", serverError);
+  }
 };
-
-    
