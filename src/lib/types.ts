@@ -92,12 +92,15 @@ export interface Trip {
 
 export interface UserProfile {
     id: string;
+    username: string;
     email: string;
     firstName: string;
     lastName: string;
     university: string;
     fieldOfStudy: string;
     bio: string;
+    website?: string;
+    gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
     profilePicture: string;
     followerIds?: string[];
     followingIds?: string[];
@@ -125,5 +128,6 @@ export interface Conversation {
     updatedAt: any;
 }
 
+    
     
     

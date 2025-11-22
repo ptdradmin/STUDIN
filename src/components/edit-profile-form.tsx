@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useEffect, useState, useRef } from 'react';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -10,19 +10,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { updateProfile } from 'firebase/auth';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { UserProfile } from '@/lib/types';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
+  username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
   university: z.string().optional(),
   fieldOfStudy: z.string().optional(),
-  bio: z.string().optional(),
+  bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
+  website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
+  gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
+  profilePicture: z.string().optional(),
 });
 
 type ProfileFormInputs = z.infer<typeof profileSchema>;
@@ -40,25 +46,57 @@ const universities = [
 
 interface EditProfileFormProps {
   user: FirebaseUser;
-  userProfile: any;
+  userProfile: UserProfile;
   onClose: () => void;
 }
 
 export default function EditProfileForm({ user, userProfile, onClose }: EditProfileFormProps) {
-  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<ProfileFormInputs>({
+  const { register, handleSubmit, control, formState: { errors }, reset, setValue, watch } = useForm<ProfileFormInputs>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
         firstName: userProfile?.firstName || '',
         lastName: userProfile?.lastName || '',
+        username: userProfile?.username || '',
         university: userProfile?.university || '',
         fieldOfStudy: userProfile?.fieldOfStudy || '',
-        bio: userProfile?.bio || ''
+        bio: userProfile?.bio || '',
+        website: userProfile?.website || '',
+        gender: userProfile?.gender,
+        profilePicture: userProfile?.profilePicture,
     }
   });
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const currentAvatar = watch('profilePicture');
+
+  const getInitials = (name?: string) => {
+    if (!name) return "..";
+    const parts = name.split(' ');
+    if (parts.length > 1) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+  
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setValue('profilePicture', reader.result as string, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const onSubmit: SubmitHandler<ProfileFormInputs> = async (data) => {
     if (!user || !firestore) {
@@ -71,12 +109,15 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, {
         ...data,
-        updatedAt: new Date()
+        updatedAt: serverTimestamp()
       });
       
       const displayName = `${data.firstName} ${data.lastName}`;
-      if(user.displayName !== displayName) {
-        await updateProfile(user, { displayName });
+      if(user.displayName !== displayName || user.photoURL !== data.profilePicture) {
+        await updateProfile(user, { 
+            displayName,
+            photoURL: data.profilePicture
+        });
       }
 
       toast({ title: 'Succès', description: 'Profil mis à jour !' });
@@ -96,6 +137,18 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
           <DialogTitle>Modifier le profil</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
+            <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                    <AvatarImage src={currentAvatar} />
+                    <AvatarFallback>{getInitials(userProfile?.firstName)}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="font-semibold">{userProfile.username}</p>
+                    <Button type="button" variant="link" className="p-0 h-auto" onClick={handleAvatarClick}>Changer la photo de profil</Button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
                  <div>
                     <Label htmlFor="firstName">Prénom</Label>
@@ -108,25 +161,58 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                     {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
                 </div>
             </div>
+             <div>
+                <Label htmlFor="username">Nom d'utilisateur</Label>
+                <Input id="username" {...register('username')} />
+                {errors.username && <p className="text-xs text-destructive">{errors.username.message}</p>}
+            </div>
+             <div>
+                <Label htmlFor="website">Lien</Label>
+                <Input id="website" {...register('website')} placeholder="https://votre-site.com" />
+                {errors.website && <p className="text-xs text-destructive">{errors.website.message}</p>}
+            </div>
             
             <div>
               <Label htmlFor="bio">Bio</Label>
               <Textarea id="bio" {...register('bio')} placeholder="Parlez un peu de vous..." />
               {errors.bio && <p className="text-xs text-destructive">{errors.bio.message}</p>}
             </div>
+            
+            <div>
+                <Label htmlFor="gender">Genre</Label>
+                <Controller
+                    name="gender"
+                    control={control}
+                    render={({ field }) => (
+                         <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Sélectionner le genre" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="female">Femme</SelectItem>
+                                <SelectItem value="male">Homme</SelectItem>
+                                <SelectItem value="non-binary">Non-binaire</SelectItem>
+                                <SelectItem value="prefer-not-to-say">Ne pas spécifier</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+            </div>
 
             <div>
               <Label htmlFor="university">Université</Label>
-               <Select name="university" onValueChange={(value) => reset({ ...userProfile, university: value })} defaultValue={userProfile.university}>
-                  <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez votre université" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {universities.map(uni => (
-                          <SelectItem key={uni} value={uni}>{uni}</SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
+               <Controller
+                    name="university"
+                    control={control}
+                    render={({ field }) => (
+                         <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Sélectionnez votre université" /></SelectTrigger>
+                            <SelectContent>
+                                {universities.map(uni => (
+                                    <SelectItem key={uni} value={uni}>{uni}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
                {errors.university && <p className="text-xs text-destructive">{errors.university.message}</p>}
             </div>
             
@@ -149,3 +235,5 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
+
+    
