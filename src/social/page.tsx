@@ -2,16 +2,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import PostCard from "@/components/post-card";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { collection, orderBy, query } from 'firebase/firestore';
 import type { Post } from '@/lib/types';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import CreatePostForm from '@/components/create-post-form';
 import { PageSkeleton } from '@/components/page-skeleton';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const reelsUsers = [
@@ -80,9 +77,7 @@ function CardSkeleton() {
 }
 
 export default function SocialPageLayout() {
-    const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
-    const router = useRouter();
     
     const postsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -91,16 +86,10 @@ export default function SocialPageLayout() {
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
     const [showCreateForm, setShowCreateForm] = useState(false);
-
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login?from=/social');
-        }
-    }, [user, isUserLoading, router]);
     
-    const isLoading = isUserLoading || postsLoading;
+    const isLoading = postsLoading;
 
-    if (isLoading || !user) {
+    if (isLoading) {
         return <PageSkeleton />;
     }
 
