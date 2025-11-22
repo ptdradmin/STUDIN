@@ -6,7 +6,11 @@ import {
   arrayUnion,
   arrayRemove,
   Firestore,
+  writeBatch,
 } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+
 
 /**
  * Gère la logique de suivi ou d'arrêt de suivi d'un utilisateur.
@@ -26,28 +30,34 @@ export const toggleFollowUser = async (
 
   const currentUserRef = doc(firestore, 'users', currentUserId);
   const targetUserRef = doc(firestore, 'users', targetUserId);
+  
+  const batch = writeBatch(firestore);
 
-  try {
-    if (isCurrentlyFollowing) {
-      // Ne plus suivre : retirer les IDs des listes respectives
-      await updateDoc(currentUserRef, {
-        followingIds: arrayRemove(targetUserId),
-      });
-      await updateDoc(targetUserRef, {
-        followerIds: arrayRemove(currentUserId),
-      });
-    } else {
-      // Suivre : ajouter les IDs aux listes respectives
-      await updateDoc(currentUserRef, {
-        followingIds: arrayUnion(targetUserId),
-      });
-      await updateDoc(targetUserRef, {
-        followerIds: arrayUnion(currentUserId),
-      });
-    }
-  } catch (error) {
-    console.error('Error toggling follow state:', error);
-    // Dans une application réelle, vous pourriez vouloir gérer cette erreur plus finement.
-    throw new Error("Impossible de mettre à jour le statut de suivi.");
+  if (isCurrentlyFollowing) {
+    // Ne plus suivre : retirer les IDs des listes respectives
+    batch.update(currentUserRef, { followingIds: arrayRemove(targetUserId) });
+    batch.update(targetUserRef, { followerIds: arrayRemove(currentUserId) });
+  } else {
+    // Suivre : ajouter les IDs aux listes respectives
+    batch.update(currentUserRef, { followingIds: arrayUnion(targetUserId) });
+    batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
+
+  // Exécuter le batch et gérer les erreurs de permissions
+  batch.commit().catch(serverError => {
+      // Emettre une erreur contextuelle pour chaque opération du batch
+      const currentUserError = new FirestorePermissionError({
+          path: currentUserRef.path,
+          operation: 'update',
+          requestResourceData: { followingIds: isCurrentlyFollowing ? `arrayRemove(${targetUserId})` : `arrayUnion(${targetUserId})` }
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', currentUserError);
+
+      const targetUserError = new FirestorePermissionError({
+          path: targetUserRef.path,
+          operation: 'update',
+          requestResourceData: { followerIds: isCurrentlyFollowing ? `arrayRemove(${currentUserId})` : `arrayUnion(${currentUserId})` }
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', targetUserError);
+  });
 };
