@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { LifeBuoy, Mail, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function HelpPage() {
   return (
@@ -18,15 +19,18 @@ export default function HelpPage() {
             </div>
             <div className="container mx-auto px-4 py-8">
                  <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                    <Card>
+                    <Card className="flex flex-col">
                         <CardHeader className="items-center text-center">
                             <div className="p-3 rounded-full bg-primary/10">
                                 <LifeBuoy className="h-8 w-8 text-primary" />
                             </div>
                             <CardTitle>FAQ</CardTitle>
                         </CardHeader>
-                        <CardContent className="text-center">
-                            <p className="text-muted-foreground">Trouvez des réponses aux questions fréquemment posées. (Bientôt disponible)</p>
+                        <CardContent className="text-center flex-grow flex flex-col justify-between">
+                            <p className="text-muted-foreground mb-4">Trouvez des réponses aux questions fréquemment posées.</p>
+                            <Button asChild>
+                                <Link href="/faq">Consulter la FAQ</Link>
+                            </Button>
                         </CardContent>
                     </Card>
                     <Card>
@@ -52,12 +56,6 @@ export default function HelpPage() {
                         </CardContent>
                     </Card>
                 </div>
-                 <Card className="text-center py-10 mt-8 bg-muted/40 border-dashed">
-                    <CardContent>
-                        <h3 className="text-xl font-semibold">Le centre d'aide est en cours de construction.</h3>
-                        <p className="text-muted-foreground mt-2">Nous travaillons à la mise en place d'une section d'aide complète avec une FAQ détaillée.</p>
-                    </CardContent>
-                </Card>
             </div>
         </main>
         <Footer />
