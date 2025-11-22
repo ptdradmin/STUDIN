@@ -56,7 +56,7 @@ export default function HousingClientPage({
         <Card>
           <CardContent className="p-2">
             <div className="h-[600px] w-full rounded-md overflow-hidden">
-                <MapView housings={initialHousings} />
+                <MapView items={initialHousings} itemType="housing" />
             </div>
           </CardContent>
         </Card>

@@ -42,6 +42,7 @@ export interface Event {
     location: string;
     imageUrl: string;
     imageHint: string;
+    coordinates: [number, number];
 }
 
 export interface Tutor {
@@ -53,6 +54,7 @@ export interface Tutor {
     university: string;
     rate: string;
     rating: number;
+    coordinates: [number, number];
 }
 
 export interface Trip {
@@ -65,6 +67,7 @@ export interface Trip {
     time: string;
     price: string;
     seats: number;
+    coordinates: [number, number];
 }
 
 
@@ -216,9 +219,10 @@ const eventsData: Event[] = [
         title: "Soirée d'intégration BDE Info",
         category: "Soirée",
         date: "25 Octobre",
-        location: "Salons de l'ULB",
+        location: "ULB - Campus du Solbosch, Bruxelles",
         imageUrl: "https://picsum.photos/seed/event1/600/400",
-        imageHint: "party people"
+        imageHint: "party people",
+        coordinates: [50.8126, 4.3822]
     },
     {
         id: 2,
@@ -227,7 +231,8 @@ const eventsData: Event[] = [
         date: "28 Octobre",
         location: "UNamur - Auditoire Pedro A.",
         imageUrl: "https://picsum.photos/seed/event2/600/400",
-        imageHint: "conference stage"
+        imageHint: "conference stage",
+        coordinates: [50.4669, 4.8674]
     },
     {
         id: 3,
@@ -236,7 +241,8 @@ const eventsData: Event[] = [
         date: "02 Novembre",
         location: "Centre Sportif de Louvain-la-Neuve",
         imageUrl: "https://picsum.photos/seed/event3/600/400",
-        imageHint: "soccer game"
+        imageHint: "soccer game",
+        coordinates: [50.6654, 4.6119]
     }
 ]
 
@@ -250,6 +256,7 @@ const tutorsData: Tutor[] = [
         university: "UCLouvain",
         rate: "20€/h",
         rating: 4.9,
+        coordinates: [50.6693, 4.6154]
     },
     {
         id: 2,
@@ -260,6 +267,7 @@ const tutorsData: Tutor[] = [
         university: "ULB",
         rate: "25€/h",
         rating: 5.0,
+        coordinates: [50.8124, 4.3828]
     },
     {
         id: 3,
@@ -270,6 +278,7 @@ const tutorsData: Tutor[] = [
         university: "UNamur",
         rate: "18€/h",
         rating: 4.8,
+        coordinates: [50.4674, 4.8654]
     }
 ]
 
@@ -284,6 +293,7 @@ const tripsData: Trip[] = [
         time: "08:30",
         price: "5€",
         seats: 2,
+        coordinates: [50.8358, 4.3355]
     },
     {
         id: 2,
@@ -295,6 +305,7 @@ const tripsData: Trip[] = [
         time: "07:45",
         price: "7€",
         seats: 1,
+        coordinates: [50.6251, 5.5663]
     }
 ]
 

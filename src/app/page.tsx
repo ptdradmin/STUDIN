@@ -1,103 +1,137 @@
-import {Button} from '@/components/ui/button';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
-import {Home as HomeIcon, Car, BookOpen, PartyPopper} from 'lucide-react';
-import Link from 'next/link';
+
+'use client';
+
+import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
+import { getHousings, getTrips, getEvents, getTutors, type Housing, type Trip, type Event, type Tutor } from '@/lib/mock-data';
+import { Button } from '@/components/ui/button';
+import { Bed, Car, GraduationCap, MapPin, PartyPopper } from 'lucide-react';
 
+const MapView = dynamic(() => import('@/components/map-view'), {
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-muted animate-pulse rounded-lg" />,
+});
 
-const features = [
-  {
-    icon: <HomeIcon className="h-10 w-10" />,
-    title: 'Logement',
-    description:
-      'Trouvez le kot, studio ou colocation parfait près de votre campus',
-    href: '/housing',
-  },
-  {
-    icon: <Car className="h-10 w-10" />,
-    title: 'Covoiturage',
-    description:
-      'Partagez vos trajets et économisez sur vos frais de déplacement',
-    href: '/carpooling',
-  },
-  {
-    icon: <BookOpen className="h-10 w-10" />,
-    title: 'Tutorat',
-    description:
-      "Obtenez de l'aide ou proposez vos compétences dans toutes les matières",
-    href: '/tutoring',
-  },
-  {
-    icon: <PartyPopper className="h-10 w-10" />,
-    title: 'Événements',
-    description: 'Ne manquez aucune soirée, conférence ou activité étudiante',
-    href: '/events',
-  },
-];
+const ItemCard = ({ item, type }: { item: Housing | Trip | Event | Tutor; type: 'housing' | 'trip' | 'event' | 'tutor' }) => {
+    switch (type) {
+        case 'housing':
+            const housing = item as Housing;
+            return (
+                <Card className="h-full">
+                    <CardContent className="p-4">
+                        <h3 className="font-bold">{housing.title}</h3>
+                        <p className="text-sm text-muted-foreground">{housing.city}</p>
+                        <p className="font-semibold text-primary mt-2">{housing.price}€/mois</p>
+                    </CardContent>
+                </Card>
+            );
+        case 'trip':
+            const trip = item as Trip;
+            return (
+                 <Card className="h-full">
+                    <CardContent className="p-4">
+                        <h3 className="font-bold">{trip.departure} → {trip.arrival}</h3>
+                        <p className="text-sm text-muted-foreground">Par {trip.driver}</p>
+                        <p className="font-semibold text-primary mt-2">{trip.price}</p>
+                    </CardContent>
+                </Card>
+            )
+        // Cases for event and tutor can be added here
+        default:
+            return null;
+    }
+}
+
 
 export default function Home() {
+    const [mapItems, setMapItems] = useState<any[]>([]);
+    const [mapItemType, setMapItemType] = useState<'housing' | 'trip' | 'event' | 'tutor' | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeFilter, setActiveFilter] = useState<'housing' | 'trip' | 'event' | 'tutor' | null>(null);
+
+    const loadItems = async (type: 'housing' | 'trip' | 'event' | 'tutor') => {
+        if (activeFilter === type) {
+            // Deselect filter
+            setActiveFilter(null);
+            setMapItems([]);
+            setMapItemType(null);
+            return;
+        }
+
+        setIsLoading(true);
+        setActiveFilter(type);
+        let items = [];
+        if (type === 'housing') {
+            items = await getHousings();
+        } else if (type === 'trip') {
+            items = await getTrips();
+        } else if (type === 'event') {
+            items = await getEvents();
+        } else if (type === 'tutor') {
+            items = await getTutors();
+        }
+        setMapItems(items);
+        setMapItemType(type);
+        setIsLoading(false);
+    }
+
   return (
     <div className="flex flex-col min-h-screen">
        <Navbar />
-      <main className='flex-grow'>
-      <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-        <div className="container mx-auto flex min-h-[calc(80vh)] flex-col items-center justify-center px-4 py-20 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl">
-            Bienvenue sur STUD'IN
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg opacity-90 md:text-xl">
-            L'écosystème étudiant de Wallonie-Bruxelles
-          </p>
-          <p className="mt-6 max-w-3xl leading-relaxed opacity-95">
-            Trouvez un logement, partagez un trajet, recevez de l'aide ou
-            découvrez les meilleurs événements près de votre campus.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Link href="/register">Rejoindre STUD'IN</Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary" className="bg-white/20 hover:bg-white/30 text-white">
-              <Link href="/housing">Explorer les services</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto mb-12 max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Nos Services
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Tout ce dont vous avez besoin pour une vie étudiante épanouie.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <Link href={feature.href} key={feature.title}>
-                <Card className="h-full transform-gpu text-center transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl">
-                  <CardHeader>
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      {feature.icon}
+       <main className="flex-grow container mx-auto px-4 py-8">
+            <Card>
+                <CardContent className="p-2">
+                    <div className="relative h-[60vh] min-h-[500px] w-full rounded-md overflow-hidden">
+                        <MapView items={mapItems} itemType={mapItemType} />
+                        <div className="absolute top-4 left-4 z-[1000] flex gap-2">
+                             <Button onClick={() => loadItems('housing')} variant={activeFilter === 'housing' ? 'default' : 'secondary'} size="sm">
+                                <Bed className="mr-2 h-4 w-4" /> Logements
+                            </Button>
+                             <Button onClick={() => loadItems('trip')} variant={activeFilter === 'trip' ? 'default' : 'secondary'} size="sm">
+                                <Car className="mr-2 h-4 w-4" /> Covoiturages
+                            </Button>
+                            <Button onClick={() => loadItems('event')} variant={activeFilter === 'event' ? 'default' : 'secondary'} size="sm">
+                                <PartyPopper className="mr-2 h-4 w-4" /> Événements
+                            </Button>
+                            <Button onClick={() => loadItems('tutor')} variant={activeFilter === 'tutor' ? 'default' : 'secondary'} size="sm">
+                                <GraduationCap className="mr-2 h-4 w-4" /> Tuteurs
+                            </Button>
+                        </div>
                     </div>
-                    <CardTitle>{feature.title}</CardTitle>
-                    <CardDescription className="pt-2">
-                      {feature.description}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+                </CardContent>
+            </Card>
+
+            <section id="features" className="py-16">
+                <div className="mx-auto mb-12 max-w-3xl text-center">
+                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                      Explorez Nos Services
+                    </h2>
+                    <p className="mt-4 text-lg text-muted-foreground">
+                      Tout ce dont vous avez besoin pour une vie étudiante épanouie.
+                    </p>
+                </div>
+                 <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                    <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+                        <Bed className="h-8 w-8 text-primary"/>
+                        <span className="font-semibold">Logements</span>
+                    </Button>
+                    <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
+                        <Car className="h-8 w-8 text-primary"/>
+                         <span className="font-semibold">Covoiturage</span>
+                    </Button>
+                     <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
+                        <GraduationCap className="h-8 w-8 text-primary"/>
+                         <span className="font-semibold">Tutorat</span>
+                    </Button>
+                     <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
+                        <PartyPopper className="h-8 w-8 text-primary"/>
+                        <span className="font-semibold">Événements</span>
+                    </Button>
+                </div>
+            </section>
       </main>
       <Footer />
     </div>
