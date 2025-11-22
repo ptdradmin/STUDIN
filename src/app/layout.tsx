@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
-import {AuthProvider} from '@/contexts/auth-context';
 import {Toaster} from '@/components/ui/toaster';
+import FirebaseClientProvider from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: "STUD'IN - L'écosystème étudiant",
@@ -28,12 +28,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>
+        <FirebaseClientProvider>
           <div className="flex flex-col min-h-screen">
             <main className="flex-grow">{children}</main>
           </div>
           <Toaster />
-        </AuthProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

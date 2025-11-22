@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { getPosts, Post } from '@/lib/mock-data';
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
     <div className="grid grid-cols-3 gap-1">
@@ -31,7 +32,8 @@ const ProfileGrid = ({ posts }: { posts: Post[] }) => (
 
 
 export default function ProfileClientPage() {
-  const { user, logout, loading } = useAuth();
+  const { user, loading } = useUser();
+  const { auth } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>([]);
 
@@ -48,6 +50,22 @@ export default function ProfileClientPage() {
       });
     }
   }, [user]);
+
+  const handleLogout = async () => {
+    if(auth) {
+        await signOut(auth);
+        router.push('/');
+    }
+  }
+  
+  const getInitials = (email?: string | null) => {
+    if (!email) return '..';
+    const parts = email.split('@')[0].replace('.', ' ').split(' ');
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
+  }
 
   if (loading || !user) {
     return (
@@ -85,13 +103,13 @@ export default function ProfileClientPage() {
         <div className="p-4 md:p-6">
             <div className="flex items-center space-x-4 md:space-x-8">
                  <Avatar className="h-20 w-20 md:h-36 md:w-36">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} />
-                    <AvatarFallback>{user.first_name.charAt(0)}{user.last_name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} />
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                 </Avatar>
                 <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-2xl font-light">{user.email.split('@')[0]}</h2>
-                        <Button onClick={logout} variant="destructive" size="sm" className="md:hidden">
+                        <h2 className="text-2xl font-light">{user.displayName || user.email?.split('@')[0]}</h2>
+                        <Button onClick={handleLogout} variant="destructive" size="sm" className="md:hidden">
                             <LogOut className="h-4 w-4"/>
                         </Button>
                     </div>
@@ -101,15 +119,15 @@ export default function ProfileClientPage() {
                         <p><span className="font-semibold">543</span> abonnements</p>
                     </div>
                     <div>
-                        <p className="font-semibold">{user.first_name} {user.last_name}</p>
-                        <p className="text-muted-foreground text-sm">{user.university || 'Université non spécifiée'}</p>
+                        <p className="font-semibold">{user.displayName || "Utilisateur"}</p>
+                        {/* <p className="text-muted-foreground text-sm">{user.university || 'Université non spécifiée'}</p> */}
                     </div>
                 </div>
             </div>
             <div className="mt-6 flex gap-2">
                 <Button variant="secondary" className="flex-grow">Modifier le profil</Button>
                 <Button variant="secondary" className="flex-grow">Partager le profil</Button>
-                 <Button onClick={logout} variant="destructive" className="shrink-0 hidden md:flex">
+                 <Button onClick={handleLogout} variant="destructive" className="shrink-0 hidden md:flex">
                     Déconnexion
                 </Button>
             </div>

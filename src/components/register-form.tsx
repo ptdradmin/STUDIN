@@ -4,13 +4,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth, useFirestore } from '@/firebase';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const universities = [
     'Université de Namur',
@@ -34,7 +36,8 @@ export default function RegisterForm() {
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { register } = useAuth();
+  const { auth } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,7 +48,7 @@ export default function RegisterForm() {
     setFormData({ ...formData, university: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirm_password) {
         toast({
@@ -57,17 +60,52 @@ export default function RegisterForm() {
     }
     setLoading(true);
     
-    // Mock registration
-    setTimeout(() => {
-      // We don't want to pass confirm_password to the register function
-      const { confirm_password, ...registrationData } = formData;
-      register(registrationData);
-      toast({
-        title: "Inscription réussie!",
-        description: "Votre compte a été créé. Vous êtes maintenant connecté.",
-      });
-      router.push('/social');
-    }, 1000);
+    if (!auth || !firestore) {
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Le service d'authentification n'est pas disponible.",
+        });
+        setLoading(false);
+        return;
+    }
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        const user = userCredential.user;
+        const displayName = `${formData.first_name} ${formData.last_name}`;
+
+        await updateProfile(user, {
+            displayName: displayName
+        });
+
+        // Save additional user info to Firestore
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await setDoc(userDocRef, {
+            id: user.uid,
+            email: user.email,
+            displayName: displayName,
+            university: formData.university,
+            fieldOfStudy: formData.field_of_study,
+            photoURL: user.photoURL
+        });
+
+
+        toast({
+            title: "Inscription réussie!",
+            description: "Votre compte a été créé. Vous êtes maintenant connecté.",
+        });
+        router.push('/social');
+    } catch (error: any) {
+        console.error(error);
+        toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: "Impossible de créer le compte. L'email est peut-être déjà utilisé.",
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   const passwordsMatch = formData.password === formData.confirm_password;
@@ -110,7 +148,7 @@ export default function RegisterForm() {
 
           <div className="space-y-2">
             <Label htmlFor="university">Université</Label>
-            <Select name="university" onValueChange={handleSelectChange} required>
+            <Select name="university" onValueChange={handleSelectChange}>
                 <SelectTrigger>
                     <SelectValue placeholder="Sélectionnez votre université" />
                 </SelectTrigger>
