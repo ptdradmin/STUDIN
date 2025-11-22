@@ -8,7 +8,12 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { initializeApp, getApps } from 'firebase-admin/app';
+
+// Initialize Firebase Admin SDK only if it hasn't been initialized yet.
+if (!getApps().length) {
+    initializeApp();
+}
 
 const DeleteConversationInputSchema = z.string().describe("The ID of the conversation to delete.");
 export type DeleteConversationInput = z.infer<typeof DeleteConversationInputSchema>;
@@ -19,10 +24,6 @@ const DeleteConversationOutputSchema = z.object({
 });
 export type DeleteConversationOutput = z.infer<typeof DeleteConversationOutputSchema>;
 
-// Initialize Firebase Admin SDK
-if (!getApps().length) {
-    initializeApp();
-}
 
 /**
  * Deletes a conversation and all its messages.
