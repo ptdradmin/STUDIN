@@ -137,7 +137,7 @@ export default function PostCard({ post }: PostCardProps) {
 
 
     return (
-        <Card className="rounded-none md:rounded-lg border-b md:border md:border-stone-300">
+        <Card className="rounded-none md:rounded-lg border-b border-border md:border-none">
             <CardHeader className="p-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -147,6 +147,7 @@ export default function PostCard({ post }: PostCardProps) {
                         </Avatar>
                         <div>
                             <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
+                             <span className="text-sm text-muted-foreground"> • {timeAgo}</span>
                             {post.location && (
                                 <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
                                     {post.location}
@@ -157,8 +158,8 @@ export default function PostCard({ post }: PostCardProps) {
                      <div className="flex items-center gap-2">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-6 w-6">
-                                    <MoreHorizontal className="h-4 w-4" />
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-5 w-5" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
@@ -186,7 +187,7 @@ export default function PostCard({ post }: PostCardProps) {
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 border-y border-border">
                 {post.imageUrl && (
                     <div className="relative aspect-square">
                         <Image
@@ -238,11 +239,9 @@ export default function PostCard({ post }: PostCardProps) {
                         Masquer les commentaires
                     </Button>
                 )}
-
-                <p className="text-xs text-muted-foreground mt-2 uppercase">{timeAgo}</p>
                 
                 {user && (
-                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t border-stone-300">
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t border-border">
                         <Input 
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
