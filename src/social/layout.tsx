@@ -97,19 +97,50 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
               <NavLink key={item.label} item={item} />
             ))}
           </nav>
+          
           <div className="flex flex-col gap-2">
-            <Link href="/profile" className="w-full">
-                <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
-                        <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start overflow-hidden">
-                        <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
-                        <p className="text-xs text-muted-foreground truncate">Voir le profil</p>
-                    </div>
-                </Button>
-            </Link>
+             <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
+                            <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col items-start overflow-hidden">
+                            <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
+                            <p className="text-xs text-muted-foreground truncate">Voir les options</p>
+                        </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
+                     <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user?.displayName || 'Utilisateur'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profil</span>
+                      </Link>
+                    </DropdownMenuItem>
+                     <DropdownMenuItem asChild>
+                      <Link href="/settings">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Paramètres</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Déconnexion</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
           </div>
         </aside>
         
