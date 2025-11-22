@@ -12,11 +12,12 @@ import { MapPin, Users, LayoutGrid, Map, Plus } from "lucide-react";
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useUser, useFirestore, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection } from "firebase/firestore";
+import { collection, serverTimestamp } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -62,13 +63,39 @@ export default function CarpoolingPage() {
   const { user } = useUser();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
-  const handleReserve = (driverId: string) => {
-    if (!user) {
+  const handleReserve = (trip: Trip) => {
+    if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
     }
-    router.push(`/messages?recipient=${driverId}`);
+
+    if (trip.driverId === user.uid) {
+        toast({
+            variant: "destructive",
+            title: "Action impossible",
+            description: "Vous ne pouvez pas réserver votre propre trajet.",
+        });
+        return;
+    }
+
+    const bookingData = {
+        carpoolId: trip.id,
+        passengerId: user.uid,
+        seatsBooked: 1, // Simple booking for now
+        status: 'confirmed',
+        createdAt: serverTimestamp(),
+    };
+
+    const bookingsCollection = collection(firestore, `carpoolings/${trip.id}/carpool_bookings`);
+    addDocumentNonBlocking(bookingsCollection, bookingData);
+
+    toast({
+        title: "Réservation confirmée !",
+        description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} a été réservée.`,
+    });
+     router.push(`/messages?recipient=${trip.driverId}`);
   };
   
   return (
@@ -182,7 +209,7 @@ export default function CarpoolingPage() {
 
                                   <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                       <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                      {user && <Button size="sm" onClick={() => handleReserve(trip.driverId)}>Réserver</Button>}
+                                      {user && <Button size="sm" onClick={() => handleReserve(trip)}>Réserver</Button>}
                                   </div>
 
                               </CardContent>
