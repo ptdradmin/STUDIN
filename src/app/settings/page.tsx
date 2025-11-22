@@ -16,11 +16,17 @@ import Navbar from "@/components/navbar";
 import {
   Bell,
   ChevronRight,
+  Compass,
+  Film,
   HelpCircle,
   Info,
   Lock,
+  Mail,
+  MessageSquare,
   Palette,
+  Search,
   Shield,
+  Trash2,
   User,
 } from "lucide-react";
 import Link from "next/link";
@@ -52,13 +58,15 @@ const SettingsItem = ({
 
 const SettingsLink = ({
   title,
+  href = "#",
 }: {
-  title: string;
+  title:string;
+  href?: string;
 }) => (
-    <div className="flex items-center justify-between py-4">
+    <Link href={href} className="flex items-center justify-between py-4 hover:bg-muted/50 -mx-6 px-6 rounded-md">
         <p className="font-medium">{title}</p>
         <ChevronRight className="h-5 w-5 text-muted-foreground" />
-    </div>
+    </Link>
 );
 
 
@@ -87,7 +95,7 @@ export default function SettingsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6 space-y-2">
-                     <Link href="/profile"><SettingsLink title="Informations personnelles" /></Link>
+                     <SettingsLink title="Informations personnelles" href="/profile" />
                      <SettingsLink title="Mot de passe" />
                      <SettingsLink title="Comptes liés" />
                      <Button variant="destructive" className="w-full mt-4">Déconnexion</Button>
@@ -107,6 +115,11 @@ export default function SettingsPage() {
                       title="Profil privé"
                       description="Seuls les abonnés que vous approuvez peuvent voir votre profil."
                       action={<Switch id="private-profile" />}
+                    />
+                    <SettingsItem
+                      icon={<Trash2 className="h-5 w-5"/>}
+                      title="Effacer l'historique de recherche"
+                      action={<Button variant="outline" size="sm">Effacer</Button>}
                     />
                     <SettingsLink title="Liste des utilisateurs bloqués" />
                     <SettingsLink title="Contrôle des interactions" />
@@ -141,6 +154,7 @@ export default function SettingsPage() {
                       action={<Switch id="pause-notifications" />}
                     />
                     <SettingsLink title="Notifications générales (Posts, Commentaires...)" />
+                    <SettingsLink title="Notifications de Messages" />
                     <SettingsLink title="Notifications de Logement" />
                     <SettingsLink title="Notifications de Covoiturage" />
                   </AccordionContent>
@@ -155,6 +169,17 @@ export default function SettingsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
                     <SettingsLink title="Préférences du fil" />
+                    <SettingsLink title="Préférences de la page Découvrir" />
+                     <SettingsItem
+                      icon={<Film className="h-5 w-5"/>}
+                      title="Lecture automatique des Reels"
+                      action={<Switch id="reels-autoplay" defaultChecked />}
+                    />
+                    <SettingsItem
+                      icon={<Film className="h-5 w-5"/>}
+                      title="Son des Reels par défaut"
+                      action={<Switch id="reels-sound" />}
+                    />
                     <SettingsLink title="Mots masqués" />
                   </AccordionContent>
                 </AccordionItem>
@@ -167,7 +192,7 @@ export default function SettingsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
-                    <SettingsLink title="Centre d’aide" />
+                    <SettingsLink title="Centre d’aide" href="/help"/>
                     <SettingsLink title="Déclarer un problème" />
                     <SettingsLink title="Règles de la communauté" />
                   </AccordionContent>
@@ -182,8 +207,8 @@ export default function SettingsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
                     <SettingsLink title="Version de l’application" />
-                    <SettingsLink title="Conditions d'utilisation" />
-                    <SettingsLink title="Politique de Confidentialité" />
+                    <SettingsLink title="Conditions d'utilisation" href="/terms" />
+                    <SettingsLink title="Politique de Confidentialité" href="/privacy" />
                   </AccordionContent>
                 </AccordionItem>
 
