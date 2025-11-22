@@ -121,7 +121,6 @@ export default function UserProfilePage() {
     try {
         await toggleFollowUser(firestore, user.uid, userProfile.id, wasFollowing);
         if (!wasFollowing) {
-            // If the user just followed, create the notification
             await createFollowNotification(firestore, user.uid, userProfile.id);
         }
         toast({ title: wasFollowing ? "Ne plus suivre" : "Suivi", description: `Vous ${wasFollowing ? 'ne suivez plus' : 'suivez maintenant'} ${userProfile.username}.`})
@@ -182,7 +181,7 @@ export default function UserProfilePage() {
                                     </button>
                                      <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline">
                                         <span className="font-semibold">{followingCount}</span> abonnements
-                                    </button>
+                                     </button>
                                 </div>
                                 <div>
                                     <p className="font-semibold">{userProfile.firstName} {userProfile.lastName}</p>
@@ -195,6 +194,7 @@ export default function UserProfilePage() {
                     
                     {modalContent && (
                         <FollowListModal
+                            key={modalContent.title}
                             title={modalContent.title}
                             userIds={modalContent.userIds}
                             onClose={() => setModalContent(null)}

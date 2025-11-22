@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from "next/image";
@@ -58,8 +59,8 @@ export default function PostCard({ post }: PostCardProps) {
         return name.substring(0, 2).toUpperCase();
     }
     
-    const getSafeDate = (dateValue: any): Date | null => {
-      if (!dateValue) return null;
+    const getSafeDate = (dateValue: any): Date => {
+      if (!dateValue) return new Date();
       if (dateValue instanceof Timestamp) {
         return dateValue.toDate();
       }
@@ -72,11 +73,11 @@ export default function PostCard({ post }: PostCardProps) {
           return date;
         }
       }
-      return null;
+      return new Date();
     }
 
     const createdAtDate = getSafeDate(post.createdAt);
-    const timeAgo = createdAtDate ? formatDistanceToNow(createdAtDate, { addSuffix: true, locale: fr }) : 'à l\'instant';
+    const timeAgo = formatDistanceToNow(createdAtDate, { addSuffix: true, locale: fr });
 
     const isOwner = user && user.uid === post.userId;
     const hasLiked = user && optimisticLikes.includes(user.uid);
