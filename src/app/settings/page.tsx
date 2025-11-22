@@ -100,8 +100,6 @@ export default function SettingsPage() {
 
   const [isPrivateProfile, setIsPrivateProfile] = useState(false);
   const [pauseAllNotifications, setPauseAllNotifications] = useState(false);
-  const [reelsAutoplay, setReelsAutoplay] = useState(true);
-  const [reelsSound, setReelsSound] = useState(false);
 
   const handleLogout = async () => {
     if (auth) {
@@ -278,16 +276,8 @@ export default function SettingsPage() {
                   <AccordionContent className="px-6">
                     <SettingsLink title="Préférences du fil" />
                     <SettingsLink title="Préférences de la page Découvrir" />
-                     <SettingsItem
-                      icon={<Film className="h-5 w-5"/>}
-                      title="Lecture automatique des Reels"
-                      action={<Switch id="reels-autoplay" checked={reelsAutoplay} onCheckedChange={setReelsAutoplay} />}
-                    />
-                    <SettingsItem
-                      icon={<Film className="h-5 w-5"/>}
-                      title="Son des Reels par défaut"
-                      action={<Switch id="reels-sound" checked={reelsSound} onCheckedChange={setReelsSound} />}
-                    />
+                    <SettingsLink title="Lecture automatique des Reels" />
+                    <SettingsLink title="Son des Reels par défaut" />
                     <SettingsLink title="Mots masqués" />
                   </AccordionContent>
                 </AccordionItem>
