@@ -28,6 +28,7 @@ export default function RegisterForm() {
     last_name: '',
     email: '',
     password: '',
+    confirm_password: '',
     university: '',
     field_of_study: ''
   });
@@ -46,11 +47,21 @@ export default function RegisterForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password !== formData.confirm_password) {
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Les mots de passe ne correspondent pas.",
+        });
+        return;
+    }
     setLoading(true);
     
     // Mock registration
     setTimeout(() => {
-      register(formData);
+      // We don't want to pass confirm_password to the register function
+      const { confirm_password, ...registrationData } = formData;
+      register(registrationData);
       toast({
         title: "Inscription réussie!",
         description: "Votre compte a été créé. Vous êtes maintenant connecté.",
@@ -58,6 +69,8 @@ export default function RegisterForm() {
       router.push('/social');
     }, 1000);
   };
+
+  const passwordsMatch = formData.password === formData.confirm_password;
 
   return (
     <Card className="w-full max-w-lg shadow-2xl">
@@ -81,10 +94,20 @@ export default function RegisterForm() {
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" placeholder="votre.email@example.com" required onChange={handleChange} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input id="password" name="password" type="password" placeholder="Minimum 6 caractères" required minLength={6} onChange={handleChange} />
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input id="password" name="password" type="password" placeholder="Minimum 6 caractères" required minLength={6} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm_password">Confirmer le mot de passe</Label>
+              <Input id="confirm_password" name="confirm_password" type="password" placeholder="••••••••" required onChange={handleChange} />
+            </div>
           </div>
+          {!passwordsMatch && formData.confirm_password && (
+            <p className="text-xs text-destructive">Les mots de passe ne correspondent pas.</p>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="university">Université</Label>
             <Select name="university" onValueChange={handleSelectChange} required>
@@ -102,7 +125,7 @@ export default function RegisterForm() {
             <Label htmlFor="field_of_study">Domaine d'études</Label>
             <Input id="field_of_study" name="field_of_study" placeholder="Ex: Informatique, Droit, Médecine..." onChange={handleChange} />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || !passwordsMatch || !formData.password}>
             {loading ? 'Inscription en cours...' : "S'inscrire"}
           </Button>
         </form>
