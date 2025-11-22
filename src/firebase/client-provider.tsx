@@ -3,7 +3,7 @@
 import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { FirebaseApp } from 'firebase/app';
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 import { FirebaseProvider } from './provider';
 import { initializeFirebase } from '.';
@@ -19,20 +19,20 @@ export default function FirebaseClientProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const firebaseServices = useMemo<FirebaseServices | null>(() => {
-    // Firebase is only available on the client
-    if (typeof window === 'undefined') {
-      return null;
-    }
-    const app = initializeFirebase();
-    const auth = getAuth(app);
-    const firestore = getFirestore(app);
+  const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
 
-    return { app, auth, firestore };
+  useEffect(() => {
+    // Firebase is only available on the client
+    if (typeof window !== 'undefined') {
+      const app = initializeFirebase();
+      const auth = getAuth(app);
+      const firestore = getFirestore(app);
+      setFirebaseServices({ app, auth, firestore });
+    }
   }, []);
 
   if (!firebaseServices) {
-    // During SSR, Firebase is not initialized.
+    // During SSR or initial client render, Firebase is not initialized.
     // The components using Firebase will be client-side and will re-render.
     return <>{children}</>;
   }
