@@ -41,7 +41,7 @@ export default function Navbar() {
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
     const parts = email.split('@')[0].replace('.', ' ').split(' ');
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[0] && parts[1]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return email.substring(0, 2).toUpperCase();
@@ -56,8 +56,6 @@ export default function Navbar() {
       {children}
     </Link>
   );
-
-  const isSocialPage = pathname.startsWith('/social');
 
   const MobileNav = () => (
     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -88,46 +86,12 @@ export default function Navbar() {
                 <div className="flex items-center">{link.icon} {link.label}</div>
               </NavLink>
             ))}
-            {user && (
-              <>
-                <NavLink href="/messages">
-                  <div className="flex items-center"><MessageSquare className="mr-2 h-4 w-4" /> Messages</div>
-                </NavLink>
-              </>
-            )}
           </nav>
            <div className="mt-auto">
-            {user ? (
-                 <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full">
-                    <div className="flex items-center gap-2 p-2 rounded-md hover:bg-muted w-full text-left">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} alt={user.displayName || user.email || ''} />
-                            <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow truncate">
-                            <p className="text-sm font-medium truncate">{user.displayName || 'Utilisateur'}</p>
-                            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                        </div>
-                    </div>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 mb-2" align="start" forceMount>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile"><User className="mr-2 h-4 w-4" /><span>Profil</span></Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/settings"><Settings className="mr-2 h-4 w-4" /><span>Paramètres</span></Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /><span>Déconnexion</span></DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-            ) : (
                 <div className="flex flex-col gap-2">
                     <Button variant="ghost" asChild onClick={() => setIsSheetOpen(false)}><Link href="/login">Connexion</Link></Button>
                     <Button asChild onClick={() => setIsSheetOpen(false)}><Link href="/register">Inscription</Link></Button>
                 </div>
-            )}
            </div>
         </div>
       </SheetContent>
@@ -150,13 +114,6 @@ export default function Navbar() {
               {link.label}
             </NavLink>
           ))}
-           {user && (
-              <>
-                <NavLink href="/messages">
-                  Messages
-                </NavLink>
-              </>
-            )}
         </nav>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, User, Settings, MessageSquare, LogOut, Compass, PlusSquare, Search } from "lucide-react";
+import { Home, User, Settings, MessageSquare, LogOut, Compass, Search, Building, Car, GraduationCap, PartyPopper } from "lucide-react";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import {
@@ -15,13 +15,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-
-const navItems = [
+const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home },
-  { href: "/search", label: "Recherche", icon: Search },
-  { href: "/explore", label: "Découvrir", icon: Compass },
+  { href: "/housing", label: "Logement", icon: Building },
+  { href: "/carpooling", label: "Covoiturage", icon: Car },
+  { href: "/tutoring", label: "Tutorat", icon: GraduationCap },
+  { href: "/events", label: "Événements", icon: PartyPopper },
   { href: "/messages", label: "Messages", icon: MessageSquare },
 ];
+
+const secondaryNavItems = [
+    { href: "/explore", label: "Découvrir", icon: Compass },
+    { href: "/profile", label: "Profil", icon: User },
+    { href: "/settings", label: "Paramètres", icon: Settings },
+]
 
 function NavLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) {
   const pathname = usePathname();
@@ -31,19 +38,18 @@ function NavLink({ href, label, icon: Icon }: { href: string; label: string; ico
      <Tooltip>
       <TooltipTrigger asChild>
         <Link href={href} passHref>
-          <Button variant="ghost" size="lg" aria-label={label} className={`justify-start gap-3 ${isActive ? 'font-bold' : ''}`}>
+          <Button variant={isActive ? "secondary" : "ghost"} size="lg" aria-label={label} className="justify-start gap-3">
             <Icon className="h-6 w-6" />
             <span className="hidden lg:inline">{label}</span>
           </Button>
         </Link>
       </TooltipTrigger>
-      <TooltipContent side="right">
+      <TooltipContent side="right" className="lg:hidden">
         <p>{label}</p>
       </TooltipContent>
     </Tooltip>
   );
 }
-
 
 export default function SocialLayout({ children }: { children: React.ReactNode }) {
     const { user, auth } = useAuth();
@@ -68,51 +74,28 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
   return (
     <TooltipProvider>
       <div className="flex min-h-screen bg-background">
-        <aside className="fixed left-0 top-0 h-full z-10 w-20 lg:w-60 flex flex-col p-3 bg-background border-r">
+        <aside className="fixed left-0 top-0 h-full z-10 w-20 lg:w-64 flex flex-col p-3 bg-card border-r">
           <Link href="/social" className="px-3 mb-8 hidden lg:block">
-             <span className="text-2xl font-serif tracking-tight font-bold">
+             <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
               STUD'IN
             </span>
           </Link>
-           <Link href="/social" className="mb-8 lg:hidden">
+           <Link href="/social" className="mb-8 lg:hidden self-center">
               <Avatar className="h-10 w-10">
-                <AvatarImage src="/logo.png" alt="Stud'in Logo" />
                 <AvatarFallback>S</AvatarFallback>
               </Avatar>
           </Link>
 
           <nav className="flex flex-col gap-2 flex-grow">
-            {navItems.map((item) => (
+            {mainNavItems.map((item) => (
               <NavLink key={item.href} {...item} />
             ))}
-             <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="lg" className="justify-start gap-3">
-                        <PlusSquare className="h-6 w-6" />
-                        <span className="hidden lg:inline">Créer</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right"><p>Créer</p></TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Link href="/profile">
-                        <Button variant="ghost" size="lg" className="justify-start gap-3">
-                             {user && (
-                                <Avatar className="h-6 w-6">
-                                    <AvatarImage src={user.photoURL ?? undefined} alt="User Avatar" />
-                                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                                </Avatar>
-                             )}
-                            <span className="hidden lg:inline">Profil</span>
-                        </Button>
-                    </Link>
-                </TooltipTrigger>
-                 <TooltipContent side="right"><p>Profil</p></TooltipContent>
-            </Tooltip>
           </nav>
           
           <div className="mt-auto flex flex-col gap-2">
+             {secondaryNavItems.map((item) => (
+              <NavLink key={item.href} {...item} />
+            ))}
              <Tooltip>
                 <TooltipTrigger asChild>
                    <Button variant="ghost" size="lg" className="justify-start gap-3" onClick={handleLogout}>
@@ -120,11 +103,11 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                         <span className="hidden lg:inline">Déconnexion</span>
                    </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right"><p>Déconnexion</p></TooltipContent>
+                <TooltipContent side="right" className="lg:hidden"><p>Déconnexion</p></TooltipContent>
             </Tooltip>
           </div>
         </aside>
-        <main className="flex-1 ml-20 lg:ml-60">
+        <main className="flex-1 ml-20 lg:ml-64">
           {children}
         </main>
       </div>
