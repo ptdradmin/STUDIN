@@ -105,6 +105,23 @@ export default function MessagesPage() {
         return query(collection(firestore, 'conversations', selectedConversation.id, 'messages'), orderBy('createdAt', 'asc'));
     }, [firestore, selectedConversation]);
     const { data: messages, isLoading: messagesLoading } = useCollection<ChatMessage>(messagesQuery);
+
+    const getSafeDate = (dateValue: any): Date | null => {
+      if (!dateValue) return null;
+      if (dateValue instanceof Timestamp) {
+        return dateValue.toDate();
+      }
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+         return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+      }
+      return null;
+    }
     
 
     // Effect to handle redirection and pre-selection of conversation from URL
@@ -279,7 +296,9 @@ export default function MessagesPage() {
                         <div className="divide-y flex-grow overflow-y-auto">
                             {conversations && conversations.map(conv => {
                                 const otherUser = getOtherParticipant(conv);
-                                const lastMessageTime = conv.lastMessage?.timestamp ? formatDistanceToNow(new Date((conv.lastMessage.timestamp as Timestamp).toDate().toISOString()), { addSuffix: true, locale: fr }) : '';
+                                const lastMessageDate = getSafeDate(conv.lastMessage?.timestamp);
+                                const lastMessageTime = lastMessageDate ? formatDistanceToNow(lastMessageDate, { addSuffix: true, locale: fr }) : '';
+
 
                                 return (
                                     <div 
@@ -353,7 +372,9 @@ export default function MessagesPage() {
                             <div className="flex-grow p-4 space-y-4 overflow-y-auto">
                                 {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
                                 {!messagesLoading && messages?.map((msg, index) => {
-                                    const msgTime = msg.createdAt ? new Date((msg.createdAt as Timestamp).toDate().toISOString()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                                    const msgDate = getSafeDate(msg.createdAt);
+                                    const msgTime = msgDate ? msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+
                                     return (
                                             <div key={index} className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}>
                                             <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.senderId === user.uid ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>

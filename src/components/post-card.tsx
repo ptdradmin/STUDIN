@@ -10,7 +10,7 @@ import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmar
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, Timestamp } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,8 +43,27 @@ export default function PostCard({ post }: PostCardProps) {
         }
         return name.substring(0, 2).toUpperCase();
     }
+    
+    const getSafeDate = (dateValue: any): Date | null => {
+      if (!dateValue) return null;
+      if (dateValue instanceof Timestamp) {
+        return dateValue.toDate();
+      }
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+      // Handle Firestore serverTimestamp placeholder if needed, though it should be converted
+      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+         return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+      }
+      return null;
+    }
 
-    const timeAgo = post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: fr }) : '';
+    const createdAtDate = getSafeDate(post.createdAt);
+    const timeAgo = createdAtDate ? formatDistanceToNow(createdAtDate, { addSuffix: true, locale: fr }) : 'à l\'instant';
 
     const isOwner = user && user.uid === post.userId;
     const hasLiked = user && optimisticLikes.includes(user.uid);
