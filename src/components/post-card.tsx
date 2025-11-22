@@ -6,6 +6,7 @@ import type { Post } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -18,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 
 interface PostCardProps {
@@ -28,6 +30,7 @@ export default function PostCard({ post }: PostCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const [comment, setComment] = useState('');
 
     const getInitials = (name: string) => {
         const parts = name.split(' ');
@@ -69,6 +72,30 @@ export default function PostCard({ post }: PostCardProps) {
             toast({ variant: "destructive", title: "Erreur", description: "Impossible de mettre à jour le like." });
         }
     };
+
+    const handleCommentSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !firestore || !comment.trim()) {
+            return;
+        }
+
+        const postRef = doc(firestore, "posts", post.id);
+        const newComment = {
+            userId: user.uid,
+            userDisplayName: user.displayName || user.email?.split('@')[0] || 'Anonyme',
+            text: comment
+        };
+        
+        try {
+            await updateDoc(postRef, {
+                comments: arrayUnion(newComment)
+            });
+            setComment('');
+        } catch (error) {
+            console.error("Error adding comment: ", error);
+            toast({ variant: "destructive", title: "Erreur", description: "Impossible d'ajouter le commentaire." });
+        }
+    }
 
 
     const handleDelete = async () => {
@@ -140,9 +167,36 @@ export default function PostCard({ post }: PostCardProps) {
                     <span className="font-semibold">{post.userDisplayName}</span>
                     <span className="ml-2">{post.caption}</span>
                 </div>
-                 <p className="text-muted-foreground text-xs mt-2 uppercase">
-                    Voir les {post.comments?.length || 0} commentaires
-                </p>
+                
+                {post.comments?.length > 0 && (
+                    <div className="mt-2 text-sm w-full">
+                         <p className="text-muted-foreground text-xs uppercase mb-2">
+                            Voir les {post.comments.length} commentaires
+                        </p>
+                        <div className="space-y-1">
+                            {post.comments.slice(0,2).map((comment, index) => (
+                                <div key={index}>
+                                    <span className="font-semibold">{comment.userDisplayName}</span>
+                                    <span className="ml-2 text-muted-foreground">{comment.text}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
+                {user && (
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-3 mt-3 border-t">
+                        <Input 
+                            value={comment}
+                            onChange={(e) => setComment(e.target.value)}
+                            placeholder="Ajouter un commentaire..." 
+                            className="h-8 border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+                        />
+                        <Button type="submit" variant="ghost" size="sm" disabled={!comment.trim()}>
+                            Publier
+                        </Button>
+                    </form>
+                )}
             </CardFooter>
         </Card>
     );
