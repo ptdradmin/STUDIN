@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Image from 'next/image';
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Check } from "lucide-react";
 
 export default function WhoWeArePage() {
   return (
@@ -25,47 +26,72 @@ export default function WhoWeArePage() {
           <div className="container mx-auto px-4">
               <div className="mx-auto mb-12 max-w-3xl text-center">
                   <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                  Le Fondateur
+                  Fondateur & Développeur
                   </h2>
               </div>
               <Card className="max-w-4xl mx-auto shadow-lg">
                 <CardContent className="flex flex-col items-center gap-8 p-8 sm:flex-row">
-                  <Avatar className="h-32 w-32">
+                  <Avatar className="h-32 w-32 flex-shrink-0">
                      <Image src="https://picsum.photos/seed/founder/128/128" alt="Gui Doba" width={128} height={128} data-ai-hint="portrait homme"/>
                     <AvatarFallback>GD</AvatarFallback>
                   </Avatar>
                   <div className="text-center sm:text-left space-y-4">
                     <div>
-                      <p className="text-xl font-semibold">Gui Doba</p>
-                      <p className="text-sm text-muted-foreground">
-                          Fondateur & Développeur
-                      </p>
+                      <p className="text-xl font-semibold">Gui Doba — Étudiant en informatique</p>
                     </div>
                     <p className="text-muted-foreground">
-                      Étudiant en Belgique francophone, Gui Doba a vécu lui-même les difficultés de la vie étudiante. Frustré par l'éparpillement des informations et des services, il a décidé de créer la plateforme qu'il aurait rêvé d'avoir : STUD'IN.
+                      Je m’appelle Gui Doba. Étudiant en informatique, je suis passionné par la création d’applications utiles pour les élèves et étudiants. Depuis mes premières années d’études, je m’intéresse aux projets qui résolvent des problèmes concrets.
                     </p>
-                    <blockquote className="font-code text-lg italic text-muted-foreground border-l-4 pl-4">
-                      "Ma vision est de créer un véritable écosystème digital où chaque étudiant de la Fédération Wallonie-Bruxelles peut s'épanouir, soutenu par sa communauté."
-                    </blockquote>
                   </div>
                 </CardContent>
               </Card>
+              <div className="max-w-4xl mx-auto mt-8 text-muted-foreground space-y-4">
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {['Trouver un logement', 'Organiser un covoiturage', "Obtenir de l’aide scolaire", "Repérer les événements importants de la vie étudiante"].map(item => (
+                     <li key={item} className="flex items-center gap-2">
+                        <Check className="h-5 w-5 text-primary"/>
+                        <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p>
+                  J’ai créé STUD’IN parce que je connais les difficultés rencontrées par les étudiants, au secondaire et au supérieur. Je voulais un outil simple et accessible, rassemblant tous les services essentiels dans un seul espace.
+                </p>
+                 <p>
+                  Je continue d’apprendre et d’améliorer l’application grâce aux retours des utilisateurs. Mon objectif : une plateforme fiable, claire et adaptée à la réalité des étudiants.
+                </p>
+              </div>
           </div>
         </section>
 
-        <section className="bg-card py-16 md:py-24">
+        <section className="bg-muted/40 py-16 md:py-24">
           <div className="container mx-auto px-4">
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
                 Notre Histoire
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Actuellement en cours de développement, STUD'IN est un projet né de l'ambition de devenir l'outil indispensable de chaque étudiant en Belgique francophone. L'application est développée avec passion pour répondre concrètement aux défis de la vie étudiante.
+                STUD’IN est en cours de développement et vise à devenir l’outil indispensable des étudiants en Belgique francophone.
               </p>
-              <blockquote className="mt-8 font-code text-lg italic text-muted-foreground relative">
-                  <p className="relative z-10">"Ce qui a commencé comme un besoin personnel est en train de devenir une aventure collective. Chaque jour, nous innovons pour mieux répondre aux besoins réels des étudiants."</p>
-              </blockquote>
+              <p className="mt-4 text-muted-foreground">
+                Ce qui a commencé comme un besoin personnel est devenu une aventure collective. Chaque jour, nous innovons pour répondre aux besoins réels des étudiants.
+              </p>
             </div>
+            <div className="max-w-4xl mx-auto mt-8">
+                <h3 className="text-xl font-semibold text-center mb-4">La plateforme centralise :</h3>
+                <ul className="space-y-2 text-muted-foreground">
+                    <li><strong>Logement :</strong> Trouver un appartement ou une chambre facilement</li>
+                    <li><strong>Covoiturage :</strong> Organiser des trajets partagés</li>
+                    <li><strong>Tutorat :</strong> Connecter élèves et étudiants avec des tuteurs compétents</li>
+                    <li><strong>Événements :</strong> Repérer les activités importantes liées à la vie étudiante</li>
+                </ul>
+                <p className="mt-6 text-center">
+                    Notre ambition : créer une plateforme complète, intuitive et pratique, où chaque étudiant trouve rapidement ce dont il a besoin.
+                </p>
+            </div>
+            <blockquote className="mt-8 font-code text-lg italic text-muted-foreground relative text-center">
+                  <p className="relative z-10">« Ce qui a commencé comme un besoin personnel est en train de devenir une aventure collective. »</p>
+            </blockquote>
           </div>
         </section>
       </main>
