@@ -190,6 +190,28 @@ service cloud.firestore {
       allow delete: if isExistingOwner(resource.data.tutorId);
     }
 
+    // =====================================================================
+    // Social (Posts) Rules
+    // =====================================================================
+
+    /**
+     * @description Manages social media posts.
+     * @path /posts/{postId}
+     * @allow Any authenticated user can read posts. The owner can write/delete.
+     * @deny An anonymous user tries to list posts. A user tries to delete another user's post.
+     * @principle Public Read with Owner-Only Writes. Posts are public to signed-in users, but write operations are restricted to the author.
+     */
+    match /posts/{postId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    // =====================================================================
+    // Tutoring Review Rules
+    // =====================================================================
+    
     /**
      * @description Manages reviews for tutoring sessions.
      * @path /tutoring_reviews/{tutoringReviewId}
