@@ -12,8 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 
 const universities = [
@@ -82,8 +81,28 @@ export default function RegisterForm() {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         };
-        setDocumentNonBlocking(userDocRef, userData, { merge: true });
+        await setDoc(userDocRef, userData, { merge: true });
       }
+  }
+
+  const handleSuccess = () => {
+     toast({
+        title: "Inscription réussie!",
+        description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
+      });
+      router.push('/social');
+  }
+
+  const handleError = (error: any) => {
+      let description = "Impossible de créer le compte.";
+      if (error.code === 'auth/email-already-in-use') {
+          description = "Cet email est déjà utilisé. Essayez de vous connecter.";
+      }
+      toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description,
+      });
   }
 
 
@@ -93,23 +112,10 @@ export default function RegisterForm() {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      await createUserDocument(user);
-
-      toast({
-        title: "Inscription réussie!",
-        description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
-      });
-      router.push('/social');
-
+      await createUserDocument(result.user);
+      handleSuccess();
     } catch (error: any) {
-        console.error(error);
-        toast({
-            variant: "destructive",
-            title: "Erreur d'authentification",
-            description: "Impossible de se connecter avec Google.",
-        });
+      handleError(error);
     } finally {
       setLoading(false);
     }
@@ -151,23 +157,9 @@ export default function RegisterForm() {
             university: formData.university,
             fieldOfStudy: formData.field_of_study
         });
-
-        toast({
-            title: "Inscription réussie!",
-            description: "Votre compte a été créé. Vous êtes maintenant connecté.",
-        });
-        router.push('/social');
+        handleSuccess();
     } catch (error: any) {
-        console.error(error);
-        let description = "Impossible de créer le compte.";
-        if (error.code === 'auth/email-already-in-use') {
-            description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-        }
-        toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description,
-        });
+        handleError(error);
     } finally {
         setLoading(false);
     }

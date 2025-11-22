@@ -11,8 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 
 
@@ -57,15 +56,12 @@ export default function LoginForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      setDocumentNonBlocking(userDocRef, userData, { merge: true });
+      await setDoc(userDocRef, userData, { merge: true });
     }
   }
 
   const handleSuccess = (user?: User) => {
-     if(user) {
-        createUserDocument(user);
-     }
-     toast({
+      toast({
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
@@ -91,7 +87,8 @@ export default function LoginForm() {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      handleSuccess(result.user);
+      await createUserDocument(result.user);
+      handleSuccess();
     } catch (error: any) {
       handleError(error);
     } finally {
