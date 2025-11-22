@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Plus, User, Settings, LogOut } from "lucide-react";
+import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Plus, User, Settings, LogOut, Compass } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,9 +27,9 @@ import { Input } from '@/components/ui/input';
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home },
   { href: "/messages", label: "Messages", icon: MessageSquare },
-  { href: "/tutoring", label: "Tutorat", icon: GraduationCap },
-  { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/housing", label: "Logements", icon: Bed },
+  { href: "/carpooling", label: "Covoiturage", icon: Car },
+  { href: "/tutoring", label: "Tutorat", icon: GraduationCap },
   { href: "/events", label: "Événements", icon: PartyPopper },
 ];
 
@@ -45,7 +45,7 @@ function NavLink({ item }: { item: { href?: string, id?: string, label: string, 
         variant={isActive ? "secondary" : "ghost"} 
         size="lg" 
         aria-label={label} 
-        className={`justify-start items-center gap-4 h-12 w-full text-base ${isActive ? 'font-bold text-foreground' : 'font-normal text-sidebar-foreground/80 hover:bg-muted'}`}
+        className={`justify-start items-center gap-4 h-12 w-full text-base ${isActive ? 'font-bold' : 'font-normal text-muted-foreground'}`}
       >
         <Icon className={`h-6 w-6`} strokeWidth={isActive ? 2.5 : 2} />
         <span className="truncate">{label}</span>
@@ -86,7 +86,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
           <Link href="/social" className="mb-8 px-2 pt-3 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-white" />
               </div>
               <h1 className="text-xl font-bold">STUD'IN</h1>
@@ -105,7 +105,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                             <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
                             <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col items-start">
+                        <div className="flex flex-col items-start overflow-hidden">
                             <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
                             <p className="text-xs text-muted-foreground truncate">@{user?.email?.split('@')[0]}</p>
                         </div>
@@ -127,14 +127,14 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
           </div>
         </aside>
         
-        <div className="flex flex-col flex-1 relative">
+        <div className="flex flex-col flex-1">
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
           
           {/* Top Header */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-end gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex-1 md:hidden">
                  <Link href="/social" className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-md bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                         <GraduationCap className="h-5 w-5 text-white" />
                       </div>
                       <h1 className="text-lg font-bold">STUD'IN</h1>

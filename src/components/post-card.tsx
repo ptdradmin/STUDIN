@@ -135,10 +135,10 @@ export default function PostCard({ post }: PostCardProps) {
 
 
     return (
-        <div className="border-b border-border">
-            <div className="flex items-center justify-between p-3">
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-9 w-9">
                         <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
                         <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
                     </Avatar>
@@ -235,7 +235,7 @@ export default function PostCard({ post }: PostCardProps) {
                 )}
                 
                 {user && (
-                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-1 mt-1 border-t">
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t">
                         <Input 
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}

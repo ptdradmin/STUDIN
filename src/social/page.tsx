@@ -23,23 +23,20 @@ export default function SocialPageContent() {
     }
 
     return (
-       <div className="flex justify-center w-full">
-            <div className="w-full max-w-xl">
-                 <div className="p-4 border-b">
-                    <h1 className="text-xl font-bold">Fil d'actualité</h1>
-                </div>
+       <div className="flex justify-center w-full py-6">
+            <div className="w-full max-w-xl space-y-6">
                 {posts && posts.length > 0 ? (
                     posts.map(post => <PostCard key={post.id} post={post} />)
                 ) : (
-                    <div className="text-center p-10 text-muted-foreground">
-                        <p>Le fil d'actualité est vide.</p>
+                    <div className="text-center p-10 text-muted-foreground bg-card rounded-lg border">
+                        <p className="text-lg font-semibold">Le fil d'actualité est vide.</p>
                         <p className="text-sm">Soyez le premier à poster quelque chose !</p>
                     </div>
                 )}
             </div>
             <div className="hidden lg:block w-96 pl-8">
                  <div className="sticky top-20">
-                     <h3 className="font-bold">Suggestions</h3>
+                     <h3 className="font-bold text-lg mb-4">Suggestions pour vous</h3>
                      {/* Suggestion component would go here */}
                  </div>
             </div>
