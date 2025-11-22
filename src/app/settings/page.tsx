@@ -28,8 +28,13 @@ import {
   Shield,
   Trash2,
   User,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const SettingsItem = ({
   icon,
@@ -71,6 +76,31 @@ const SettingsLink = ({
 
 
 export default function SettingsPage() {
+  const { auth } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    if (auth) {
+      try {
+        await signOut(auth);
+        toast({
+            title: "Déconnexion réussie",
+            description: "À bientôt !",
+        });
+        router.push('/');
+      } catch (error) {
+        console.error("Erreur de déconnexion: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Impossible de se déconnecter.",
+        });
+      }
+    }
+  };
+
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -86,7 +116,7 @@ export default function SettingsPage() {
         <div className="container mx-auto px-4 py-8">
           <Card className="mx-auto max-w-2xl">
             <CardContent className="p-0">
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion type="single" collapsible className="w-full" defaultValue="account">
                 <AccordionItem value="account">
                   <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
                     <div className="flex items-center gap-3">
@@ -98,7 +128,10 @@ export default function SettingsPage() {
                      <SettingsLink title="Informations personnelles" href="/profile" />
                      <SettingsLink title="Mot de passe" />
                      <SettingsLink title="Comptes liés" />
-                     <Button variant="destructive" className="w-full mt-4">Déconnexion</Button>
+                     <Button variant="destructive" className="w-full mt-4" onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Déconnexion
+                     </Button>
                   </AccordionContent>
                 </AccordionItem>
 
