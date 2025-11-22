@@ -82,15 +82,14 @@ export default function CarpoolingPage() {
     if (!trips || !firestore) return;
 
     const fetchUserProfiles = async () => {
-        setProfilesLoading(true);
-        const driverIds = [...new Set(trips.map(trip => trip.driverId))];
+        const driverIds = [...new Set(trips.map(trip => trip.driverId).filter(id => !userProfiles[id]))];
         if (driverIds.length === 0) {
             setProfilesLoading(false);
             return;
-        };
+        }
 
+        setProfilesLoading(true);
         const newProfiles: Record<string, UserProfile> = {};
-        // Firestore 'in' query is limited to 30 elements
         const chunks = [];
         for (let i = 0; i < driverIds.length; i += 30) {
             chunks.push(driverIds.slice(i, i + 30));
@@ -121,7 +120,7 @@ export default function CarpoolingPage() {
     }
 
     fetchUserProfiles();
-  }, [trips, firestore]);
+  }, [trips, firestore, userProfiles]);
 
   const filteredTrips = useMemo(() => {
     if (!trips) return [];

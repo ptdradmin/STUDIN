@@ -271,12 +271,12 @@ export default function MessagesPage() {
         <div className="container mx-auto my-8">
             <Card className="h-[calc(100vh-200px)] flex">
                 {/* Conversations List */}
-                <div className="w-1/3 border-r">
-                    <div className="p-4 border-b">
+                <div className="w-1/3 border-r flex flex-col">
+                    <div className="p-4 border-b flex-shrink-0">
                         <h2 className="text-xl font-bold">Messages</h2>
                     </div>
                     {conversationsLoading ? <ConversationListSkeleton /> : (
-                        <div className="divide-y h-[calc(100%-65px)] overflow-y-auto">
+                        <div className="divide-y flex-grow overflow-y-auto">
                             {conversations && conversations.map(conv => {
                                 const otherUser = getOtherParticipant(conv);
                                 const lastMessageTime = conv.lastMessage?.timestamp ? formatDistanceToNow(new Date((conv.lastMessage.timestamp as Timestamp).toDate().toISOString()), { addSuffix: true, locale: fr }) : '';
@@ -343,14 +343,14 @@ export default function MessagesPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="p-4 border-b flex items-center gap-3">
+                            <div className="p-4 border-b flex items-center gap-3 flex-shrink-0">
                                     <Avatar>
                                     <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
                                     <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.firstName)}</AvatarFallback>
                                 </Avatar>
                                 <h3 className="font-semibold">{getOtherParticipant(selectedConversation)?.firstName} {getOtherParticipant(selectedConversation)?.lastName}</h3>
                             </div>
-                            <CardContent className="flex-grow p-4 space-y-4 overflow-y-auto">
+                            <div className="flex-grow p-4 space-y-4 overflow-y-auto">
                                 {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
                                 {!messagesLoading && messages?.map((msg, index) => {
                                     const msgTime = msg.createdAt ? new Date((msg.createdAt as Timestamp).toDate().toISOString()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
@@ -364,8 +364,8 @@ export default function MessagesPage() {
                                     )
                                 })}
                                 <div ref={messagesEndRef} />
-                            </CardContent>
-                            <div className="p-4 border-t bg-background">
+                            </div>
+                            <div className="p-4 border-t bg-background flex-shrink-0">
                                 <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                                     <Input 
                                         value={newMessage}

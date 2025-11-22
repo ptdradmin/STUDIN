@@ -98,32 +98,18 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
             ))}
           </nav>
           <div className="flex flex-col gap-2">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                     <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
-                            <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col items-start overflow-hidden">
-                            <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
-                            <p className="text-xs text-muted-foreground truncate">@{user?.email?.split('@')[0]}</p>
-                        </div>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 mb-2" align="start">
-                    <DropdownMenuItem asChild>
-                        <Link href="/profile"><User className="mr-2 h-4 w-4"/>Profil</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href="/settings"><Settings className="mr-2 h-4 w-4"/>Paramètres</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4"/>Déconnexion
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <Link href="/profile" className="w-full">
+                <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
+                        <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start overflow-hidden">
+                        <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
+                        <p className="text-xs text-muted-foreground truncate">Voir le profil</p>
+                    </div>
+                </Button>
+            </Link>
           </div>
         </aside>
         

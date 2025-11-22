@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import HousingDetailModal from '@/components/housing-detail-modal';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -48,35 +49,45 @@ export default function HousingPage() {
     if (!housings || !firestore) return;
 
     const fetchUserProfiles = async () => {
-        setProfilesLoading(true);
-        const ownerIds = [...new Set(housings.map(h => h.userId))];
+        const ownerIds = [...new Set(housings.map(h => h.userId).filter(id => !userProfiles[id]))];
         if (ownerIds.length === 0) {
             setProfilesLoading(false);
             return;
         }
 
+        setProfilesLoading(true);
         const newProfiles: Record<string, UserProfile> = {};
         const chunks = [];
         for (let i = 0; i < ownerIds.length; i += 30) {
             chunks.push(ownerIds.slice(i, i + 30));
         }
         
-        for (const chunk of chunks) {
-            if (chunk.length > 0) {
-                const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-                const usersSnapshot = await getDocs(usersQuery);
-                usersSnapshot.forEach(doc => {
-                    newProfiles[doc.id] = doc.data() as UserProfile;
-                });
-            }
+        try {
+          for (const chunk of chunks) {
+              if (chunk.length > 0) {
+                  const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
+                  const usersSnapshot = await getDocs(usersQuery);
+                  usersSnapshot.forEach(doc => {
+                      newProfiles[doc.id] = doc.data() as UserProfile;
+                  });
+              }
+          }
+          setUserProfiles(prev => ({...prev, ...newProfiles}));
+        } catch(error) {
+            console.error("Error fetching user profiles:", error);
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'list',
+                requestResourceData: { note: `Querying users with IDs in [${ownerIds.join(', ')}]` }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } finally {
+            setProfilesLoading(false);
         }
-        
-        setUserProfiles(prev => ({...prev, ...newProfiles}));
-        setProfilesLoading(false);
     };
 
     fetchUserProfiles();
-  }, [housings, firestore]);
+  }, [housings, firestore, userProfiles]);
 
   const filteredHousings = useMemo(() => {
     if (!housings) return [];

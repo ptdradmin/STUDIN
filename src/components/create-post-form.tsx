@@ -10,13 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, MapPin } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -73,8 +72,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
       return;
     }
     setLoading(true);
-    try {
-      addDocumentNonBlocking(collection(firestore, 'posts'), {
+
+    const postData = {
         ...data,
         userId: user.uid,
         userDisplayName: user.displayName || user.email?.split('@')[0],
@@ -83,15 +82,13 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         updatedAt: serverTimestamp(),
         likes: [],
         comments: [],
-      });
-      toast({ title: 'Succès', description: 'Publication créée !' });
-      onClose();
-    } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer la publication.' });
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    addDocumentNonBlocking(collection(firestore, 'posts'), postData);
+    
+    toast({ title: 'Succès', description: 'Publication créée !' });
+    setLoading(false);
+    onClose();
   };
 
   return (

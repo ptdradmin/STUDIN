@@ -13,10 +13,11 @@ import { Badge } from "@/components/ui/badge";
 import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,

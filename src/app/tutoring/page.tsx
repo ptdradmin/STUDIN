@@ -17,6 +17,7 @@ import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebas
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -49,35 +50,45 @@ export default function TutoringPage() {
     if (!tutors || !firestore) return;
 
     const fetchUserProfiles = async () => {
-        setProfilesLoading(true);
-        const tutorIds = [...new Set(tutors.map(tutor => tutor.tutorId))];
+        const tutorIds = [...new Set(tutors.map(tutor => tutor.tutorId).filter(id => !userProfiles[id]))];
         if (tutorIds.length === 0) {
             setProfilesLoading(false);
             return;
-        };
+        }
 
+        setProfilesLoading(true);
         const newProfiles: Record<string, UserProfile> = {};
         const chunks = [];
         for (let i = 0; i < tutorIds.length; i += 30) {
             chunks.push(tutorIds.slice(i, i + 30));
         }
 
-        for (const chunk of chunks) {
-            if (chunk.length > 0) {
-                const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-                const usersSnapshot = await getDocs(usersQuery);
-                usersSnapshot.forEach(doc => {
-                    newProfiles[doc.id] = doc.data() as UserProfile;
-                });
+        try {
+            for (const chunk of chunks) {
+                if (chunk.length > 0) {
+                    const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
+                    const usersSnapshot = await getDocs(usersQuery);
+                    usersSnapshot.forEach(doc => {
+                        newProfiles[doc.id] = doc.data() as UserProfile;
+                    });
+                }
             }
+            setUserProfiles(prev => ({...prev, ...newProfiles}));
+        } catch (error) {
+             console.error("Error fetching user profiles:", error);
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'list',
+                requestResourceData: { note: `Querying users with IDs in [${tutorIds.join(', ')}]` }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } finally {
+            setProfilesLoading(false);
         }
-        
-        setUserProfiles(prev => ({...prev, ...newProfiles}));
-        setProfilesLoading(false);
     }
 
     fetchUserProfiles();
-  }, [tutors, firestore]);
+  }, [tutors, firestore, userProfiles]);
 
   const filteredTutors = useMemo(() => {
     if (!tutors) return [];

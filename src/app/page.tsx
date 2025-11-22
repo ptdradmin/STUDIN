@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <>
             <section className="relative bg-gradient-to-br from-primary/10 via-background to-background text-center py-20 md:py-32">
-                <div className="container mx-auto px-4 relative">
+                <div className="container mx-auto px-4 relative z-10">
                     <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-foreground">
                         L'écosystème qui simplifie votre vie étudiante.
                     </h1>
@@ -64,9 +64,9 @@ export default function Home() {
                     </div>
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
                         {services.map(service => (
-                             <Link href={service.href} key={service.name} className="block h-full">
-                                <Card className="h-full text-center p-6 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl flex flex-col items-center justify-start gap-4">
-                                     <div className="p-4 bg-primary/10 rounded-full">
+                             <Link href={service.href} key={service.name} className="block h-full group">
+                                <Card className="h-full text-center p-6 shadow-md transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl flex flex-col items-center justify-start gap-4">
+                                     <div className="p-4 bg-primary/10 rounded-full transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                                         {service.icon}
                                      </div>
                                     <h3 className="font-bold text-lg">{service.name}</h3>
