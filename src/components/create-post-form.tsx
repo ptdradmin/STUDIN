@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
-  imageUrl: z.string().url('URL invalide').min(1, "L'URL de l'image est requise"),
+  imageUrl: z.string().url('URL invalide').optional().or(z.literal('')),
 });
 
 type PostFormInputs = z.infer<typeof postSchema>;
@@ -73,7 +73,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             {errors.caption && <p className="text-xs text-destructive">{errors.caption.message}</p>}
           </div>
           <div>
-            <Label htmlFor="imageUrl">URL de l'image</Label>
+            <Label htmlFor="imageUrl">URL de l'image (optionnel)</Label>
             <Input id="imageUrl" placeholder="https://picsum.photos/..." {...register('imageUrl')} />
             {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
           </div>

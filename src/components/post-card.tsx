@@ -173,15 +173,17 @@ export default function PostCard({ post }: PostCardProps) {
                 </div>
             </CardHeader>
             <CardContent className="p-0">
-                <div className="relative aspect-square">
-                    <Image
-                        src={post.imageUrl}
-                        alt={`Post by ${post.userDisplayName}`}
-                        fill
-                        className="object-cover"
-                        data-ai-hint="social media post"
-                    />
-                </div>
+                {post.imageUrl && (
+                    <div className="relative aspect-square">
+                        <Image
+                            src={post.imageUrl}
+                            alt={`Post by ${post.userDisplayName}`}
+                            fill
+                            className="object-cover"
+                            data-ai-hint="social media post"
+                        />
+                    </div>
+                )}
             </CardContent>
             <CardFooter className="p-3 flex flex-col items-start">
                 <div className="flex items-center gap-2 -ml-2">

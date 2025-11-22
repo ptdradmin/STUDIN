@@ -22,7 +22,7 @@ export interface Housing {
 export interface Post {
     id: string;
     caption: string;
-    imageUrl: string;
+    imageUrl?: string;
     userId: string;
     userDisplayName: string;
     userAvatarUrl: string;

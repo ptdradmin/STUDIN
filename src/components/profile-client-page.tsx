@@ -19,14 +19,16 @@ import { collection, doc } from 'firebase/firestore';
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
     <div className="grid grid-cols-3 gap-1">
         {posts.map(post => (
-            <div key={post.id} className="relative aspect-square">
-                <Image 
-                    src={post.imageUrl}
-                    alt="User post"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 33vw, 25vw"
-                />
+            <div key={post.id} className="relative aspect-square bg-muted">
+                {post.imageUrl && (
+                    <Image 
+                        src={post.imageUrl}
+                        alt="User post"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 33vw, 25vw"
+                    />
+                )}
             </div>
         ))}
     </div>
