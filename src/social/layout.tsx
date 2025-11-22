@@ -11,7 +11,7 @@ import {
   SidebarProvider,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Home, MessageSquare, User, Settings, LogOut, Compass } from 'lucide-react';
+import { MessageSquare, User, Settings, LogOut, Compass } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -69,14 +69,6 @@ export default function SocialLayout({
                 <Link href="/messages">
                   <MessageSquare />
                   Messages
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/housing">
-                  <Home />
-                  Logements
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
