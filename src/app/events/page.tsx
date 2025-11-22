@@ -1,21 +1,21 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, MapPin, LayoutGrid, Map, Plus } from "lucide-react";
+import { MapPin, LayoutGrid, Map, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Event, PlaceholderData } from "@/lib/types";
+import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -24,22 +24,9 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
+  const { data: events, isLoading } = useCollection<Event>('events');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useUser();
-
-  useEffect(() => {
-    setIsLoading(true);
-    // In a real app, you'd fetch this from your backend.
-    // For now, we load it from the JSON file.
-    fetch('/placeholder-data.json')
-      .then(res => res.json())
-      .then((data: PlaceholderData) => {
-        setEvents(data.events);
-        setIsLoading(false);
-      });
-  }, []);
 
   const renderList = () => {
     if (isLoading) {
@@ -62,23 +49,31 @@ export default function EventsPage() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map(event => (
+            {events && events.map(event => (
                 <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
                     <div className="relative">
                         <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
                         <Badge className="absolute top-2 right-2">{event.category}</Badge>
                     </div>
                     <CardContent className="p-4 flex flex-col flex-grow">
-                        <p className="font-semibold text-primary">{event.date}</p>
+                        <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
                         <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
                         <p className="text-sm text-muted-foreground flex items-center mt-2">
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                            {event.location}
+                            {event.city}
                         </p>
                         <Button className="w-full mt-4">Voir les détails</Button>
                     </CardContent>
                 </Card>
             ))}
+             {!isLoading && events?.length === 0 && (
+              <Card className="col-span-full text-center py-20">
+                <CardContent>
+                  <h3 className="text-xl font-semibold">Aucun événement trouvé</h3>
+                  <p className="text-muted-foreground mt-2">Soyez le premier à créer un événement !</p>
+                </CardContent>
+              </Card>
+            )}
         </div>
     );
   }
@@ -98,7 +93,7 @@ export default function EventsPage() {
         <Card>
           <CardContent className="p-2">
             <div className="h-[600px] w-full rounded-md overflow-hidden">
-                <MapView items={events} itemType="event" />
+                <MapView items={events || []} itemType="event" />
             </div>
           </CardContent>
         </Card>

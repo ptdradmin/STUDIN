@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
@@ -10,28 +10,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Users, LayoutGrid, Map, Plus } from "lucide-react";
 import Image from "next/image";
-import { Trip, PlaceholderData } from "@/lib/types";
+import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useUser } from "@/firebase";
+import { useCollection, useUser } from "@/firebase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
 });
 
+function TripListSkeleton() {
+  return (
+    <div className="space-y-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+             <Skeleton className="h-12 w-12 rounded-full" />
+             <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center w-full">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-24" />
+                <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+                   <Skeleton className="h-5 w-20" />
+                   <Skeleton className="h-5 w-8" />
+                </div>
+             </div>
+             <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-9 w-20" />
+             </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
 
 export default function CarpoolingPage() {
-  const [trips, setTrips] = useState<Trip[]>([]);
+  const {data: trips, isLoading} = useCollection<Trip>('carpoolings');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
-
-  useEffect(() => {
-    // In a real app, you'd fetch this from your backend.
-    // For now, we load it from the JSON file.
-    fetch('/placeholder-data.json')
-      .then(res => res.json())
-      .then((data: PlaceholderData) => setTrips(data.trips));
-  }, []);
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -101,15 +120,16 @@ export default function CarpoolingPage() {
 
                 {viewMode === 'list' ? (
                    <div className="space-y-4">
-                      {trips.map(trip => (
+                      {isLoading && <TripListSkeleton />}
+                      {!isLoading && trips?.map(trip => (
                           <Card key={trip.id} className="transition-shadow hover:shadow-md">
                               <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                   <div className="flex items-center gap-3">
-                                      <Image src={trip.avatar} alt={trip.driver} width={48} height={48} className="rounded-full" />
-                                      <p className="font-semibold sm:hidden">{trip.driver}</p>
+                                      <Image src={`https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.driverId} width={48} height={48} className="rounded-full" />
+                                      <p className="font-semibold sm:hidden">{trip.driverId}</p>
                                   </div>
                                   <div className="hidden sm:flex flex-col items-center">
-                                      <p className="font-semibold">{trip.driver}</p>
+                                      <p className="font-semibold text-sm">Utilisateur</p>
                                       <p className="text-xs text-muted-foreground">⭐ 4.9</p>
                                   </div>
                                   <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
@@ -117,42 +137,50 @@ export default function CarpoolingPage() {
                                           <MapPin className="h-5 w-5 text-primary"/>
                                           <div>
                                               <p className="font-medium text-sm text-muted-foreground">Départ</p>
-                                              <p className="font-semibold">{trip.departure}</p>
+                                              <p className="font-semibold">{trip.departureCity}</p>
                                           </div>
                                       </div>
                                        <div className="flex items-center gap-2">
                                           <MapPin className="h-5 w-5 text-secondary"/>
                                           <div>
                                               <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
-                                              <p className="font-semibold">{trip.arrival}</p>
+                                              <p className="font-semibold">{trip.arrivalCity}</p>
                                           </div>
                                       </div>
                                       <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
                                           <div className="text-center">
-                                              <p className="font-medium text-sm text-muted-foreground">{trip.date}</p>
-                                              <p className="font-semibold">{trip.time}</p>
+                                              <p className="font-medium text-sm text-muted-foreground">{new Date(trip.departureTime).toLocaleDateString()}</p>
+                                              <p className="font-semibold">{new Date(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                                           </div>
                                           <div className="flex items-center gap-1 text-muted-foreground">
                                             <Users className="h-4 w-4" />
-                                            <span className="font-medium text-sm">{trip.seats}</span>
+                                            <span className="font-medium text-sm">{trip.seatsAvailable}</span>
                                           </div>
                                       </div>
                                   </div>
 
                                   <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
-                                      <p className="text-xl font-bold">{trip.price}</p>
+                                      <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
                                       {user && <Button size="sm">Réserver</Button>}
                                   </div>
 
                               </CardContent>
                           </Card>
                       ))}
+                      {!isLoading && trips?.length === 0 && (
+                        <Card className="text-center py-20">
+                          <CardContent>
+                            <h3 className="text-xl font-semibold">Aucun trajet disponible</h3>
+                            <p className="text-muted-foreground mt-2">Soyez le premier à proposer un trajet !</p>
+                          </CardContent>
+                        </Card>
+                      )}
                    </div>
                 ) : (
                   <Card>
                     <CardContent className="p-2">
                       <div className="h-[600px] w-full rounded-md overflow-hidden">
-                          <MapView items={trips} itemType="trip" />
+                          <MapView items={trips || []} itemType="trip" />
                       </div>
                     </CardContent>
                   </Card>

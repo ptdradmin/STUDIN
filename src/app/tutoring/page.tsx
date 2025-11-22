@@ -1,21 +1,21 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, Star, LayoutGrid, Map, Plus } from "lucide-react";
+import { Star, LayoutGrid, Map, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Tutor, PlaceholderData } from "@/lib/types";
+import type { Tutor } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -24,22 +24,9 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 
 export default function TutoringPage() {
-  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const { data: tutors, isLoading } = useCollection<Tutor>('tutorings');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [isLoading, setIsLoading] = useState(true);
   const { user } = useUser();
-
-  useEffect(() => {
-    setIsLoading(true);
-    // In a real app, you'd fetch this from your backend.
-    // For now, we load it from the JSON file.
-    fetch('/placeholder-data.json')
-      .then(res => res.json())
-      .then((data: PlaceholderData) => {
-        setTutors(data.tutors);
-        setIsLoading(false);
-      });
-  }, []);
 
   const renderList = () => {
      if (isLoading) {
@@ -65,24 +52,32 @@ export default function TutoringPage() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tutors.map(tutor => (
+            {tutors && tutors.map(tutor => (
                   <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
                     <div className="flex-shrink-0">
-                      <Image src={tutor.avatar} alt={tutor.name} width={96} height={96} className="rounded-full" />
+                      <Image src={`https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.tutorId} width={96} height={96} className="rounded-full" />
                     </div>
                     <div className="flex flex-col flex-grow mt-4">
-                      <h3 className="text-xl font-bold">{tutor.name}</h3>
-                      <p className="text-sm text-muted-foreground">{tutor.level} - {tutor.university}</p>
+                      <h3 className="text-xl font-bold">Utilisateur</h3>
+                      <p className="text-sm text-muted-foreground">{tutor.level}</p>
                       <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
                       <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
                           <Star className="h-5 w-5 fill-current" />
-                          <span className="font-bold text-base text-foreground">{tutor.rating.toFixed(1)}</span>
+                          <span className="font-bold text-base text-foreground">{tutor.rating?.toFixed(1) || 'N/A'}</span>
                       </div>
-                      <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.rate}</p>
+                      <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.pricePerHour}€/h</p>
                     </div>
                     {user && <Button className="w-full mt-4">Contacter</Button>}
                   </Card>
             ))}
+             {!isLoading && tutors?.length === 0 && (
+                <Card className="col-span-full text-center py-20">
+                    <CardContent>
+                        <h3 className="text-xl font-semibold">Aucun tuteur disponible</h3>
+                        <p className="text-muted-foreground mt-2">Soyez le premier à proposer vos services !</p>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
   }
@@ -101,7 +96,7 @@ export default function TutoringPage() {
       <Card>
         <CardContent className="p-2">
           <div className="h-[600px] w-full rounded-md overflow-hidden">
-              <MapView items={tutors} itemType="tutor" />
+              <MapView items={tutors || []} itemType="tutor" />
           </div>
         </CardContent>
       </Card>

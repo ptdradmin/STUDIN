@@ -33,44 +33,34 @@ export interface Post {
 }
 
 export interface Event {
-    id: number;
+    id: string;
     title: string;
     category: string;
-    date: string;
-    location: string;
+    startDate: string;
+    city: string;
     imageUrl: string;
     imageHint: string;
     coordinates: [number, number];
+    organizerId: string;
 }
 
 export interface Tutor {
-    id: number;
-    name: string;
-    avatar: string;
+    id: string;
+    tutorId: string;
     subject: string;
     level: string;
-    university: string;
-    rate: string;
-    rating: number;
+    pricePerHour: number;
+    rating?: number;
     coordinates: [number, number];
 }
 
 export interface Trip {
-    id: number;
-    driver: string;
-    avatar: string;
-    departure: string;
-    arrival: string;
-    date: string;
-    time: string;
-    price: string;
-    seats: number;
+    id: string;
+    driverId: string;
+    departureCity: string;
+    arrivalCity: string;
+    departureTime: string;
+    pricePerSeat: number;
+    seatsAvailable: number;
     coordinates: [number, number];
-}
-
-
-export interface PlaceholderData {
-    events: Event[];
-    tutors: Tutor[];
-    trips: Trip[];
 }
