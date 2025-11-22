@@ -23,8 +23,8 @@ export default function SocialPageContent() {
     }
 
     return (
-       <div className="flex justify-center w-full py-6">
-            <div className="w-full max-w-xl space-y-6">
+       <div className="flex justify-center w-full">
+            <div className="w-full max-w-xl space-y-6 py-6 px-4 md:px-0">
                 {posts && posts.length > 0 ? (
                     posts.map(post => <PostCard key={post.id} post={post} />)
                 ) : (
@@ -34,7 +34,7 @@ export default function SocialPageContent() {
                     </div>
                 )}
             </div>
-            <div className="hidden lg:block w-96 pl-8">
+            <div className="hidden lg:block w-96 pl-8 pt-6">
                  <div className="sticky top-20">
                      <h3 className="font-bold text-lg mb-4">Suggestions pour vous</h3>
                      {/* Suggestion component would go here */}

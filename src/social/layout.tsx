@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Input } from '@/components/ui/input';
+import UserSearch from '@/components/user-search';
 
 
 const mainNavItems = [
@@ -141,15 +141,14 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                   </Link>
             </div>
             
-            <div className="hidden md:flex flex-1 max-w-md items-center relative">
-                <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Rechercher..." className="pl-10 bg-muted border-none"/>
+            <div className="hidden md:block flex-1 max-w-md">
+                <UserSearch />
             </div>
 
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-9 w-9 md:hidden">
-                  <Search className="h-5 w-5" />
-                </Button>
+                <div className="md:hidden">
+                    <UserSearch />
+                </div>
                 <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     Créer
@@ -164,7 +163,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
             </div>
           </header>
           
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
             {children}
           </main>
           
