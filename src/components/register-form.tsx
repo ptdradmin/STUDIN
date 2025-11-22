@@ -97,7 +97,7 @@ export default function RegisterForm() {
 
         const firstName = additionalData.firstName || firstNameFromProvider || '';
         const lastName = additionalData.lastName || lastNameFromProvider || '';
-        const username = email?.split('@')[0] || `user_${user.uid.substring(0, 6)}`;
+        const username = email?.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '') || `user_${user.uid.substring(0, 6)}`;
 
         const userData = {
             id: user.uid,
@@ -186,8 +186,12 @@ export default function RegisterForm() {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
         const displayName = `${data.firstName} ${data.lastName}`;
+        const photoURL = `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`;
 
-        await updateProfile(user, { displayName });
+        // Ensure the profile is fully updated before proceeding
+        await updateProfile(user, { displayName, photoURL });
+        // Force a token refresh to get the latest user data including displayName
+        await user.reload();
 
         await createUserDocument(user, {
             firstName: data.firstName,
