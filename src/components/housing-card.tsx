@@ -38,6 +38,13 @@ export default function HousingCard({ housing, onEdit }: HousingCardProps) {
         }
     };
 
+    const handleContact = () => {
+        toast({
+            title: "Fonctionnalité en développement",
+            description: "La messagerie interne sera bientôt disponible.",
+        });
+    }
+
     return (
         <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full">
             <div className="relative">
@@ -88,7 +95,7 @@ export default function HousingCard({ housing, onEdit }: HousingCardProps) {
                         <p className="text-2xl font-bold text-primary">{housing.price}€</p>
                         <p className="text-xs text-muted-foreground -mt-1">/mois</p>
                     </div>
-                    <Button>Contacter</Button>
+                    <Button onClick={handleContact}>Contacter</Button>
                 </div>
             </CardContent>
         </Card>

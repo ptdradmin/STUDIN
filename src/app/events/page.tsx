@@ -17,6 +17,8 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
+import CreateEventForm from '@/components/create-event-form';
+import { useToast } from '@/hooks/use-toast';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -30,9 +32,19 @@ export default function EventsPage() {
     if (!firestore) return null;
     return collection(firestore, 'events');
   }, [firestore]);
+
   const { data: events, isLoading } = useCollection<Event>(eventsCollection);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { toast } = useToast();
+
+  const handleDetails = () => {
+    toast({
+      title: "Fonctionnalité en développement",
+      description: "Plus de détails sur l'événement seront bientôt disponibles.",
+    });
+  };
 
   const renderList = () => {
     if (isLoading) {
@@ -68,7 +80,7 @@ export default function EventsPage() {
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                             {event.city}
                         </p>
-                        <Button className="w-full mt-4">Voir les détails</Button>
+                        <Button className="w-full mt-4" onClick={handleDetails}>Voir les détails</Button>
                     </CardContent>
                 </Card>
             ))}
@@ -156,12 +168,14 @@ export default function EventsPage() {
                   </CardContent>
               </Card>
 
+              {showCreateForm && <CreateEventForm onClose={() => setShowCreateForm(false)} />}
+
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4 gap-4">
                   <h2 className="text-2xl font-bold tracking-tight">Événements à venir</h2>
                    <div className="flex items-center gap-2">
                     {user && (
-                      <Button>
+                      <Button onClick={() => setShowCreateForm(true)}>
                         <Plus className="mr-2 h-4 w-4" /> Créer un événement
                       </Button>
                     )}

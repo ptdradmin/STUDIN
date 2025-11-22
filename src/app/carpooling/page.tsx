@@ -15,6 +15,8 @@ import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection } from "firebase/firestore";
+import CreateTripForm from "@/components/create-trip-form";
+import { useToast } from "@/hooks/use-toast";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -54,9 +56,19 @@ export default function CarpoolingPage() {
     if (!firestore) return null;
     return collection(firestore, 'carpoolings');
   }, [firestore]);
+
   const {data: trips, isLoading} = useCollection<Trip>(tripsCollection);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const { user } = useUser();
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { toast } = useToast();
+
+  const handleReserve = () => {
+    toast({
+      title: "Fonctionnalité en développement",
+      description: "La réservation en ligne sera bientôt disponible.",
+    });
+  };
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -94,12 +106,14 @@ export default function CarpoolingPage() {
                 </CardContent>
               </Card>
 
+              {showCreateForm && <CreateTripForm onClose={() => setShowCreateForm(false)} />}
+
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4 gap-4">
                   <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
                   <div className="flex items-center gap-2">
                     {user && (
-                      <Button>
+                      <Button onClick={() => setShowCreateForm(true)}>
                         <Plus className="mr-2 h-4 w-4" /> Proposer un trajet
                       </Button>
                     )}
@@ -167,7 +181,7 @@ export default function CarpoolingPage() {
 
                                   <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                       <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                      {user && <Button size="sm">Réserver</Button>}
+                                      {user && <Button size="sm" onClick={handleReserve}>Réserver</Button>}
                                   </div>
 
                               </CardContent>

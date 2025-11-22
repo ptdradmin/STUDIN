@@ -15,6 +15,8 @@ export interface Housing {
   coordinates: [number, number];
   userId: string;
   createdAt: string;
+  availableFrom?: string;
+  isAvailable?: boolean;
 }
 
 export interface Post {
@@ -38,7 +40,7 @@ export interface Event {
     organizerId: string;
     title: string;
     description: string;
-    category: string;
+    category: 'soirée' | 'conférence' | 'sport' | 'culture';
     startDate: string;
     endDate: string;
     locationName: string;
@@ -50,6 +52,8 @@ export interface Event {
     imageUrl: string;
     imageHint: string;
     coordinates: [number, number];
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Tutor {
@@ -60,6 +64,10 @@ export interface Tutor {
     pricePerHour: number;
     rating?: number;
     coordinates: [number, number];
+    description: string;
+    locationType: 'online' | 'in-person' | 'both';
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Trip {
@@ -71,4 +79,9 @@ export interface Trip {
     pricePerSeat: number;
     seatsAvailable: number;
     coordinates: [number, number];
+    departureAddress: string;
+    arrivalAddress: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
 }
