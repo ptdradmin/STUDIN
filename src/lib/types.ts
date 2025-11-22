@@ -32,7 +32,9 @@ export interface Post {
     comments: {
         userId: string;
         userDisplayName: string;
+        userAvatarUrl?: string;
         text: string;
+        createdAt: string;
     }[];
 }
 
@@ -55,6 +57,7 @@ export interface Event {
     coordinates: [number, number];
     createdAt: string;
     updatedAt: string;
+    university?: string;
 }
 
 export interface Tutor {
@@ -119,3 +122,5 @@ export interface Conversation {
     createdAt: any;
     updatedAt: any;
 }
+
+    

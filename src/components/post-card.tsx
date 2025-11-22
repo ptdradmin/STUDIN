@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from "next/image";
@@ -8,7 +7,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin, ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
@@ -21,7 +20,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import React, { useState } from "react";
+import Link from "next/link";
 
 
 interface PostCardProps {
@@ -33,6 +33,9 @@ export default function PostCard({ post }: PostCardProps) {
     const firestore = useFirestore();
     const { toast } = useToast();
     const [comment, setComment] = useState('');
+    const [optimisticLikes, setOptimisticLikes] = useState(post.likes || []);
+    const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
+    const [showAllComments, setShowAllComments] = useState(false);
 
     const getInitials = (name: string) => {
         const parts = name.split(' ');
@@ -45,7 +48,7 @@ export default function PostCard({ post }: PostCardProps) {
     const timeAgo = post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: fr }) : '';
 
     const isOwner = user && user.uid === post.userId;
-    const hasLiked = user && post.likes?.includes(user.uid);
+    const hasLiked = user && optimisticLikes.includes(user.uid);
 
     const handleReport = () => {
         toast({
@@ -73,43 +76,37 @@ export default function PostCard({ post }: PostCardProps) {
 
         const postRef = doc(firestore, "posts", post.id);
 
-        try {
-            if (hasLiked) {
-                await updateDoc(postRef, {
-                    likes: arrayRemove(user.uid)
-                });
-            } else {
-                await updateDoc(postRef, {
-                    likes: arrayUnion(user.uid)
-                });
-            }
-        } catch (error) {
-            console.error("Error liking post: ", error);
-            toast({ variant: "destructive", title: "Erreur", description: "Impossible de mettre à jour le like." });
+        if (hasLiked) {
+            setOptimisticLikes(optimisticLikes.filter(uid => uid !== user.uid));
+            await updateDoc(postRef, { likes: arrayRemove(user.uid) });
+        } else {
+            setOptimisticLikes([...optimisticLikes, user.uid]);
+            await updateDoc(postRef, { likes: arrayUnion(user.uid) });
         }
     };
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || !firestore || !comment.trim()) {
-            return;
-        }
+        if (!user || !firestore || !comment.trim()) return;
 
         const postRef = doc(firestore, "posts", post.id);
         const newComment = {
             userId: user.uid,
             userDisplayName: user.displayName || user.email?.split('@')[0] || 'Anonyme',
-            text: comment
+            userAvatarUrl: user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`,
+            text: comment,
+            createdAt: new Date().toISOString(),
         };
         
+        setOptimisticComments([...optimisticComments, newComment]);
+        setComment('');
+
         try {
-            await updateDoc(postRef, {
-                comments: arrayUnion(newComment)
-            });
-            setComment('');
+            await updateDoc(postRef, { comments: arrayUnion(newComment) });
         } catch (error) {
             console.error("Error adding comment: ", error);
             toast({ variant: "destructive", title: "Erreur", description: "Impossible d'ajouter le commentaire." });
+            setOptimisticComments(optimisticComments.filter(c => c.createdAt !== newComment.createdAt));
         }
     }
 
@@ -126,6 +123,8 @@ export default function PostCard({ post }: PostCardProps) {
             }
         }
     };
+
+    const displayedComments = showAllComments ? optimisticComments : optimisticComments.slice(0, 2);
 
 
     return (
@@ -196,31 +195,44 @@ export default function PostCard({ post }: PostCardProps) {
             <CardFooter className="p-3 flex flex-col items-start">
                 <div className="flex items-center gap-2 -ml-2">
                     <Button variant="ghost" size="icon" onClick={handleLike}>
-                        <Heart className={`h-6 w-6 ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
+                        <Heart className={`h-6 w-6 transition-colors ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
                     </Button>
                     <Button variant="ghost" size="icon"><MessageCircle className="h-6 w-6" /></Button>
                     <Button variant="ghost" size="icon"><Send className="h-6 w-6" /></Button>
                 </div>
-                <p className="font-semibold text-sm mt-2">{post.likes?.length || 0} J'aime</p>
+                {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-2">{optimisticLikes.length} J'aime</p>}
                 <div className="text-sm mt-1">
                     <span className="font-semibold">{post.userDisplayName}</span>
                     <span className="ml-2">{post.caption}</span>
                 </div>
                 
-                {post.comments?.length > 0 && (
-                    <div className="mt-2 text-sm w-full">
-                         <p className="text-muted-foreground text-xs uppercase mb-2">
-                            Voir les {post.comments.length} commentaires
-                        </p>
-                        <div className="space-y-1">
-                            {post.comments.slice(0,2).map((comment, index) => (
-                                <div key={index}>
+                {optimisticComments.length > 2 && !showAllComments && (
+                    <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-2" onClick={() => setShowAllComments(true)}>
+                        Voir les {optimisticComments.length} commentaires
+                    </Button>
+                )}
+                
+                {optimisticComments.length > 0 && (
+                     <div className="mt-2 text-sm w-full space-y-2">
+                        {displayedComments.map((comment, index) => (
+                             <div key={index} className="flex items-start gap-2">
+                                 <Avatar className="h-6 w-6">
+                                     <AvatarImage src={comment.userAvatarUrl} />
+                                     <AvatarFallback>{getInitials(comment.userDisplayName)}</AvatarFallback>
+                                 </Avatar>
+                                <div>
                                     <span className="font-semibold">{comment.userDisplayName}</span>
                                     <span className="ml-2 text-muted-foreground">{comment.text}</span>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
+                        ))}
                     </div>
+                )}
+
+                {optimisticComments.length > 2 && showAllComments && (
+                     <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-2" onClick={() => setShowAllComments(false)}>
+                        Masquer les commentaires
+                    </Button>
                 )}
                 
                 {user && (
@@ -240,3 +252,5 @@ export default function PostCard({ post }: PostCardProps) {
         </Card>
     );
 }
+
+    

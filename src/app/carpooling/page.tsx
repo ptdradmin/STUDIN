@@ -1,23 +1,24 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users, LayoutGrid, Map, Plus } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map, Plus, Star } from "lucide-react";
 import Image from "next/image";
-import { Trip } from "@/lib/types";
+import { Trip, UserProfile } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp } from "firebase/firestore";
+import { collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -28,9 +29,11 @@ function TripListSkeleton() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-             <Skeleton className="h-12 w-12 rounded-full" />
+        <Card key={i} className="p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-full" />
+            </div>
              <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center w-full">
                 <Skeleton className="h-5 w-24" />
                 <Skeleton className="h-5 w-24" />
@@ -43,7 +46,7 @@ function TripListSkeleton() {
                 <Skeleton className="h-8 w-16" />
                 <Skeleton className="h-9 w-20" />
              </div>
-          </CardContent>
+          </div>
         </Card>
       ))}
     </div>
@@ -53,17 +56,69 @@ function TripListSkeleton() {
 
 export default function CarpoolingPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
+  const router = useRouter();
+  const { toast } = useToast();
+  
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  const [departureFilter, setDepartureFilter] = useState('');
+  const [arrivalFilter, setArrivalFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  
   const tripsCollection = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'carpoolings');
   }, [firestore]);
 
-  const {data: trips, isLoading} = useCollection<Trip>(tripsCollection);
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const { user } = useUser();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const router = useRouter();
-  const { toast } = useToast();
+  const {data: trips, isLoading: tripsLoading} = useCollection<Trip>(tripsCollection);
+  
+  const [userProfiles, setUserProfiles] = useState<Record<string, UserProfile>>({});
+  const [profilesLoading, setProfilesLoading] = useState(true);
+
+  useEffect(() => {
+    if (!trips || !firestore) return;
+
+    const fetchUserProfiles = async () => {
+        setProfilesLoading(true);
+        const driverIds = [...new Set(trips.map(trip => trip.driverId))];
+        if (driverIds.length === 0) {
+            setProfilesLoading(false);
+            return;
+        };
+
+        const newProfiles: Record<string, UserProfile> = {};
+        // Firestore 'in' query is limited to 30 elements
+        const chunks = [];
+        for (let i = 0; i < driverIds.length; i += 30) {
+            chunks.push(driverIds.slice(i, i + 30));
+        }
+
+        for (const chunk of chunks) {
+            const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
+            const usersSnapshot = await getDocs(usersQuery);
+            usersSnapshot.forEach(doc => {
+                newProfiles[doc.id] = doc.data() as UserProfile;
+            });
+        }
+        
+        setUserProfiles(prev => ({...prev, ...newProfiles}));
+        setProfilesLoading(false);
+    }
+
+    fetchUserProfiles();
+  }, [trips, firestore]);
+
+  const filteredTrips = useMemo(() => {
+    if (!trips) return [];
+    return trips.filter(trip => {
+      const departureMatch = departureFilter ? trip.departureCity.toLowerCase().includes(departureFilter.toLowerCase()) : true;
+      const arrivalMatch = arrivalFilter ? trip.arrivalCity.toLowerCase().includes(arrivalFilter.toLowerCase()) : true;
+      const dateMatch = dateFilter ? new Date(trip.departureTime).toLocaleDateString() === new Date(dateFilter).toLocaleDateString() : true;
+      return departureMatch && arrivalMatch && dateMatch;
+    });
+  }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
   const handleReserve = (trip: Trip) => {
     if (!user || !firestore) {
@@ -98,6 +153,8 @@ export default function CarpoolingPage() {
      router.push(`/messages?recipient=${trip.driverId}`);
   };
   
+  const isLoading = tripsLoading || profilesLoading;
+
   return (
     <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -114,21 +171,18 @@ export default function CarpoolingPage() {
                   <CardTitle>Trouver un trajet</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                  <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
                       <div className="space-y-2">
                           <Label htmlFor="departure">Lieu de départ</Label>
-                          <Input id="departure" placeholder="Ex: Bruxelles" />
+                          <Input id="departure" placeholder="Ex: Bruxelles" value={departureFilter} onChange={e => setDepartureFilter(e.target.value)} />
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="arrival">Lieu d'arrivée</Label>
-                          <Input id="arrival" placeholder="Ex: Namur" />
+                          <Input id="arrival" placeholder="Ex: Namur" value={arrivalFilter} onChange={e => setArrivalFilter(e.target.value)}/>
                       </div>
                       <div className="space-y-2">
                           <Label htmlFor="date">Date</Label>
-                          <Input id="date" type="date" />
-                      </div>
-                       <div className="space-y-2 lg:col-span-2">
-                           <Button type="submit" className="w-full">Rechercher un covoiturage</Button>
+                          <Input id="date" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
                       </div>
                   </form>
                 </CardContent>
@@ -169,16 +223,17 @@ export default function CarpoolingPage() {
                 {viewMode === 'list' ? (
                    <div className="space-y-4">
                       {isLoading && <TripListSkeleton />}
-                      {!isLoading && trips?.map(trip => (
+                      {!isLoading && filteredTrips.map(trip => {
+                        const driver = userProfiles[trip.driverId];
+                        return (
                           <Card key={trip.id} className="transition-shadow hover:shadow-md">
                               <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                   <div className="flex items-center gap-3">
-                                      <Image src={`https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.driverId} width={48} height={48} className="rounded-full" />
-                                      <p className="font-semibold sm:hidden">{trip.driverId}</p>
+                                      <Image src={driver?.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={driver?.firstName || "conducteur"} width={48} height={48} className="rounded-full" />
                                   </div>
                                   <div className="hidden sm:flex flex-col items-center">
-                                      <p className="font-semibold text-sm">Utilisateur</p>
-                                      <p className="text-xs text-muted-foreground">⭐ 4.9</p>
+                                      <p className="font-semibold text-sm">{driver?.firstName || 'Utilisateur'}</p>
+                                      <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
                                   </div>
                                   <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
                                       <div className="flex items-center gap-2">
@@ -200,26 +255,34 @@ export default function CarpoolingPage() {
                                               <p className="font-medium text-sm text-muted-foreground">{new Date(trip.departureTime).toLocaleDateString()}</p>
                                               <p className="font-semibold">{new Date(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                                           </div>
-                                          <div className="flex items-center gap-1 text-muted-foreground">
-                                            <Users className="h-4 w-4" />
-                                            <span className="font-medium text-sm">{trip.seatsAvailable}</span>
-                                          </div>
+                                           {trip.seatsAvailable > 0 ? (
+                                              <Badge variant="outline" className="flex items-center gap-1">
+                                                <Users className="h-4 w-4" />
+                                                {trip.seatsAvailable}
+                                              </Badge>
+                                           ) : (
+                                              <Badge variant="destructive">Complet</Badge>
+                                           )}
                                       </div>
                                   </div>
 
                                   <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                       <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                      {user && <Button size="sm" onClick={() => handleReserve(trip)}>Réserver</Button>}
+                                      {user && (
+                                        <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0}>
+                                          {trip.seatsAvailable > 0 ? 'Réserver' : 'Complet'}
+                                        </Button>
+                                      )}
                                   </div>
 
                               </CardContent>
                           </Card>
-                      ))}
-                      {!isLoading && trips?.length === 0 && (
+                      )})}
+                      {!isLoading && filteredTrips.length === 0 && (
                         <Card className="text-center py-20">
                           <CardContent>
-                            <h3 className="text-xl font-semibold">Aucun trajet disponible</h3>
-                            <p className="text-muted-foreground mt-2">Soyez le premier à proposer un trajet !</p>
+                            <h3 className="text-xl font-semibold">Aucun trajet ne correspond à votre recherche</h3>
+                            <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer un trajet !</p>
                           </CardContent>
                         </Card>
                       )}
@@ -228,7 +291,7 @@ export default function CarpoolingPage() {
                   <Card>
                     <CardContent className="p-2">
                       <div className="h-[600px] w-full rounded-md overflow-hidden">
-                          <MapView items={trips || []} itemType="trip" />
+                          <MapView items={filteredTrips} itemType="trip" />
                       </div>
                     </CardContent>
                   </Card>
@@ -240,3 +303,5 @@ export default function CarpoolingPage() {
     </div>
   );
 }
+
+    

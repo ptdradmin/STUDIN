@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
@@ -16,7 +16,7 @@ import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
 
@@ -28,16 +28,48 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 
 export default function EventsPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  
+  const [cityFilter, setCityFilter] = useState('');
+  const [universityFilter, setUniversityFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [universities, setUniversities] = useState<string[]>([]);
+  
   const eventsCollection = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'events');
   }, [firestore]);
 
   const { data: events, isLoading } = useCollection<Event>(eventsCollection);
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const { user } = useUser();
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!firestore) return;
+    const fetchUniversities = async () => {
+        const q = query(collection(firestore, "users"), where("university", "!=", ""));
+        const querySnapshot = await getDocs(q);
+        const fetchedUniversities = new Set<string>();
+        querySnapshot.forEach((doc) => {
+            fetchedUniversities.add(doc.data().university);
+        });
+        setUniversities(Array.from(fetchedUniversities));
+    };
+    fetchUniversities();
+  }, [firestore]);
+
+  const filteredEvents = useMemo(() => {
+    if (!events) return [];
+    return events.filter(event => {
+      const cityMatch = cityFilter ? event.city.toLowerCase().includes(cityFilter.toLowerCase()) : true;
+      const universityMatch = universityFilter && universityFilter !== 'all' ? event.university === universityFilter : true;
+      const categoryMatch = categoryFilter && categoryFilter !== 'all' ? event.category === categoryFilter : true;
+      return cityMatch && universityMatch && categoryMatch;
+    });
+  }, [events, cityFilter, universityFilter, categoryFilter]);
+
 
   const handleDetails = () => {
     toast({
@@ -67,7 +99,7 @@ export default function EventsPage() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events && events.map(event => (
+            {filteredEvents && filteredEvents.map(event => (
                 <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
                     <div className="relative">
                         <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
@@ -84,11 +116,11 @@ export default function EventsPage() {
                     </CardContent>
                 </Card>
             ))}
-             {!isLoading && events?.length === 0 && (
+             {!isLoading && filteredEvents?.length === 0 && (
               <Card className="col-span-full text-center py-20">
                 <CardContent>
-                  <h3 className="text-xl font-semibold">Aucun événement trouvé</h3>
-                  <p className="text-muted-foreground mt-2">Soyez le premier à créer un événement !</p>
+                  <h3 className="text-xl font-semibold">Aucun événement ne correspond à votre recherche</h3>
+                  <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à créer un événement !</p>
                 </CardContent>
               </Card>
             )}
@@ -111,7 +143,7 @@ export default function EventsPage() {
         <Card>
           <CardContent className="p-2">
             <div className="h-[600px] w-full rounded-md overflow-hidden">
-                <MapView items={events || []} itemType="event" />
+                <MapView items={filteredEvents} itemType="event" />
             </div>
           </CardContent>
         </Card>
@@ -134,35 +166,33 @@ export default function EventsPage() {
                       <CardTitle>Filtrer les événements</CardTitle>
                   </CardHeader>
                   <CardContent>
-                      <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                      <form className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
                           <div className="space-y-2">
                               <Label htmlFor="city">Ville</Label>
-                              <Input id="city" placeholder="Ex: Louvain-la-Neuve" />
+                              <Input id="city" placeholder="Ex: Louvain-la-Neuve" value={cityFilter} onChange={e => setCityFilter(e.target.value)} />
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="university">Université</Label>
-                                <Select>
+                                <Select value={universityFilter} onValueChange={setUniversityFilter}>
                                   <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
                                   <SelectContent>
                                       <SelectItem value="all">Toutes</SelectItem>
+                                      {universities.map(uni => <SelectItem key={uni} value={uni}>{uni}</SelectItem>)}
                                   </SelectContent>
                               </Select>
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="category">Catégorie</Label>
-                              <Select>
+                              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                                   <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
                                   <SelectContent>
                                       <SelectItem value="all">Toutes</SelectItem>
-                                      <SelectItem value="party">Soirée</SelectItem>
-                                      <SelectItem value="conference">Conférence</SelectItem>
+                                      <SelectItem value="soirée">Soirée</SelectItem>
+                                      <SelectItem value="conférence">Conférence</SelectItem>
                                       <SelectItem value="culture">Culture</SelectItem>
                                       <SelectItem value="sport">Sport</SelectItem>
                                   </SelectContent>
                               </Select>
-                          </div>
-                          <div className="lg:col-span-2">
-                            <Button type="submit" className="w-full">Filtrer</Button>
                           </div>
                       </form>
                   </CardContent>
@@ -209,3 +239,5 @@ export default function EventsPage() {
     </div>
   );
 }
+
+    

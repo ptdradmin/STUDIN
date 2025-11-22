@@ -2,11 +2,11 @@
 'use client';
 
 import Image from "next/image";
-import type { Housing } from "@/lib/types";
+import type { Housing, UserProfile } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Home, MapPin, MoreHorizontal } from "lucide-react";
+import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon } from "lucide-react";
 import { useUser, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -17,19 +17,30 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface HousingCardProps {
     housing: Housing;
+    owner?: UserProfile;
     onEdit: (housing: Housing) => void;
 }
 
-export default function HousingCard({ housing, onEdit }: HousingCardProps) {
+export default function HousingCard({ housing, owner, onEdit }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
     
     const isOwner = user && user.uid === housing.userId;
+
+    const getInitials = (name?: string) => {
+        if (!name) return "..";
+        const parts = name.split(' ');
+        if (parts.length > 1) {
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    }
 
     const handleDelete = async () => {
         if (!firestore || !isOwner) return;
@@ -86,26 +97,45 @@ export default function HousingCard({ housing, onEdit }: HousingCardProps) {
                 )}
             </div>
             <CardContent className="p-4 flex flex-col flex-grow">
-                <h3 className="text-lg font-semibold leading-tight truncate">{housing.title}</h3>
+                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {owner ? (
+                        <>
+                            <Avatar className="h-6 w-6">
+                                <AvatarImage src={owner.profilePicture} alt={owner.firstName} />
+                                <AvatarFallback>{getInitials(owner.firstName)}</AvatarFallback>
+                            </Avatar>
+                            <span>{owner.firstName} {owner.lastName}</span>
+                        </>
+                    ) : (
+                       <>
+                         <UserIcon className="h-4 w-4" />
+                         <span>Propriétaire</span>
+                       </>
+                    )}
+                 </div>
+                <h3 className="text-lg font-semibold leading-tight truncate mt-2">{housing.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1 flex items-center">
                     <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                     {housing.city}
                 </p>
-                <p className="mt-2 text-sm text-muted-foreground line-clamp-2 flex-grow">{housing.description}</p>
                 
                 <div className="flex items-center text-sm text-muted-foreground gap-4 mt-3">
                     <span className="flex items-center"><Bed className="h-4 w-4 mr-1"/> {housing.bedrooms} ch.</span>
                     <span className="flex items-center"><Home className="h-4 w-4 mr-1"/> {housing.surface_area}m²</span>
                 </div>
 
-                <div className="flex items-end justify-between mt-4 pt-4 border-t">
+                <div className="flex items-end justify-between mt-auto pt-4 border-t mt-4">
                     <div>
                         <p className="text-2xl font-bold text-primary">{housing.price}€</p>
                         <p className="text-xs text-muted-foreground -mt-1">/mois</p>
                     </div>
-                    <Button onClick={handleContact}>Contacter</Button>
+                     <Button onClick={handleContact} disabled={isOwner}>
+                        {isOwner ? "Votre annonce" : "Contacter"}
+                    </Button>
                 </div>
             </CardContent>
         </Card>
     );
 }
+
+    
