@@ -1,12 +1,9 @@
 
-import { getHousings } from "@/lib/mock-data";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import HousingClientPage from "@/components/housing-client-page";
 
 export default async function HousingPage() {
-    const initialHousings = await getHousings();
-    
     return (
         <div className="flex flex-col min-h-screen">
             <Navbar />
@@ -18,7 +15,7 @@ export default async function HousingPage() {
                   </div>
               </div>
               <div className="container mx-auto px-4 py-8">
-                  <HousingClientPage initialHousings={initialHousings} />
+                  <HousingClientPage />
               </div>
             </main>
             <Footer />

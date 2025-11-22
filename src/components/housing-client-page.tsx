@@ -4,31 +4,29 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import HousingListings from '@/components/housing-listings';
-import { Housing } from '@/lib/mock-data';
-import { LayoutGrid, Map } from 'lucide-react';
+import { LayoutGrid, Map, Plus } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
 import dynamic from 'next/dynamic';
+import { useCollection } from '@/firebase';
+import type { Housing } from '@/lib/types';
+import CreateHousingForm from './create-housing-form';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse" />,
 });
 
-interface HousingClientPageProps {
-  initialHousings: Housing[];
-}
-
-export default function HousingClientPage({
-  initialHousings,
-}: HousingClientPageProps) {
+export default function HousingClientPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
-  // We need to pass the housing state to the MapView if we want it to update
-  // For now, we'll just pass the initialHousings to both.
-  // A more advanced implementation would lift the state from HousingListings here.
+  const { data: housings, loading } = useCollection<Housing>('housings');
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={() => setShowCreateForm(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
+        </Button>
         <div className="flex items-center gap-1 rounded-md bg-muted p-1">
           <Button
             variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
@@ -48,15 +46,17 @@ export default function HousingClientPage({
           </Button>
         </div>
       </div>
+      
+      {showCreateForm && <CreateHousingForm onClose={() => setShowCreateForm(false)} />}
 
       {viewMode === 'grid' && (
-        <HousingListings initialHousings={initialHousings} />
+        <HousingListings initialHousings={housings || []} isLoading={loading} />
       )}
       {viewMode === 'map' && (
         <Card>
           <CardContent className="p-2">
             <div className="h-[600px] w-full rounded-md overflow-hidden">
-                <MapView items={initialHousings} itemType="housing" />
+              <MapView items={housings || []} itemType="housing" />
             </div>
           </CardContent>
         </Card>

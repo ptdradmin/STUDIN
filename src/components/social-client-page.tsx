@@ -4,8 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PostCard from "@/components/post-card";
-import { getPosts, Post } from "@/lib/mock-data";
-import { Camera, Compass, Heart, Home, MessageSquare, Search } from 'lucide-react';
+import { Camera, Compass, Heart, Home, MessageSquare, Plus, Search } from 'lucide-react';
 import Link from "next/link";
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
@@ -20,9 +19,10 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings } from "lucide-react";
 import { Input } from './ui/input';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
-
+import type { Post } from '@/lib/types';
+import CreatePostForm from './create-post-form';
 
 function SocialSkeleton() {
     return (
@@ -59,26 +59,18 @@ function CardSkeleton() {
 
 
 export default function SocialClientPage() {
-    const { user, loading } = useUser();
+    const { user, loading: userLoading } = useUser();
     const { auth } = useAuth();
     const router = useRouter();
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [isPostsLoading, setIsPostsLoading] = useState(true);
+    const { data: posts, loading: postsLoading } = useCollection<Post>('posts');
+    const [showCreateForm, setShowCreateForm] = useState(false);
 
     useEffect(() => {
-        if (!loading && !user) {
+        if (!userLoading && !user) {
             router.push('/login?from=/social');
         }
-    }, [user, loading, router]);
+    }, [user, userLoading, router]);
 
-    useEffect(() => {
-        if (user) {
-            getPosts().then(data => {
-                setPosts(data);
-                setIsPostsLoading(false);
-            });
-        }
-    }, [user]);
 
     const handleLogout = async () => {
         if (auth) {
@@ -93,9 +85,11 @@ export default function SocialClientPage() {
           return (parts[0][0] + parts[1][0]).toUpperCase();
         }
         return email.substring(0, 2).toUpperCase();
-      }
+    }
+    
+    const sortedPosts = posts ? [...posts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) : [];
 
-    if (loading || !user || isPostsLoading) {
+    if (userLoading || !user) {
         return (
             <>
                 <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -141,8 +135,8 @@ export default function SocialClientPage() {
                         <Button variant="ghost" size="icon">
                             <MessageSquare className="h-6 w-6" />
                         </Button>
-                         <Button variant="ghost" size="icon">
-                            <Compass className="h-6 w-6" />
+                        <Button variant="ghost" size="icon" onClick={() => setShowCreateForm(true)}>
+                            <Plus className="h-6 w-6" />
                         </Button>
                         <Button variant="ghost" size="icon">
                             <Heart className="h-6 w-6" />
@@ -192,12 +186,16 @@ export default function SocialClientPage() {
                 </div>
             </header>
             <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
+                {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
-                    <div className="space-y-4">
-                        {posts.map(post => (
+                   {postsLoading && <SocialSkeleton />}
+                   {!postsLoading && (
+                     <div className="space-y-4">
+                        {sortedPosts.map(post => (
                             <PostCard key={post.id} post={post} />
                         ))}
                     </div>
+                   )}
                 </div>
             </main>
         </>

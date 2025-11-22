@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { Housing } from "@/lib/mock-data";
+import type { Housing } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,12 @@ export default function HousingCard({ housing }: HousingCardProps) {
         <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full">
             <div className="relative">
                 <Image
-                    src={housing.image.url}
+                    src={housing.imageUrl}
                     alt={housing.title}
                     width={600}
                     height={400}
                     className="aspect-[3/2] w-full object-cover"
-                    data-ai-hint={housing.image.hint}
+                    data-ai-hint={housing.imageHint}
                 />
                 <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                     {housing.type}

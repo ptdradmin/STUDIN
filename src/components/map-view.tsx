@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet-routing-machine';
-import type { Housing, Trip, Event, Tutor } from '@/lib/mock-data';
+import type { Housing, Trip, Event, Tutor } from '@/lib/types';
 import HousingDetailModal from './housing-detail-modal';
 import { Bed, GraduationCap, PartyPopper } from 'lucide-react';
 
@@ -142,7 +142,7 @@ export default function MapView({ items, itemType }: MapViewProps) {
   const handleDetailClick = (e: Event) => {
     const target = e.target as HTMLElement;
     if(target.tagName === 'BUTTON' && target.dataset.id) {
-        const housingId = parseInt(target.dataset.id, 10);
+        const housingId = target.dataset.id;
         const housing = items.find(h => h.id === housingId) as Housing;
         if(housing) {
             setSelectedHousing(housing);

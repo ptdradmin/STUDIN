@@ -2,7 +2,7 @@
 'use client';
 
 import Image from 'next/image';
-import type { Housing } from '@/lib/mock-data';
+import type { Housing } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -26,11 +26,11 @@ export default function HousingDetailModal({ housing, onClose }: HousingDetailMo
       <DialogContent className="sm:max-w-[600px] p-0">
         <div className="relative h-64 w-full">
             <Image
-                src={housing.image.url}
+                src={housing.imageUrl}
                 alt={housing.title}
                 fill
                 className="object-cover rounded-t-lg"
-                data-ai-hint={housing.image.hint}
+                data-ai-hint={housing.imageHint}
             />
              <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                 {housing.type}

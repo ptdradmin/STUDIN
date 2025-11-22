@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "user": {
@@ -25,15 +24,72 @@
           "description": "The URL of the user's profile picture."
         },
         "university": {
-            "type": "string",
-            "description": "The user's university."
+          "type": "string",
+          "description": "The user's university."
         },
         "fieldOfStudy": {
-            "type": "string",
-            "description": "The user's field of study."
+          "type": "string",
+          "description": "The user's field of study."
         }
       },
       "required": ["id", "email"]
+    },
+    "post": {
+      "title": "Post",
+      "description": "A social media post.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "caption": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "userDisplayName": {
+          "type": "string"
+        },
+        "userAvatarUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["caption", "imageUrl", "userId", "userDisplayName", "createdAt"]
+    },
+    "housing": {
+      "title": "Housing",
+      "description": "A student housing listing.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["kot", "studio", "colocation"] },
+        "price": { "type": "number" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "bedrooms": { "type": "number" },
+        "surface_area": { "type": "number" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "imageHint": { "type": "string" },
+        "coordinates": {
+            "type": "array",
+            "items": { "type": "number" }
+        },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "type", "price", "city", "imageUrl", "userId", "createdAt"]
     }
   },
   "auth": {
@@ -45,6 +101,18 @@
         "$ref": "#/entities/user"
       },
       "description": "Stores user profile information."
+    },
+    "/posts/{postId}": {
+      "schema": {
+        "$ref": "#/entities/post"
+      },
+      "description": "Stores social media posts."
+    },
+    "/housings/{housingId}": {
+      "schema": {
+        "$ref": "#/entities/housing"
+      },
+      "description": "Stores housing listings."
     }
   }
 }

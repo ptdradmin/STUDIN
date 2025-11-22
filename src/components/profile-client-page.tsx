@@ -4,15 +4,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from './ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { getPosts, Post } from '@/lib/mock-data';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import type { Post } from '@/lib/types';
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
     <div className="grid grid-cols-3 gap-1">
@@ -32,24 +31,16 @@ const ProfileGrid = ({ posts }: { posts: Post[] }) => (
 
 
 export default function ProfileClientPage() {
-  const { user, loading } = useUser();
+  const { user, loading: userLoading } = useUser();
+  const { data: allPosts, loading: postsLoading } = useCollection<Post>('posts');
   const { auth } = useAuth();
   const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!userLoading && !user) {
       router.push('/login?from=/profile');
     }
-  }, [user, loading, router]);
-
-   useEffect(() => {
-    if (user) {
-      getPosts().then(data => {
-        setPosts(data);
-      });
-    }
-  }, [user]);
+  }, [user, userLoading, router]);
 
   const handleLogout = async () => {
     if(auth) {
@@ -67,10 +58,12 @@ export default function ProfileClientPage() {
     return email.substring(0, 2).toUpperCase();
   }
 
+  const loading = userLoading || postsLoading;
+
   if (loading || !user) {
     return (
-        <Card className="mx-auto max-w-4xl shadow-none border-0">
-            <CardContent className="p-4 md:p-6">
+        <div className="mx-auto max-w-4xl">
+            <div className="p-4 md:p-6">
                 <div className="flex items-center space-x-4 md:space-x-8">
                     <Skeleton className="h-20 w-20 md:h-36 md:w-36 rounded-full" />
                     <div className="space-y-2">
@@ -83,20 +76,20 @@ export default function ProfileClientPage() {
                         <Skeleton className="h-4 w-48 pt-2" />
                     </div>
                 </div>
-                 <div className="mt-8">
-                    <Skeleton className="h-10 w-full" />
-                     <div className="grid grid-cols-3 gap-1 mt-1">
-                        <Skeleton className="aspect-square" />
-                        <Skeleton className="aspect-square" />
-                        <Skeleton className="aspect-square" />
-                    </div>
+            </div>
+             <div className="mt-8">
+                <Skeleton className="h-10 w-full" />
+                 <div className="grid grid-cols-3 gap-1 mt-1">
+                    <Skeleton className="aspect-square" />
+                    <Skeleton className="aspect-square" />
+                    <Skeleton className="aspect-square" />
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
   }
 
-  const userPosts = posts.filter(p => p.user.name.toLowerCase().includes('alice')); // Mocking posts by current user
+  const userPosts = allPosts?.filter(p => p.userId === user.uid) || [];
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -157,7 +150,7 @@ export default function ProfileClientPage() {
                 )}
             </TabsContent>
             <TabsContent value="saved">
-                 {posts.slice(0,2).length > 0 ? <ProfileGrid posts={posts.slice(0, 2)} /> : (
+                 {allPosts && allPosts.slice(0,2).length > 0 ? <ProfileGrid posts={allPosts.slice(0, 2)} /> : (
                      <div className="text-center p-10">
                         <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
                         <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
