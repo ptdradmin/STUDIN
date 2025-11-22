@@ -1,23 +1,272 @@
-
 rules_version = '2';
 
+/**
+ * @name STUD'IN Firestore Security Rules
+ *
+ * Core Philosophy:
+ * This ruleset enforces a security model where publicly listed items (like
+ * housing, carpools, events, and tutoring) are readable by anyone, but can
+ * only be created, modified, or deleted by their authenticated owners. Core
+ * user data (profiles, favorites, messages) is strictly private and accessible
+ * only to the user themselves. This provides a secure-by-default environment
+ * while allowing for a rich, publicly browsable application experience.
+ *
+ * Data Structure:
+ * The data is organized into top-level collections representing the major
+ * features of the app (e.g., /housings, /carpoolings, /events). User-specific
+ * data that should be private is stored in /users/{userId}. Relationships
+ * are established through denormalized owner IDs (e.g., userId, driverId,
+ * tutorId) stored directly on the documents, which is essential for writing
+ * efficient and secure rules.
+ *
+ * Key Security Decisions:
+ * - User Enumeration is Disallowed: It is not possible to list all users of
+ *   the application (allow list: if false; on /users).
+ * - Public Listings, Private Writes: Collections like /housings are publicly
+ *   queryable, but write access is strictly limited to the document owner.
+ * - Private User Content: Data in /users/{userId} and /favorites/{favoriteId}
+ *   is accessible only by the owning user.
+ * - Secure Subcollections: Access to subcollection documents (e.g., carpool
+ *   bookings) is granted to both the owner of the parent document (the driver)
+ *   and the owner of the subcollection document (the passenger).
+ * - Message Privacy: Messages are only readable by the sender and receiver.
+ *   Listing all messages is explicitly forbidden.
+ *
+ * Denormalization for Authorization:
+ * To ensure performant and secure access control, owner IDs (e.g., `userId`,
+ * `driverId`, `organizerId`) are denormalized and stored directly on the
+ * documents they protect. This avoids slow and costly cross-document `get()`
+ * calls in rules, leading to a faster and more reliable security model.
+ *
+ * Structural Segregation:
+ * This ruleset uses separate collections for public and private data. For
+ * example, user profiles are in a user-specific path `/users/{userId}`, while
+ * public housing listings are in a separate top-level `/housings` collection.
+ * This is more secure and performant than mixing public and private documents
+ * in the same collection.
+ */
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // =====================================================================
+    // Helper Functions
+    // =====================================================================
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document. Used for update/delete.
+     * CRITICAL: Prevents operations on non-existent documents.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Checks if the authenticated user is the driver of a specific carpool.
+     * Requires a document read, which is counted towards billing quotas.
+     */
+    function isDriver(carpoolingId) {
+      return isSignedIn() && get(/databases/$(database)/documents/carpoolings/$(carpoolingId)).data.driverId == request.auth.uid;
+    }
+
+    /**
+     * Checks if the authenticated user is the organizer of a specific event.
+     * Requires a document read.
+     */
+    function isEventOrganizer(eventId) {
+      return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
+    }
+
+    // =====================================================================
+    // User Profile Rules
+    // =====================================================================
+
+    /**
+     * @description Manages user profile data.
+     * @path /users/{userId}
+     * @allow A user (UID 'user_abc') creates their own profile document at /users/user_abc.
+     * @deny An anonymous user tries to read a profile. A user ('user_xyz') tries to update another user's ('user_abc') profile.
+     * @principle Restricts access to a user's own data tree. A user has full control over their own profile document, and no one else can read or write it. User enumeration is disallowed for privacy.
+     */
     match /users/{userId} {
-      allow read;
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
-    match /posts/{postId} {
-      allow read;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
+    // =====================================================================
+    // Housing Rules
+    // =====================================================================
 
+    /**
+     * @description Manages housing listings.
+     * @path /housings/{housingId}
+     * @allow Any user, signed in or not, can read a housing listing. The owner ('user_abc') creates a new listing with 'userId: "user_abc"'.
+     * @deny A user ('user_xyz') tries to update a listing owned by 'user_abc'.
+     * @principle Public Read with Owner-Only Writes. Listings are public, but write operations are restricted to the user who created the listing.
+     */
     match /housings/{housingId} {
-      allow read;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    // =====================================================================
+    // Carpooling Rules
+    // =====================================================================
+
+    /**
+     * @description Manages carpooling offers.
+     * @path /carpoolings/{carpoolingId}
+     * @allow Any user can view carpooling offers. A driver ('driver_abc') creates an offer with 'driverId: "driver_abc"'.
+     * @deny A user ('user_xyz') attempts to delete an offer created by 'driver_abc'.
+     * @principle Public Read with Owner-Only Writes. Carpool offers are public, but only the driver can create, update, or delete their own offers.
+     */
+    match /carpoolings/{carpoolingId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.driverId) && request.resource.data.driverId == resource.data.driverId;
+      allow delete: if isExistingOwner(resource.data.driverId);
+
+      /**
+       * @description Manages bookings for a carpool.
+       * @path /carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}
+       * @allow A passenger ('user_abc') creates a booking with 'passengerId: "user_abc"'. The driver of the carpool can read the booking.
+       * @deny A random user ('user_xyz') tries to read a booking for a carpool they are not part of.
+       * @principle Shared Access (Closed Collaborators). Access is granted to the passenger who owns the booking and the driver who owns the parent carpool.
+       */
+      match /carpool_bookings/{carpoolBookingId} {
+        allow get: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
+        allow list: if isDriver(carpoolingId);
+        allow create: if isSignedIn() && request.resource.data.passengerId == request.auth.uid && request.resource.data.carpoolId == carpoolingId;
+        allow update: if (isOwner(resource.data.passengerId) || isDriver(carpoolingId)) && resource != null && request.resource.data.passengerId == resource.data.passengerId && request.resource.data.carpoolId == resource.data.carpoolId;
+        allow delete: if isExistingOwner(resource.data.passengerId);
+      }
+    }
+
+    // =====================================================================
+    // Tutoring Rules
+    // =====================================================================
+
+    /**
+     * @description Manages tutoring offers.
+     * @path /tutorings/{tutoringId}
+     * @allow Anyone can browse tutoring offers. A tutor ('tutor_abc') creates an offer with 'tutorId: "tutor_abc"'.
+     * @deny A user ('user_xyz') tries to modify an offer created by 'tutor_abc'.
+     * @principle Public Read with Owner-Only Writes. Tutoring offers are public, but only the tutor can manage their listings.
+     */
+    match /tutorings/{tutoringId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId;
+      allow delete: if isExistingOwner(resource.data.tutorId);
+    }
+
+    /**
+     * @description Manages reviews for tutoring sessions.
+     * @path /tutoring_reviews/{tutoringReviewId}
+     * @allow Anyone can read reviews. A student ('student_abc') who took the class creates a review with 'studentId: "student_abc"'.
+     * @deny A tutor tries to delete a review left by a student.
+     * @principle Public Read with Owner-Only Writes. Reviews are public, but only the student who wrote the review can create, modify, or delete it.
+     */
+    match /tutoring_reviews/{tutoringReviewId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.studentId) && request.resource.data.studentId == resource.data.studentId;
+      allow delete: if isExistingOwner(resource.data.studentId);
+    }
+
+    // =====================================================================
+    // Event Rules
+    // =====================================================================
+
+    /**
+     * @description Manages events.
+     * @path /events/{eventId}
+     * @allow Any user can view events. An organizer ('organizer_abc') creates an event with 'organizerId: "organizer_abc"'.
+     * @deny A user ('user_xyz') tries to cancel an event created by 'organizer_abc'.
+     * @principle Public Read with Owner-Only Writes. Events are public, but only the event organizer can manage them.
+     */
+    match /events/{eventId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.organizerId) && request.resource.data.organizerId == resource.data.organizerId;
+      allow delete: if isExistingOwner(resource.data.organizerId);
+    }
+
+    /**
+     * @description Manages event attendee records.
+     * @path /event_attendees/{eventAttendeeId}
+     * @allow An attendee ('user_abc') creates an attendance record with 'userId: "user_abc"'. The event organizer can read the record.
+     * @deny A random user tries to see who is attending an event. Listing all attendees is disallowed for privacy.
+     * @principle Shared Access (Closed Collaborators). Only the attendee and the event organizer can read an attendance record. Only the attendee can create or delete it.
+     */
+    match /event_attendees/{eventAttendeeId} {
+      allow get: if isOwner(resource.data.userId) || isEventOrganizer(resource.data.eventId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    // =====================================================================
+    // Messaging Rules
+    // =====================================================================
+
+    /**
+     * @description Manages private messages between users.
+     * @path /messages/{messageId}
+     * @allow User 'sender_abc' creates a message with 'senderId: "sender_abc"' and 'receiverId: "receiver_xyz"'. Both users can read it.
+     * @deny A third user ('hacker_123') tries to read the message. Listing all messages in the database is forbidden.
+     * @principle Shared Access (Closed Collaborators). A message can only be created by its sender and read by the sender or receiver. Deletion and broad listing are disallowed for integrity and privacy.
+     */
+    match /messages/{messageId} {
+      allow get: if isSignedIn() && (isOwner(resource.data.senderId) || isOwner(resource.data.receiverId));
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(request.resource.data.senderId);
+      allow update: if isExistingOwner(resource.data.receiverId) && request.resource.data.senderId == resource.data.senderId;
+      allow delete: if false;
+    }
+
+    // =====================================================================
+    // Favorites Rules
+    // =====================================================================
+
+    /**
+     * @description Manages user's favorite items.
+     * @path /favorites/{favoriteId}
+     * @allow A user ('user_abc') creates a favorite record with 'userId: "user_abc"'.
+     * @deny Another user ('user_xyz') tries to read or delete 'user_abc's favorite record.
+     * @principle Enforces document ownership. A user's favorites are private and can only be managed by that user.
+     */
+    match /favorites/{favoriteId} {
+      allow get: if isOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if false;
+      allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
