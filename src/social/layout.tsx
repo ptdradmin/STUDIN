@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, PlusSquare, User, Menu, Film, LogOut, Settings, Bookmark, Phone, GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
+import { Home, MessageSquare, PlusSquare, User, Menu, Film, LogOut, Settings, Bookmark, GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
 import { useUser } from "@/firebase";
 import {
   Tooltip,
@@ -24,6 +24,7 @@ import CreatePostForm from '@/components/create-post-form';
 import { signOut } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home },
@@ -73,12 +74,22 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
           router.push('/');
         }
     };
+    
+    const getInitials = (email?: string | null) => {
+        if (!email) return '..';
+        const parts = email.split('@')[0].replace('.', ' ').split(' ');
+        if (parts.length > 1 && parts[0] && parts[1]) {
+          return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+        return email.substring(0, 2).toUpperCase();
+    }
+
 
   return (
     <TooltipProvider>
       <div className="flex min-h-screen bg-background text-foreground">
         <aside 
-            className={`fixed left-0 top-0 h-full z-20 flex flex-col p-3 bg-background border-r border-border transition-all duration-300 w-60`}
+            className={`fixed left-0 top-0 h-full z-20 flex flex-col p-3 bg-card border-r border-border transition-all duration-300 w-60`}
         >
           <Link href="/social" className={`mb-8 px-3 pt-3`}>
             <h1 className="text-2xl font-serif font-bold">Stud'in</h1>

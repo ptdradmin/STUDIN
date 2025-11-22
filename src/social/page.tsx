@@ -125,22 +125,10 @@ export default function SocialPageContent() {
                                     <PlusSquare className="mr-2 h-4 w-4" />
                                     <span>Publication</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <Bed className="mr-2 h-4 w-4" />
-                                    <span>Annonce de logement</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <Car className="mr-2 h-4 w-4" />
-                                    <span>Offre de covoiturage</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <GraduationCap className="mr-2 h-4 w-4" />
-                                    <span>Offre de tutorat</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem disabled>
-                                    <PartyPopper className="mr-2 h-4 w-4" />
-                                    <span>Événement</span>
-                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/housing"><Bed className="mr-2 h-4 w-4" /><span>Annonce de logement</span></Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/carpooling"><Car className="mr-2 h-4 w-4" /><span>Offre de covoiturage</span></Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/tutoring"><GraduationCap className="mr-2 h-4 w-4" /><span>Offre de tutorat</span></Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/events"><PartyPopper className="mr-2 h-4 w-4" /><span>Événement</span></Link></DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
