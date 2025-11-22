@@ -11,8 +11,9 @@ import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post } from '@/lib/types';
+import type { Post, UserProfile } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
+import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where } from 'firebase/firestore';
 
 
@@ -69,12 +70,13 @@ export default function ProfilePage() {
   const router = useRouter();
 
   const [showEditForm, setShowEditForm] = useState(false);
+  const [modalContent, setModalContent] = useState<{title: string, userIds: string[]} | null>(null);
 
   const userRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
-  const { data: userProfile, isLoading: profileLoading } = useDoc(userRef);
+  const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userRef);
 
   const userPostsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -107,6 +109,8 @@ export default function ProfilePage() {
 
   const loading = isUserLoading || postsLoading || profileLoading;
 
+  const followersCount = userProfile?.followerIds?.length || 0;
+  const followingCount = userProfile?.followingIds?.length || 0;
 
   return (
     <>
@@ -138,8 +142,12 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
                                     <p><span className="font-semibold">{userPosts?.length || 0}</span> publications</p>
-                                    <p><span className="font-semibold">1.2k</span> abonnés</p>
-                                    <p><span className="font-semibold">543</span> abonnements</p>
+                                    <button onClick={() => setModalContent({ title: "Abonnés", userIds: userProfile.followerIds || [] })} className="cursor-pointer hover:underline">
+                                        <span className="font-semibold">{followersCount}</span> abonnés
+                                    </button>
+                                     <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline">
+                                        <span className="font-semibold">{followingCount}</span> abonnements
+                                    </button>
                                 </div>
                                 <div>
                                     <p className="font-semibold">{userProfile?.firstName} {userProfile?.lastName}</p>
@@ -155,6 +163,14 @@ export default function ProfilePage() {
                             user={user}
                             userProfile={userProfile}
                             onClose={() => setShowEditForm(false)}
+                        />
+                    )}
+                    
+                    {modalContent && (
+                        <FollowListModal
+                            title={modalContent.title}
+                            userIds={modalContent.userIds}
+                            onClose={() => setModalContent(null)}
                         />
                     )}
 
@@ -201,3 +217,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    

@@ -99,6 +99,8 @@ export interface UserProfile {
     fieldOfStudy: string;
     bio: string;
     profilePicture: string;
+    followerIds?: string[];
+    followingIds?: string[];
     createdAt: any;
     updatedAt: any;
 }
@@ -123,4 +125,5 @@ export interface Conversation {
     updatedAt: any;
 }
 
+    
     
