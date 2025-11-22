@@ -8,33 +8,30 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import {
   Bell,
   ChevronRight,
-  Compass,
-  Film,
+  Globe,
   HelpCircle,
   Info,
   Lock,
-  Mail,
-  MessageSquare,
+  LogOut,
   Palette,
-  Search,
   Shield,
   Trash2,
   User,
-  LogOut,
+  Film,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
 
 const SettingsItem = ({
   icon,
@@ -79,6 +76,7 @@ export default function SettingsPage() {
   const { auth } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { language, setLanguage } = useLanguage();
 
   const handleLogout = async () => {
     if (auth) {
@@ -132,6 +130,35 @@ export default function SettingsPage() {
                         <LogOut className="mr-2 h-4 w-4" />
                         Déconnexion
                      </Button>
+                  </AccordionContent>
+                </AccordionItem>
+
+                 <AccordionItem value="language">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                    <div className="flex items-center gap-3">
+                      <Globe />
+                      Langue
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 space-y-2">
+                     <Button
+                        className="w-full justify-between"
+                        variant={language === 'fr' ? 'secondary' : 'outline'}
+                        onClick={() => setLanguage('fr')}
+                      >
+                        <span>🇫🇷 Français</span>
+                        {language === 'fr' && <span className="text-xs text-muted-foreground">Actif</span>}
+                      </Button>
+                      <Button
+                        className="w-full justify-between"
+                        variant={language === 'en' ? 'secondary' : 'outline'}
+                        onClick={() => setLanguage('en')}
+                        disabled
+                      >
+                        <span>🇬🇧 English</span>
+                        {language === 'en' && <span className="text-xs text-muted-foreground">Actif</span>}
+                         <span className="text-xs text-muted-foreground">Bientôt</span>
+                      </Button>
                   </AccordionContent>
                 </AccordionItem>
 

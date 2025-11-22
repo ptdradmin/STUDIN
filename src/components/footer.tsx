@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from "next/link";
@@ -14,7 +15,7 @@ const footerLinks = {
         { href: '/privacy', label: 'Confidentialité' },
     ],
     'Support': [
-        { href: '/help', label: 'Centre d\'aide' },
+        { href: '/help', label: "Centre d'aide" },
         { href: '/contact', label: 'Contact' },
         { href: '/faq', label: 'FAQ' },
     ]
@@ -55,19 +56,6 @@ export default function Footer() {
                             </ul>
                         </div>
                     ))}
-                    <div>
-                        <h3 className="font-semibold tracking-wide text-foreground">Support</h3>
-                        <ul className="mt-4 space-y-2">
-                            <li><Link href="/help" className="text-sm text-muted-foreground hover:text-primary transition-colors">Centre d'aide</Link></li>
-                            <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
-                            <li><Link href="/faq" className="text-sm text-muted-foreground hover:text-primary transition-colors">FAQ</Link></li>
-                            <li>
-                                <Link href="/language" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                                    {language === 'fr' ? '🇫🇷 FR' : '🇬🇧 EN'}
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
                 </div>
                 <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
                     <p>&copy; {new Date().getFullYear()} STUD'IN. Tous droits réservés.</p>
