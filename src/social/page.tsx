@@ -20,21 +20,21 @@ import {
 import CreatePostForm from '@/components/create-post-form';
 import { useState } from 'react';
 
-const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
+const StatCard = ({ title, value, icon, href, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, isLoading: boolean }) => {
     return (
         <Link href={href} className="block group">
-            <Card className={cn("overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl", className)}>
-                <CardContent className="p-5 h-full flex flex-col justify-between">
-                     <div className="p-3 bg-white/20 rounded-lg w-min">
-                       {icon}
-                    </div>
-                    <div>
-                        {isLoading ? (
-                            <Skeleton className="h-10 w-16 bg-white/20" />
-                        ) : (
-                            <div className="text-4xl font-bold text-white">{value}</div>
-                        )}
-                        <h3 className="text-md font-semibold text-white/90">{title}</h3>
+            <Card className="transition-all duration-300 hover:shadow-lg">
+                <CardContent className="p-4">
+                    <div className="flex flex-col h-full">
+                        <div className="flex-shrink-0 text-muted-foreground">{icon}</div>
+                        <div className="mt-4 flex-grow">
+                             {isLoading ? (
+                                <Skeleton className="h-9 w-12" />
+                            ) : (
+                                <p className="text-3xl font-bold">{value}</p>
+                            )}
+                            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -77,38 +77,34 @@ export default function SocialPageContent() {
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                  <StatCard 
                     title="Sessions de tutorat" 
                     value={tutors?.length ?? 0}
-                    icon={<GraduationCap className="h-8 w-8 text-white" />}
+                    icon={<GraduationCap className="h-6 w-6" />}
                     isLoading={isLoading}
                     href="/tutoring"
-                    className="bg-blue-500"
                 />
                 <StatCard 
                     title="Trajets disponibles" 
                     value={trips?.length ?? 0}
-                    icon={<Car className="h-8 w-8 text-white" />}
+                    icon={<Car className="h-6 w-6" />}
                     isLoading={isLoading}
                     href="/carpooling"
-                    className="bg-purple-500"
                 />
                 <StatCard 
                     title="Logements disponibles" 
                     value={housings?.length ?? 0}
-                    icon={<Bed className="h-8 w-8 text-white" />}
+                    icon={<Bed className="h-6 w-6" />}
                     isLoading={isLoading}
                     href="/housing"
-                    className="bg-pink-500"
                 />
                 <StatCard 
                     title="Événements à venir" 
                     value={events?.length ?? 0}
-                    icon={<PartyPopper className="h-8 w-8 text-white" />}
+                    icon={<PartyPopper className="h-6 w-6" />}
                     isLoading={isLoading}
                     href="/events"
-                    className="bg-orange-500"
                 />
             </div>
              <div className="space-y-4">
