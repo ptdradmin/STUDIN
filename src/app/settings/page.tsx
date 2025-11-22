@@ -174,7 +174,7 @@ export default function SettingsPage() {
                     />
                      <AlertDialog>
                       <AlertDialogTrigger asChild>
-                         <div className="flex items-center justify-between py-3">
+                         <div className="flex items-center justify-between py-3 w-full cursor-pointer hover:bg-muted/50 -mx-6 px-6 rounded-md">
                             <div className="flex items-center gap-4">
                               <div className="text-muted-foreground"><Trash2 className="h-5 w-5"/></div>
                               <div>
