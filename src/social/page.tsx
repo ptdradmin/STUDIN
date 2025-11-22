@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PostCard from "@/components/post-card";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { collection, orderBy, query } from 'firebase/firestore';
@@ -9,7 +9,6 @@ import type { Post } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import CreatePostForm from '@/components/create-post-form';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const reelsUsers = [
   { name: "Alice", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alice" },
@@ -42,41 +41,7 @@ function ReelsTray() {
   );
 }
 
-
-function SocialSkeleton() {
-    return (
-        <div className="max-w-xl mx-auto">
-            <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                     <CardSkeleton key={i} />
-                ))}
-            </div>
-        </div>
-    )
-}
-
-function CardSkeleton() {
-    return (
-        <div className="rounded-none md:rounded-lg border-x-0 md:border p-3">
-             <div className="flex items-center gap-3 mb-3">
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <Skeleton className="h-4 w-24" />
-            </div>
-            <Skeleton className="aspect-square w-full" />
-            <div className="mt-3 space-y-2">
-                <div className="flex gap-2">
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                    <Skeleton className="h-8 w-8" />
-                </div>
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-48" />
-            </div>
-        </div>
-    )
-}
-
-export default function SocialPageLayout() {
+export default function SocialPageContent() {
     const firestore = useFirestore();
     
     const postsQuery = useMemoFirebase(() => {
@@ -94,11 +59,11 @@ export default function SocialPageLayout() {
     }
 
     return (
-         <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen">
              <main className="flex-grow container mx-auto px-0 md:px-4 pt-4">
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
-                   {postsLoading && <SocialSkeleton />}
+                   {postsLoading && <PageSkeleton />}
                    {!postsLoading && posts && (
                      <>
                         <ReelsTray />

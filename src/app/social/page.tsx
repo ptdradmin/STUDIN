@@ -5,7 +5,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
-import SocialPageLayout from '@/social/page';
+import SocialPageContent from '@/social/page';
+import SocialLayout from '@/social/layout';
 
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
@@ -21,5 +22,9 @@ export default function SocialPage() {
         return <PageSkeleton />;
     }
 
-    return <SocialPageLayout />;
+    return (
+        <SocialLayout>
+            <SocialPageContent />
+        </SocialLayout>
+    );
 }
