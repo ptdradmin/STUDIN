@@ -67,7 +67,7 @@ export default function Navbar() {
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
         <div className="flex flex-col h-full px-6 py-6">
-            <Link href="/welcome" className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
+            <Link href={user ? "/social" : "/"} className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
                 <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                     <GraduationCap className="h-6 w-6 text-white" />
                 </div>
@@ -105,7 +105,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link href={user ? "/social" : "/welcome"} className="flex items-center gap-3">
+        <Link href={user ? "/social" : "/"} className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                 <GraduationCap className="h-6 w-6 text-white" />
             </div>
