@@ -49,19 +49,21 @@ export default function HelpPage() {
                             </CardContent>
                         </Card>
                     </Link>
-                     <Card className="h-full hover:shadow-lg transition-shadow lg:col-span-1 md:col-span-2">
-                           <CardHeader>
-                                <div className="flex justify-center mb-4">
-                                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                        <MessageSquare className="h-8 w-8" />
+                     <Link href="#">
+                         <Card className="h-full hover:shadow-lg transition-shadow lg:col-span-1 md:col-span-2">
+                               <CardHeader>
+                                    <div className="flex justify-center mb-4">
+                                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                            <MessageSquare className="h-8 w-8" />
+                                        </div>
                                     </div>
-                                </div>
-                                <CardTitle className="text-center">Chat en Direct</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <CardDescription className="text-center">Discutez avec notre équipe de support (bientôt disponible).</CardDescription>
-                            </CardContent>
-                        </Card>
+                                    <CardTitle className="text-center">Chat en Direct</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <CardDescription className="text-center">Discutez avec notre équipe de support.</CardDescription>
+                                </CardContent>
+                            </Card>
+                     </Link>
                  </div>
             </div>
         </main>

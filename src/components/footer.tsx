@@ -53,10 +53,8 @@ export default function Footer() {
                                 size="sm"
                                 variant={language === 'en' ? 'secondary' : 'ghost'}
                                 onClick={() => setLanguage('en')}
-                                disabled
                               >
                                 🇬🇧 EN
-                                <span className="text-xs ml-2 opacity-70">(bientôt)</span>
                               </Button>
                         </div>
                     </div>
