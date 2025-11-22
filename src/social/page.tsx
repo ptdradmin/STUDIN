@@ -111,13 +111,13 @@ export default function SocialPageContent() {
 
     return (
        <div className="w-full">
-            <div className="container mx-auto px-0 sm:px-4 max-w-4xl py-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                    <div className="md:col-span-2 space-y-4">
+            <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
+                    <div className="space-y-4 w-full max-w-[470px] mx-auto">
                          {posts && posts.length > 0 ? (
                             posts.map(post => <PostCard key={post.id} post={post} />)
                         ) : (
-                            <div className="text-center p-10 text-muted-foreground bg-card rounded-lg border-x-0 md:border">
+                            <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                 <p className="text-lg font-semibold">Le fil d'actualité est vide.</p>
                                 <p className="text-sm">Soyez le premier à poster quelque chose !</p>
                             </div>

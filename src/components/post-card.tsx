@@ -204,7 +204,7 @@ export default function PostCard({ post }: PostCardProps) {
 
 
     return (
-        <div className="rounded-none md:rounded-lg border-x-0 md:border bg-card text-card-foreground">
+        <div className="w-full bg-card text-card-foreground border-b">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -256,20 +256,20 @@ export default function PostCard({ post }: PostCardProps) {
             </div>
             
             {post.imageUrl && (
-                <div className="relative aspect-square bg-muted border-y">
+                <div className="relative aspect-square bg-muted">
                     <Image
                         src={post.imageUrl}
                         alt={`Post by ${post.userDisplayName}`}
                         fill
-                        className="object-contain"
+                        className="object-cover"
                         data-ai-hint="social media post"
                     />
                 </div>
             )}
 
             <div className="p-3 flex flex-col items-start">
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-1 -ml-2">
+                <div className="flex items-center justify-between w-full -ml-2">
+                    <div className="flex items-center">
                         <Button variant="ghost" size="icon" onClick={handleLike}>
                             <Heart className={`h-6 w-6 transition-colors ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
                         </Button>
@@ -317,22 +317,23 @@ export default function PostCard({ post }: PostCardProps) {
                     </Button>
                 )}
                  <p className="text-xs text-muted-foreground uppercase mt-2 px-2">{timeAgo}</p>
-                
-                {user && (
-                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t">
+            </div>
+             {user && (
+                <div className="border-t px-3 py-1">
+                    <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2">
                         <Input 
                             id={`comment-input-${post.id}`}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Ajouter un commentaire..." 
-                            className="h-8 border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 bg-transparent text-sm"
+                            className="h-9 border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 bg-transparent text-sm"
                         />
                         <Button type="submit" variant="ghost" size="sm" disabled={!comment.trim()} className="text-primary font-semibold hover:text-primary">
                             Publier
                         </Button>
                     </form>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }
