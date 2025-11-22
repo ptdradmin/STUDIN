@@ -11,10 +11,10 @@ import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post, UserProfile } from '@/lib/types';
+import type { Post, UserProfile, Favorite } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where, documentId } from 'firebase/firestore';
 import { toggleFollowUser } from '@/lib/social';
 import { useToast } from '@/hooks/use-toast';
 
@@ -90,6 +90,26 @@ export default function UserProfilePage() {
   const { data: currentUserProfile } = useDoc<UserProfile>(
     useMemoFirebase(() => user && firestore ? doc(firestore, 'users', user.uid) : null, [user, firestore])
   );
+  
+  // Fetch favorite items for the visited user
+  const userFavoritesQuery = useMemoFirebase(() => {
+      if (!profileId || !firestore) return null;
+      return query(collection(firestore, 'favorites'), where('userId', '==', profileId), where('itemType', '==', 'post'));
+  }, [profileId, firestore]);
+  const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
+
+  // Extract post IDs from favorites
+  const savedPostIds = useMemo(() => {
+      if (!favoriteItems) return [];
+      return favoriteItems.map(fav => fav.itemId);
+  }, [favoriteItems]);
+  
+  // Fetch the actual post documents based on the saved post IDs
+  const savedPostsQuery = useMemoFirebase(() => {
+      if (!firestore || savedPostIds.length === 0) return null;
+      return query(collection(firestore, 'posts'), where(documentId(), 'in', savedPostIds));
+  }, [firestore, savedPostIds]);
+  const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
   const handleFollow = async () => {
     if (!user || !firestore || !userProfile || !currentUserProfile) {
@@ -201,10 +221,20 @@ export default function UserProfilePage() {
                             )}
                         </TabsContent>
                         <TabsContent value="saved">
-                             <div className="text-center p-10">
-                                <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
-                                <p className="text-muted-foreground text-sm">Les publications enregistrées par cet utilisateur apparaîtront ici.</p>
-                            </div>
+                            {(savedPostsLoading || favoritesLoading) ? (
+                                <div className="grid grid-cols-3 gap-1 mt-1">
+                                    <Skeleton className="aspect-square" />
+                                    <Skeleton className="aspect-square" />
+                                    <Skeleton className="aspect-square" />
+                                </div>
+                             ) : savedPosts && savedPosts.length > 0 ? (
+                                <ProfileGrid posts={savedPosts} />
+                             ) : (
+                                <div className="text-center p-10">
+                                    <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
+                                    <p className="text-muted-foreground text-sm">Les publications enregistrées par cet utilisateur apparaîtront ici.</p>
+                                </div>
+                             )}
                         </TabsContent>
                         <TabsContent value="tagged">
                             <div className="text-center p-10">

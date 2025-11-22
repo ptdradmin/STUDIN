@@ -11,29 +11,50 @@ import { Grid3x3, Bookmark, AtSign, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post, UserProfile } from '@/lib/types';
+import type { Post, UserProfile, Favorite } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where, getDocs, documentId } from 'firebase/firestore';
 
 
-const ProfileGrid = ({ posts }: { posts: Post[] }) => (
-    <div className="grid grid-cols-3 gap-1">
-        {posts.map(post => (
-            <div key={post.id} className="relative aspect-square bg-muted">
-                {post.imageUrl && (
-                    <Image 
-                        src={post.imageUrl}
-                        alt="User post"
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 33vw, 25vw"
-                    />
-                )}
+const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-3 gap-1 mt-1">
+                <Skeleton className="aspect-square" />
+                <Skeleton className="aspect-square" />
+                <Skeleton className="aspect-square" />
             </div>
-        ))}
-    </div>
-);
+        )
+    }
+
+    if (posts.length === 0) {
+        return (
+            <div className="text-center p-10">
+                <h3 className="text-lg font-semibold">Aucune publication</h3>
+                <p className="text-muted-foreground text-sm">Les publications apparaîtront ici.</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="grid grid-cols-3 gap-1">
+            {posts.map(post => (
+                <div key={post.id} className="relative aspect-square bg-muted">
+                    {post.imageUrl && (
+                        <Image 
+                            src={post.imageUrl}
+                            alt="User post"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 33vw, 25vw"
+                        />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
 
 function ProfilePageSkeleton() {
     return (
@@ -83,6 +104,27 @@ export default function CurrentUserProfilePage() {
     return query(collection(firestore, 'posts'), where('userId', '==', user.uid));
   }, [firestore, user]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
+
+  // 1. Fetch favorite items for the current user
+  const userFavoritesQuery = useMemoFirebase(() => {
+      if (!user || !firestore) return null;
+      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
+  }, [user, firestore]);
+  const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
+
+  // 2. Extract post IDs from favorites
+  const savedPostIds = useMemo(() => {
+      if (!favoriteItems) return [];
+      return favoriteItems.map(fav => fav.itemId);
+  }, [favoriteItems]);
+
+  // 3. Fetch the actual post documents based on the saved post IDs
+  const savedPostsQuery = useMemoFirebase(() => {
+      if (!firestore || savedPostIds.length === 0) return null;
+      // Note: 'in' query is limited to 30 elements by Firestore.
+      return query(collection(firestore, 'posts'), where(documentId(), 'in', savedPostIds));
+  }, [firestore, savedPostIds]);
+  const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
 
   useEffect(() => {
@@ -185,18 +227,19 @@ export default function CurrentUserProfilePage() {
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="posts">
-                            {userPosts && userPosts.length > 0 ? <ProfileGrid posts={userPosts} /> : (
-                                <div className="text-center p-10">
-                                    <h3 className="text-lg font-semibold">Aucune publication</h3>
-                                    <p className="text-muted-foreground text-sm">Vos publications apparaîtront ici.</p>
-                                </div>
-                            )}
+                           <ProfileGrid posts={userPosts || []} isLoading={postsLoading} />
                         </TabsContent>
                         <TabsContent value="saved">
-                             <div className="text-center p-10">
-                                <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
-                                <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
-                            </div>
+                            {(savedPostsLoading || favoritesLoading) ? (
+                                <ProfileGrid posts={[]} isLoading={true} />
+                             ) : savedPosts && savedPosts.length > 0 ? (
+                                <ProfileGrid posts={savedPosts} />
+                             ) : (
+                                <div className="text-center p-10">
+                                    <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
+                                    <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
+                                </div>
+                             )}
                         </TabsContent>
                         <TabsContent value="tagged">
                             <div className="text-center p-10">
