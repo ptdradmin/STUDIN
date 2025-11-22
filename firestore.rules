@@ -189,7 +189,7 @@ service cloud.firestore {
       allow update: if isExistingOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId;
       allow delete: if isExistingOwner(resource.data.tutorId);
     }
-
+    
     // =====================================================================
     // Social (Posts) Rules
     // =====================================================================
@@ -312,5 +312,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
