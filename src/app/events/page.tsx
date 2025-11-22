@@ -46,28 +46,22 @@ export default function EventsPage() {
   const { data: events, isLoading } = useCollection<Event>(eventsCollection);
 
   useEffect(() => {
-    if (!firestore) return;
+    if (!events || !firestore) return;
     const fetchUniversities = async () => {
         try {
-            const q = query(collection(firestore, "users"), where("university", "!=", ""));
-            const querySnapshot = await getDocs(q);
             const fetchedUniversities = new Set<string>();
-            querySnapshot.forEach((doc) => {
-                fetchedUniversities.add(doc.data().university);
+            events.forEach((event) => {
+              if (event.university) {
+                fetchedUniversities.add(event.university);
+              }
             });
             setUniversities(Array.from(fetchedUniversities));
         } catch (error) {
-            console.error("Error fetching universities:", error);
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'list',
-                requestResourceData: { note: "Querying users to get unique university list." }
-            });
-            errorEmitter.emit('permission-error', permissionError);
+            console.error("Error fetching universities from events:", error);
         }
     };
     fetchUniversities();
-  }, [firestore]);
+  }, [events, firestore]);
 
   const filteredEvents = useMemo(() => {
     if (!events) return [];

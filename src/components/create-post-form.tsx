@@ -10,12 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, addDocumentNonBlocking, useUser } from '@/firebase';
+import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon } from 'lucide-react';
+import type { UserProfile } from '@/lib/types';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -41,7 +44,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useUser();
   const firestore = useFirestore();
 
   const imageUrl = watch('imageUrl');
@@ -73,22 +76,43 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
     setLoading(true);
 
-    const postData = {
-        ...data,
-        userId: user.uid,
-        userDisplayName: user.displayName || user.email?.split('@')[0],
-        userAvatarUrl: user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        likes: [],
-        comments: [],
-    };
+    try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
 
-    addDocumentNonBlocking(collection(firestore, 'posts'), postData);
-    
-    toast({ title: 'Succès', description: 'Publication créée !' });
-    setLoading(false);
-    onClose();
+        if (!userDocSnap.exists()) {
+            throw new Error("Profil utilisateur non trouvé.");
+        }
+        const userProfile = userDocSnap.data() as UserProfile;
+
+        const postData = {
+            ...data,
+            userId: user.uid,
+            userDisplayName: userProfile.username || user.email?.split('@')[0],
+            userAvatarUrl: userProfile.profilePicture,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            likes: [],
+            comments: [],
+        };
+
+        addDocumentNonBlocking(collection(firestore, 'posts'), postData);
+        
+        toast({ title: 'Succès', description: 'Publication créée !' });
+        onClose();
+    } catch(error) {
+        console.error("Erreur lors de la création de la publication: ", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
+        if (error instanceof Error && error.message.includes('permission-denied')) {
+            const permissionError = new FirestorePermissionError({
+                path: `users/${user.uid}`,
+                operation: 'get',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

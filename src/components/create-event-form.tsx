@@ -11,9 +11,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import type { UserProfile } from '@/lib/types';
+import { FirestorePermissionError, errorEmitter } from '@/firebase';
+
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -53,29 +56,48 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<EventFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<EventFormInputs> = async (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
     setLoading(true);
 
-    const eventData = {
-        ...data,
-        organizerId: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        endDate: data.startDate, // simplified
-        locationName: data.address, // simplified
-        coordinates: [50.8503, 4.3517], // Default to Brussels, TODO: Geocode
-        imageHint: "student event"
-    };
+    try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+            throw new Error("Profil utilisateur introuvable.");
+        }
+        const userProfile = userDocSnap.data() as UserProfile;
 
-    addDocumentNonBlocking(collection(firestore, 'events'), eventData);
+        const eventData = {
+            ...data,
+            organizerId: user.uid,
+            organizerUsername: userProfile.username,
+            organizerAvatarUrl: userProfile.profilePicture,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            endDate: data.startDate, // simplified
+            locationName: data.address, // simplified
+            coordinates: [50.8503, 4.3517], // Default to Brussels, TODO: Geocode
+            imageHint: "student event"
+        };
 
-    toast({ title: 'Succès', description: 'Événement créé !' });
-    setLoading(false);
-    onClose();
+        addDocumentNonBlocking(collection(firestore, 'events'), eventData);
+
+        toast({ title: 'Succès', description: 'Événement créé !' });
+        onClose();
+    } catch(error) {
+        console.error("Erreur de création d'événement:", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer l\'événement.' });
+         if (error instanceof Error && error.message.includes('permission-denied')) {
+            const permissionError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
+            errorEmitter.emit('permission-error', permissionError);
+        }
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

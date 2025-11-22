@@ -10,14 +10,13 @@ import { Star, LayoutGrid, Map, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Tutor, UserProfile } from "@/lib/types";
+import type { Tutor } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -41,54 +40,7 @@ export default function TutoringPage() {
     return collection(firestore, 'tutorings');
   }, [firestore]);
 
-  const { data: tutors, isLoading: tutorsLoading } = useCollection<Tutor>(tutorsCollection);
-
-  const [userProfiles, setUserProfiles] = useState<Record<string, UserProfile>>({});
-  const [profilesLoading, setProfilesLoading] = useState(true);
-
-  useEffect(() => {
-    if (!tutors || !firestore) return;
-
-    const fetchUserProfiles = async () => {
-        const tutorIds = [...new Set(tutors.map(tutor => tutor.tutorId).filter(id => !userProfiles[id]))];
-        if (tutorIds.length === 0) {
-            setProfilesLoading(false);
-            return;
-        }
-
-        setProfilesLoading(true);
-        const newProfiles: Record<string, UserProfile> = {};
-        const chunks = [];
-        for (let i = 0; i < tutorIds.length; i += 30) {
-            chunks.push(tutorIds.slice(i, i + 30));
-        }
-
-        try {
-            for (const chunk of chunks) {
-                if (chunk.length > 0) {
-                    const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-                    const usersSnapshot = await getDocs(usersQuery);
-                    usersSnapshot.forEach(doc => {
-                        newProfiles[doc.id] = doc.data() as UserProfile;
-                    });
-                }
-            }
-            setUserProfiles(prev => ({...prev, ...newProfiles}));
-        } catch (error) {
-             console.error("Error fetching user profiles:", error);
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'list',
-                requestResourceData: { note: `Querying users with IDs in [${tutorIds.join(', ')}]` }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } finally {
-            setProfilesLoading(false);
-        }
-    }
-
-    fetchUserProfiles();
-  }, [tutors, firestore, userProfiles]);
+  const { data: tutors, isLoading } = useCollection<Tutor>(tutorsCollection);
 
   const filteredTutors = useMemo(() => {
     if (!tutors) return [];
@@ -108,7 +60,6 @@ export default function TutoringPage() {
     router.push(`/messages?recipient=${tutorId}`);
   };
 
-  const isLoading = tutorsLoading || profilesLoading;
 
   const renderList = () => {
      if (isLoading) {
@@ -135,14 +86,13 @@ export default function TutoringPage() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTutors && filteredTutors.map(tutor => {
-              const tutorProfile = userProfiles[tutor.tutorId];
               return (
                   <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
                     <div className="flex-shrink-0">
-                      <Image src={tutorProfile?.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutorProfile?.firstName || "tuteur"} width={96} height={96} className="rounded-full" />
+                      <Image src={tutor.tutorAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.tutorUsername || "tuteur"} width={96} height={96} className="rounded-full" />
                     </div>
                     <div className="flex flex-col flex-grow mt-4">
-                      <h3 className="text-xl font-bold">{tutorProfile?.firstName || 'Utilisateur'}</h3>
+                      <h3 className="text-xl font-bold">{tutor.tutorUsername || 'Utilisateur'}</h3>
                       <p className="text-sm text-muted-foreground">{tutor.level}</p>
                       <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
                       <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">

@@ -2,7 +2,7 @@
 'use client';
 
 import Image from "next/image";
-import type { Housing, UserProfile } from "@/lib/types";
+import type { Housing } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface HousingCardProps {
     housing: Housing;
-    owner?: UserProfile;
     onEdit: (housing: Housing) => void;
     onClick: (housing: Housing) => void;
 }
 
-export default function HousingCard({ housing, owner, onEdit, onClick }: HousingCardProps) {
+export default function HousingCard({ housing, onEdit, onClick }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -109,20 +108,11 @@ export default function HousingCard({ housing, owner, onEdit, onClick }: Housing
             </div>
             <CardContent className="p-4 flex flex-col flex-grow">
                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {owner ? (
-                        <>
-                            <Avatar className="h-6 w-6">
-                                <AvatarImage src={owner.profilePicture} alt={owner.firstName} />
-                                <AvatarFallback>{getInitials(owner.firstName)}</AvatarFallback>
-                            </Avatar>
-                            <span>{owner.firstName} {owner.lastName}</span>
-                        </>
-                    ) : (
-                       <>
-                         <UserIcon className="h-4 w-4" />
-                         <span>Propriétaire</span>
-                       </>
-                    )}
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={housing.ownerAvatarUrl} alt={housing.ownerUsername} />
+                        <AvatarFallback>{getInitials(housing.ownerUsername)}</AvatarFallback>
+                    </Avatar>
+                    <span>{housing.ownerUsername}</span>
                  </div>
                 <h3 className="text-lg font-semibold leading-tight truncate mt-2">{housing.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1 flex items-center">

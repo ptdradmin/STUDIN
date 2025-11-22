@@ -11,9 +11,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { UserProfile } from '@/lib/types';
+import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const tutorSchema = z.object({
   subject: z.string().min(1, 'La matière est requise'),
@@ -39,27 +41,46 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
   const { user } = useAuth();
   const firestore = useFirestore();
 
-  const onSubmit: SubmitHandler<TutorFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<TutorFormInputs> = async (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
     setLoading(true);
     
-    const tutorData = {
-        ...data,
-        tutorId: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        rating: 0,
-        coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
-    };
+    try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+            throw new Error("Profil utilisateur introuvable.");
+        }
+        const userProfile = userDocSnap.data() as UserProfile;
 
-    addDocumentNonBlocking(collection(firestore, 'tutorings'), tutorData);
-    
-    toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
-    setLoading(false);
-    onClose();
+        const tutorData = {
+            ...data,
+            tutorId: user.uid,
+            tutorUsername: userProfile.username,
+            tutorAvatarUrl: userProfile.profilePicture,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            rating: 0,
+            coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
+        };
+
+        addDocumentNonBlocking(collection(firestore, 'tutorings'), tutorData);
+        
+        toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
+        onClose();
+    } catch (error) {
+        console.error("Erreur de création de profil de tuteur:", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer le profil.' });
+        if (error instanceof Error && error.message.includes('permission-denied')) {
+            const permissionError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
+            errorEmitter.emit('permission-error', permissionError);
+        }
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

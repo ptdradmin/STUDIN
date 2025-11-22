@@ -8,14 +8,13 @@ import { LayoutGrid, Map, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Housing, UserProfile } from '@/lib/types';
+import type { Housing } from '@/lib/types';
 import CreateHousingForm from '@/components/create-housing-form';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import HousingDetailModal from '@/components/housing-detail-modal';
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -40,54 +39,7 @@ export default function HousingPage() {
     return collection(firestore, 'housings');
   }, [firestore]);
 
-  const { data: housings, isLoading: housingsLoading } = useCollection<Housing>(housingsCollection);
-
-  const [userProfiles, setUserProfiles] = useState<Record<string, UserProfile>>({});
-  const [profilesLoading, setProfilesLoading] = useState(true);
-
-  useEffect(() => {
-    if (!housings || !firestore) return;
-
-    const fetchUserProfiles = async () => {
-        const ownerIds = [...new Set(housings.map(h => h.userId).filter(id => !userProfiles[id]))];
-        if (ownerIds.length === 0) {
-            setProfilesLoading(false);
-            return;
-        }
-
-        setProfilesLoading(true);
-        const newProfiles: Record<string, UserProfile> = {};
-        const chunks = [];
-        for (let i = 0; i < ownerIds.length; i += 30) {
-            chunks.push(ownerIds.slice(i, i + 30));
-        }
-        
-        try {
-          for (const chunk of chunks) {
-              if (chunk.length > 0) {
-                  const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-                  const usersSnapshot = await getDocs(usersQuery);
-                  usersSnapshot.forEach(doc => {
-                      newProfiles[doc.id] = doc.data() as UserProfile;
-                  });
-              }
-          }
-          setUserProfiles(prev => ({...prev, ...newProfiles}));
-        } catch(error) {
-            console.error("Error fetching user profiles:", error);
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'list',
-                requestResourceData: { note: `Querying users with IDs in [${ownerIds.join(', ')}]` }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } finally {
-            setProfilesLoading(false);
-        }
-    };
-
-    fetchUserProfiles();
-  }, [housings, firestore, userProfiles]);
+  const { data: housings, isLoading } = useCollection<Housing>(housingsCollection);
 
   const filteredHousings = useMemo(() => {
     if (!housings) return [];
@@ -117,8 +69,6 @@ export default function HousingPage() {
   const handleCardClick = (housing: Housing) => {
     setSelectedHousing(housing);
   }
-
-  const isLoading = housingsLoading || profilesLoading;
 
   return (
     <>
@@ -185,7 +135,6 @@ export default function HousingPage() {
           {viewMode === 'grid' && (
             <HousingListings 
                 housings={filteredHousings} 
-                profiles={userProfiles}
                 isLoading={isLoading} 
                 onEdit={handleEdit}
                 onCardClick={handleCardClick}

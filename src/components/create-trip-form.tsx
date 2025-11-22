@@ -11,8 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { UserProfile } from '@/lib/types';
+import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const tripSchema = z.object({
   departureCity: z.string().min(1, 'La ville de départ est requise'),
@@ -43,28 +45,47 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
   const { user } = useAuth();
   const firestore = useFirestore();
 
-  const onSubmit: SubmitHandler<TripFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<TripFormInputs> = async (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour proposer un trajet.' });
       return;
     }
     setLoading(true);
 
-    const tripData = {
-        ...data,
-        driverId: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        departureAddress: data.departureCity, // simplified
-        arrivalAddress: data.arrivalCity, // simplified
-        coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
-    };
-    
-    addDocumentNonBlocking(collection(firestore, 'carpoolings'), tripData);
+    try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+            throw new Error("Profil utilisateur introuvable.");
+        }
+        const userProfile = userDocSnap.data() as UserProfile;
 
-    toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
-    setLoading(false);
-    onClose();
+        const tripData = {
+            ...data,
+            driverId: user.uid,
+            driverUsername: userProfile.username,
+            driverAvatarUrl: userProfile.profilePicture,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            departureAddress: data.departureCity, // simplified
+            arrivalAddress: data.arrivalCity, // simplified
+            coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
+        };
+        
+        addDocumentNonBlocking(collection(firestore, 'carpoolings'), tripData);
+
+        toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
+        onClose();
+    } catch(error) {
+        console.error("Erreur de création de trajet:", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer le trajet.' });
+         if (error instanceof Error && error.message.includes('permission-denied')) {
+            const permissionError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
+            errorEmitter.emit('permission-error', permissionError);
+        }
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

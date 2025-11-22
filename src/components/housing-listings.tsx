@@ -1,20 +1,19 @@
 
 "use client";
 
-import type { Housing, UserProfile } from '@/lib/types';
+import type { Housing } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import HousingCard from './housing-card';
 import { Skeleton } from './ui/skeleton';
 
 interface HousingListingsProps {
     housings: Housing[];
-    profiles: Record<string, UserProfile>;
     isLoading: boolean;
     onEdit: (housing: Housing) => void;
     onCardClick: (housing: Housing) => void;
 }
 
-export default function HousingListings({ housings, profiles, isLoading, onEdit, onCardClick }: HousingListingsProps) {
+export default function HousingListings({ housings, isLoading, onEdit, onCardClick }: HousingListingsProps) {
   
   if (isLoading) {
     return (
@@ -44,8 +43,7 @@ export default function HousingListings({ housings, profiles, isLoading, onEdit,
                 {housings.map(housing => (
                     <HousingCard 
                         key={housing.id} 
-                        housing={housing} 
-                        owner={profiles[housing.userId]} 
+                        housing={housing}
                         onEdit={onEdit} 
                         onClick={onCardClick} 
                     />

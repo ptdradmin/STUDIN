@@ -8,18 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Users, LayoutGrid, Map, Plus, Star } from "lucide-react";
 import Image from "next/image";
-import { Trip, UserProfile } from "@/lib/types";
+import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
+import { collection, serverTimestamp } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -73,54 +71,7 @@ export default function CarpoolingPage() {
     return collection(firestore, 'carpoolings');
   }, [firestore]);
 
-  const {data: trips, isLoading: tripsLoading} = useCollection<Trip>(tripsCollection);
-  
-  const [userProfiles, setUserProfiles] = useState<Record<string, UserProfile>>({});
-  const [profilesLoading, setProfilesLoading] = useState(true);
-
-  useEffect(() => {
-    if (!trips || !firestore) return;
-
-    const fetchUserProfiles = async () => {
-        const driverIds = [...new Set(trips.map(trip => trip.driverId).filter(id => !userProfiles[id]))];
-        if (driverIds.length === 0) {
-            setProfilesLoading(false);
-            return;
-        }
-
-        setProfilesLoading(true);
-        const newProfiles: Record<string, UserProfile> = {};
-        const chunks = [];
-        for (let i = 0; i < driverIds.length; i += 30) {
-            chunks.push(driverIds.slice(i, i + 30));
-        }
-
-        try {
-            for (const chunk of chunks) {
-                if (chunk.length > 0) {
-                    const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-                    const usersSnapshot = await getDocs(usersQuery);
-                    usersSnapshot.forEach(doc => {
-                        newProfiles[doc.id] = doc.data() as UserProfile;
-                    });
-                }
-            }
-            setUserProfiles(prev => ({...prev, ...newProfiles}));
-        } catch (error) {
-            console.error("Error fetching user profiles:", error);
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'list',
-                requestResourceData: { note: `Querying users with IDs in [${driverIds.join(', ')}]` }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } finally {
-            setProfilesLoading(false);
-        }
-    }
-
-    fetchUserProfiles();
-  }, [trips, firestore, userProfiles]);
+  const {data: trips, isLoading } = useCollection<Trip>(tripsCollection);
 
   const filteredTrips = useMemo(() => {
     if (!trips) return [];
@@ -164,8 +115,6 @@ export default function CarpoolingPage() {
     });
      router.push(`/messages?recipient=${trip.driverId}`);
   };
-  
-  const isLoading = tripsLoading || profilesLoading;
 
   return (
     <>
@@ -228,15 +177,14 @@ export default function CarpoolingPage() {
                    <div className="space-y-4">
                       {isLoading && <TripListSkeleton />}
                       {!isLoading && filteredTrips.map(trip => {
-                        const driver = userProfiles[trip.driverId];
                         return (
                           <Card key={trip.id} className="transition-shadow hover:shadow-md">
                               <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                   <div className="flex items-center gap-3">
-                                      <Image src={driver?.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={driver?.firstName || "conducteur"} width={48} height={48} className="rounded-full" />
+                                      <Image src={trip.driverAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.driverUsername || "conducteur"} width={48} height={48} className="rounded-full" />
                                   </div>
                                   <div className="hidden sm:flex flex-col items-center">
-                                      <p className="font-semibold text-sm">{driver?.firstName || 'Utilisateur'}</p>
+                                      <p className="font-semibold text-sm">{trip.driverUsername || 'Utilisateur'}</p>
                                       <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
                                   </div>
                                   <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
