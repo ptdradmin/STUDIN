@@ -23,18 +23,18 @@ import { useState } from 'react';
 const StatCard = ({ title, value, icon, href, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, isLoading: boolean }) => {
     return (
         <Link href={href} className="block group">
-            <Card className="transition-all duration-300 hover:shadow-lg">
-                <CardContent className="p-4">
-                    <div className="flex flex-col h-full">
-                        <div className="flex-shrink-0 text-muted-foreground">{icon}</div>
-                        <div className="mt-4 flex-grow">
-                             {isLoading ? (
-                                <Skeleton className="h-9 w-12" />
-                            ) : (
-                                <p className="text-3xl font-bold">{value}</p>
-                            )}
-                            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        </div>
+            <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <CardContent className="p-4 flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-lg text-primary">
+                        {icon}
+                    </div>
+                    <div className="flex flex-col">
+                         {isLoading ? (
+                            <Skeleton className="h-8 w-12 mb-1" />
+                        ) : (
+                            <p className="text-2xl font-bold">{value}</p>
+                        )}
+                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
                     </div>
                 </CardContent>
             </Card>

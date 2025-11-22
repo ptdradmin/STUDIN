@@ -71,7 +71,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
     }
 
   return (
-      <div className="flex min-h-screen w-full bg-background text-foreground">
+      <div className="flex min-h-screen w-full bg-muted/40">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-sidebar-background p-3 transition-all">
           <Link href="/social" className="mb-8 px-2 pt-3 flex items-center gap-3">
