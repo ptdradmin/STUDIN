@@ -188,13 +188,10 @@ export default function RegisterForm() {
         const displayName = `${data.firstName} ${data.lastName}`;
         const photoURL = `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`;
 
-        // CRITICAL: Wait for profile update to complete before proceeding
         await updateProfile(user, { displayName, photoURL });
         
-        // CRITICAL: Force a token refresh to get the latest user data including displayName
         await user.reload();
 
-        // Now that auth profile is updated and synced, create the Firestore document
         await createUserDocument(user, {
             firstName: data.firstName,
             lastName: data.lastName,
