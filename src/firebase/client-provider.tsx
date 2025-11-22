@@ -23,18 +23,28 @@ interface FirebaseServices {
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // This effect runs only once on the client
     if (typeof window !== 'undefined') {
-      const { firebaseApp, auth, firestore, storage } = initializeFirebase();
-      setFirebaseServices({ app: firebaseApp, auth, firestore, storage });
+      try {
+        const { firebaseApp, auth, firestore, storage } = initializeFirebase();
+        setFirebaseServices({ app: firebaseApp, auth, firestore, storage });
+      } catch (error) {
+        console.error("Firebase initialization failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   }, []);
 
-  if (!firebaseServices) {
+  if (isLoading || !firebaseServices) {
+    // Show a skeleton loader while Firebase is initializing
     return <PageSkeleton />;
   }
 
+  // Once initialized, provide the services to the rest of the app
   return (
     <FirebaseProvider
       firebaseApp={firebaseServices.app}
