@@ -1,87 +1,98 @@
 
 'use client';
 
-import PostCard from "@/components/post-card";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { collection, orderBy, query, limit } from 'firebase/firestore';
-import type { Post, UserProfile } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { collection, query, where } from 'firebase/firestore';
+import type { Housing, Trip, Tutor, Event } from '@/lib/types';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { Skeleton } from "@/components/ui/skeleton";
+import { GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
+import { doc } from "firebase/firestore";
 
-const UsersTraySkeleton = () => (
-  <div className="w-full py-4 overflow-hidden">
-      <div className="flex space-x-4">
-        {Array.from({length: 7}).map((_, i) => (
-          <div key={i} className="flex flex-col items-center space-y-1 flex-shrink-0">
-            <Skeleton className="h-16 w-16 rounded-full" />
-            <Skeleton className="h-3 w-12 rounded-sm" />
-          </div>
-        ))}
-      </div>
-  </div>
-);
-
-
-const UsersTray = ({ users }: { users: UserProfile[] }) => {
-  if (!users || users.length === 0) {
-    return <UsersTraySkeleton />;
-  }
-
-  return (
-    <div className="w-full py-4 overflow-hidden border-b border-border">
-      <div className="flex space-x-4">
-        {users.map((user) => (
-          <div key={user.id} className="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer group">
-            <div className="relative">
-              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500"></div>
-              <Avatar className="h-16 w-16 border-2 border-background relative">
-                <AvatarImage src={user.profilePicture} />
-                <AvatarFallback>{user.firstName ? user.firstName.substring(0, 2).toUpperCase() : '??'}</AvatarFallback>
-              </Avatar>
-            </div>
-            <span className="text-xs truncate w-16 text-center">{user.firstName}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+const StatCard = ({ title, value, icon, isLoading }: { title: string, value: number, icon: React.ReactNode, isLoading: boolean }) => {
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <div className="text-muted-foreground">{icon}</div>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                    <div className="h-9 w-12 bg-muted rounded animate-pulse" />
+                ) : (
+                    <div className="text-2xl font-bold">{value}</div>
+                )}
+            </CardContent>
+        </Card>
+    )
 }
 
 export default function SocialPageContent() {
     const firestore = useFirestore();
+    const { user, isUserLoading } = useUser();
     
-    const postsQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'posts'), orderBy('createdAt', 'desc')), [firestore]);
-    const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile, isLoading: profileLoading } = useDoc(userProfileRef);
 
-    const usersQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'users'), limit(10)), [firestore]);
-    const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
+    const housingsQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'housings'), where('isAvailable', '==', true)), [firestore]);
+    const { data: housings, isLoading: housingsLoading } = useCollection<Housing>(housingsQuery);
+
+    const tripsQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'carpoolings'), where('seatsAvailable', '>', 0)), [firestore]);
+    const { data: trips, isLoading: tripsLoading } = useCollection<Trip>(tripsQuery);
     
-    const isLoading = postsLoading || usersLoading;
+    const tutorsQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'tutorings')), [firestore]);
+    const { data: tutors, isLoading: tutorsLoading } = useCollection<Tutor>(tutorsQuery);
+
+    const eventsQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'events')), [firestore]);
+    const { data: events, isLoading: eventsLoading } = useCollection<Event>(eventsQuery);
+    
+    const isLoading = isUserLoading || profileLoading || housingsLoading || tripsLoading || tutorsLoading || eventsLoading;
+
+    if (isLoading && !userProfile) {
+        return <PageSkeleton />;
+    }
 
     return (
-        <div className="flex justify-center py-8">
-            <div className="w-full max-w-[630px]">
-                <div className="flex flex-col md:flex-row md:gap-8">
-                    <div className="w-full md:max-w-[470px] mx-auto">
-                        <UsersTray users={users || []} />
-                        <div className="w-full">
-                            {isLoading && <PageSkeleton />}
-                            {!isLoading && posts && posts.map(post => (
-                                <PostCard key={post.id} post={post} />
-                            ))}
-                            {!isLoading && posts?.length === 0 && (
-                                 <div className="text-center py-20">
-                                    <h3 className="text-2xl font-semibold">Bienvenue sur Stud'in</h3>
-                                    <p className="text-muted-foreground mt-2">Commencez par suivre des gens pour voir leurs publications ici.</p>
-                                 </div>
-                             )}
-                        </div>
-                    </div>
-                    <aside className="hidden lg:block w-full max-w-xs">
-                        {/* Suggestions Sidebar can go here */}
-                    </aside>
-                </div>
+        <div className="container mx-auto py-8">
+            <div className="space-y-4">
+                 <h1 className="text-3xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || '👋'}</h1>
+                 <p className="text-muted-foreground">Voici un aperçu de l'activité sur la plateforme.</p>
+
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-6">
+                    <StatCard 
+                        title="Sessions de tutorat actives" 
+                        value={tutors?.length ?? 0}
+                        icon={<GraduationCap className="h-5 w-5" />}
+                        isLoading={isLoading}
+                    />
+                    <StatCard 
+                        title="Trajets disponibles" 
+                        value={trips?.length ?? 0}
+                        icon={<Car className="h-5 w-5" />}
+                        isLoading={isLoading}
+                    />
+                    <StatCard 
+                        title="Logements disponibles" 
+                        value={housings?.length ?? 0}
+                        icon={<Bed className="h-5 w-5" />}
+                        isLoading={isLoading}
+                    />
+                    <StatCard 
+                        title="Événements à venir" 
+                        value={events?.length ?? 0}
+                        icon={<PartyPopper className="h-5 w-5" />}
+                        isLoading={isLoading}
+                    />
+                 </div>
+            </div>
+             <div className="mt-12">
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Accès rapide</h2>
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    {/* Placeholder for quick access cards */}
+                 </div>
             </div>
         </div>
     );
