@@ -1,19 +1,33 @@
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, LayoutGrid, Map } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { getEvents, Event } from "@/lib/mock-data";
+import dynamic from 'next/dynamic';
+
+const MapView = dynamic(() => import('@/components/map-view'), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
+});
 
 
-export default async function EventsPage() {
-  const mockEvents: Event[] = await getEvents();
+export default function EventsPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+
+  useEffect(() => {
+    getEvents().then(setEvents);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -66,26 +80,57 @@ export default async function EventsPage() {
               </Card>
 
               <div className="mt-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-4">Événements à venir</h2>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {mockEvents.map(event => (
-                        <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
-                            <div className="relative">
-                                <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
-                                <Badge className="absolute top-2 right-2">{event.category}</Badge>
-                            </div>
-                            <CardContent className="p-4 flex flex-col flex-grow">
-                                <p className="font-semibold text-primary">{event.date}</p>
-                                <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
-                                <p className="text-sm text-muted-foreground flex items-center mt-2">
-                                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                                    {event.location}
-                                </p>
-                                <Button className="w-full mt-4">Voir les détails</Button>
-                            </CardContent>
-                        </Card>
-                    ))}
-                 </div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold tracking-tight">Événements à venir</h2>
+                   <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                    <Button
+                      variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                      className="px-3"
+                    >
+                      <LayoutGrid className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('map')}
+                      className="px-3"
+                    >
+                      <Map className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {viewMode === 'list' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {events.map(event => (
+                          <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
+                              <div className="relative">
+                                  <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
+                                  <Badge className="absolute top-2 right-2">{event.category}</Badge>
+                              </div>
+                              <CardContent className="p-4 flex flex-col flex-grow">
+                                  <p className="font-semibold text-primary">{event.date}</p>
+                                  <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
+                                  <p className="text-sm text-muted-foreground flex items-center mt-2">
+                                      <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                                      {event.location}
+                                  </p>
+                                  <Button className="w-full mt-4">Voir les détails</Button>
+                              </CardContent>
+                          </Card>
+                      ))}
+                  </div>
+                ) : (
+                   <Card>
+                    <CardContent className="p-2">
+                      <div className="h-[600px] w-full rounded-md overflow-hidden">
+                          <MapView items={events} itemType="event" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
           </div>
         </main>

@@ -1,18 +1,31 @@
 
+'use client';
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map } from "lucide-react";
 import Image from "next/image";
 import { getTrips, Trip } from "@/lib/mock-data";
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(() => import('@/components/map-view'), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
+});
 
 
-export default async function CarpoolingPage() {
-  const mockTrips: Trip[] = await getTrips();
+export default function CarpoolingPage() {
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+
+  useState(() => {
+    getTrips().then(setTrips);
+  });
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -51,55 +64,86 @@ export default async function CarpoolingPage() {
               </Card>
 
               <div className="mt-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-4">Trajets disponibles</h2>
-                 <div className="space-y-4">
-                    {mockTrips.map(trip => (
-                        <Card key={trip.id} className="transition-shadow hover:shadow-md">
-                            <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                                <div className="flex items-center gap-3">
-                                    <Image src={trip.avatar} alt={trip.driver} width={48} height={48} className="rounded-full" />
-                                    <p className="font-semibold sm:hidden">{trip.driver}</p>
-                                </div>
-                                <div className="hidden sm:flex flex-col items-center">
-                                    <p className="font-semibold">{trip.driver}</p>
-                                    <p className="text-xs text-muted-foreground">⭐ 4.9</p>
-                                </div>
-                                <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin className="h-5 w-5 text-primary"/>
-                                        <div>
-                                            <p className="font-medium text-sm text-muted-foreground">Départ</p>
-                                            <p className="font-semibold">{trip.departure}</p>
-                                        </div>
-                                    </div>
-                                     <div className="flex items-center gap-2">
-                                        <MapPin className="h-5 w-5 text-secondary"/>
-                                        <div>
-                                            <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
-                                            <p className="font-semibold">{trip.arrival}</p>
-                                        </div>
-                                    </div>
-                                    <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
-                                        <div className="text-center">
-                                            <p className="font-medium text-sm text-muted-foreground">{trip.date}</p>
-                                            <p className="font-semibold">{trip.time}</p>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-muted-foreground">
-                                          <Users className="h-4 w-4" />
-                                          <span className="font-medium text-sm">{trip.seats}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
+                  <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                    <Button
+                      variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('list')}
+                      className="px-3"
+                    >
+                      <LayoutGrid className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('map')}
+                      className="px-3"
+                    >
+                      <Map className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
 
-                                <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
-                                    <p className="text-xl font-bold">{trip.price}</p>
-                                    <Button size="sm">Réserver</Button>
-                                </div>
+                {viewMode === 'list' ? (
+                   <div className="space-y-4">
+                      {trips.map(trip => (
+                          <Card key={trip.id} className="transition-shadow hover:shadow-md">
+                              <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                  <div className="flex items-center gap-3">
+                                      <Image src={trip.avatar} alt={trip.driver} width={48} height={48} className="rounded-full" />
+                                      <p className="font-semibold sm:hidden">{trip.driver}</p>
+                                  </div>
+                                  <div className="hidden sm:flex flex-col items-center">
+                                      <p className="font-semibold">{trip.driver}</p>
+                                      <p className="text-xs text-muted-foreground">⭐ 4.9</p>
+                                  </div>
+                                  <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
+                                      <div className="flex items-center gap-2">
+                                          <MapPin className="h-5 w-5 text-primary"/>
+                                          <div>
+                                              <p className="font-medium text-sm text-muted-foreground">Départ</p>
+                                              <p className="font-semibold">{trip.departure}</p>
+                                          </div>
+                                      </div>
+                                       <div className="flex items-center gap-2">
+                                          <MapPin className="h-5 w-5 text-secondary"/>
+                                          <div>
+                                              <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
+                                              <p className="font-semibold">{trip.arrival}</p>
+                                          </div>
+                                      </div>
+                                      <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+                                          <div className="text-center">
+                                              <p className="font-medium text-sm text-muted-foreground">{trip.date}</p>
+                                              <p className="font-semibold">{trip.time}</p>
+                                          </div>
+                                          <div className="flex items-center gap-1 text-muted-foreground">
+                                            <Users className="h-4 w-4" />
+                                            <span className="font-medium text-sm">{trip.seats}</span>
+                                          </div>
+                                      </div>
+                                  </div>
 
-                            </CardContent>
-                        </Card>
-                    ))}
-                 </div>
+                                  <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+                                      <p className="text-xl font-bold">{trip.price}</p>
+                                      <Button size="sm">Réserver</Button>
+                                  </div>
+
+                              </CardContent>
+                          </Card>
+                      ))}
+                   </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-2">
+                      <div className="h-[600px] w-full rounded-md overflow-hidden">
+                          <MapView items={trips} itemType="trip" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
           </div>
         </main>
