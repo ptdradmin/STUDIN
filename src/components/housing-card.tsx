@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bed, Home, MapPin, MoreHorizontal } from "lucide-react";
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -16,7 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 interface HousingCardProps {
     housing: Housing;
@@ -33,13 +32,9 @@ export default function HousingCard({ housing, onEdit }: HousingCardProps) {
     const handleDelete = async () => {
         if (!firestore || !isOwner) return;
         if (window.confirm("Êtes-vous sûr de vouloir supprimer cette annonce ?")) {
-            try {
-                deleteDocumentNonBlocking(doc(firestore, "housings", housing.id));
-                toast({ title: "Succès", description: "Annonce supprimée." });
-            } catch (error) {
-                console.error("Error deleting housing: ", error);
-                toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer l'annonce." });
-            }
+            const housingRef = doc(firestore, "housings", housing.id);
+            deleteDocumentNonBlocking(housingRef);
+            toast({ title: "Succès", description: "Annonce supprimée." });
         }
     };
 

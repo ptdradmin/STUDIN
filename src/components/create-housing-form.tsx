@@ -10,14 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -41,13 +40,17 @@ interface CreateHousingFormProps {
 export default function CreateHousingForm({ onClose, housingToEdit }: CreateHousingFormProps) {
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<HousingFormInputs>({
     resolver: zodResolver(housingSchema),
-  });
-  
-  useEffect(() => {
-    if (housingToEdit) {
-      reset(housingToEdit);
-    } else {
-      reset({
+    defaultValues: housingToEdit ? {
+        title: housingToEdit.title,
+        description: housingToEdit.description,
+        type: housingToEdit.type,
+        price: housingToEdit.price,
+        address: housingToEdit.address,
+        city: housingToEdit.city,
+        bedrooms: housingToEdit.bedrooms,
+        surface_area: housingToEdit.surface_area,
+        imageUrl: housingToEdit.imageUrl,
+    } : {
         title: '',
         description: '',
         price: 0,
@@ -56,7 +59,14 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
         bedrooms: 1,
         surface_area: 0,
         imageUrl: '',
-        type: undefined
+    }
+  });
+  
+  useEffect(() => {
+    if (housingToEdit) {
+      reset({
+          ...housingToEdit,
+          type: housingToEdit.type || undefined,
       });
     }
   }, [housingToEdit, reset]);
@@ -75,13 +85,13 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     setLoading(true);
     
     try {
-      if (isEditing) {
-        if (!housingToEdit) return;
+      if (isEditing && housingToEdit) {
         const housingRef = doc(firestore, 'housings', housingToEdit.id);
         const dataToUpdate = { ...data, updatedAt: serverTimestamp() };
         updateDocumentNonBlocking(housingRef, dataToUpdate);
         toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
       } else {
+        const housingsCollection = collection(firestore, 'housings');
         const dataToCreate = {
           ...data,
           userId: user.uid,
@@ -90,12 +100,12 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           coordinates: [50.8503, 4.3517], // TODO: Geocode address
           imageHint: "student room"
         };
-        addDocumentNonBlocking(collection(firestore, 'housings'), dataToCreate);
+        addDocumentNonBlocking(housingsCollection, dataToCreate);
         toast({ title: 'Succès', description: 'Annonce de logement créée !' });
       }
       onClose();
     } catch (error) {
-      console.error(error);
+      console.error("Form submission error:", error);
       const contextualError = new FirestorePermissionError({
         path: isEditing && housingToEdit ? `housings/${housingToEdit.id}` : 'housings',
         operation: isEditing ? 'update' : 'create',

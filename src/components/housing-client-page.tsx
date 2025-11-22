@@ -41,11 +41,16 @@ export default function HousingClientPage() {
     setEditingHousing(null);
   };
 
+  const handleCreateClick = () => {
+    setEditingHousing(null);
+    setShowCreateForm(true);
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         {user && (
-          <Button onClick={() => setShowCreateForm(true)}>
+          <Button onClick={handleCreateClick}>
             <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
           </Button>
         )}
