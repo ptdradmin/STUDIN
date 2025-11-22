@@ -2,18 +2,22 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, doc } from 'firebase/firestore';
 import type { Housing, Trip, Tutor, Event } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { GraduationCap, Car, Bed, PartyPopper, PlusSquare, Plus } from "lucide-react";
-import { doc } from "firebase/firestore";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
-import CreatePostForm from "@/components/create-post-form";
+import { GraduationCap, Car, Bed, PartyPopper, Plus, PlusSquare } from "lucide-react";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from 'react';
+import CreatePostForm from '@/components/create-post-form';
 
 const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
@@ -71,11 +75,13 @@ export default function SocialPageContent() {
         <>
             {showCreatePostForm && <CreatePostForm onClose={() => setShowCreatePostForm(false)} />}
             <div className="container mx-auto py-8">
-                <div className="space-y-4">
-                     <h1 className="text-3xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || '👋'}</h1>
-                     <p className="text-muted-foreground">Voici un aperçu de l'activité sur la plateforme.</p>
+                <div className="flex flex-col space-y-8">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || '👋'}</h1>
+                        <p className="text-muted-foreground">Voici un aperçu de l'activité sur la plateforme.</p>
+                    </div>
 
-                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-6">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <StatCard 
                             title="Tutorat" 
                             value={tutors?.length ?? 0}
@@ -108,33 +114,34 @@ export default function SocialPageContent() {
                             href="/events"
                             className="bg-gradient-to-br from-purple-400 to-purple-600 text-white"
                         />
-                     </div>
-                </div>
-                 <div className="mt-12">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-bold tracking-tight">Accès rapide</h2>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Créer
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => setShowCreatePostForm(true)}>
-                                    <PlusSquare className="mr-2 h-4 w-4" />
-                                    <span>Publication</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/housing"><Bed className="mr-2 h-4 w-4" /><span>Annonce de logement</span></Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/carpooling"><Car className="mr-2 h-4 w-4" /><span>Offre de covoiturage</span></Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/tutoring"><GraduationCap className="mr-2 h-4 w-4" /><span>Offre de tutorat</span></Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href="/events"><PartyPopper className="mr-2 h-4 w-4" /><span>Événement</span></Link></DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </div>
-                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        {/* Placeholder for quick access cards */}
-                     </div>
+                
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-2xl font-bold tracking-tight">Accès rapide</h2>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Créer
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => setShowCreatePostForm(true)}>
+                                        <PlusSquare className="mr-2 h-4 w-4" />
+                                        <span>Publication</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/housing"><Bed className="mr-2 h-4 w-4" /><span>Annonce de logement</span></Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/carpooling"><Car className="mr-2 h-4 w-4" /><span>Offre de covoiturage</span></Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/tutoring"><GraduationCap className="mr-2 h-4 w-4" /><span>Offre de tutorat</span></Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/events"><PartyPopper className="mr-2 h-4 w-4" /><span>Événement</span></Link></DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            {/* Placeholder for quick access cards */}
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
