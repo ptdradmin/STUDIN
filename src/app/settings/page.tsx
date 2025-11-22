@@ -44,8 +44,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
 
 const SettingsItem = ({
   icon,
@@ -75,31 +73,16 @@ const SettingsItem = ({
 const SettingsLink = ({
   title,
   href = "#",
-  disabled = false,
 }: {
   title:string;
   href?: string;
-  disabled?: boolean;
 }) => {
   const content = (
-    <div className={`flex items-center justify-between py-4 -mx-6 px-6 rounded-md ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-muted/50 cursor-pointer'}`}>
+    <div className={`flex items-center justify-between py-4 -mx-6 px-6 rounded-md hover:bg-muted/50 cursor-pointer`}>
         <p className="font-medium">{title}</p>
         <ChevronRight className="h-5 w-5 text-muted-foreground" />
     </div>
   );
-
-  if (disabled) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger className="w-full text-left">{content}</TooltipTrigger>
-          <TooltipContent>
-            <p>Bientôt disponible</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    )
-  }
 
   return (
     <Link href={href} className="block">
