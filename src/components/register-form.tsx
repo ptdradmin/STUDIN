@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, OAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -35,6 +35,15 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const MicrosoftIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg width="21" height="21" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M1 1H10V10H1V1Z" fill="#f25022"/>
+        <path d="M11 1H20V10H11V1Z" fill="#7fba00"/>
+        <path d="M1 11H10V20H1V11Z" fill="#00a4ef"/>
+        <path d="M11 11H20V20H11V11Z" fill="#ffb900"/>
+    </svg>
+);
+
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -48,7 +57,7 @@ export default function RegisterForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
@@ -108,7 +117,7 @@ export default function RegisterForm() {
 
   const handleGoogleSignIn = async () => {
     if (!auth || !firestore) return;
-    setLoading(true);
+    setLoading('google');
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -117,9 +126,24 @@ export default function RegisterForm() {
     } catch (error: any) {
       handleError(error);
     } finally {
-      setLoading(false);
+      setLoading('');
     }
   };
+
+  const handleMicrosoftSignIn = async () => {
+    if (!auth || !firestore) return;
+    setLoading('microsoft');
+    const provider = new OAuthProvider('microsoft.com');
+    try {
+        const result = await signInWithPopup(auth, provider);
+        await createUserDocument(result.user);
+        handleSuccess();
+    } catch (error: any) {
+        handleError(error);
+    } finally {
+        setLoading('');
+    }
+  }
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,7 +156,7 @@ export default function RegisterForm() {
         });
         return;
     }
-    setLoading(true);
+    setLoading('email');
     
     if (!auth || !firestore) {
         toast({
@@ -140,7 +164,7 @@ export default function RegisterForm() {
             title: "Erreur",
             description: "Le service d'authentification n'est pas disponible.",
         });
-        setLoading(false);
+        setLoading('');
         return;
     }
 
@@ -161,7 +185,7 @@ export default function RegisterForm() {
     } catch (error: any) {
         handleError(error);
     } finally {
-        setLoading(false);
+        setLoading('');
     }
   };
 
@@ -176,10 +200,16 @@ export default function RegisterForm() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading || !servicesReady}>
-            <GoogleIcon className="mr-2 h-4 w-4" />
-            S'inscrire avec Google
-          </Button>
+           <div className="grid grid-cols-2 gap-4">
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Google
+              </Button>
+               <Button variant="outline" className="w-full" onClick={handleMicrosoftSignIn} disabled={!!loading || !servicesReady}>
+                <MicrosoftIcon className="mr-2 h-4 w-4" />
+                Microsoft
+              </Button>
+           </div>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -270,8 +300,8 @@ export default function RegisterForm() {
               <Label htmlFor="field_of_study">Domaine d'études</Label>
               <Input id="field_of_study" name="field_of_study" placeholder="Ex: Informatique, Droit, Médecine..." onChange={handleChange} disabled={!servicesReady} />
             </div>
-            <Button type="submit" className="w-full" disabled={loading || !passwordsMatch || !formData.password || !servicesReady}>
-              {loading ? 'Inscription en cours...' : "S'inscrire"}
+            <Button type="submit" className="w-full" disabled={!!loading || !passwordsMatch || !formData.password || !servicesReady}>
+              {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
             </Button>
           </form>
         </div>
@@ -287,3 +317,5 @@ export default function RegisterForm() {
     </Card>
   );
 }
+
+    
