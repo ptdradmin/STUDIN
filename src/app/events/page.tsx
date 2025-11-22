@@ -5,8 +5,41 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+
+
+const mockEvents = [
+    {
+        id: 1,
+        title: "Soirée d'intégration BDE Info",
+        category: "Soirée",
+        date: "25 Octobre",
+        location: "Salons de l'ULB",
+        imageUrl: "https://picsum.photos/seed/event1/600/400",
+        imageHint: "party people"
+    },
+    {
+        id: 2,
+        title: "Conférence sur l'IA",
+        category: "Conférence",
+        date: "28 Octobre",
+        location: "UNamur - Auditoire Pedro A.",
+        imageUrl: "https://picsum.photos/seed/event2/600/400",
+        imageHint: "conference stage"
+    },
+    {
+        id: 3,
+        title: "Tournoi de foot inter-facs",
+        category: "Sport",
+        date: "02 Novembre",
+        location: "Centre Sportif de Louvain-la-Neuve",
+        imageUrl: "https://picsum.photos/seed/event3/600/400",
+        imageHint: "soccer game"
+    }
+]
 
 export default function EventsPage() {
   return (
@@ -61,13 +94,25 @@ export default function EventsPage() {
 
               <div className="mt-8">
                 <h2 className="text-2xl font-bold tracking-tight mb-4">Événements à venir</h2>
-                 <Card className="text-center py-20 bg-muted/40 border-dashed">
-                  <CardContent>
-                      <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mt-4">Aucun événement à venir</h3>
-                      <p className="text-muted-foreground mt-2">Revenez bientôt ou élargissez votre recherche pour découvrir les activités.</p>
-                  </CardContent>
-              </Card>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {mockEvents.map(event => (
+                        <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl">
+                            <div className="relative">
+                                <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
+                                <Badge className="absolute top-2 right-2">{event.category}</Badge>
+                            </div>
+                            <CardContent className="p-4">
+                                <p className="font-semibold text-primary">{event.date}</p>
+                                <h3 className="text-lg font-bold mt-1">{event.title}</h3>
+                                <p className="text-sm text-muted-foreground flex items-center mt-2">
+                                    <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                                    {event.location}
+                                </p>
+                                <Button className="w-full mt-4">Voir les détails</Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                 </div>
               </div>
           </div>
         </main>

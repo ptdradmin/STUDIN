@@ -5,8 +5,43 @@ import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+
+const mockTutors = [
+    {
+        id: 1,
+        name: "Léa Dubois",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=lea",
+        subject: "Mathématiques",
+        level: "Master 1",
+        university: "UCLouvain",
+        rate: "20€/h",
+        rating: 4.9,
+    },
+    {
+        id: 2,
+        name: "Hugo Lambert",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=hugo",
+        subject: "Droit Constitutionnel",
+        level: "Master 2",
+        university: "ULB",
+        rate: "25€/h",
+        rating: 5.0,
+    },
+    {
+        id: 3,
+        name: "Chloé Simon",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=chloe",
+        subject: "Chimie Organique",
+        level: "Bachelier 3",
+        university: "UNamur",
+        rate: "18€/h",
+        rating: 4.8,
+    }
+]
 
 export default function TutoringPage() {
   return (
@@ -53,13 +88,22 @@ export default function TutoringPage() {
 
                <div className="mt-8">
                 <h2 className="text-2xl font-bold tracking-tight mb-4">Tuteurs disponibles</h2>
-                 <Card className="text-center py-20 bg-muted/40 border-dashed">
-                  <CardContent>
-                      <GraduationCap className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mt-4">Aucun tuteur trouvé</h3>
-                      <p className="text-muted-foreground mt-2">Ajustez vos critères pour trouver le tuteur idéal.</p>
-                  </CardContent>
-              </Card>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {mockTutors.map(tutor => (
+                         <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
+                             <Image src={tutor.avatar} alt={tutor.name} width={96} height={96} className="rounded-full" />
+                             <h3 className="mt-4 text-xl font-bold">{tutor.name}</h3>
+                             <p className="text-sm text-muted-foreground">{tutor.level} - {tutor.university}</p>
+                             <Badge variant="secondary" className="mt-3">{tutor.subject}</Badge>
+                             <div className="flex items-center gap-1 text-yellow-500 mt-3">
+                                 <Star className="h-5 w-5 fill-current" />
+                                 <span className="font-bold text-base text-foreground">{tutor.rating}</span>
+                             </div>
+                             <p className="text-2xl font-bold text-primary mt-4">{tutor.rate}</p>
+                             <Button className="w-full mt-4">Contacter</Button>
+                         </Card>
+                    ))}
+                 </div>
               </div>
 
           </div>

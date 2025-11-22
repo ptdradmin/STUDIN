@@ -5,7 +5,34 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Car, MapPin } from "lucide-react";
+import { Car, MapPin, User, Users } from "lucide-react";
+import Image from "next/image";
+
+const mockTrips = [
+    {
+        id: 1,
+        driver: "Alexandre D.",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alex",
+        departure: "Bruxelles-Midi",
+        arrival: "Namur",
+        date: "Demain",
+        time: "08:30",
+        price: "5€",
+        seats: 2,
+    },
+    {
+        id: 2,
+        driver: "Marie L.",
+        avatar: "https://api.dicebear.com/7.x/micah/svg?seed=marie",
+        departure: "Liège-Guillemins",
+        arrival: "Louvain-la-Neuve",
+        date: "Demain",
+        time: "07:45",
+        price: "7€",
+        seats: 1,
+    }
+]
+
 
 export default function CarpoolingPage() {
   return (
@@ -45,14 +72,55 @@ export default function CarpoolingPage() {
               </Card>
 
               <div className="mt-8">
-                <h2 className="text-2xl font-bold tracking-tight mb-4">Résultats de recherche</h2>
-                 <Card className="text-center py-20 bg-muted/40 border-dashed">
-                  <CardContent>
-                      <Car className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold mt-4">Aucun trajet trouvé</h3>
-                      <p className="text-muted-foreground mt-2">Essayez d'ajuster vos filtres de recherche.</p>
-                  </CardContent>
-              </Card>
+                <h2 className="text-2xl font-bold tracking-tight mb-4">Trajets disponibles</h2>
+                 <div className="space-y-4">
+                    {mockTrips.map(trip => (
+                        <Card key={trip.id} className="transition-shadow hover:shadow-md">
+                            <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                <div className="flex items-center gap-3">
+                                    <Image src={trip.avatar} alt={trip.driver} width={48} height={48} className="rounded-full" />
+                                    <p className="font-semibold sm:hidden">{trip.driver}</p>
+                                </div>
+                                <div className="hidden sm:flex flex-col items-center">
+                                    <p className="font-semibold">{trip.driver}</p>
+                                    <p className="text-xs text-muted-foreground">⭐ 4.9</p>
+                                </div>
+                                <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="h-5 w-5 text-primary"/>
+                                        <div>
+                                            <p className="font-medium text-sm text-muted-foreground">Départ</p>
+                                            <p className="font-semibold">{trip.departure}</p>
+                                        </div>
+                                    </div>
+                                     <div className="flex items-center gap-2">
+                                        <MapPin className="h-5 w-5 text-secondary"/>
+                                        <div>
+                                            <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
+                                            <p className="font-semibold">{trip.arrival}</p>
+                                        </div>
+                                    </div>
+                                    <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+                                        <div className="text-center">
+                                            <p className="font-medium text-sm text-muted-foreground">{trip.date}</p>
+                                            <p className="font-semibold">{trip.time}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-muted-foreground">
+                                          <Users className="h-4 w-4" />
+                                          <span className="font-medium text-sm">{trip.seats}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+                                    <p className="text-xl font-bold">{trip.price}</p>
+                                    <Button size="sm">Réserver</Button>
+                                </div>
+
+                            </CardContent>
+                        </Card>
+                    ))}
+                 </div>
               </div>
           </div>
         </main>
