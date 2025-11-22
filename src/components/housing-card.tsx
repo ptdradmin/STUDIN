@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon } from "lucide-react";
-import { useUser, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
+import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -23,9 +24,10 @@ interface HousingCardProps {
     housing: Housing;
     owner?: UserProfile;
     onEdit: (housing: Housing) => void;
+    onClick: (housing: Housing) => void;
 }
 
-export default function HousingCard({ housing, owner, onEdit }: HousingCardProps) {
+export default function HousingCard({ housing, owner, onEdit, onClick }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -51,6 +53,15 @@ export default function HousingCard({ housing, owner, onEdit }: HousingCardProps
         }
     };
 
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Prevent click event from firing when interacting with dropdown or contact button
+        const target = e.target as HTMLElement;
+        if (target.closest('[data-radix-dropdown-menu-trigger]') || target.closest('button')) {
+            return;
+        }
+        onClick(housing);
+    }
+    
     const handleContact = () => {
         if (!user) {
             toast({
@@ -65,7 +76,7 @@ export default function HousingCard({ housing, owner, onEdit }: HousingCardProps
     }
 
     return (
-        <Card className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full">
+        <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer">
             <div className="relative">
                 <Image
                     src={housing.imageUrl}
@@ -137,5 +148,3 @@ export default function HousingCard({ housing, owner, onEdit }: HousingCardProps
         </Card>
     );
 }
-
-    

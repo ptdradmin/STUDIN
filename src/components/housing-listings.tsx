@@ -11,9 +11,10 @@ interface HousingListingsProps {
     profiles: Record<string, UserProfile>;
     isLoading: boolean;
     onEdit: (housing: Housing) => void;
+    onCardClick: (housing: Housing) => void;
 }
 
-export default function HousingListings({ housings, profiles, isLoading, onEdit }: HousingListingsProps) {
+export default function HousingListings({ housings, profiles, isLoading, onEdit, onCardClick }: HousingListingsProps) {
   
   if (isLoading) {
     return (
@@ -41,7 +42,13 @@ export default function HousingListings({ housings, profiles, isLoading, onEdit 
         {housings.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {housings.map(housing => (
-                    <HousingCard key={housing.id} housing={housing} owner={profiles[housing.userId]} onEdit={onEdit} />
+                    <HousingCard 
+                        key={housing.id} 
+                        housing={housing} 
+                        owner={profiles[housing.userId]} 
+                        onEdit={onEdit} 
+                        onClick={onCardClick} 
+                    />
                 ))}
             </div>
         ) : (
@@ -55,5 +62,3 @@ export default function HousingListings({ housings, profiles, isLoading, onEdit 
     </div>
   );
 }
-
-    

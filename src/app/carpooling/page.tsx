@@ -12,7 +12,8 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star } from "lucide-react";
 import Image from "next/image";
 import { Trip, UserProfile } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase, addDocumentNonBlocking } from "@/firebase";
+import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -96,11 +97,13 @@ export default function CarpoolingPage() {
         }
 
         for (const chunk of chunks) {
-            const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-            const usersSnapshot = await getDocs(usersQuery);
-            usersSnapshot.forEach(doc => {
-                newProfiles[doc.id] = doc.data() as UserProfile;
-            });
+            if (chunk.length > 0) {
+                const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
+                const usersSnapshot = await getDocs(usersQuery);
+                usersSnapshot.forEach(doc => {
+                    newProfiles[doc.id] = doc.data() as UserProfile;
+                });
+            }
         }
         
         setUserProfiles(prev => ({...prev, ...newProfiles}));
@@ -159,10 +162,10 @@ export default function CarpoolingPage() {
     <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow">
-          <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+          <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
               <div className="container mx-auto px-4 py-12 text-center">
-                  <h1 className="text-4xl font-bold">🚗 Covoiturage</h1>
-                  <p className="mt-2 text-lg opacity-90">Partagez vos trajets et économisez</p>
+                  <h1 className="text-4xl font-bold text-foreground">🚗 Covoiturage</h1>
+                  <p className="mt-2 text-lg text-muted-foreground">Partagez vos trajets et économisez</p>
               </div>
           </div>
           <div className="container mx-auto px-4 py-8">
@@ -303,5 +306,3 @@ export default function CarpoolingPage() {
     </div>
   );
 }
-
-    

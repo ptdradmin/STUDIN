@@ -65,11 +65,13 @@ export default function TutoringPage() {
         }
 
         for (const chunk of chunks) {
-            const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-            const usersSnapshot = await getDocs(usersQuery);
-            usersSnapshot.forEach(doc => {
-                newProfiles[doc.id] = doc.data() as UserProfile;
-            });
+            if (chunk.length > 0) {
+                const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
+                const usersSnapshot = await getDocs(usersQuery);
+                usersSnapshot.forEach(doc => {
+                    newProfiles[doc.id] = doc.data() as UserProfile;
+                });
+            }
         }
         
         setUserProfiles(prev => ({...prev, ...newProfiles}));
@@ -184,10 +186,10 @@ export default function TutoringPage() {
     <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow">
-          <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+          <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
               <div className="container mx-auto px-4 py-12 text-center">
-                  <h1 className="text-4xl font-bold">📚 Tutorat</h1>
-                  <p className="mt-2 text-lg opacity-90">Trouvez de l'aide ou proposez vos services</p>
+                  <h1 className="text-4xl font-bold text-foreground">📚 Tutorat</h1>
+                  <p className="mt-2 text-lg text-muted-foreground">Trouvez de l'aide ou proposez vos services</p>
               </div>
           </div>
           <div className="container mx-auto px-4 py-8">
@@ -258,5 +260,3 @@ export default function TutoringPage() {
     </div>
   );
 }
-
-    

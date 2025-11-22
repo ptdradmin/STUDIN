@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -103,7 +104,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
             {imageUrl ? (
                 <div className="relative aspect-square border-y">
-                    <Image src={imageUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
+                    <Image src={imageUrl} alt="Aperçu de l'image" fill objectFit="cover" />
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center aspect-square border-y">

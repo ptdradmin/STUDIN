@@ -154,10 +154,10 @@ export default function EventsPage() {
     <div className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-grow">
-          <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+           <div className="bg-gradient-to-br from-primary/10 via-background to-background text-primary-foreground">
               <div className="container mx-auto px-4 py-12 text-center">
-                  <h1 className="text-4xl font-bold">🎉 Événements</h1>
-                  <p className="mt-2 text-lg opacity-90">Ne manquez aucune activité étudiante</p>
+                  <h1 className="text-4xl font-bold text-foreground">🎉 Événements</h1>
+                  <p className="mt-2 text-lg text-muted-foreground">Ne manquez aucune activité étudiante</p>
               </div>
           </div>
           <div className="container mx-auto px-4 py-8">
@@ -239,5 +239,3 @@ export default function EventsPage() {
     </div>
   );
 }
-
-    

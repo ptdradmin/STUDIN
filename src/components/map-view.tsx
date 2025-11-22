@@ -10,8 +10,7 @@ import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet-routing-machine';
 import type { Housing, Trip, Event, Tutor } from '@/lib/types';
-import HousingDetailModal from './housing-detail-modal';
-import { Bed, GraduationCap, PartyPopper } from 'lucide-react';
+import { Bed, GraduationCap, PartyPopper, Car } from 'lucide-react';
 
 // Fix for default icon paths in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -22,47 +21,41 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const icons = {
-    housing: new L.Icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+const getIcon = (type: string) => {
+    let iconUrl: string;
+    switch(type) {
+        case 'housing': iconUrl = 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png'; break;
+        case 'trip': iconUrl = 'https://cdn-icons-png.flaticon.com/512/3448/3448653.png'; break;
+        case 'event': iconUrl = 'https://cdn-icons-png.flaticon.com/512/9483/9483842.png'; break;
+        case 'tutor': iconUrl = 'https://cdn-icons-png.flaticon.com/512/306/306411.png'; break;
+        default: iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
+    }
+    return new L.Icon({
+        iconUrl,
         iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
-    }),
-    trip: new L.Icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448653.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
-    }),
-    event: new L.Icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/9483/9483842.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
-    }),
-    tutor: new L.Icon({
-        iconUrl: 'https://cdn-icons-png.flaticon.com/512/306/306411.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
-    }),
+    });
 }
-
-const generateHousingPopup = (housing: Housing) => `
-    <div class="w-48" id="popup-${housing.id}">
-        <h3 class="font-bold">${housing.title}</h3>
-        <p class="text-sm">${housing.city}</p>
-        <p class="text-lg font-bold text-primary">${housing.price}€/mois</p>
-        <button data-id="${housing.id}" class="text-sm text-accent font-semibold hover:underline">Voir détails</button>
-    </div>
-`;
 
 
 const getPopupContent = (item: any, type: string) => {
     switch(type) {
         case 'housing':
             const h = item as Housing;
-            return generateHousingPopup(h);
+            return `
+                <div class="w-48" data-id="${h.id}" data-type="housing">
+                    <img src="${h.imageUrl}" alt="${h.title}" class="w-full h-20 object-cover rounded-md mb-2" />
+                    <h3 class="font-bold text-base">${h.title}</h3>
+                    <p class="text-sm text-muted-foreground">${h.city}</p>
+                    <p class="text-lg font-bold text-primary">${h.price}€/mois</p>
+                </div>
+            `;
         case 'trip':
             const t = item as Trip;
             return `
                 <div class="w-48">
-                    <h3 class="font-bold">${t.departure} → ${t.arrival}</h3>
-                    <p class="text-sm">Par ${t.driver}</p>
-                    <p class="text-lg font-bold text-primary">${t.price}</p>
+                    <h3 class="font-bold">${t.departureCity} → ${t.arrivalCity}</h3>
+                    <p class="text-sm">Par ${t.driverId}</p>
+                    <p class="text-lg font-bold text-primary">${t.pricePerSeat}€</p>
                 </div>
             `;
          case 'event':
@@ -70,16 +63,16 @@ const getPopupContent = (item: any, type: string) => {
             return `
                 <div class="w-48">
                     <h3 class="font-bold">${e.title}</h3>
-                    <p class="text-sm">${e.location}</p>
+                    <p class="text-sm">${e.city}</p>
                 </div>
             `;
         case 'tutor':
             const tu = item as Tutor;
             return `
                 <div class="w-48">
-                    <h3 class="font-bold">${tu.name}</h3>
-                    <p class="text-sm">${tu.subject}</p>
-                    <p class="text-lg font-bold text-primary">${tu.rate}</p>
+                    <h3 class="font-bold">${tu.subject}</h3>
+                    <p class="text-sm">${tu.level}</p>
+                    <p class="text-lg font-bold text-primary">${tu.pricePerHour}€/h</p>
                 </div>
             `;
         default:
@@ -90,14 +83,13 @@ const getPopupContent = (item: any, type: string) => {
 interface MapViewProps {
   items: any[];
   itemType: 'housing' | 'trip' | 'event' | 'tutor';
+  onMarkerClick?: (item: any) => void;
 }
 
-export default function MapView({ items, itemType }: MapViewProps) {
+export default function MapView({ items, itemType, onMarkerClick }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
-  const [selectedHousing, setSelectedHousing] = useState<Housing | null>(null);
-
 
   // Initialize map
   useEffect(() => {
@@ -110,23 +102,12 @@ export default function MapView({ items, itemType }: MapViewProps) {
       mapInstanceRef.current = map;
 
       L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
         {
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         }
       ).addTo(map);
-
-      // Add routing control
-      L.Routing.control({
-        position: 'topright',
-        router: L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1/',
-        }),
-        lineOptions: { styles: [{ color: 'hsl(var(--accent))', weight: 4 }] },
-        showAlternatives: true,
-        geocoder: (L.Control as any).Geocoder.nominatim(),
-      }).addTo(map);
     }
     
     // Cleanup function to remove map instance on unmount
@@ -139,13 +120,20 @@ export default function MapView({ items, itemType }: MapViewProps) {
   }, []); // Empty dependency array ensures this runs only once on mount and cleanup on unmount
 
 
-  const handleDetailClick = (e: Event) => {
-    const target = e.target as HTMLElement;
-    if(target.tagName === 'BUTTON' && target.dataset.id) {
-        const housingId = target.dataset.id;
-        const housing = items.find(h => h.id === housingId) as Housing;
-        if(housing) {
-            setSelectedHousing(housing);
+  const handlePopupClick = (e: L.LeafletMouseEvent) => {
+    const content = e.target.getPopup().getContent();
+    if (typeof content === 'string') {
+        const div = document.createElement('div');
+        div.innerHTML = content;
+        const itemElement = div.firstChild as HTMLElement;
+        const id = itemElement?.dataset.id;
+        const type = itemElement?.dataset.type;
+
+        if (id && type && onMarkerClick) {
+            const item = items.find(i => i.id === id);
+            if (item) {
+                onMarkerClick(item);
+            }
         }
     }
   }
@@ -163,26 +151,16 @@ export default function MapView({ items, itemType }: MapViewProps) {
       // Add new markers
       items.forEach((item) => {
         if (!item.coordinates) return;
-        const popupContent = getPopupContent(item, itemType);
         
         const marker = L.marker(item.coordinates as L.LatLngExpression, {
-          icon: icons[itemType],
+          icon: getIcon(itemType),
         }).addTo(map)
-          .bindPopup(popupContent);
+          .bindPopup(getPopupContent(item, itemType));
         
-        marker.on('popupopen', (e) => {
-            const popupNode = e.popup.getElement();
-            if (popupNode) {
-                popupNode.addEventListener('click', handleDetailClick);
-            }
-        });
-        marker.on('popupclose', (e) => {
-             const popupNode = e.popup.getElement();
-            if (popupNode) {
-                popupNode.removeEventListener('click', handleDetailClick);
-            }
-        });
-
+        if (onMarkerClick) {
+            marker.on('click', handlePopupClick);
+        }
+        
         markersRef.current.push(marker);
       });
 
@@ -194,17 +172,15 @@ export default function MapView({ items, itemType }: MapViewProps) {
         }
       }
     }
-  }, [items, itemType]);
+
+    // Cleanup listeners
+    return () => {
+        markersRef.current.forEach(marker => marker.off('click'));
+    }
+
+  }, [items, itemType, onMarkerClick]);
 
   return (
-    <>
-      <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
-       {selectedHousing && (
-        <HousingDetailModal
-          housing={selectedHousing}
-          onClose={() => setSelectedHousing(null)}
-        />
-      )}
-    </>
+    <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
   );
 }

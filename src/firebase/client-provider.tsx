@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, type ReactNode } from 'react';
@@ -6,7 +7,7 @@ import { initializeFirebase } from '@/firebase';
 import { FirebaseApp } from 'firebase/app';
 import { Auth } from 'firebase/auth';
 import { Firestore } from 'firebase/firestore';
-import SocialClientPage, { PageSkeleton } from '@/components/social-client-page';
+import { PageSkeleton } from '@/components/page-skeleton';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;

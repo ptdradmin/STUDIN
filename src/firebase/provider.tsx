@@ -5,14 +5,6 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-
-interface FirebaseProviderProps {
-  children: ReactNode;
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-}
 
 // Internal state for user authentication
 interface UserAuthState {
@@ -48,6 +40,13 @@ export interface UserHookResult {
   user: User | null;
   isUserLoading: boolean;
   userError: Error | null;
+}
+
+interface FirebaseProviderProps {
+  children: ReactNode;
+  firebaseApp: FirebaseApp;
+  firestore: Firestore;
+  auth: Auth;
 }
 
 // React Context
@@ -106,7 +105,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   return (
     <FirebaseContext.Provider value={contextValue}>
-      <FirebaseErrorListener />
       {children}
     </FirebaseContext.Provider>
   );
@@ -146,9 +144,9 @@ export const useFirebase = (): FirebaseServicesAndUser | { auth: null, firestore
 };
 
 /** Hook to access Firebase Auth instance. */
-export const useAuth = (): { auth: Auth | null; firestore: Firestore | null, isUserLoading: boolean } => {
-  const { auth, firestore, isUserLoading } = useFirebase();
-  return { auth, firestore, isUserLoading };
+export const useAuth = (): { auth: Auth | null; firestore: Firestore | null, user: User | null, isUserLoading: boolean } => {
+  const { auth, firestore, user, isUserLoading } = useFirebase();
+  return { auth, firestore, user, isUserLoading };
 };
 
 /** Hook to access Firestore instance. */
