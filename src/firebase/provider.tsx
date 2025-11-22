@@ -42,20 +42,10 @@ export const useFirebaseApp = () => {
 
 export const useAuth = () => {
   const { auth } = useFirebase();
-   if (!auth) {
-    throw new Error(
-      'useAuth must be used within a FirebaseProvider.'
-    );
-  }
   return { auth };
 };
 
 export const useFirestore = () => {
   const { firestore } = useFirebase();
-  if (!firestore) {
-    throw new Error(
-      'useFirestore must be used within a FirebaseProvider.'
-    );
-  }
   return firestore;
 };

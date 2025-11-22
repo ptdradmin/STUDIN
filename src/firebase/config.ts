@@ -1,18 +1,23 @@
 // src/firebase/config.ts
 import { FirebaseOptions } from 'firebase/app';
 
+// This configuration is used for SERVER-SIDE rendering and build steps.
+// It is replaced by the client-config on the client-side.
 const firebaseConfig: FirebaseOptions = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "server-placeholder",
+  authDomain: "server-placeholder",
+  projectId: "server-placeholder",
+  storageBucket: "server-placeholder",
+  messagingSenderId: "server-placeholder",
+  appId: "server-placeholder",
 };
 
 export function getFirebaseConfig() {
-  if (!firebaseConfig.apiKey) {
-    throw new Error('Missing Firebase config: NEXT_PUBLIC_FIREBASE_API_KEY');
+  if (typeof window !== 'undefined') {
+    // On the client, import the client-specific config
+    return require('./client-config').firebaseConfig;
   }
+  
+  // On the server, return the placeholder config
   return firebaseConfig;
 }

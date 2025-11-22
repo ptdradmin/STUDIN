@@ -19,13 +19,24 @@ export default function FirebaseClientProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const firebaseServices = useMemo<FirebaseServices>(() => {
+  const firebaseServices = useMemo<FirebaseServices | null>(() => {
+    // Firebase is only available on the client
+    if (typeof window === 'undefined') {
+      return null;
+    }
     const app = initializeFirebase();
     const auth = getAuth(app);
     const firestore = getFirestore(app);
 
     return { app, auth, firestore };
   }, []);
+
+  if (!firebaseServices) {
+    // During SSR, Firebase is not initialized.
+    // The components using Firebase will be client-side and will re-render.
+    return <>{children}</>;
+  }
+
 
   return (
     <FirebaseProvider
