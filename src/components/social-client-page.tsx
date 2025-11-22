@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PostCard from "@/components/post-card";
-import { Camera, Compass, Heart, Home, MessageSquare, Plus, Search } from 'lucide-react';
+import { Camera, Home, Plus, Search } from 'lucide-react';
 import Link from "next/link";
 import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
@@ -17,13 +17,46 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut, Settings, MessageSquare } from "lucide-react";
 import { Input } from './ui/input';
 import { useUser, useAuth, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
 import CreatePostForm from './create-post-form';
 import { collection, orderBy, query } from 'firebase/firestore';
+import NotificationsDropdown from './notifications-dropdown';
+
+const reelsUsers = [
+  { name: "Alice", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=alice" },
+  { name: "Bob", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=bob" },
+  { name: "Charlie", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=charlie" },
+  { name: "Diana", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=diana" },
+  { name: "Eva", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=eva" },
+  { name: "Frank", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=frank" },
+  { name: "Grace", avatar: "https://api.dicebear.com/7.x/micah/svg?seed=grace" },
+];
+
+function ReelsTray() {
+  return (
+    <div className="w-full max-w-xl mx-auto px-4 md:px-0 py-3 border-b md:border-x md:rounded-t-lg">
+      <div className="flex space-x-4 overflow-x-auto pb-2 -mb-2">
+        {reelsUsers.map((user) => (
+          <div key={user.name} className="flex flex-col items-center space-y-1 flex-shrink-0 cursor-pointer group">
+            <div className="relative">
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 group-hover:animate-pulse"></div>
+              <Avatar className="h-16 w-16 border-2 border-background relative">
+                <AvatarImage src={user.avatar} />
+                <AvatarFallback>{user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </div>
+            <span className="text-xs truncate w-16 text-center">{user.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function SocialSkeleton() {
     return (
@@ -159,9 +192,7 @@ export default function SocialClientPage() {
                                 <Plus className="h-6 w-6" />
                             </Button>
                         )}
-                        <Button variant="ghost" size="icon">
-                            <Heart className="h-6 w-6" />
-                        </Button>
+                        <NotificationsDropdown />
                         <Button variant="ghost" size="icon">
                             <Camera className="h-6 w-6" />
                         </Button>
@@ -206,16 +237,19 @@ export default function SocialClientPage() {
                     </div>
                 </div>
             </header>
-            <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
+            <main className="flex-grow container mx-auto px-0 md:px-4 pt-4">
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
                    {postsLoading && <SocialSkeleton />}
                    {!postsLoading && posts && (
-                     <div className="space-y-4">
-                        {posts.map(post => (
-                            <PostCard key={post.id} post={post} />
-                        ))}
-                    </div>
+                     <>
+                        <ReelsTray />
+                        <div className="space-y-4 pt-4">
+                            {posts.map(post => (
+                                <PostCard key={post.id} post={post} />
+                            ))}
+                        </div>
+                     </>
                    )}
                 </div>
             </main>
