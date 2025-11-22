@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { Heart } from "lucide-react";
+import { Bell, Heart } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -29,15 +29,31 @@ export default function NotificationsDropdown() {
     const isActive = false; 
 
     return (
-        <Button 
-            variant="ghost" 
-            size="lg" 
-            aria-label="Notifications" 
-            className="justify-center lg:justify-start items-center gap-4 h-12 w-12 lg:w-full"
-        >
-            <Heart className={`h-6 w-6 ${isActive ? 'fill-current text-red-500' : ''}`} />
-            <span className={`hidden lg:inline text-base ${isActive ? 'font-bold' : 'font-normal'}`}>Notifications</span>
-        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                 <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Bell className={`h-5 w-5 ${isActive ? 'fill-current text-red-500' : ''}`} />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80" align="end">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.map((notif) => (
+                <DropdownMenuItem key={notif.id} asChild>
+                    <Link href="#" className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={notif.avatar} />
+                            <AvatarFallback>{notif.user.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="text-sm">
+                            <span className="font-semibold">{notif.user}</span>
+                            <span> {notif.action}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground ml-auto">{notif.time}</span>
+                    </Link>
+                </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
     )
 }
-

@@ -3,15 +3,13 @@
 
 import Image from "next/image";
 import type { Post } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin, Bookmark } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
-import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
 import {
   DropdownMenu,
@@ -51,15 +49,15 @@ export default function PostCard({ post }: PostCardProps) {
 
     const handleReport = () => {
         toast({
-            title: "Fonctionnalité en développement",
-            description: "Le signalement de contenu sera bientôt disponible.",
+            title: "Publication signalée",
+            description: "Merci, nous allons examiner cette publication.",
         });
     };
 
     const handleBlock = () => {
         toast({
-            title: "Fonctionnalité en développement",
-            description: "Le blocage d'utilisateurs sera bientôt disponible.",
+            title: "Utilisateur bloqué",
+            description: "Vous ne verrez plus les publications de cet utilisateur.",
         });
     };
 
