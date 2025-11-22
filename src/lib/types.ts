@@ -1,4 +1,5 @@
 
+
 export interface Housing {
   id: string;
   title: string;
@@ -65,4 +66,11 @@ export interface Trip {
     price: string;
     seats: number;
     coordinates: [number, number];
+}
+
+
+export interface PlaceholderData {
+    events: Event[];
+    tutors: Tutor[];
+    trips: Trip[];
 }

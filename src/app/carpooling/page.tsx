@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Users, LayoutGrid, Map, Plus } from "lucide-react";
 import Image from "next/image";
-import { getTrips, Trip } from "@/lib/mock-data";
+import { Trip, PlaceholderData } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useUser } from "@/firebase";
 
@@ -26,7 +26,11 @@ export default function CarpoolingPage() {
   const { user } = useUser();
 
   useEffect(() => {
-    getTrips().then(setTrips);
+    // In a real app, you'd fetch this from your backend.
+    // For now, we load it from the JSON file.
+    fetch('/placeholder-data.json')
+      .then(res => res.json())
+      .then((data: PlaceholderData) => setTrips(data.trips));
   }, []);
   
   return (

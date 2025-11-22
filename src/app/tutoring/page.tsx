@@ -12,7 +12,7 @@ import { GraduationCap, Star, LayoutGrid, Map, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { getTutors, Tutor } from "@/lib/mock-data";
+import type { Tutor, PlaceholderData } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/firebase';
@@ -31,10 +31,14 @@ export default function TutoringPage() {
 
   useEffect(() => {
     setIsLoading(true);
-    getTutors().then(data => {
-      setTutors(data);
-      setIsLoading(false);
-    });
+    // In a real app, you'd fetch this from your backend.
+    // For now, we load it from the JSON file.
+    fetch('/placeholder-data.json')
+      .then(res => res.json())
+      .then((data: PlaceholderData) => {
+        setTutors(data.tutors);
+        setIsLoading(false);
+      });
   }, []);
 
   const renderList = () => {
