@@ -19,10 +19,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings } from "lucide-react";
 import { Input } from './ui/input';
-import { useUser, useAuth, useCollection } from '@/firebase';
+import { useUser, useAuth, useCollection, useMemoFirebase, useFirestore } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
 import CreatePostForm from './create-post-form';
+import { collection } from 'firebase/firestore';
 
 function SocialSkeleton() {
     return (
@@ -61,8 +62,15 @@ function CardSkeleton() {
 export default function SocialClientPage() {
     const { user, loading: userLoading } = useUser();
     const { auth } = useAuth();
+    const firestore = useFirestore();
     const router = useRouter();
-    const { data: posts, loading: postsLoading } = useCollection<Post>('posts');
+    
+    const postsCollection = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return collection(firestore, 'posts');
+    }, [firestore]);
+    const { data: posts, loading: postsLoading } = useCollection<Post>(postsCollection);
+    
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     useEffect(() => {
