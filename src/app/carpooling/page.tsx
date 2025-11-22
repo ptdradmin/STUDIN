@@ -18,6 +18,8 @@ import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -94,18 +96,28 @@ export default function CarpoolingPage() {
             chunks.push(driverIds.slice(i, i + 30));
         }
 
-        for (const chunk of chunks) {
-            if (chunk.length > 0) {
-                const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
-                const usersSnapshot = await getDocs(usersQuery);
-                usersSnapshot.forEach(doc => {
-                    newProfiles[doc.id] = doc.data() as UserProfile;
-                });
+        try {
+            for (const chunk of chunks) {
+                if (chunk.length > 0) {
+                    const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
+                    const usersSnapshot = await getDocs(usersQuery);
+                    usersSnapshot.forEach(doc => {
+                        newProfiles[doc.id] = doc.data() as UserProfile;
+                    });
+                }
             }
+            setUserProfiles(prev => ({...prev, ...newProfiles}));
+        } catch (error) {
+            console.error("Error fetching user profiles:", error);
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'list',
+                requestResourceData: { note: `Querying users with IDs in [${driverIds.join(', ')}]` }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } finally {
+            setProfilesLoading(false);
         }
-        
-        setUserProfiles(prev => ({...prev, ...newProfiles}));
-        setProfilesLoading(false);
     }
 
     fetchUserProfiles();
