@@ -279,9 +279,8 @@ export default function SettingsPage() {
                         variant={language === 'en' ? 'secondary' : 'ghost'}
                         onClick={() => setLanguage('en')}
                         className="w-full justify-start"
-                        disabled
                       >
-                        🇬🇧 English <span className="text-xs ml-2 opacity-70">(bientôt)</span>
+                        🇬🇧 English
                       </Button>
                   </AccordionContent>
                 </AccordionItem>
