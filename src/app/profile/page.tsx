@@ -64,7 +64,7 @@ function ProfilePageSkeleton() {
     );
 }
 
-export default function ProfilePage() {
+export default function CurrentUserProfilePage() {
   const { user, isUserLoading } = useUser();
   const { auth, firestore } = useAuth();
   const router = useRouter();
