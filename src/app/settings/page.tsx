@@ -33,6 +33,19 @@ import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language-context";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 const SettingsItem = ({
   icon,
@@ -79,6 +92,11 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { language, setLanguage } = useLanguage();
 
+  const [isPrivateProfile, setIsPrivateProfile] = useState(false);
+  const [pauseAllNotifications, setPauseAllNotifications] = useState(false);
+  const [reelsAutoplay, setReelsAutoplay] = useState(true);
+  const [reelsSound, setReelsSound] = useState(false);
+
   const handleLogout = async () => {
     if (auth) {
       try {
@@ -97,6 +115,13 @@ export default function SettingsPage() {
         });
       }
     }
+  };
+
+  const handleClearHistory = () => {
+    toast({
+      title: "Historique effacé",
+      description: "Votre historique de recherche a été supprimé.",
+    });
   };
 
 
@@ -146,13 +171,33 @@ export default function SettingsPage() {
                       icon={<User className="h-5 w-5"/>}
                       title="Profil privé"
                       description="Seuls les abonnés que vous approuvez peuvent voir votre profil."
-                      action={<Switch id="private-profile" />}
+                      action={<Switch id="private-profile" checked={isPrivateProfile} onCheckedChange={setIsPrivateProfile} />}
                     />
-                    <SettingsItem
-                      icon={<Trash2 className="h-5 w-5"/>}
-                      title="Effacer l'historique de recherche"
-                      action={<Button variant="outline" size="sm">Effacer</Button>}
-                    />
+                     <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <div className="flex items-center justify-between py-3">
+                            <div className="flex items-center gap-4">
+                              <div className="text-muted-foreground"><Trash2 className="h-5 w-5"/></div>
+                              <div>
+                                <p className="font-medium">Effacer l'historique de recherche</p>
+                              </div>
+                            </div>
+                            <Button variant="outline" size="sm">Effacer</Button>
+                          </div>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible et supprimera définitivement votre historique de recherche.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleClearHistory}>Continuer</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                     <SettingsLink title="Liste des utilisateurs bloqués" />
                     <SettingsLink title="Contrôle des interactions" />
                   </AccordionContent>
@@ -183,7 +228,7 @@ export default function SettingsPage() {
                      <SettingsItem
                       icon={<Bell className="h-5 w-5"/>}
                       title="Tout mettre en pause"
-                      action={<Switch id="pause-notifications" />}
+                      action={<Switch id="pause-notifications" checked={pauseAllNotifications} onCheckedChange={setPauseAllNotifications} />}
                     />
                     <SettingsLink title="Notifications générales (Posts, Commentaires...)" />
                     <SettingsLink title="Notifications de Messages" />
@@ -231,12 +276,12 @@ export default function SettingsPage() {
                      <SettingsItem
                       icon={<Film className="h-5 w-5"/>}
                       title="Lecture automatique des Reels"
-                      action={<Switch id="reels-autoplay" defaultChecked />}
+                      action={<Switch id="reels-autoplay" checked={reelsAutoplay} onCheckedChange={setReelsAutoplay} />}
                     />
                     <SettingsItem
                       icon={<Film className="h-5 w-5"/>}
                       title="Son des Reels par défaut"
-                      action={<Switch id="reels-sound" />}
+                      action={<Switch id="reels-sound" checked={reelsSound} onCheckedChange={setReelsSound} />}
                     />
                     <SettingsLink title="Mots masqués" />
                   </AccordionContent>
