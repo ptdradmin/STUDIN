@@ -33,26 +33,32 @@ export default function HelpPage() {
                             </Button>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="flex flex-col">
                         <CardHeader className="items-center text-center">
                            <div className="p-3 rounded-full bg-primary/10">
                                 <Mail className="h-8 w-8 text-primary" />
                             </div>
                             <CardTitle>Email</CardTitle>
                         </CardHeader>
-                        <CardContent className="text-center">
-                             <p className="text-muted-foreground">Envoyez-nous un e-mail à <Link href="mailto:support@studin.app" className="text-primary hover:underline">support@studin.app</Link>.</p>
+                        <CardContent className="text-center flex-grow flex flex-col justify-between">
+                             <p className="text-muted-foreground mb-4">Envoyez-nous directement un e-mail pour une assistance personnalisée.</p>
+                             <Button asChild>
+                                <Link href="mailto:support@studin.app">support@studin.app</Link>
+                             </Button>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="flex flex-col">
                         <CardHeader className="items-center text-center">
                            <div className="p-3 rounded-full bg-primary/10">
                                 <MessageSquare className="h-8 w-8 text-primary" />
                             </div>
-                            <CardTitle>Chat</CardTitle>
+                            <CardTitle>Ticket de Support</CardTitle>
                         </CardHeader>
-                        <CardContent className="text-center">
-                             <p className="text-muted-foreground">Discutez avec notre équipe de support (bientôt disponible).</p>
+                        <CardContent className="text-center flex-grow flex flex-col justify-between">
+                             <p className="text-muted-foreground mb-4">Ouvrez un ticket de support et notre équipe vous répondra rapidement.</p>
+                              <Button asChild>
+                                <Link href="mailto:support@studin.app?subject=Demande%20de%20Support%20STUD'IN">Ouvrir un ticket</Link>
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
