@@ -61,7 +61,7 @@ export default function SocialPageContent() {
 
     return (
         <div className="flex justify-center py-8">
-            <div className="w-full max-w-[630px] md:max-w-[820px] lg:max-w-[630px]">
+            <div className="w-full max-w-[630px]">
                 <div className="flex flex-col md:flex-row md:gap-8">
                     <div className="w-full md:max-w-[470px] mx-auto">
                         <UsersTray users={users || []} />
