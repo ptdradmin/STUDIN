@@ -7,9 +7,13 @@ import {
   arrayRemove,
   Firestore,
   writeBatch,
+  getDoc,
+  collection,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 /**
@@ -41,6 +45,26 @@ export const toggleFollowUser = async (
     // Suivre : ajouter les IDs aux listes respectives
     batch.update(currentUserRef, { followingIds: arrayUnion(targetUserId) });
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
+
+    // Créer une notification pour l'utilisateur suivi
+    const senderProfileSnap = await getDoc(currentUserRef);
+    if(senderProfileSnap.exists()) {
+        const senderProfile = senderProfileSnap.data();
+        const notificationData = {
+            type: 'new_follower',
+            senderId: currentUserId,
+            senderProfile: {
+                username: senderProfile.username,
+                profilePicture: senderProfile.profilePicture,
+            },
+            recipientId: targetUserId,
+            read: false,
+            createdAt: serverTimestamp(),
+        };
+        const notificationsColRef = collection(firestore, `users/${targetUserId}/notifications`);
+        // On utilise addDoc directement ici car il sera ajouté au batch implicitement par la logique
+        addDocumentNonBlocking(notificationsColRef, notificationData);
+    }
   }
 
   // Exécuter le batch et gérer les erreurs de permissions
@@ -61,3 +85,5 @@ export const toggleFollowUser = async (
       errorEmitter.emit('permission-error', targetUserError);
   });
 };
+
+    

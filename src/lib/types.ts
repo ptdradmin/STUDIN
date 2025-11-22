@@ -1,5 +1,6 @@
 
 
+
 export interface Housing {
   id: string;
   title: string;
@@ -128,6 +129,21 @@ export interface Conversation {
     updatedAt: any;
 }
 
+export interface Notification {
+  id: string;
+  type: 'new_follower' | 'like' | 'comment';
+  senderId: string;
+  senderProfile: {
+      username: string;
+      profilePicture: string;
+  };
+  recipientId: string;
+  postId?: string;
+  read: boolean;
+  createdAt: any;
+}
     
     
+    
+
     
