@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 /**
@@ -106,13 +107,13 @@ service cloud.firestore {
     /**
      * @description Manages user profile data.
      * @path /users/{userId}
-     * @allow A user (UID 'user_abc') creates their own profile document at /users/user_abc.
+     * @allow A user (UID 'user_abc') creates their own profile document at /users/user_abc. Any signed in user can read a profile.
      * @deny An anonymous user tries to read a profile. A user ('user_xyz') tries to update another user's ('user_abc') profile.
-     * @principle Restricts access to a user's own data tree. A user has full control over their own profile document, and no one else can read or write it. User enumeration is disallowed for privacy.
+     * @principle Restricts write access to a user's own data. A user has full control over their own profile document.
      */
     match /users/{userId} {
-      allow get: if isSignedIn(); // Allow any signed-in user to view profiles
-      allow list: if isSignedIn(); // Allow listing for search/mentions
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);

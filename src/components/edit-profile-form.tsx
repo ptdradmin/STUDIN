@@ -20,6 +20,8 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
 import { Separator } from './ui/separator';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
@@ -152,8 +154,12 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
       toast({ title: 'Succès', description: 'Profil mis à jour !' });
       onClose();
     } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de mettre à jour le profil." });
+      const contextualError = new FirestorePermissionError({
+        path: `users/${user.uid}`,
+        operation: 'update',
+        requestResourceData: data,
+      });
+      errorEmitter.emit('permission-error', contextualError);
     } finally {
       setLoading(false);
     }
@@ -272,3 +278,5 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
+
+    
