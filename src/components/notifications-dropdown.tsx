@@ -29,42 +29,15 @@ export default function NotificationsDropdown() {
     const isActive = false; 
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button 
-                    variant="ghost" 
-                    size="lg" 
-                    aria-label="Notifications" 
-                    className="justify-center lg:justify-start items-center gap-4 h-12 w-12 lg:w-full"
-                >
-                    <Heart className={`h-6 w-6 ${isActive ? 'fill-current text-red-500' : ''}`} />
-                    <span className={`hidden lg:inline text-base ${isActive ? 'font-bold' : 'font-normal'}`}>Notifications</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80" align="end">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="max-h-80 overflow-y-auto">
-                    {notifications.map(notif => (
-                        <DropdownMenuItem key={notif.id} asChild>
-                            <Link href="#" className="flex items-start gap-3">
-                                <Avatar className="h-9 w-9">
-                                    <AvatarImage src={notif.avatar} />
-                                    <AvatarFallback>{notif.user[0]}</AvatarFallback>
-                                </Avatar>
-                                <div className="text-sm">
-                                    <span className="font-semibold">{notif.user}</span>
-                                    <span className="text-muted-foreground ml-1">{notif.action}</span>
-                                    <p className="text-xs text-muted-foreground">{notif.time}</p>
-                                </div>
-                            </Link>
-                        </DropdownMenuItem>
-                    ))}
-                     {notifications.length === 0 && (
-                        <p className="p-4 text-sm text-center text-muted-foreground">Aucune nouvelle notification</p>
-                    )}
-                </div>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <Button 
+            variant="ghost" 
+            size="lg" 
+            aria-label="Notifications" 
+            className="justify-center lg:justify-start items-center gap-4 h-12 w-12 lg:w-full"
+        >
+            <Heart className={`h-6 w-6 ${isActive ? 'fill-current text-red-500' : ''}`} />
+            <span className={`hidden lg:inline text-base ${isActive ? 'font-bold' : 'font-normal'}`}>Notifications</span>
+        </Button>
     )
 }
+
