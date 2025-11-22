@@ -8,13 +8,14 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, MapPin, LayoutGrid, Map } from "lucide-react";
+import { Calendar, MapPin, LayoutGrid, Map, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { getEvents, Event } from "@/lib/mock-data";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUser } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -26,6 +27,7 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
 
   useEffect(() => {
     setIsLoading(true);
@@ -150,25 +152,32 @@ export default function EventsPage() {
               </Card>
 
               <div className="mt-8">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 gap-4">
                   <h2 className="text-2xl font-bold tracking-tight">Événements à venir</h2>
-                   <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                    <Button
-                      variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      onClick={() => setViewMode('list')}
-                      className="px-3"
-                    >
-                      <LayoutGrid className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      onClick={() => setViewMode('map')}
-                      className="px-3"
-                    >
-                      <Map className="h-5 w-5" />
-                    </Button>
+                   <div className="flex items-center gap-2">
+                    {user && (
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" /> Créer un événement
+                      </Button>
+                    )}
+                    <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                      <Button
+                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('list')}
+                        className="px-3"
+                      >
+                        <LayoutGrid className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('map')}
+                        className="px-3"
+                      >
+                        <Map className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 

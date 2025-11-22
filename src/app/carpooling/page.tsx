@@ -8,10 +8,11 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users, LayoutGrid, Map } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map, Plus } from "lucide-react";
 import Image from "next/image";
 import { getTrips, Trip } from "@/lib/mock-data";
 import dynamic from "next/dynamic";
+import { useUser } from "@/firebase";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -22,6 +23,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 export default function CarpoolingPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const { user } = useUser();
 
   useEffect(() => {
     getTrips().then(setTrips);
@@ -64,25 +66,32 @@ export default function CarpoolingPage() {
               </Card>
 
               <div className="mt-8">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 gap-4">
                   <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
-                  <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                    <Button
-                      variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      onClick={() => setViewMode('list')}
-                      className="px-3"
-                    >
-                      <LayoutGrid className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      onClick={() => setViewMode('map')}
-                      className="px-3"
-                    >
-                      <Map className="h-5 w-5" />
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    {user && (
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" /> Proposer un trajet
+                      </Button>
+                    )}
+                    <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                      <Button
+                        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('list')}
+                        className="px-3"
+                      >
+                        <LayoutGrid className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('map')}
+                        className="px-3"
+                      >
+                        <Map className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -128,7 +137,7 @@ export default function CarpoolingPage() {
 
                                   <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                       <p className="text-xl font-bold">{trip.price}</p>
-                                      <Button size="sm">Réserver</Button>
+                                      {user && <Button size="sm">Réserver</Button>}
                                   </div>
 
                               </CardContent>
