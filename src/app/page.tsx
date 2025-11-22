@@ -20,6 +20,6 @@ export default function HomePage() {
         }
     }, [user, isUserLoading, router]);
 
-    // Show a skeleton loader while determining the user's auth state and redirecting.
+    // Affiche un squelette de chargement pendant la vérification de l'état d'authentification et la redirection.
     return <PageSkeleton />;
 }
