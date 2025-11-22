@@ -173,8 +173,8 @@ export default function SettingsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6 space-y-2">
                      <SettingsLink title="Informations personnelles" href="/profile" />
-                     <SettingsLink title="Mot de passe" disabled />
-                     <SettingsLink title="Comptes liés" disabled />
+                     <SettingsLink title="Mot de passe" />
+                     <SettingsLink title="Comptes liés" />
                      <Button variant="destructive" className="w-full mt-4" onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Déconnexion
@@ -221,8 +221,8 @@ export default function SettingsPage() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                    <SettingsLink title="Liste des utilisateurs bloqués" disabled />
-                    <SettingsLink title="Contrôle des interactions" disabled />
+                    <SettingsLink title="Liste des utilisateurs bloqués" />
+                    <SettingsLink title="Contrôle des interactions" />
                   </AccordionContent>
                 </AccordionItem>
 
@@ -234,9 +234,9 @@ export default function SettingsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
-                    <SettingsLink title="Authentification à deux facteurs" disabled />
-                    <SettingsLink title="Appareils connectés" disabled />
-                    <SettingsLink title="Historique des connexions" disabled />
+                    <SettingsLink title="Authentification à deux facteurs" />
+                    <SettingsLink title="Appareils connectés" />
+                    <SettingsLink title="Historique des connexions" />
                   </AccordionContent>
                 </AccordionItem>
                 
@@ -253,10 +253,10 @@ export default function SettingsPage() {
                       title="Tout mettre en pause"
                       action={<Switch id="pause-notifications" checked={pauseAllNotifications} onCheckedChange={setPauseAllNotifications} />}
                     />
-                    <SettingsLink title="Notifications générales (Posts, Commentaires...)" disabled />
-                    <SettingsLink title="Notifications de Messages" disabled />
-                    <SettingsLink title="Notifications de Logement" disabled />
-                    <SettingsLink title="Notifications de Covoiturage" disabled />
+                    <SettingsLink title="Notifications générales (Posts, Commentaires...)" />
+                    <SettingsLink title="Notifications de Messages" />
+                    <SettingsLink title="Notifications de Logement" />
+                    <SettingsLink title="Notifications de Covoiturage" />
                   </AccordionContent>
                 </AccordionItem>
                 
@@ -294,8 +294,8 @@ export default function SettingsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
-                    <SettingsLink title="Préférences du fil" disabled />
-                    <SettingsLink title="Préférences de la page Découvrir" disabled />
+                    <SettingsLink title="Préférences du fil" />
+                    <SettingsLink title="Préférences de la page Découvrir" />
                      <SettingsItem
                       icon={<Film className="h-5 w-5"/>}
                       title="Lecture automatique des Reels"
@@ -306,7 +306,7 @@ export default function SettingsPage() {
                       title="Son des Reels par défaut"
                       action={<Switch id="reels-sound" checked={reelsSound} onCheckedChange={setReelsSound} />}
                     />
-                    <SettingsLink title="Mots masqués" disabled />
+                    <SettingsLink title="Mots masqués" />
                   </AccordionContent>
                 </AccordionItem>
 
@@ -319,8 +319,8 @@ export default function SettingsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
                     <SettingsLink title="Centre d’aide" href="/help"/>
-                    <SettingsLink title="Déclarer un problème" disabled />
-                    <SettingsLink title="Règles de la communauté" disabled />
+                    <SettingsLink title="Déclarer un problème" />
+                    <SettingsLink title="Règles de la communauté" />
                   </AccordionContent>
                 </AccordionItem>
 
@@ -332,7 +332,7 @@ export default function SettingsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
-                    <SettingsLink title="Version de l’application" disabled />
+                    <SettingsLink title="Version de l’application" />
                     <SettingsLink title="Conditions d'utilisation" href="/terms" />
                     <SettingsLink title="Politique de Confidentialité" href="/privacy" />
                   </AccordionContent>
