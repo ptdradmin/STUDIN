@@ -97,7 +97,7 @@ export default function RegisterForm() {
 
         const firstName = additionalData.firstName || firstNameFromProvider || '';
         const lastName = additionalData.lastName || lastNameFromProvider || '';
-        const username = email?.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '') || `user_${user.uid.substring(0, 6)}`;
+        const username = user.displayName?.replace(/\s+/g, '.').toLowerCase() || email?.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '') || `user_${user.uid.substring(0, 6)}`;
 
         const userData = {
             id: user.uid,
@@ -188,17 +188,20 @@ export default function RegisterForm() {
         const displayName = `${data.firstName} ${data.lastName}`;
         const photoURL = `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`;
 
-        // Ensure the profile is fully updated before proceeding
+        // CRITICAL: Wait for profile update to complete before proceeding
         await updateProfile(user, { displayName, photoURL });
-        // Force a token refresh to get the latest user data including displayName
+        
+        // CRITICAL: Force a token refresh to get the latest user data including displayName
         await user.reload();
 
+        // Now that auth profile is updated and synced, create the Firestore document
         await createUserDocument(user, {
             firstName: data.firstName,
             lastName: data.lastName,
             university: data.university,
             fieldOfStudy: data.fieldOfStudy
         });
+
         handleSuccess();
     } catch (error: any) {
         handleError(error);
@@ -369,3 +372,5 @@ export default function RegisterForm() {
     </Card>
   );
 }
+
+    
