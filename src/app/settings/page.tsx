@@ -236,10 +236,10 @@ export default function SettingsPage() {
                       title="Tout mettre en pause"
                       action={<Switch id="pause-notifications" checked={pauseAllNotifications} onCheckedChange={setPauseAllNotifications} />}
                     />
-                    <SettingsLink title="Notifications générales (Posts, Commentaires...)" />
-                    <SettingsLink title="Notifications de Messages" />
-                    <SettingsLink title="Notifications de Logement" />
-                    <SettingsLink title="Notifications de Covoiturage" />
+                    <SettingsLink title="Notifications générales (Posts, Commentaires...)" href="#" />
+                    <SettingsLink title="Notifications de Messages" href="#" />
+                    <SettingsLink title="Notifications de Logement" href="#" />
+                    <SettingsLink title="Notifications de Covoiturage" href="#" />
                   </AccordionContent>
                 </AccordionItem>
                 
@@ -276,8 +276,20 @@ export default function SettingsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
-                    <SettingsLink title="Préférences du fil" />
-                    <SettingsLink title="Préférences de la page Découvrir" />
+                    <SettingsLink title="Préférences du fil" href="#" />
+                    <SettingsLink title="Préférences de la page Découvrir" href="#" />
+                    <SettingsLink title="Mots masqués" href="#" />
+                  </AccordionContent>
+                </AccordionItem>
+                
+                <AccordionItem value="reels">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <Film />
+                      Reels
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6">
                     <SettingsItem
                         title="Lecture automatique des Reels"
                         action={<Switch checked={autoPlayReels} onCheckedChange={setAutoPlayReels} />}
@@ -286,7 +298,6 @@ export default function SettingsPage() {
                         title="Son des Reels par défaut"
                         action={<Switch checked={defaultReelSound} onCheckedChange={setDefaultReelSound} />}
                     />
-                    <SettingsLink title="Mots masqués" />
                   </AccordionContent>
                 </AccordionItem>
 
