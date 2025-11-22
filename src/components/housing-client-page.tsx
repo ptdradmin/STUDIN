@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse" />,
 });
 
 interface HousingClientPageProps {
@@ -21,6 +22,9 @@ export default function HousingClientPage({
   initialHousings,
 }: HousingClientPageProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  // We need to pass the housing state to the MapView if we want it to update
+  // For now, we'll just pass the initialHousings to both.
+  // A more advanced implementation would lift the state from HousingListings here.
 
   return (
     <div>
