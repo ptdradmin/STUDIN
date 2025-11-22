@@ -9,7 +9,7 @@ import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmar
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +63,7 @@ export default function PostCard({ post }: PostCardProps) {
       if (dateValue instanceof Timestamp) {
         return dateValue.toDate();
       }
-      if (typeof dateValue === 'object' && dateValue.seconds) {
+      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
         return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
       }
       if (typeof dateValue === 'string' || typeof dateValue === 'number') {
@@ -204,7 +204,7 @@ export default function PostCard({ post }: PostCardProps) {
 
 
     return (
-        <div className="rounded-lg border bg-card text-card-foreground">
+        <div className="rounded-none md:rounded-lg border-x-0 md:border bg-card text-card-foreground">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
