@@ -301,7 +301,7 @@ export default function SettingsPage() {
                   </AccordionTrigger>
                   <AccordionContent className="px-6">
                     <SettingsLink title="Centre d’aide" href="/help"/>
-                    <SettingsLink title="Déclarer un problème" />
+                    <SettingsLink title="Déclarer un problème" href="/contact" />
                     <SettingsLink title="Règles de la communauté" href="/community-rules"/>
                   </AccordionContent>
                 </AccordionItem>
