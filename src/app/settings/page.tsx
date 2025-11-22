@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -24,6 +25,7 @@ import {
   Trash2,
   User,
   Film,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
@@ -75,6 +77,7 @@ export default function SettingsPage() {
   const { auth } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { language, setLanguage } = useLanguage();
 
   const handleLogout = async () => {
     if (auth) {
@@ -186,6 +189,32 @@ export default function SettingsPage() {
                     <SettingsLink title="Notifications de Messages" />
                     <SettingsLink title="Notifications de Logement" />
                     <SettingsLink title="Notifications de Covoiturage" />
+                  </AccordionContent>
+                </AccordionItem>
+                
+                 <AccordionItem value="language">
+                  <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                     <div className="flex items-center gap-3">
+                      <Globe />
+                      Langue
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 space-y-2">
+                     <Button
+                        variant={language === 'fr' ? 'secondary' : 'ghost'}
+                        onClick={() => setLanguage('fr')}
+                        className="w-full justify-start"
+                      >
+                        🇫🇷 Français
+                      </Button>
+                      <Button
+                        variant={language === 'en' ? 'secondary' : 'ghost'}
+                        onClick={() => setLanguage('en')}
+                        className="w-full justify-start"
+                        disabled
+                      >
+                        🇬🇧 English <span className="text-xs ml-2 opacity-70">(bientôt)</span>
+                      </Button>
                   </AccordionContent>
                 </AccordionItem>
 

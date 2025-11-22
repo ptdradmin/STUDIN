@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore } from "@/firebase";
@@ -16,6 +17,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +46,20 @@ export default function PostCard({ post }: PostCardProps) {
 
     const isOwner = user && user.uid === post.userId;
     const hasLiked = user && post.likes?.includes(user.uid);
+
+    const handleReport = () => {
+        toast({
+            title: "Fonctionnalité en développement",
+            description: "Le signalement de contenu sera bientôt disponible.",
+        });
+    };
+
+    const handleBlock = () => {
+        toast({
+            title: "Fonctionnalité en développement",
+            description: "Le blocage d'utilisateurs sera bientôt disponible.",
+        });
+    };
 
     const handleLike = async () => {
         if (!user || !firestore) {
@@ -125,21 +141,34 @@ export default function PostCard({ post }: PostCardProps) {
                     </div>
                      <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">{timeAgo}</span>
-                        {isOwner && (
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                                        Supprimer
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                {isOwner ? (
+                                     <>
+                                        <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
+                                            Supprimer
+                                        </DropdownMenuItem>
+                                     </>
+                                ) : (
+                                    <>
+                                        <DropdownMenuItem onClick={handleReport}>
+                                            <AlertCircle className="mr-2 h-4 w-4" />
+                                            Signaler
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleBlock}>
+                                            <UserX className="mr-2 h-4 w-4" />
+                                            Bloquer cet utilisateur
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             </CardHeader>
