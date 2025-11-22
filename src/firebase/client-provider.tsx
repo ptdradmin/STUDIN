@@ -3,7 +3,7 @@
 import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { FirebaseApp } from 'firebase/app';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 import { FirebaseProvider } from './provider';
 import { initializeFirebase } from '.';
