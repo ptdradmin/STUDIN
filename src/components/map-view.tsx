@@ -12,7 +12,7 @@ import {
   Popup,
   useMap,
 } from 'react-leaflet';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Import plugins dynamically
 import 'leaflet-control-geocoder';
@@ -63,12 +63,17 @@ interface MapViewProps {
 }
 
 export default function MapView({ housings }: MapViewProps) {
+  const mapRef = useRef<L.Map | null>(null);
+
   return (
     <MapContainer
       center={[50.8503, 4.3517]} // Centered on Brussels
       zoom={8}
       scrollWheelZoom={true}
       style={{ height: '100%', width: '100%' }}
+      whenCreated={(mapInstance) => {
+        mapRef.current = mapInstance;
+      }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
