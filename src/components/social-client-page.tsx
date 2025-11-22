@@ -23,7 +23,7 @@ import { useUser, useAuth, useCollection, useMemoFirebase, useFirestore } from '
 import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
 import CreatePostForm from './create-post-form';
-import { collection } from 'firebase/firestore';
+import { collection, orderBy, query } from 'firebase/firestore';
 
 function SocialSkeleton() {
     return (
@@ -58,26 +58,45 @@ function CardSkeleton() {
     )
 }
 
+function PageSkeleton() {
+    return (
+        <>
+            <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center justify-between">
+                    <Skeleton className="h-8 w-40" />
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-8 w-8" />
+                         <Skeleton className="h-10 w-10 rounded-full" />
+                    </div>
+                </div>
+            </header>
+            <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
+                <SocialSkeleton />
+            </main>
+        </>
+    )
+}
+
 
 export default function SocialClientPage() {
-    const { user, loading: userLoading } = useUser();
+    const { user, isUserLoading } = useUser();
     const { auth } = useAuth();
     const firestore = useFirestore();
     const router = useRouter();
     
-    const postsCollection = useMemoFirebase(() => {
+    const postsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collection(firestore, 'posts');
+        return query(collection(firestore, 'posts'), orderBy('createdAt', 'desc'));
     }, [firestore]);
-    const { data: posts, loading: postsLoading } = useCollection<Post>(postsCollection);
+    const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     useEffect(() => {
-        if (!userLoading && !user) {
+        if (!isUserLoading && !user) {
             router.push('/login?from=/social');
         }
-    }, [user, userLoading, router]);
+    }, [user, isUserLoading, router]);
 
 
     const handleLogout = async () => {
@@ -95,29 +114,8 @@ export default function SocialClientPage() {
         return email.substring(0, 2).toUpperCase();
     }
     
-    const sortedPosts = posts ? [...posts].sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    }) : [];
-
-    if (userLoading || !user) {
-        return (
-            <>
-                <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                    <div className="container flex h-16 items-center justify-between">
-                        <Skeleton className="h-8 w-40" />
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="h-8 w-8" />
-                             <Skeleton className="h-10 w-10 rounded-full" />
-                        </div>
-                    </div>
-                </header>
-                <main className="flex-grow container mx-auto px-0 md:px-4 py-4">
-                    <SocialSkeleton />
-                </main>
-            </>
-        )
+    if (isUserLoading || !user) {
+        return <PageSkeleton />;
     }
 
     return (
@@ -144,8 +142,10 @@ export default function SocialClientPage() {
                          <Button variant="ghost" size="icon" className="md:hidden">
                             <Search className="h-6 w-6" />
                         </Button>
-                        <Button variant="ghost" size="icon">
-                            <MessageSquare className="h-6 w-6" />
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href="/messages">
+                                <MessageSquare className="h-6 w-6" />
+                            </Link>
                         </Button>
                         {user && (
                             <Button variant="ghost" size="icon" onClick={() => setShowCreateForm(true)}>
@@ -203,9 +203,9 @@ export default function SocialClientPage() {
                 {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
                 <div className="max-w-xl mx-auto">
                    {postsLoading && <SocialSkeleton />}
-                   {!postsLoading && (
+                   {!postsLoading && posts && (
                      <div className="space-y-4">
-                        {sortedPosts.map(post => (
+                        {posts.map(post => (
                             <PostCard key={post.id} post={post} />
                         ))}
                     </div>

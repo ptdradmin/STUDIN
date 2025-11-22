@@ -57,6 +57,18 @@ function ChatWindowSkeleton() {
     )
 }
 
+function PageSkeleton() {
+    return (
+         <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow container mx-auto my-8">
+                <Skeleton className="h-[calc(100vh-200px)] w-full" />
+            </main>
+            <Footer />
+        </div>
+    )
+}
+
 
 export default function MessagesPage() {
     const { user, isUserLoading } = useUser();
@@ -87,10 +99,11 @@ export default function MessagesPage() {
      useEffect(() => {
         if (!isUserLoading && !user) {
             router.push('/login?from=/messages');
+            return;
         }
 
         const recipientId = searchParams.get('recipient');
-        if (recipientId && user && firestore && !conversationsLoading) {
+        if (recipientId && user && firestore && conversations !== undefined) {
             const findAndSetConversation = async () => {
                 const existingConversation = conversations?.find(c => c.participantIds.includes(recipientId));
                 
@@ -137,22 +150,14 @@ export default function MessagesPage() {
             setSelectedConversation(conversations[0]);
         }
 
-    }, [user, isUserLoading, router, searchParams, firestore, conversations, conversationsLoading, selectedConversation]);
+    }, [user, isUserLoading, router, searchParams, firestore, conversations, selectedConversation]);
 
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
     if (isUserLoading || !user) {
-        return (
-             <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <div className="flex-grow container mx-auto p-4">
-                    <Skeleton className="h-[80vh] w-full" />
-                </div>
-                <Footer />
-            </div>
-        )
+        return <PageSkeleton />;
     }
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -295,5 +300,3 @@ export default function MessagesPage() {
         </div>
     );
 }
-
-    

@@ -13,7 +13,7 @@ import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase 
 import { signOut } from 'firebase/auth';
 import type { Post } from '@/lib/types';
 import EditProfileForm from './edit-profile-form';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, query, where } from 'firebase/firestore';
 
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
@@ -34,52 +34,7 @@ const ProfileGrid = ({ posts }: { posts: Post[] }) => (
     </div>
 );
 
-
-export default function ProfileClientPage() {
-  const { user, loading: userLoading } = useUser();
-  const { auth, firestore } = useAuth();
-  const router = useRouter();
-
-  const [showEditForm, setShowEditForm] = useState(false);
-
-  const userRef = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [user, firestore]);
-  const { data: userProfile, loading: profileLoading } = useDoc(userRef);
-
-  const postsCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'posts');
-  }, [firestore]);
-  const { data: allPosts, loading: postsLoading } = useCollection<Post>(postsCollection);
-
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.push('/login?from=/profile');
-    }
-  }, [user, userLoading, router]);
-
-  const handleLogout = async () => {
-    if(auth) {
-        await signOut(auth);
-        router.push('/');
-    }
-  }
-  
-  const getInitials = (email?: string | null) => {
-    if (!email) return '..';
-    const parts = email.split('@')[0].replace('.', ' ').split(' ');
-    if (parts.length > 1 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return email.substring(0, 2).toUpperCase();
-  }
-
-  const loading = userLoading || postsLoading || profileLoading;
-
-  if (loading || !user) {
+function ProfilePageSkeleton() {
     return (
         <div className="mx-auto max-w-4xl">
             <div className="p-4 md:p-6">
@@ -106,9 +61,56 @@ export default function ProfileClientPage() {
             </div>
         </div>
     );
+}
+
+export default function ProfileClientPage() {
+  const { user, isUserLoading } = useUser();
+  const { auth, firestore } = useAuth();
+  const router = useRouter();
+
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  const userRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+  const { data: userProfile, isLoading: profileLoading } = useDoc(userRef);
+
+  const userPostsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(collection(firestore, 'posts'), where('userId', '==', user.uid));
+  }, [firestore, user]);
+  const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
+
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login?from=/profile');
+    }
+  }, [user, isUserLoading, router]);
+
+  const handleLogout = async () => {
+    if(auth) {
+        await signOut(auth);
+        router.push('/');
+    }
+  }
+  
+  const getInitials = (email?: string | null) => {
+    if (!email) return '..';
+    const parts = email.split('@')[0].replace('.', ' ').split(' ');
+    if (parts.length > 1 && parts[0] && parts[1]) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
   }
 
-  const userPosts = allPosts?.filter(p => p.userId === user.uid) || [];
+  const loading = isUserLoading || postsLoading || profileLoading;
+
+  if (loading || !user || !userProfile) {
+    return <ProfilePageSkeleton />;
+  }
+
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -130,7 +132,7 @@ export default function ProfileClientPage() {
                         </div>
                     </div>
                     <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
-                        <p><span className="font-semibold">{userPosts.length}</span> publications</p>
+                        <p><span className="font-semibold">{userPosts?.length || 0}</span> publications</p>
                         <p><span className="font-semibold">1.2k</span> abonnés</p>
                         <p><span className="font-semibold">543</span> abonnements</p>
                     </div>
@@ -168,7 +170,7 @@ export default function ProfileClientPage() {
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="posts">
-                {userPosts.length > 0 ? <ProfileGrid posts={userPosts} /> : (
+                {userPosts && userPosts.length > 0 ? <ProfileGrid posts={userPosts} /> : (
                     <div className="text-center p-10">
                         <h3 className="text-lg font-semibold">Aucune publication</h3>
                         <p className="text-muted-foreground text-sm">Vos publications apparaîtront ici.</p>
@@ -176,12 +178,10 @@ export default function ProfileClientPage() {
                 )}
             </TabsContent>
             <TabsContent value="saved">
-                 {allPosts && allPosts.slice(0,2).length > 0 ? <ProfileGrid posts={allPosts.slice(0, 2)} /> : (
-                     <div className="text-center p-10">
-                        <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
-                        <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
-                    </div>
-                 )}
+                 <div className="text-center p-10">
+                    <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
+                    <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
+                </div>
             </TabsContent>
             <TabsContent value="tagged">
                 <div className="text-center p-10">
