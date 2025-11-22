@@ -44,19 +44,19 @@ export default function HomePage() {
     const router = useRouter();
 
     useEffect(() => {
-        // Si l'utilisateur est authentifié, le rediriger vers le fil social.
-        // Ne rien faire si l'état de l'utilisateur est encore en cours de chargement.
+        // If the user is logged in, redirect them to the social feed.
+        // Do nothing if the user state is still loading.
         if (!isUserLoading && user) {
             router.replace('/social');
         }
     }, [user, isUserLoading, router]);
 
-    // Affiche un squelette de chargement pendant la vérification de l'auth ou si l'utilisateur est sur le point d'être redirigé.
+    // Show a loading skeleton while checking auth or if the user is about to be redirected.
     if (isUserLoading || user) {
         return <PageSkeleton />;
     }
     
-    // Si l'utilisateur n'est pas connecté, afficher la page d'accueil publique.
+    // If the user is not logged in, show the public landing page.
     return (
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />
