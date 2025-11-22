@@ -11,7 +11,7 @@ const footerLinks = {
         { href: '/privacy', label: 'Confidentialité' },
     ],
     'Support': [
-        { href: '/help', label: 'Aide' },
+        { href: '/contact', label: 'Contact' },
         { href: '/language', label: 'Langue' },
     ]
 };
