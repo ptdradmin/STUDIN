@@ -140,19 +140,37 @@ export default function MessagesPage() {
                     setSelectedConversation(existingConversation);
                 } else {
                     try {
-                        // Create a new conversation
                         const recipientQuery = query(collection(firestore, 'users'), where('id', '==', recipientId));
-                        const recipientDoc = await getDocs(recipientQuery);
-                        if (recipientDoc.empty) {
-                            console.error("Recipient user not found");
-                            return;
+                        const recipientSnap = await getDocs(recipientQuery).catch(error => {
+                            const permError = new FirestorePermissionError({
+                                path: 'users', operation: 'list',
+                                requestResourceData: { note: `Querying user with ID: ${'${recipientId}'}` }
+                            });
+                            errorEmitter.emit('permission-error', permError);
+                            throw permError;
+                        });
+
+                        if (recipientSnap.empty) {
+                             toast({ variant: 'destructive', title: 'Erreur', description: 'Destinataire non trouvé.' });
+                             return;
                         }
-                        const recipientProfile = { id: recipientDoc.docs[0].id, ...recipientDoc.docs[0].data() } as UserProfile;
+                        const recipientProfile = { id: recipientSnap.docs[0].id, ...recipientSnap.docs[0].data() } as UserProfile;
                         
                         const currentUserQuery = query(collection(firestore, 'users'), where('id', '==', user.uid));
-                        const currentUserDoc = await getDocs(currentUserQuery);
-                        if(currentUserDoc.empty) return;
-                        const currentUserProfile = { id: currentUserDoc.docs[0].id, ...currentUserDoc.docs[0].data()} as UserProfile;
+                        const currentUserSnap = await getDocs(currentUserQuery).catch(error => {
+                            const permError = new FirestorePermissionError({
+                                path: 'users', operation: 'list',
+                                requestResourceData: { note: `Querying current user with ID: ${'${user.uid}'}` }
+                            });
+                            errorEmitter.emit('permission-error', permError);
+                            throw permError;
+                        });
+
+                        if(currentUserSnap.empty) {
+                             toast({ variant: 'destructive', title: 'Erreur', description: 'Profil utilisateur non trouvé.' });
+                             return;
+                        }
+                        const currentUserProfile = { id: currentUserSnap.docs[0].id, ...currentUserSnap.docs[0].data()} as UserProfile;
 
                         const newConversationData = {
                             participantIds: [user.uid, recipientId],
@@ -177,33 +195,30 @@ export default function MessagesPage() {
                         
                         setSelectedConversation({
                             id: newConversationRef.id,
-                            participantIds: [user.uid, recipientId],
-                            participants: {
-                                [user.uid]: currentUserProfile,
-                                [recipientId]: recipientProfile
-                            },
+                            ...newConversationData,
                             createdAt: new Date(),
                             updatedAt: new Date(),
-                        });
+                        } as Conversation);
                     } catch (error) {
-                        if (!(error instanceof FirestorePermissionError)) {
-                            const permissionError = new FirestorePermissionError({
-                                path: 'users',
-                                operation: 'get',
-                                requestResourceData: { note: `Querying user with ID: ${'${recipientId}'} or ${'${user.uid}'}` }
-                            });
-                            errorEmitter.emit('permission-error', permissionError);
-                        }
                         console.error("Error creating or fetching user for conversation:", error);
+                         if (!(error instanceof FirestorePermissionError)) {
+                           toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de démarrer la conversation." });
+                        }
                     }
                 }
             };
             findAndSetConversation();
         } else if (!recipientId && conversations && conversations.length > 0 && !selectedConversation) {
-            setSelectedConversation(conversations[0]);
+            // Select the most recent conversation if none is selected
+            const sortedConversations = [...conversations].sort((a, b) => {
+                const dateA = getSafeDate(a.updatedAt)?.getTime() || 0;
+                const dateB = getSafeDate(b.updatedAt)?.getTime() || 0;
+                return dateB - dateA;
+            });
+            setSelectedConversation(sortedConversations[0]);
         }
 
-    }, [user, isUserLoading, router, searchParams, firestore, conversations, selectedConversation]);
+    }, [user, isUserLoading, router, searchParams, firestore, conversations, selectedConversation, toast]);
 
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -407,3 +422,4 @@ export default function MessagesPage() {
         </div>
     );
 }
+
