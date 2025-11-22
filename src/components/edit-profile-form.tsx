@@ -107,10 +107,20 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     
     try {
       const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userDocRef, {
+      
+      const dataToUpdate: Partial<ProfileFormInputs> & { updatedAt: any } = {
         ...data,
         updatedAt: serverTimestamp()
+      };
+      
+      // Remove undefined fields
+      Object.keys(dataToUpdate).forEach(key => {
+        if (dataToUpdate[key as keyof typeof dataToUpdate] === undefined) {
+          delete dataToUpdate[key as keyof typeof dataToUpdate];
+        }
       });
+      
+      await updateDoc(userDocRef, dataToUpdate);
       
       const displayName = `${data.firstName} ${data.lastName}`;
       if(user.displayName !== displayName || user.photoURL !== data.profilePicture) {
