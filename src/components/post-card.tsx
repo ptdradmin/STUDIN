@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import {
   DropdownMenu,
@@ -108,22 +108,25 @@ export default function PostCard({ post }: PostCardProps) {
 
         const postRef = doc(firestore, "posts", post.id);
         const currentLikes = optimisticLikes;
-        
-        if (hasLiked) {
-            setOptimisticLikes(currentLikes.filter(uid => uid !== user.uid));
-            try {
-              await updateDoc(postRef, { likes: arrayRemove(user.uid) });
-            } catch (error) {
-              setOptimisticLikes(currentLikes); // Revert on error
-            }
-        } else {
-            setOptimisticLikes([...currentLikes, user.uid]);
-            try {
-               await updateDoc(postRef, { likes: arrayUnion(user.uid) });
-            } catch (error) {
-               setOptimisticLikes(currentLikes); // Revert on error
-            }
-        }
+        const newLikes = hasLiked
+            ? currentLikes.filter(uid => uid !== user.uid)
+            : [...currentLikes, user.uid];
+
+        setOptimisticLikes(newLikes);
+
+        updateDoc(postRef, { likes: newLikes })
+            .catch(serverError => {
+                // Revert optimistic update on failure
+                setOptimisticLikes(currentLikes);
+
+                // Create and emit the contextual error
+                const permissionError = new FirestorePermissionError({
+                    path: postRef.path,
+                    operation: 'update',
+                    requestResourceData: { likes: newLikes }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
     };
     
     const handleShare = () => {
@@ -177,13 +180,16 @@ export default function PostCard({ post }: PostCardProps) {
         setOptimisticComments([...previousComments, newComment]);
         setComment('');
 
-        try {
-            await updateDoc(postRef, { comments: arrayUnion(newComment) });
-        } catch (error) {
-            console.error("Error adding comment: ", error);
-            toast({ variant: "destructive", title: "Erreur", description: "Impossible d'ajouter le commentaire." });
-            setOptimisticComments(previousComments);
-        }
+        updateDoc(postRef, { comments: arrayUnion(newComment) })
+            .catch(serverError => {
+                setOptimisticComments(previousComments); // Revert on failure
+                const permissionError = new FirestorePermissionError({
+                    path: postRef.path,
+                    operation: 'update',
+                    requestResourceData: { comments: arrayUnion(newComment) }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
     }
 
 
