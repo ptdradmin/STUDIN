@@ -2,15 +2,15 @@
 'use client';
 
 import Image from "next/image";
-import type { Post } from "@/lib/types";
+import type { Post, Favorite } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, Timestamp } from "firebase/firestore";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -36,7 +36,22 @@ export default function PostCard({ post }: PostCardProps) {
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
 
+    // Fetch user's favorites to check if this post is saved
+    const favoritesQuery = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return query(
+            collection(firestore, 'favorites'),
+            where('userId', '==', user.uid),
+            where('itemType', '==', 'post')
+        );
+    }, [firestore, user]);
+
+    const { data: favoriteItems } = useCollection<Favorite>(favoritesQuery);
+
+    const isSaved = favoriteItems?.some(fav => fav.itemId === post.id);
+
     const getInitials = (name: string) => {
+        if (!name) return '??';
         const parts = name.split(' ');
         if (parts.length > 1 && parts[0] && parts[1]) {
           return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -49,15 +64,14 @@ export default function PostCard({ post }: PostCardProps) {
       if (dateValue instanceof Timestamp) {
         return dateValue.toDate();
       }
+      if (typeof dateValue === 'object' && dateValue.seconds) {
+        return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+      }
       if (typeof dateValue === 'string' || typeof dateValue === 'number') {
         const date = new Date(dateValue);
         if (!isNaN(date.getTime())) {
           return date;
         }
-      }
-      // Handle Firestore serverTimestamp placeholder if needed, though it should be converted
-      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
-         return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
       }
       return null;
     }
@@ -109,6 +123,40 @@ export default function PostCard({ post }: PostCardProps) {
             } catch (error) {
                setOptimisticLikes(currentLikes); // Revert on error
             }
+        }
+    };
+    
+    const handleShare = () => {
+        // In a real app, this would generate a shareable link to the post
+        navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
+        toast({
+            title: "Lien copié !",
+            description: "Le lien vers la publication a été copié dans votre presse-papiers.",
+        })
+    }
+
+    const handleSave = async () => {
+        if (!user || !firestore) {
+             toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.'});
+             return;
+        }
+
+        if (isSaved) {
+            // Unsave
+            const favoriteToDelete = favoriteItems?.find(fav => fav.itemId === post.id);
+            if (favoriteToDelete) {
+                deleteDocumentNonBlocking(doc(firestore, 'favorites', favoriteToDelete.id));
+                toast({ title: 'Non enregistré', description: 'Publication retirée de vos favoris.' });
+            }
+        } else {
+            // Save
+            await addDoc(collection(firestore, 'favorites'), {
+                userId: user.uid,
+                itemId: post.id,
+                itemType: 'post',
+                createdAt: serverTimestamp(),
+            });
+            toast({ title: 'Enregistré', description: 'Publication ajoutée à vos favoris.' });
         }
     };
 
@@ -221,10 +269,16 @@ export default function PostCard({ post }: PostCardProps) {
                         <Button variant="ghost" size="icon" onClick={handleLike}>
                             <Heart className={`h-6 w-6 transition-colors ${hasLiked ? 'text-red-500 fill-current' : ''}`} />
                         </Button>
-                        <Button variant="ghost" size="icon"><MessageCircle className="h-6 w-6" /></Button>
-                        <Button variant="ghost" size="icon"><Send className="h-6 w-6" /></Button>
+                        <Button variant="ghost" size="icon" asChild>
+                            <label htmlFor={`comment-input-${post.id}`} className="cursor-pointer">
+                                <MessageCircle className="h-6 w-6" />
+                            </label>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={handleShare}><Send className="h-6 w-6" /></Button>
                     </div>
-                     <Button variant="ghost" size="icon"><Bookmark className="h-6 w-6" /></Button>
+                     <Button variant="ghost" size="icon" onClick={handleSave}>
+                        <Bookmark className={`h-6 w-6 ${isSaved ? 'fill-current' : ''}`} />
+                    </Button>
                 </div>
                 {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-1">{optimisticLikes.length} J'aime</p>}
                 <div className="text-sm mt-1">
@@ -262,6 +316,7 @@ export default function PostCard({ post }: PostCardProps) {
                 {user && (
                     <form onSubmit={handleCommentSubmit} className="flex w-full items-center gap-2 pt-2 mt-2 border-t">
                         <Input 
+                            id={`comment-input-${post.id}`}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             placeholder="Ajouter un commentaire..." 

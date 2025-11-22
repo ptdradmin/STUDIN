@@ -1,6 +1,5 @@
 
 
-
 export interface Housing {
   id: string;
   title: string;
@@ -28,7 +27,7 @@ export interface Post {
     userId: string;
     userDisplayName: string;
     userAvatarUrl: string;
-    createdAt: string;
+    createdAt: any;
     likes: string[];
     comments: {
         userId: string;
@@ -142,7 +141,14 @@ export interface Notification {
   read: boolean;
   createdAt: any;
 }
-    
+
+export interface Favorite {
+    id: string;
+    userId: string;
+    itemId: string;
+    itemType: 'post' | 'housing' | 'event' | 'tutor';
+    createdAt: any;
+}
     
     
 
