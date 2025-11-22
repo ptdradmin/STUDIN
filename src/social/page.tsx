@@ -8,23 +8,26 @@ import { PageSkeleton } from '@/components/page-skeleton';
 import { GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const StatCard = ({ title, value, icon, href, className, isLoading }: { title: string, value: number, icon: React.ReactNode, href: string, className?: string, isLoading: boolean }) => {
     return (
         <Link href={href} className="block group">
             <Card className={cn("relative overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-xl h-full flex flex-col justify-between p-5", className)}>
-                <div className="z-10">
-                    <div className="p-3 bg-white/20 rounded-lg inline-block mb-4">
+                <div className="flex justify-between items-start">
+                    <div className="p-3 bg-white/20 rounded-lg">
                        {icon}
                     </div>
+                </div>
+                <div>
                     {isLoading ? (
-                        <div className="h-10 w-16 bg-black/10 rounded animate-pulse" />
+                        <Skeleton className="h-12 w-20 bg-white/20" />
                     ) : (
                         <div className="text-5xl font-bold text-white">{value}</div>
                     )}
+                    <h3 className="text-lg font-semibold text-white/90 mt-1">{title}</h3>
                 </div>
-                 <h3 className="text-lg font-semibold text-white/90 z-10 mt-2">{title}</h3>
             </Card>
         </Link>
     )
@@ -59,47 +62,45 @@ export default function SocialPageContent() {
     }
 
     return (
-        <>
-            <div className="flex flex-col space-y-8">
-                <div>
-                    <h1 className="text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <StatCard 
-                        title="Sessions de tutorat actives" 
-                        value={tutors?.length ?? 0}
-                        icon={<GraduationCap className="h-8 w-8 text-white" />}
-                        isLoading={isLoading}
-                        href="/tutoring"
-                        className="bg-blue-500"
-                    />
-                    <StatCard 
-                        title="Trajets disponibles" 
-                        value={trips?.length ?? 0}
-                        icon={<Car className="h-8 w-8 text-white" />}
-                        isLoading={isLoading}
-                        href="/carpooling"
-                        className="bg-purple-500"
-                    />
-                    <StatCard 
-                        title="Logements disponibles" 
-                        value={housings?.length ?? 0}
-                        icon={<Bed className="h-8 w-8 text-white" />}
-                        isLoading={isLoading}
-                        href="/housing"
-                        className="bg-pink-500"
-                    />
-                    <StatCard 
-                        title="Événements à venir" 
-                        value={events?.length ?? 0}
-                        icon={<PartyPopper className="h-8 w-8 text-white" />}
-                        isLoading={isLoading}
-                        href="/events"
-                        className="bg-orange-500"
-                    />
-                </div>
+        <div className="flex flex-col space-y-8">
+            <div>
+                <h1 className="text-4xl font-bold tracking-tight">Bienvenue, {userProfile?.firstName || 'Gui'} 👋</h1>
             </div>
-        </>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <StatCard 
+                    title="Sessions de tutorat actives" 
+                    value={tutors?.length ?? 0}
+                    icon={<GraduationCap className="h-8 w-8 text-white" />}
+                    isLoading={isLoading}
+                    href="/tutoring"
+                    className="bg-blue-500"
+                />
+                <StatCard 
+                    title="Trajets disponibles" 
+                    value={trips?.length ?? 0}
+                    icon={<Car className="h-8 w-8 text-white" />}
+                    isLoading={isLoading}
+                    href="/carpooling"
+                    className="bg-purple-500"
+                />
+                <StatCard 
+                    title="Logements disponibles" 
+                    value={housings?.length ?? 0}
+                    icon={<Bed className="h-8 w-8 text-white" />}
+                    isLoading={isLoading}
+                    href="/housing"
+                    className="bg-pink-500"
+                />
+                <StatCard 
+                    title="Événements à venir" 
+                    value={events?.length ?? 0}
+                    icon={<PartyPopper className="h-8 w-8 text-white" />}
+                    isLoading={isLoading}
+                    href="/events"
+                    className="bg-orange-500"
+                />
+            </div>
+        </div>
     );
 }
