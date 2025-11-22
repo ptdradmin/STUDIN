@@ -1,9 +1,12 @@
 
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +17,7 @@ import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, OAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
 const universities = [
     'Université de Namur',
@@ -24,6 +28,22 @@ const universities = [
     'HEC Liège',
     'Autre'
 ];
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'Le prénom est requis'),
+  lastName: z.string().min(1, 'Le nom est requis'),
+  email: z.string().email("L'adresse e-mail n'est pas valide"),
+  password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
+  confirmPassword: z.string(),
+  university: z.string().optional(),
+  fieldOfStudy: z.string().optional(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Les mots de passe ne correspondent pas',
+  path: ['confirmPassword'],
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
+
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -46,15 +66,6 @@ const MicrosoftIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export default function RegisterForm() {
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    password: '',
-    confirm_password: '',
-    university: '',
-    field_of_study: ''
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
@@ -62,15 +73,20 @@ export default function RegisterForm() {
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      university: '',
+      fieldOfStudy: '',
+    },
+  });
 
-  const handleSelectChange = (value: string) => {
-    setFormData({ ...formData, university: value });
-  };
-  
-  const createUserDocument = async (user: User, additionalData: any = {}) => {
+  const createUserDocument = async (user: User, additionalData: Partial<RegisterFormValues> = {}) => {
       if (!firestore) return;
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -79,9 +95,9 @@ export default function RegisterForm() {
         const { email, displayName, photoURL } = user;
         const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
 
-        const firstName = additionalData.firstName || firstNameFromProvider;
-        const lastName = additionalData.lastName || lastNameFromProvider;
-        const username = additionalData.username || email?.split('@')[0] || `user_${user.uid.substring(0,6)}`;
+        const firstName = additionalData.firstName || firstNameFromProvider || '';
+        const lastName = additionalData.lastName || lastNameFromProvider || '';
+        const username = email?.split('@')[0] || `user_${user.uid.substring(0, 6)}`;
 
         const userData = {
             id: user.uid,
@@ -153,16 +169,7 @@ export default function RegisterForm() {
   }
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirm_password) {
-        toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Les mots de passe ne correspondent pas.",
-        });
-        return;
-    }
+  const onSubmit = async (data: RegisterFormValues) => {
     setLoading('email');
     
     if (!auth || !firestore) {
@@ -176,18 +183,17 @@ export default function RegisterForm() {
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
-        const displayName = `${formData.first_name} ${formData.last_name}`;
+        const displayName = `${data.firstName} ${data.lastName}`;
 
         await updateProfile(user, { displayName });
 
         await createUserDocument(user, {
-            firstName: formData.first_name,
-            lastName: formData.last_name,
-            username: formData.email.split('@')[0],
-            university: formData.university,
-            fieldOfStudy: formData.field_of_study
+            firstName: data.firstName,
+            lastName: data.lastName,
+            university: data.university,
+            fieldOfStudy: data.fieldOfStudy
         });
         handleSuccess();
     } catch (error: any) {
@@ -197,7 +203,6 @@ export default function RegisterForm() {
     }
   };
 
-  const passwordsMatch = formData.password === formData.confirm_password;
   const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
@@ -226,92 +231,127 @@ export default function RegisterForm() {
               <span className="bg-background px-2 text-muted-foreground">Ou s'inscrire avec un e-mail</span>
             </div>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">Prénom</Label>
-                <Input id="first_name" name="first_name" placeholder="Jean" required onChange={handleChange} disabled={!servicesReady} />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prénom</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Jean" {...field} disabled={!servicesReady} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Dupont" {...field} disabled={!servicesReady} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Nom</Label>
-                <Input id="last_name" name="last_name" placeholder="Dupont" required onChange={handleChange} disabled={!servicesReady} />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="votre.email@example.com" {...field} disabled={!servicesReady} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mot de passe</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={!servicesReady} className="pr-10"/>
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmer le mot de passe</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={!servicesReady} className="pr-10"/>
+                           <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="votre.email@example.com" required onChange={handleChange} disabled={!servicesReady} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
-                <div className="relative">
-                  <Input 
-                    id="password" 
-                    name="password" 
-                    type={showPassword ? 'text' : 'password'} 
-                    placeholder="Minimum 6 caractères" 
-                    required minLength={6} 
-                    onChange={handleChange} 
-                    disabled={!servicesReady} 
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm_password">Confirmer le mot de passe</Label>
-                 <div className="relative">
-                  <Input 
-                    id="confirm_password" 
-                    name="confirm_password" 
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="••••••••" 
-                    required 
-                    onChange={handleChange} 
-                    disabled={!servicesReady}
-                    className="pr-10"
-                  />
-                   <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-              </div>
-            </div>
-            {!passwordsMatch && formData.confirm_password && (
-              <p className="text-xs text-destructive">Les mots de passe ne correspondent pas.</p>
-            )}
+              
+              <FormField
+                control={form.control}
+                name="university"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Université (Optionnel)</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!servicesReady}>
+                        <FormControl>
+                          <SelectTrigger><SelectValue placeholder="Sélectionnez votre université" /></SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {universities.map(uni => (
+                                <SelectItem key={uni} value={uni}>{uni}</SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fieldOfStudy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Domaine d'études (Optionnel)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Informatique, Droit..." {...field} disabled={!servicesReady} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-2">
-              <Label htmlFor="university">Université</Label>
-              <Select name="university" onValueChange={handleSelectChange} disabled={!servicesReady}>
-                  <SelectTrigger>
-                      <SelectValue placeholder="Sélectionnez votre université" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {universities.map(uni => (
-                          <SelectItem key={uni} value={uni}>{uni}</SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="field_of_study">Domaine d'études</Label>
-              <Input id="field_of_study" name="field_of_study" placeholder="Ex: Informatique, Droit, Médecine..." onChange={handleChange} disabled={!servicesReady} />
-            </div>
-            <Button type="submit" className="w-full" disabled={!!loading || !passwordsMatch || !formData.password || !servicesReady}>
-              {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
+                {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
+              </Button>
+            </form>
+          </Form>
         </div>
       </CardContent>
        <CardFooter className="flex justify-center">
@@ -325,5 +365,3 @@ export default function RegisterForm() {
     </Card>
   );
 }
-
-    
