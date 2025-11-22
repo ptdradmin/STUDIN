@@ -75,8 +75,7 @@ export default function LoginForm() {
         description: "Bienvenue sur STUD'IN!",
       });
       const from = searchParams.get('from') || '/social';
-      router.push(from);
-      router.refresh();
+      window.location.href = from;
   }
 
   const handleError = (error: any) => {
