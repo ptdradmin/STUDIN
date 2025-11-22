@@ -1,9 +1,11 @@
+
 // src/firebase/client-provider.tsx
 'use client';
 import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
 import { FirebaseApp } from 'firebase/app';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
+import { Loader } from 'lucide-react';
 
 import { FirebaseProvider } from './provider';
 import { initializeFirebase } from '.';
@@ -22,7 +24,6 @@ export default function FirebaseClientProvider({
   const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
 
   useEffect(() => {
-    // Firebase is only available on the client
     if (typeof window !== 'undefined') {
       const app = initializeFirebase();
       const auth = getAuth(app);
@@ -32,9 +33,11 @@ export default function FirebaseClientProvider({
   }, []);
 
   if (!firebaseServices) {
-    // During SSR or initial client render, Firebase is not initialized.
-    // The components using Firebase will be client-side and will re-render.
-    return <>{children}</>;
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
 

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
@@ -23,9 +23,9 @@ export default function CarpoolingPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
-  useState(() => {
+  useEffect(() => {
     getTrips().then(setTrips);
-  });
+  }, []);
   
   return (
     <div className="flex flex-col min-h-screen">
