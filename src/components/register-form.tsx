@@ -11,8 +11,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 const universities = [
     'Université de Namur',
@@ -25,7 +25,7 @@ const universities = [
 ];
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -58,6 +58,31 @@ export default function RegisterForm() {
   const handleSelectChange = (value: string) => {
     setFormData({ ...formData, university: value });
   };
+  
+  const createUserDocument = async (user: User, additionalData?: any) => {
+      if (!firestore) return;
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        const { email, displayName, photoURL } = user;
+        const [firstName, lastName] = displayName?.split(' ') || [additionalData?.first_name || '', additionalData?.last_name || ''];
+
+        await setDoc(userDocRef, {
+            id: user.uid,
+            email,
+            firstName,
+            lastName,
+            university: additionalData?.university || '',
+            fieldOfStudy: additionalData?.field_of_study || '',
+            profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            ...additionalData,
+        });
+      }
+  }
+
 
   const handleGoogleSignIn = async () => {
     if (!auth || !firestore) return;
@@ -67,19 +92,7 @@ export default function RegisterForm() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-            id: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            university: '',
-            fieldOfStudy: '',
-        });
-      }
+      await createUserDocument(user);
 
       toast({
         title: "Connexion réussie!",
@@ -127,21 +140,14 @@ export default function RegisterForm() {
         const user = userCredential.user;
         const displayName = `${formData.first_name} ${formData.last_name}`;
 
-        await updateProfile(user, {
-            displayName: displayName
-        });
+        await updateProfile(user, { displayName });
 
-        // Save additional user info to Firestore
-        const userDocRef = doc(firestore, 'users', user.uid);
-        await setDoc(userDocRef, {
-            id: user.uid,
-            email: user.email,
-            displayName: displayName,
+        await createUserDocument(user, {
+            firstName: formData.first_name,
+            lastName: formData.last_name,
             university: formData.university,
-            fieldOfStudy: formData.field_of_study,
-            photoURL: user.photoURL
+            fieldOfStudy: formData.field_of_study
         });
-
 
         toast({
             title: "Inscription réussie!",
@@ -150,10 +156,14 @@ export default function RegisterForm() {
         router.push('/social');
     } catch (error: any) {
         console.error(error);
+        let description = "Impossible de créer le compte.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "Cet email est déjà utilisé. Essayez de vous connecter.";
+        }
         toast({
             variant: "destructive",
             title: "Erreur d'inscription",
-            description: "Impossible de créer le compte. L'email est peut-être déjà utilisé.",
+            description,
         });
     } finally {
         setLoading(false);
@@ -245,3 +255,5 @@ export default function RegisterForm() {
     </Card>
   );
 }
+
+    
