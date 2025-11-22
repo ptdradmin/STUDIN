@@ -11,10 +11,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import type { Housing, UserProfile } from '@/lib/types';
+import type { Housing } from '@/lib/types';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
@@ -103,24 +103,12 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           updateDocumentNonBlocking(housingRef, dataToUpdate);
           toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
-            const userDocRef = doc(firestore, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef).catch(e => {
-                const permError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
-                errorEmitter.emit('permission-error', permError);
-                throw permError;
-            });
-
-            if (!userDocSnap.exists()) {
-                throw new Error("Profil utilisateur introuvable.");
-            }
-            const userProfile = userDocSnap.data() as UserProfile;
-
             const housingsCollection = collection(firestore, 'housings');
             const dataToCreate = {
                 ...data,
                 userId: user.uid,
-                ownerUsername: userProfile.username,
-                ownerAvatarUrl: userProfile.profilePicture,
+                ownerUsername: user.displayName || user.email?.split('@')[0],
+                ownerAvatarUrl: user.photoURL,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 coordinates: [50.8503, 4.3517], // TODO: Geocode address

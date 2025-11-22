@@ -10,10 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import type { UserProfile } from '@/lib/types';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 
@@ -63,23 +62,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     setLoading(true);
 
     try {
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef).catch(e => {
-            const permError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
-            errorEmitter.emit('permission-error', permError);
-            throw permError;
-        });
-
-        if (!userDocSnap.exists()) {
-            throw new Error("Profil utilisateur introuvable.");
-        }
-        const userProfile = userDocSnap.data() as UserProfile;
-
         const eventData = {
             ...data,
             organizerId: user.uid,
-            organizerUsername: userProfile.username,
-            organizerAvatarUrl: userProfile.profilePicture,
+            organizerUsername: user.displayName || user.email?.split('@')[0],
+            organizerAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             endDate: data.startDate, // simplified

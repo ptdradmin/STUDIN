@@ -10,9 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { UserProfile } from '@/lib/types';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const tripSchema = z.object({
@@ -52,23 +51,11 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     setLoading(true);
 
     try {
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef).catch(e => {
-            const permError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
-            errorEmitter.emit('permission-error', permError);
-            throw permError;
-        });
-        
-        if (!userDocSnap.exists()) {
-            throw new Error("Profil utilisateur introuvable.");
-        }
-        const userProfile = userDocSnap.data() as UserProfile;
-
         const tripData = {
             ...data,
             driverId: user.uid,
-            driverUsername: userProfile.username,
-            driverAvatarUrl: userProfile.profilePicture,
+            driverUsername: user.displayName || user.email?.split('@')[0],
+            driverAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             departureAddress: data.departureCity, // simplified

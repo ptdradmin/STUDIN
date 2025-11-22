@@ -10,10 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { UserProfile } from '@/lib/types';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const tutorSchema = z.object({
@@ -48,23 +47,11 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     setLoading(true);
     
     try {
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef).catch(e => {
-            const permError = new FirestorePermissionError({ path: `users/${user.uid}`, operation: 'get' });
-            errorEmitter.emit('permission-error', permError);
-            throw permError;
-        });
-
-        if (!userDocSnap.exists()) {
-            throw new Error("Profil utilisateur introuvable.");
-        }
-        const userProfile = userDocSnap.data() as UserProfile;
-
         const tutorData = {
             ...data,
             tutorId: user.uid,
-            tutorUsername: userProfile.username,
-            tutorAvatarUrl: userProfile.profilePicture,
+            tutorUsername: user.displayName || user.email?.split('@')[0],
+            tutorAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             rating: 0,
