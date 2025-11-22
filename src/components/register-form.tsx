@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const universities = [
@@ -66,7 +66,7 @@ export default function RegisterForm() {
 
       if (!userDoc.exists()) {
         const { email, displayName, photoURL } = user;
-        const [firstName, lastName] = displayName?.split(' ') || [additionalData?.first_name || '', additionalData?.last_name || ''];
+        const [firstName, lastName] = displayName?.split(' ') || [additionalData?.firstName || '', additionalData?.lastName || ''];
 
         const userData = {
             id: user.uid,
@@ -74,12 +74,12 @@ export default function RegisterForm() {
             firstName,
             lastName,
             university: additionalData?.university || '',
-            fieldOfStudy: additionalData?.field_of_study || '',
+            fieldOfStudy: additionalData?.fieldOfStudy || '',
             profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         };
-        setDocumentNonBlocking(userDocRef, userData, { merge: false });
+        setDocumentNonBlocking(userDocRef, userData, { merge: true });
       }
   }
 
@@ -95,8 +95,8 @@ export default function RegisterForm() {
       await createUserDocument(user);
 
       toast({
-        title: "Connexion réussie!",
-        description: "Bienvenue sur STUD'IN.",
+        title: "Inscription réussie!",
+        description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
       });
       router.push('/social');
 
@@ -171,7 +171,7 @@ export default function RegisterForm() {
   };
 
   const passwordsMatch = formData.password === formData.confirm_password;
-  const servicesReady = !!auth && !!firestore;
+  const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
     <Card className="w-full max-w-lg shadow-2xl">

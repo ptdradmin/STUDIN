@@ -73,10 +73,8 @@ export default function LoginForm() {
 
   const handleError = (error: any) => {
       let description = "Une erreur est survenue.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Email ou mot de passe incorrect."
-      } else if (error.code === 'auth/invalid-credential') {
-         description = "Email ou mot de passe incorrect."
       }
       toast({
         variant: "destructive",
@@ -123,7 +121,7 @@ export default function LoginForm() {
     }
   };
   
-  const servicesReady = auth && firestore && !isUserLoading;
+  const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
     <Card className="w-full max-w-md shadow-2xl">
