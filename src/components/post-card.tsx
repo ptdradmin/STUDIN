@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState } from "react";
+import Link from "next/link";
 
 
 interface PostCardProps {
@@ -138,12 +139,16 @@ export default function PostCard({ post }: PostCardProps) {
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
             <div className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
-                        <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
-                    </Avatar>
+                    <Link href={`/profile/${post.userId}`}>
+                        <Avatar className="h-9 w-9">
+                            <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
+                            <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
+                        </Avatar>
+                    </Link>
                     <div>
-                        <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
+                        <Link href={`/profile/${post.userId}`}>
+                            <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
+                        </Link>
                         <span className="text-sm text-muted-foreground"> • {timeAgo}</span>
                         {post.location && (
                             <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
@@ -207,7 +212,9 @@ export default function PostCard({ post }: PostCardProps) {
                 </div>
                 {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-1">{optimisticLikes.length} J'aime</p>}
                 <div className="text-sm mt-1">
-                    <span className="font-semibold">{post.userDisplayName}</span>
+                    <Link href={`/profile/${post.userId}`}>
+                        <span className="font-semibold cursor-pointer hover:underline">{post.userDisplayName}</span>
+                    </Link>
                     <span className="ml-2">{post.caption}</span>
                 </div>
                 
@@ -221,7 +228,9 @@ export default function PostCard({ post }: PostCardProps) {
                      <div className="mt-2 text-sm w-full space-y-1">
                         {displayedComments.map((comment, index) => (
                             <div key={index} className="flex items-start gap-2">
-                                <span className="font-semibold">{comment.userDisplayName}</span>
+                                <Link href={`/profile/${comment.userId}`}>
+                                    <span className="font-semibold cursor-pointer hover:underline">{comment.userDisplayName}</span>
+                                </Link>
                                 <span className="">{comment.text}</span>
                             </div>
                         ))}
