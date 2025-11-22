@@ -18,8 +18,8 @@ import {
 
 const navItems = [
   { href: "/social", label: "Accueil", icon: Home },
-  { href: "#", label: "Recherche", icon: Search },
-  { href: "#", label: "Découvrir", icon: Compass },
+  { href: "/search", label: "Recherche", icon: Search },
+  { href: "/explore", label: "Découvrir", icon: Compass },
   { href: "/messages", label: "Messages", icon: MessageSquare },
 ];
 
