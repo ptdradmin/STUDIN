@@ -14,6 +14,7 @@ import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { Eye, EyeOff } from 'lucide-react';
 
 const universities = [
     'Université de Namur',
@@ -46,6 +47,8 @@ export default function RegisterForm() {
     university: '',
     field_of_study: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
@@ -211,11 +214,47 @@ export default function RegisterForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
-                <Input id="password" name="password" type="password" placeholder="Minimum 6 caractères" required minLength={6} onChange={handleChange} disabled={!servicesReady} />
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    name="password" 
+                    type={showPassword ? 'text' : 'password'} 
+                    placeholder="Minimum 6 caractères" 
+                    required minLength={6} 
+                    onChange={handleChange} 
+                    disabled={!servicesReady} 
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm_password">Confirmer le mot de passe</Label>
-                <Input id="confirm_password" name="confirm_password" type="password" placeholder="••••••••" required onChange={handleChange} disabled={!servicesReady} />
+                 <div className="relative">
+                  <Input 
+                    id="confirm_password" 
+                    name="confirm_password" 
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="••••••••" 
+                    required 
+                    onChange={handleChange} 
+                    disabled={!servicesReady}
+                    className="pr-10"
+                  />
+                   <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
             </div>
             {!passwordsMatch && formData.confirm_password && (
