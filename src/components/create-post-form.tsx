@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon, MapPin } from 'lucide-react';
@@ -97,7 +97,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader className="p-6 pb-0 text-center">
-           <h2 className="text-lg font-semibold">Créer une nouvelle publication</h2>
+           <DialogTitle className="text-lg font-semibold">Créer une nouvelle publication</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
            <div className="space-y-4 max-h-[70vh] overflow-y-auto">
