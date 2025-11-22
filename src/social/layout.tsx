@@ -131,7 +131,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
           
           {/* Top Header */}
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-end gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex-1 md:hidden">
                  <Link href="/social" className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
@@ -141,13 +141,13 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
                   </Link>
             </div>
             
-            <div className="hidden md:block flex-1 max-w-md">
+            <div className="hidden md:flex flex-1 max-w-md items-center">
                 <UserSearch />
             </div>
 
             <div className="flex items-center gap-2">
                 <div className="md:hidden">
-                    <UserSearch />
+                    <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
                 </div>
                 <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
                     <Plus className="h-4 w-4" />
