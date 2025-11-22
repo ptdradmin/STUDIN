@@ -141,7 +141,7 @@ export default function SocialClientPage() {
     const getInitials = (email?: string | null) => {
         if (!email) return '..';
         const parts = email.split('@')[0].replace('.', ' ').split(' ');
-        if (parts.length > 1) {
+        if (parts.length > 1 && parts[0] && parts[1]) {
           return (parts[0][0] + parts[1][0]).toUpperCase();
         }
         return email.substring(0, 2).toUpperCase();
@@ -193,8 +193,10 @@ export default function SocialClientPage() {
                             </Button>
                         )}
                         <NotificationsDropdown />
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" asChild>
+                           <Link href="/">
                             <Camera className="h-6 w-6" />
+                           </Link>
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
