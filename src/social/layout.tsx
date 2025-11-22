@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Plus, User, Settings, LogOut, Compass } from "lucide-react";
+import { Home, MessageSquare, GraduationCap, Car, Bed, PartyPopper, Search, Plus, User, Settings, LogOut } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -75,7 +75,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
     const getInitials = (email?: string | null) => {
         if (!email) return '..';
         const nameParts = user?.displayName?.split(' ');
-        if(nameParts && nameParts.length > 1) {
+        if(nameParts && nameParts.length > 1 && nameParts[0] && nameParts[1]) {
             return nameParts[0][0] + nameParts[1][0];
         }
         return email.substring(0, 2).toUpperCase();

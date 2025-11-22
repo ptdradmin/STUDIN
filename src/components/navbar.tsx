@@ -12,10 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, Compass, MessageSquare } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 
@@ -66,13 +66,7 @@ export default function Navbar() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0">
-        <div className="p-6">
-          <SheetHeader>
-              <SheetTitle className="sr-only">Menu</SheetTitle>
-              <SheetDescription className="sr-only">Navigation principale</SheetDescription>
-          </SheetHeader>
-        </div>
-        <div className="flex flex-col h-full px-6 pb-6">
+        <div className="flex flex-col h-full px-6 py-6">
             <Link href="/" className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
               <div className="flex flex-col">
                  <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
@@ -88,10 +82,21 @@ export default function Navbar() {
             ))}
           </nav>
            <div className="mt-auto">
-                <div className="flex flex-col gap-2">
-                    <Button variant="ghost" asChild onClick={() => setIsSheetOpen(false)}><Link href="/login">Connexion</Link></Button>
-                    <Button asChild onClick={() => setIsSheetOpen(false)}><Link href="/register">Inscription</Link></Button>
-                </div>
+                {user ? (
+                   <div className="flex flex-col gap-2">
+                       <Button variant="outline" asChild onClick={() => setIsSheetOpen(false)}>
+                           <Link href="/profile">Mon Profil</Link>
+                       </Button>
+                       <Button variant="ghost" onClick={() => { handleLogout(); setIsSheetOpen(false); }}>
+                           Déconnexion
+                       </Button>
+                   </div>
+                ) : (
+                    <div className="flex flex-col gap-2">
+                        <Button variant="ghost" asChild onClick={() => setIsSheetOpen(false)}><Link href="/login">Connexion</Link></Button>
+                        <Button asChild onClick={() => setIsSheetOpen(false)}><Link href="/register">Inscription</Link></Button>
+                    </div>
+                )}
            </div>
         </div>
       </SheetContent>
