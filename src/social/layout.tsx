@@ -4,7 +4,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, MessageSquare, PlusSquare, User, Menu, Film, LogOut, Settings, Bookmark, Phone, GraduationCap, Car, Bed, PartyPopper } from "lucide-react";
 import { useUser } from "@/firebase";
 import {
@@ -64,15 +63,7 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
     const { user } = useUser();
     const { auth } = useAuth();
     const router = useRouter();
-    const [showCreateForm, setShowCreateForm] = useState(false);
 
-    const getInitials = (email?: string | null) => {
-        if (!email) return '..';
-        const nameParts = email.split('@')[0].replace('.', ' ');
-        const initials = nameParts.split(' ').map(n => n[0]).join('');
-        return initials.substring(0, 2).toUpperCase();
-    }
-    
     const handleNavClick = (id?: string) => {
       // Future use for panels
     }
@@ -86,7 +77,6 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
 
   return (
     <TooltipProvider>
-      {showCreateForm && <CreatePostForm onClose={() => setShowCreateForm(false)} />}
       <div className="flex min-h-screen bg-background text-foreground">
         <aside 
             className={`fixed left-0 top-0 h-full z-20 flex flex-col p-3 bg-background border-r border-border transition-all duration-300 w-60`}
@@ -99,16 +89,6 @@ export default function SocialLayout({ children }: { children: React.ReactNode }
             {mainNavItems.map((item) => (
               <NavLink key={item.label} item={item} onClick={handleNavClick} />
             ))}
-             <Button 
-                  variant="ghost" 
-                  size="lg" 
-                  aria-label="Créer" 
-                  className="justify-start items-center gap-4 h-12 w-full"
-                  onClick={() => setShowCreateForm(true)}
-              >
-                  <PlusSquare className="h-6 w-6" />
-                  <span className={`text-base font-normal`}>Créer</span>
-             </Button>
           </nav>
           
           <div className="mt-auto flex flex-col gap-2">
