@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, MapPin, ChevronDown } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore } from "@/firebase";
-import { doc, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { useUser, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,13 +75,22 @@ export default function PostCard({ post }: PostCardProps) {
         }
 
         const postRef = doc(firestore, "posts", post.id);
-
+        const currentLikes = optimisticLikes;
+        
         if (hasLiked) {
-            setOptimisticLikes(optimisticLikes.filter(uid => uid !== user.uid));
-            await updateDoc(postRef, { likes: arrayRemove(user.uid) });
+            setOptimisticLikes(currentLikes.filter(uid => uid !== user.uid));
+            try {
+              await updateDoc(postRef, { likes: arrayRemove(user.uid) });
+            } catch (error) {
+              setOptimisticLikes(currentLikes); // Revert on error
+            }
         } else {
-            setOptimisticLikes([...optimisticLikes, user.uid]);
-            await updateDoc(postRef, { likes: arrayUnion(user.uid) });
+            setOptimisticLikes([...currentLikes, user.uid]);
+            try {
+               await updateDoc(postRef, { likes: arrayUnion(user.uid) });
+            } catch (error) {
+               setOptimisticLikes(currentLikes); // Revert on error
+            }
         }
     };
 
@@ -98,7 +107,8 @@ export default function PostCard({ post }: PostCardProps) {
             createdAt: new Date().toISOString(),
         };
         
-        setOptimisticComments([...optimisticComments, newComment]);
+        const previousComments = optimisticComments;
+        setOptimisticComments([...previousComments, newComment]);
         setComment('');
 
         try {
@@ -106,7 +116,7 @@ export default function PostCard({ post }: PostCardProps) {
         } catch (error) {
             console.error("Error adding comment: ", error);
             toast({ variant: "destructive", title: "Erreur", description: "Impossible d'ajouter le commentaire." });
-            setOptimisticComments(optimisticComments.filter(c => c.createdAt !== newComment.createdAt));
+            setOptimisticComments(previousComments);
         }
     }
 
@@ -252,5 +262,3 @@ export default function PostCard({ post }: PostCardProps) {
         </Card>
     );
 }
-
-    

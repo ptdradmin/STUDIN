@@ -114,7 +114,9 @@ export default function SocialClientPage() {
         return email.substring(0, 2).toUpperCase();
     }
     
-    if (isUserLoading || !user) {
+    const isLoading = isUserLoading || postsLoading;
+
+    if (isLoading || !user) {
         return <PageSkeleton />;
     }
 
