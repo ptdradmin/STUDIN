@@ -74,8 +74,8 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/';
-      router.push(from); // Redirect using Next.js router
+      const from = searchParams.get('from') || '/social';
+      router.push(from);
   }
 
   const handleError = (error: any) => {
@@ -113,7 +113,7 @@ export default function LoginForm() {
         const result = await signInWithPopup(auth, provider);
         await createUserDocument(result.user);
         handleSuccess();
-    } catch (error) {
+    } catch (error: any) {
         handleError(error);
     } finally {
         setLoading('');
