@@ -43,6 +43,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   const createUserDocument = async (user: User) => {
     if (!firestore) return;
@@ -73,8 +74,8 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/social';
-      window.location.href = from;
+      const from = searchParams.get('from') || '/';
+      router.push(from); // Redirect using Next.js router
   }
 
   const handleError = (error: any) => {
@@ -112,7 +113,7 @@ export default function LoginForm() {
         const result = await signInWithPopup(auth, provider);
         await createUserDocument(result.user);
         handleSuccess();
-    } catch (error: any) {
+    } catch (error) {
         handleError(error);
     } finally {
         setLoading('');
@@ -223,5 +224,3 @@ export default function LoginForm() {
     </Card>
   );
 }
-
-    
