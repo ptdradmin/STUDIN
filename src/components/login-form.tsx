@@ -74,7 +74,7 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/';
+      const from = searchParams.get('from') || '/social';
       // Use window.location.href for a full page refresh and reliable redirection.
       window.location.href = from;
   }
