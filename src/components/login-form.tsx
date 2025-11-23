@@ -75,7 +75,6 @@ export default function LoginForm() {
         description: "Bienvenue sur STUD'IN!",
       });
       router.push('/social');
-      router.refresh(); // Force a refresh to ensure user state is picked up
   }
 
   const handleError = (error: any) => {
@@ -113,8 +112,8 @@ export default function LoginForm() {
         const result = await signInWithPopup(auth, provider);
         await createUserDocument(result.user);
         handleSuccess();
-    } catch (error) {
-      handleError(error);
+    } catch (error: any) {
+        handleError(error);
     } finally {
         setLoading('');
     }
