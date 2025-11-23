@@ -112,23 +112,14 @@ export default function SocialPage() {
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
 
     useEffect(() => {
-        // Only redirect if loading is finished and there's no user.
         if (!isUserLoading && !user) {
             router.push('/login?from=/social');
         }
     }, [user, isUserLoading, router]);
 
-    // Show a skeleton loader while auth state is being determined. This is the key fix.
-    if (isUserLoading || postsLoading) {
+    if (isUserLoading || !user) {
         return <PageSkeleton />;
     }
-
-    // After loading, if there's no user, the useEffect will handle redirection.
-    // Return null or a minimal loader to avoid flashing content.
-    if (!user) {
-        return <PageSkeleton />;
-    }
-
 
     return (
        <SocialLayout>
@@ -136,7 +127,9 @@ export default function SocialPage() {
                 <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
                     <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
-                             {posts && posts.length > 0 ? (
+                             {postsLoading ? (
+                                <PageSkeleton />
+                             ) : posts && posts.length > 0 ? (
                                 posts.map(post => <PostCard key={post.id} post={post} />)
                             ) : (
                                 <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
@@ -156,3 +149,5 @@ export default function SocialPage() {
        </SocialLayout>
     );
 }
+
+    

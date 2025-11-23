@@ -40,7 +40,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
@@ -224,3 +223,5 @@ export default function LoginForm() {
     </Card>
   );
 }
+
+    
