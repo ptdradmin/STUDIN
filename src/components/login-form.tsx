@@ -74,9 +74,9 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/social';
-      // Use window.location.href for a full page refresh and reliable redirection.
-      window.location.href = from;
+      // Force a full page load to the social page. This is the most reliable way
+      // to ensure the browser recognizes the new auth state.
+      window.location.href = '/social';
   }
 
   const handleError = (error: any) => {
