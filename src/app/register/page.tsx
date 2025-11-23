@@ -1,3 +1,4 @@
+
 import RegisterForm from '@/components/register-form';
 import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';

@@ -7,10 +7,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, GraduationCap, PartyPopper } from 'lucide-react';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { PageSkeleton } from '@/components/page-skeleton';
 
 const services = [
     {
@@ -40,23 +36,6 @@ const services = [
 ]
 
 export default function HomePage() {
-    const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        // Only redirect if loading is complete and a user exists.
-        if (!isUserLoading && user) {
-            router.replace('/social');
-        }
-    }, [user, isUserLoading, router]);
-
-    // While checking auth state, show a loader.
-    // If auth state is confirmed and there's a user, the effect will trigger redirection.
-    if (isUserLoading || user) {
-        return <PageSkeleton />;
-    }
-
-    // If loading is complete and there's no user, show the public home page.
     return (
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />

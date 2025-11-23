@@ -74,8 +74,8 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/social';
-      router.push(from);
+      router.push('/social');
+      router.refresh(); // Force a refresh to ensure user state is picked up
   }
 
   const handleError = (error: any) => {
@@ -113,8 +113,8 @@ export default function LoginForm() {
         const result = await signInWithPopup(auth, provider);
         await createUserDocument(result.user);
         handleSuccess();
-    } catch (error: any) {
-        handleError(error);
+    } catch (error) {
+      handleError(error);
     } finally {
         setLoading('');
     }
@@ -149,7 +149,13 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-md shadow-2xl">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Connexion</CardTitle>
+         <Link href="/" className="flex items-center gap-3 justify-center">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                  <GraduationCap className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-xl font-bold">STUD'IN</h1>
+          </Link>
+        <CardTitle className="text-2xl pt-4">Connexion</CardTitle>
         <CardDescription>Accédez à votre compte STUD'IN</CardDescription>
       </CardHeader>
       <CardContent>

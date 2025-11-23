@@ -112,19 +112,15 @@ export default function SocialPage() {
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
 
     useEffect(() => {
-        // Only redirect if loading is complete and there is no user.
         if (!isUserLoading && !user) {
             router.push('/login?from=/social');
         }
     }, [user, isUserLoading, router]);
 
-    // While checking auth state, show a loader.
-    // If auth state is confirmed and there's no user, the effect will trigger redirection.
     if (isUserLoading || !user) {
         return <PageSkeleton />;
     }
 
-    // If loading is complete and there is a user, show the social feed.
     return (
        <SocialLayout>
             <div className="w-full">
@@ -132,7 +128,7 @@ export default function SocialPage() {
                     <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {postsLoading ? (
-                                <PageSkeleton />
+                                Array.from({length: 3}).map((_, i) => <PageSkeleton key={i}/>)
                              ) : posts && posts.length > 0 ? (
                                 posts.map(post => <PostCard key={post.id} post={post} />)
                             ) : (
