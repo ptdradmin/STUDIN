@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -74,7 +74,7 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/social';
+      const from = searchParams.get('from') || '/';
       // Use window.location.href for a full page refresh and reliable redirection.
       window.location.href = from;
   }
