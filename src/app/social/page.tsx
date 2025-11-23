@@ -112,12 +112,20 @@ export default function SocialPage() {
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
 
     useEffect(() => {
+        // Only redirect if loading is finished and there's no user.
         if (!isUserLoading && !user) {
             router.push('/login?from=/social');
         }
     }, [user, isUserLoading, router]);
 
-    if (isUserLoading || !user || (postsLoading && !posts)) {
+    // Show a skeleton loader while auth state is being determined. This is the key fix.
+    if (isUserLoading || postsLoading) {
+        return <PageSkeleton />;
+    }
+
+    // After loading, if there's no user, the useEffect will handle redirection.
+    // Return null or a minimal loader to avoid flashing content.
+    if (!user) {
         return <PageSkeleton />;
     }
 
