@@ -74,9 +74,8 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      // Force a full page load to the social page. This is the most reliable way
-      // to ensure the browser recognizes the new auth state.
-      window.location.href = '/social';
+      const from = searchParams.get('from') || '/social';
+      window.location.href = from;
   }
 
   const handleError = (error: any) => {
