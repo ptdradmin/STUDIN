@@ -1,10 +1,6 @@
 
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
-import { PageSkeleton } from '@/components/page-skeleton';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,23 +36,6 @@ const services = [
 ]
 
 export default function HomePage() {
-    const { user, isUserLoading } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        // If the user is logged in, redirect them to the social feed.
-        // Do nothing if the user state is still loading.
-        if (!isUserLoading && user) {
-            router.replace('/social');
-        }
-    }, [user, isUserLoading, router]);
-
-    // Show a loading skeleton while checking auth or if the user is about to be redirected.
-    if (isUserLoading || user) {
-        return <PageSkeleton />;
-    }
-    
-    // If the user is not logged in, show the public landing page.
     return (
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />
