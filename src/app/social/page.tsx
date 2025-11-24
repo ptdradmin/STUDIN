@@ -4,7 +4,7 @@
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import type { Post, UserProfile } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { PageSkeleton } from '@/components/page-skeleton';
+import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -129,7 +129,7 @@ export default function SocialPage() {
                     <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {postsLoading ? (
-                                Array.from({length: 3}).map((_, i) => <PageSkeleton key={i}/>)
+                                Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                              ) : posts && posts.length > 0 ? (
                                 posts.map(post => <PostCard key={post.id} post={post} />)
                             ) : (
