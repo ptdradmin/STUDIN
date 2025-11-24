@@ -40,10 +40,9 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
-  const searchParams = useSearchParams();
+  const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
 
   const createUserDocument = async (user: User) => {
     if (!firestore) return;
@@ -75,7 +74,6 @@ export default function LoginForm() {
         description: "Bienvenue sur STUD'IN!",
       });
       router.push('/social');
-      router.refresh();
   }
 
   const handleError = (error: any) => {

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import type { Post, UserProfile } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
@@ -13,22 +13,23 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SocialLayout from '@/social/layout';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function SuggestionsSkeleton() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="h-5 w-3/4 animate-pulse rounded-md bg-muted"></CardTitle>
+                <Skeleton className="h-5 w-3/4" />
             </CardHeader>
             <CardContent className="space-y-4">
                 {Array.from({length: 5}).map((_, i) => (
                     <div key={i} className="flex items-center gap-3">
-                        <div className="h-10 w-10 animate-pulse rounded-full bg-muted"></div>
+                        <Skeleton className="h-10 w-10 rounded-full" />
                         <div className="flex-grow space-y-1">
-                            <div className="h-4 w-2/3 animate-pulse rounded-md bg-muted"></div>
-                             <div className="h-3 w-1/3 animate-pulse rounded-md bg-muted"></div>
+                            <Skeleton className="h-4 w-2/3" />
+                             <Skeleton className="h-3 w-1/3" />
                         </div>
-                        <div className="h-8 w-16 animate-pulse rounded-md bg-muted"></div>
+                        <Skeleton className="h-8 w-16" />
                     </div>
                 ))}
             </CardContent>
@@ -40,13 +41,10 @@ function Suggestions() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    // Suggest users who are not the current user and whom the current user is not already following.
     const suggestionsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(
             collection(firestore, 'users'),
-            // This is a simplified suggestion logic. A real-world app would have a more complex algorithm.
-            // Here we just grab a few users. We will filter out the current user and followed users on the client.
             limit(10)
         );
     }, [firestore, user]);
@@ -60,8 +58,6 @@ function Suggestions() {
         return name.substring(0, 2).toUpperCase();
     }
     
-    // In a real app, you'd fetch the current user's profile to get their `followingIds` list
-    // For now, we'll just filter out the current user.
     const filteredSuggestions = suggestedUsers?.filter(u => u.id !== user?.uid).slice(0, 5);
 
     if (isLoading) {

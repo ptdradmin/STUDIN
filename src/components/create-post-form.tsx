@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,13 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking, useUser } from '@/firebase';
+import { useFirestore, setDocumentNonBlocking, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon } from 'lucide-react';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -93,8 +93,16 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         toast({ title: 'Succès', description: 'Publication créée !' });
         onClose();
     } catch(error) {
+        const contextualError = new FirestorePermissionError({
+            path: 'posts',
+            operation: 'create',
+            requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', contextualError);
         console.error("Erreur lors de la création de la publication: ", error);
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
+        if (!(error instanceof FirestorePermissionError)) {
+          toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
+        }
     } finally {
         setLoading(false);
     }

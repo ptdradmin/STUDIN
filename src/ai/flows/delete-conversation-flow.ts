@@ -7,13 +7,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps } from 'firebase-admin/app';
-
-// Initialize Firebase Admin SDK only if it hasn't been initialized yet.
-if (!getApps().length) {
-    initializeApp();
-}
+import { getFirestore, collection, query, getDocs, writeBatch, doc } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
 
 const DeleteConversationInputSchema = z.string().describe("The ID of the conversation to delete.");
 export type DeleteConversationInput = z.infer<typeof DeleteConversationInputSchema>;
@@ -23,7 +18,6 @@ const DeleteConversationOutputSchema = z.object({
   message: z.string(),
 });
 export type DeleteConversationOutput = z.infer<typeof DeleteConversationOutputSchema>;
-
 
 /**
  * Deletes a conversation and all its messages.
@@ -42,30 +36,28 @@ const deleteConversationFlow = ai.defineFlow(
     outputSchema: DeleteConversationOutputSchema,
   },
   async (conversationId) => {
-    const db = getFirestore();
-    const batchSize = 100;
+    // This flow should run in a server environment where Admin SDK is initialized.
+    // However, to make it work with client-side SDK if needed, we get the instance.
+    // Note: This pattern is unusual. Genkit flows are typically pure backend logic.
+    const { firestore: db } = initializeFirebase();
 
-    const collectionRef = db.collection(`conversations/${conversationId}/messages`);
-    
+    const messagesCollectionRef = collection(db, `conversations/${conversationId}/messages`);
+    const conversationDocRef = doc(db, 'conversations', conversationId);
+
     try {
-        // Delete the messages subcollection in batches
-        let query = collectionRef.limit(batchSize);
-        while (true) {
-            const snapshot = await query.get();
-            if (snapshot.size === 0) {
-                break;
-            }
+        // Get all messages to delete
+        const messagesSnapshot = await getDocs(messagesCollectionRef);
+        
+        // Use a batch to delete all messages
+        const batch = writeBatch(db);
+        messagesSnapshot.forEach(doc => {
+            batch.delete(doc.ref);
+        });
 
-            const batch = db.batch();
-            snapshot.docs.forEach(doc => {
-                batch.delete(doc.ref);
-            });
-            await batch.commit();
-        }
-
-        // After deleting the subcollection, delete the parent conversation document
-        const conversationRef = db.doc(`conversations/${conversationId}`);
-        await conversationRef.delete();
+        // Finally, delete the conversation document itself
+        batch.delete(conversationDocRef);
+        
+        await batch.commit();
 
         return {
             success: true,
@@ -74,6 +66,7 @@ const deleteConversationFlow = ai.defineFlow(
 
     } catch (error: any) {
         console.error("Error deleting conversation: ", error);
+        // In a real scenario, you'd want to handle permissions errors more gracefully.
         return {
             success: false,
             message: `Failed to delete conversation: ${error.message}`
