@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -43,10 +44,10 @@ export function getSdks(firebaseApp: FirebaseApp) {
 }
 
 export * from './provider';
-export * from './client-provider';
+// client-provider is now the main entry point, so we don't re-export it here to avoid circular deps
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
-export * from './auth/use-user';
+// use-user is now internal to the provider logic
 export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';

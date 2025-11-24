@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -41,6 +41,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
@@ -73,8 +74,8 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      router.push('/social');
-      router.refresh();
+      const from = searchParams.get('from') || '/social';
+      router.push(from);
   }
 
   const handleError = (error: any) => {
@@ -112,7 +113,7 @@ export default function LoginForm() {
         const result = await signInWithPopup(auth, provider);
         await createUserDocument(result.user);
         handleSuccess();
-    } catch (error: any) {
+    } catch (error) {
         handleError(error);
     } finally {
         setLoading('');

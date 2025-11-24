@@ -43,6 +43,8 @@ function Suggestions() {
 
     const suggestionsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
+        // Basic suggestion: get some users, excluding the current one.
+        // A real app would have a more complex suggestion algorithm.
         return query(
             collection(firestore, 'users'),
             limit(10)
@@ -58,6 +60,7 @@ function Suggestions() {
         return name.substring(0, 2).toUpperCase();
     }
     
+    // Filter out the current user from suggestions
     const filteredSuggestions = suggestedUsers?.filter(u => u.id !== user?.uid).slice(0, 5);
 
     if (isLoading) {
@@ -65,7 +68,7 @@ function Suggestions() {
     }
 
     if (!filteredSuggestions || filteredSuggestions.length === 0) {
-        return null;
+        return null; // Don't render the card if there are no suggestions
     }
 
     return (
@@ -100,6 +103,13 @@ export default function SocialPage() {
     const router = useRouter();
     const firestore = useFirestore();
 
+    // Redirect to login if auth check is complete and there's no user
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.push('/login?from=/social');
+        }
+    }, [user, isUserLoading, router]);
+
     const postsQuery = useMemoFirebase(
         () => !firestore ? null : query(collection(firestore, 'posts'), orderBy('createdAt', 'desc')),
         [firestore]
@@ -107,12 +117,7 @@ export default function SocialPage() {
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
 
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login?from=/social');
-        }
-    }, [user, isUserLoading, router]);
-
+    // Show skeleton while auth is loading or if user is not yet determined
     if (isUserLoading || !user) {
         return <PageSkeleton />;
     }
