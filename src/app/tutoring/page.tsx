@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Star, LayoutGrid, Map, Plus } from "lucide-react";
+import { Star, LayoutGrid, Map, Plus, GraduationCap } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -142,66 +143,78 @@ export default function TutoringPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Trouver un tuteur</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end" onSubmit={e => e.preventDefault()}>
-                <div className="space-y-2">
-                    <Label htmlFor="subject">Matière</Label>
-                    <Input id="subject" placeholder="Ex: Mathématiques, Droit..." value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="level">Niveau</Label>
-                    <Select value={levelFilter} onValueChange={setLevelFilter}>
-                      <SelectTrigger><SelectValue placeholder="Tous niveaux" /></SelectTrigger>
-                      <SelectContent>
-                          <SelectItem value="all">Tous niveaux</SelectItem>
-                          <SelectItem value="bachelier">Bachelier</SelectItem>
-                          <SelectItem value="master">Master</SelectItem>
-                          <SelectItem value="secondaire">Secondaire</SelectItem>
-                      </SelectContent>
-                    </Select>
-                </div>
-                <div className="lg:col-span-2">
-                </div>
-            </form>
-          </CardContent>
-        </Card>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-16 items-center justify-between">
+              <Link href="/" className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                      <GraduationCap className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-xl font-bold">STUD'IN</h1>
+              </Link>
+          </div>
+      </header>
+      <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trouver un tuteur</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end" onSubmit={e => e.preventDefault()}>
+                  <div className="space-y-2">
+                      <Label htmlFor="subject">Matière</Label>
+                      <Input id="subject" placeholder="Ex: Mathématiques, Droit..." value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="level">Niveau</Label>
+                      <Select value={levelFilter} onValueChange={setLevelFilter}>
+                        <SelectTrigger><SelectValue placeholder="Tous niveaux" /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tous niveaux</SelectItem>
+                            <SelectItem value="bachelier">Bachelier</SelectItem>
+                            <SelectItem value="master">Master</SelectItem>
+                            <SelectItem value="secondaire">Secondaire</SelectItem>
+                        </SelectContent>
+                      </Select>
+                  </div>
+                  <div className="lg:col-span-2">
+                  </div>
+              </form>
+            </CardContent>
+          </Card>
 
-        {showCreateForm && <CreateTutorForm onClose={() => setShowCreateForm(false)} />}
+          {showCreateForm && <CreateTutorForm onClose={() => setShowCreateForm(false)} />}
 
-          <div className="mt-8">
-          <div className="flex justify-between items-center mb-4 gap-4">
-            <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
-                <Plus className="mr-2 h-4 w-4" /> Devenir tuteur
-              </Button>
-              <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                <Button
-                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="px-3"
-                >
-                  <LayoutGrid className="h-5 w-5" />
+            <div className="mt-8">
+            <div className="flex justify-between items-center mb-4 gap-4">
+              <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
+                  <Plus className="mr-2 h-4 w-4" /> Devenir tuteur
                 </Button>
-                <Button
-                  variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('map')}
-                  className="px-3"
-                >
-                  <Map className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="px-3"
+                  >
+                    <LayoutGrid className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('map')}
+                    className="px-3"
+                  >
+                    <Map className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
+            {viewMode === 'list' ? renderList() : renderMap()}
           </div>
-          {viewMode === 'list' ? renderList() : renderMap()}
-        </div>
-    </div>
+      </div>
+    </>
   );
 }

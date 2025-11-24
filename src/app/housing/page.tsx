@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import HousingListings from '@/components/housing-listings';
-import { LayoutGrid, Map, Plus } from 'lucide-react';
+import { LayoutGrid, Map, Plus, GraduationCap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import HousingDetailModal from '@/components/housing-detail-modal';
+import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -71,81 +72,93 @@ export default function HousingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <Card className="mb-8">
-            <CardHeader>
-                <CardTitle>Filtrer les logements</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
-                    <div className="space-y-2">
-                        <Label htmlFor="city">Ville</Label>
-                        <Input id="city" placeholder="Ex: Namur" value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="type">Type de logement</Label>
-                        <Select value={typeFilter} onValueChange={setTypeFilter}>
-                            <SelectTrigger><SelectValue placeholder="Tous types" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tous types</SelectItem>
-                                <SelectItem value="kot">Kot</SelectItem>
-                                <SelectItem value="studio">Studio</SelectItem>
-                                <SelectItem value="colocation">Colocation</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                          <Label htmlFor="price">Prix maximum: {priceFilter}€</Label>
-                          <Input id="price" type="range" min="100" max="1000" step="25" value={priceFilter} onChange={e => setPriceFilter(Number(e.target.value))} />
-                    </div>
-                </form>
-            </CardContent>
-        </Card>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-16 items-center justify-between">
+              <Link href="/" className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                      <GraduationCap className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-xl font-bold">STUD'IN</h1>
+              </Link>
+          </div>
+      </header>
+      <div className="container mx-auto px-4 py-8">
+          <Card className="mb-8">
+              <CardHeader>
+                  <CardTitle>Filtrer les logements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                  <form className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
+                      <div className="space-y-2">
+                          <Label htmlFor="city">Ville</Label>
+                          <Input id="city" placeholder="Ex: Namur" value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="type">Type de logement</Label>
+                          <Select value={typeFilter} onValueChange={setTypeFilter}>
+                              <SelectTrigger><SelectValue placeholder="Tous types" /></SelectTrigger>
+                              <SelectContent>
+                                  <SelectItem value="all">Tous types</SelectItem>
+                                  <SelectItem value="kot">Kot</SelectItem>
+                                  <SelectItem value="studio">Studio</SelectItem>
+                                  <SelectItem value="colocation">Colocation</SelectItem>
+                              </SelectContent>
+                          </Select>
+                      </div>
+                      <div className="space-y-2">
+                            <Label htmlFor="price">Prix maximum: {priceFilter}€</Label>
+                            <Input id="price" type="range" min="100" max="1000" step="25" value={priceFilter} onChange={e => setPriceFilter(Number(e.target.value))} />
+                      </div>
+                  </form>
+              </CardContent>
+          </Card>
 
-      <div className="flex justify-between items-center mb-4">
-        <Button onClick={handleCreateClick} disabled={isUserLoading || !user}>
-          <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
-        </Button>
-        <div className="flex items-center gap-1 rounded-md bg-muted p-1 ml-auto">
-          <Button
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-            className="px-3"
-          >
-            <LayoutGrid className="h-5 w-5" />
+        <div className="flex justify-between items-center mb-4">
+          <Button onClick={handleCreateClick} disabled={isUserLoading || !user}>
+            <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
           </Button>
-          <Button
-            variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('map')}
-            className="px-3"
-          >
-            <Map className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1 rounded-md bg-muted p-1 ml-auto">
+            <Button
+              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="px-3"
+            >
+              <LayoutGrid className="h-5 w-5" />
+            </Button>
+            <Button
+              variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('map')}
+              className="px-3"
+            >
+              <Map className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-      </div>
-      
-      {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
-      {selectedHousing && <HousingDetailModal housing={selectedHousing} onClose={() => setSelectedHousing(null)} />}
+        
+        {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
+        {selectedHousing && <HousingDetailModal housing={selectedHousing} onClose={() => setSelectedHousing(null)} />}
 
-      {viewMode === 'grid' && (
-        <HousingListings 
-            housings={filteredHousings} 
-            isLoading={isLoading} 
-            onEdit={handleEdit}
-            onCardClick={handleCardClick}
-        />
-      )}
-      {viewMode === 'map' && (
-        <Card>
-          <CardContent className="p-2">
-            <div className="h-[600px] w-full rounded-md overflow-hidden">
-              <MapView items={filteredHousings} itemType="housing" onMarkerClick={handleCardClick} />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {viewMode === 'grid' && (
+          <HousingListings 
+              housings={filteredHousings} 
+              isLoading={isLoading} 
+              onEdit={handleEdit}
+              onCardClick={handleCardClick}
+          />
+        )}
+        {viewMode === 'map' && (
+          <Card>
+            <CardContent className="p-2">
+              <div className="h-[600px] w-full rounded-md overflow-hidden">
+                <MapView items={filteredHousings} itemType="housing" onMarkerClick={handleCardClick} />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </>
   );
 }

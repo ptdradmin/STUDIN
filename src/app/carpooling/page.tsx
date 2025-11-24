@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users, LayoutGrid, Map, Plus, Star } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map, Plus, Star, GraduationCap } from "lucide-react";
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
@@ -18,6 +18,7 @@ import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -117,135 +118,147 @@ export default function CarpoolingPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Trouver un trajet</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
-                <div className="space-y-2">
-                    <Label htmlFor="departure">Lieu de départ</Label>
-                    <Input id="departure" placeholder="Ex: Bruxelles" value={departureFilter} onChange={e => setDepartureFilter(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="arrival">Lieu d'arrivée</Label>
-                    <Input id="arrival" placeholder="Ex: Namur" value={arrivalFilter} onChange={e => setArrivalFilter(e.target.value)}/>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
-                </div>
-            </form>
-          </CardContent>
-        </Card>
+    <>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-16 items-center justify-between">
+              <Link href="/" className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                      <GraduationCap className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-xl font-bold">STUD'IN</h1>
+              </Link>
+          </div>
+      </header>
+      <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Trouver un trajet</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
+                  <div className="space-y-2">
+                      <Label htmlFor="departure">Lieu de départ</Label>
+                      <Input id="departure" placeholder="Ex: Bruxelles" value={departureFilter} onChange={e => setDepartureFilter(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="arrival">Lieu d'arrivée</Label>
+                      <Input id="arrival" placeholder="Ex: Namur" value={arrivalFilter} onChange={e => setArrivalFilter(e.target.value)}/>
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="date">Date</Label>
+                      <Input id="date" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+                  </div>
+              </form>
+            </CardContent>
+          </Card>
 
-        {showCreateForm && <CreateTripForm onClose={() => setShowCreateForm(false)} />}
+          {showCreateForm && <CreateTripForm onClose={() => setShowCreateForm(false)} />}
 
-        <div className="mt-8">
-          <div className="flex justify-between items-center mb-4 gap-4">
-            <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
-                <Plus className="mr-2 h-4 w-4" /> Proposer un trajet
-              </Button>
-              <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                <Button
-                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="px-3"
-                >
-                  <LayoutGrid className="h-5 w-5" />
+          <div className="mt-8">
+            <div className="flex justify-between items-center mb-4 gap-4">
+              <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
+                  <Plus className="mr-2 h-4 w-4" /> Proposer un trajet
                 </Button>
-                <Button
-                  variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('map')}
-                  className="px-3"
-                >
-                  <Map className="h-5 w-5" />
-                </Button>
+                <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="px-3"
+                  >
+                    <LayoutGrid className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('map')}
+                    className="px-3"
+                  >
+                    <Map className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {viewMode === 'list' ? (
-              <div className="space-y-4">
-                {isLoading && <TripListSkeleton />}
-                {!isLoading && filteredTrips.map(trip => {
-                  return (
-                    <Card key={trip.id} className="transition-shadow hover:shadow-md">
-                        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <div className="flex items-center gap-3">
-                                <Image src={trip.driverAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.driverUsername || "conducteur"} width={48} height={48} className="rounded-full" />
-                            </div>
-                            <div className="hidden sm:flex flex-col items-center">
-                                <p className="font-semibold text-sm">{trip.driverUsername || 'Utilisateur'}</p>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
-                            </div>
-                            <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-primary"/>
-                                    <div>
-                                        <p className="font-medium text-sm text-muted-foreground">Départ</p>
-                                        <p className="font-semibold">{trip.departureCity}</p>
-                                    </div>
-                                </div>
+            {viewMode === 'list' ? (
+                <div className="space-y-4">
+                  {isLoading && <TripListSkeleton />}
+                  {!isLoading && filteredTrips.map(trip => {
+                    return (
+                      <Card key={trip.id} className="transition-shadow hover:shadow-md">
+                          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                              <div className="flex items-center gap-3">
+                                  <Image src={trip.driverAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.driverUsername || "conducteur"} width={48} height={48} className="rounded-full" />
+                              </div>
+                              <div className="hidden sm:flex flex-col items-center">
+                                  <p className="font-semibold text-sm">{trip.driverUsername || 'Utilisateur'}</p>
+                                  <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
+                              </div>
+                              <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
                                   <div className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-secondary"/>
-                                    <div>
-                                        <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
-                                        <p className="font-semibold">{trip.arrivalCity}</p>
-                                    </div>
-                                </div>
-                                <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
-                                    <div className="text-center">
-                                        <p className="font-medium text-sm text-muted-foreground">{new Date(trip.departureTime).toLocaleDateString()}</p>
-                                        <p className="font-semibold">{new Date(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                                    </div>
-                                      {trip.seatsAvailable > 0 ? (
-                                        <Badge variant="outline" className="flex items-center gap-1">
-                                          <Users className="h-4 w-4" />
-                                          {trip.seatsAvailable}
-                                        </Badge>
-                                      ) : (
-                                        <Badge variant="destructive">Complet</Badge>
-                                      )}
-                                </div>
-                            </div>
+                                      <MapPin className="h-5 w-5 text-primary"/>
+                                      <div>
+                                          <p className="font-medium text-sm text-muted-foreground">Départ</p>
+                                          <p className="font-semibold">{trip.departureCity}</p>
+                                      </div>
+                                  </div>
+                                    <div className="flex items-center gap-2">
+                                      <MapPin className="h-5 w-5 text-secondary"/>
+                                      <div>
+                                          <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
+                                          <p className="font-semibold">{trip.arrivalCity}</p>
+                                      </div>
+                                  </div>
+                                  <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+                                      <div className="text-center">
+                                          <p className="font-medium text-sm text-muted-foreground">{new Date(trip.departureTime).toLocaleDateString()}</p>
+                                          <p className="font-semibold">{new Date(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                      </div>
+                                        {trip.seatsAvailable > 0 ? (
+                                          <Badge variant="outline" className="flex items-center gap-1">
+                                            <Users className="h-4 w-4" />
+                                            {trip.seatsAvailable}
+                                          </Badge>
+                                        ) : (
+                                          <Badge variant="destructive">Complet</Badge>
+                                        )}
+                                  </div>
+                              </div>
 
-                            <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
-                                <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                {user && (
-                                  <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0}>
-                                    {trip.seatsAvailable > 0 ? 'Réserver' : 'Complet'}
-                                  </Button>
-                                )}
-                            </div>
+                              <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+                                  <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
+                                  {user && (
+                                    <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0}>
+                                      {trip.seatsAvailable > 0 ? 'Réserver' : 'Complet'}
+                                    </Button>
+                                  )}
+                              </div>
 
-                        </CardContent>
+                          </CardContent>
+                      </Card>
+                  )})}
+                  {!isLoading && filteredTrips.length === 0 && (
+                    <Card className="text-center py-20">
+                      <CardContent>
+                        <h3 className="text-xl font-semibold">Aucun trajet ne correspond à votre recherche</h3>
+                        <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer un trajet !</p>
+                      </CardContent>
                     </Card>
-                )})}
-                {!isLoading && filteredTrips.length === 0 && (
-                  <Card className="text-center py-20">
-                    <CardContent>
-                      <h3 className="text-xl font-semibold">Aucun trajet ne correspond à votre recherche</h3>
-                      <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer un trajet !</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-          ) : (
-            <Card>
-              <CardContent className="p-2">
-                <div className="h-[600px] w-full rounded-md overflow-hidden">
-                    <MapView items={filteredTrips} itemType="trip" />
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-    </div>
+            ) : (
+              <Card>
+                <CardContent className="p-2">
+                  <div className="h-[600px] w-full rounded-md overflow-hidden">
+                      <MapView items={filteredTrips} itemType="trip" />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+      </div>
+    </>
   );
 }

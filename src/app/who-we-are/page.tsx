@@ -2,11 +2,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from 'next/image';
-import { Check } from "lucide-react";
+import { Check, GraduationCap } from "lucide-react";
+import Link from "next/link";
 
 export default function WhoWeArePage() {
   return (
     <>
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container flex h-16 items-center justify-between">
+                <Link href="/" className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                        <GraduationCap className="h-6 w-6 text-white" />
+                    </div>
+                    <h1 className="text-xl font-bold">STUD'IN</h1>
+                </Link>
+            </div>
+        </header>
         <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
           <div className="container mx-auto px-4 py-16 text-center">
             <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">

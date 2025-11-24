@@ -4,10 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { GraduationCap } from "lucide-react";
 
 export default function ContactPage() {
   return (
     <>
+            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="container flex h-16 items-center justify-between">
+                    <Link href="/" className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                            <GraduationCap className="h-6 w-6 text-white" />
+                        </div>
+                        <h1 className="text-xl font-bold">STUD'IN</h1>
+                    </Link>
+                </div>
+            </header>
             <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 <div className="container mx-auto px-4 py-12 text-center">
                     <h1 className="text-4xl font-bold">Contacter le support</h1>
