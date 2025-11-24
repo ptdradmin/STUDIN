@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -74,6 +74,7 @@ export default function LoginForm() {
         description: "Bienvenue sur STUD'IN!",
       });
       router.push('/social');
+      router.refresh();
   }
 
   const handleError = (error: any) => {
