@@ -26,6 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import UserSearch from '@/components/user-search';
+import { useAuth } from '@/firebase';
+import SocialSidebar from '@/components/social-sidebar';
 
 function SuggestionsSkeleton() {
     return (
@@ -106,43 +108,10 @@ function Suggestions() {
     )
 }
 
-const mainNavItems = [
-  { href: "/social", label: "Accueil", icon: Home },
-  { href: "/messages", label: "Messages", icon: MessageSquare },
-  { href: "/housing", label: "Logements", icon: Bed },
-  { href: "/carpooling", label: "Covoiturage", icon: Car },
-  { href: "/tutoring", label: "Tutorat", icon: GraduationCap },
-  { href: "/events", label: "Événements", icon: PartyPopper },
-];
-
-
-function NavLink({ item, pathname }: { item: { href?: string, label: string, icon: React.ElementType }, pathname: string}) {
-  const { href, label, icon: Icon } = item;
-  const isActive = href ? pathname === href : false;
-
-  return (
-    <Link href={href || '#'} className="block">
-      <Button 
-        variant={isActive ? "secondary" : "ghost"} 
-        size="lg" 
-        aria-label={label} 
-        className={`justify-start items-center gap-4 h-12 w-full text-base ${isActive ? 'font-bold' : 'font-normal text-muted-foreground'}`}
-      >
-        <Icon className={`h-6 w-6`} strokeWidth={isActive ? 2.5 : 2} />
-        <span className="truncate">{label}</span>
-      </Button>
-    </Link>
-  );
-}
-
-
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
-    const { auth } = useAuth();
     const router = useRouter();
-    const pathname = usePathname();
     const firestore = useFirestore();
-    const { toast } = useToast();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
     useEffect(() => {
@@ -157,17 +126,6 @@ export default function SocialPage() {
     );
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
-
-    const handleLogout = async () => {
-        if (auth) {
-            await signOut(auth);
-            toast({
-                title: "Déconnexion",
-                description: "Vous avez été déconnecté avec succès.",
-            });
-            router.push('/');
-        }
-    };
     
     const getInitials = (email?: string | null) => {
         if (!email) return '..';
@@ -184,65 +142,7 @@ export default function SocialPage() {
 
     return (
        <div className="flex min-h-screen w-full bg-background">
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
-          <Link href="/social" className="mb-8 px-2 pt-3 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-xl font-bold">STUD'IN</h1>
-          </Link>
-
-          <nav className="flex flex-col gap-2 flex-grow">
-            {mainNavItems.map((item) => (
-              <NavLink key={item.label} item={item} pathname={pathname}/>
-            ))}
-          </nav>
-          
-          <div className="flex flex-col gap-2">
-             <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
-                            <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col items-start overflow-hidden">
-                            <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
-                            <p className="text-xs text-muted-foreground truncate">Voir les options</p>
-                        </div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
-                     <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user?.displayName || 'Utilisateur'}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user?.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile">
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profil</span>
-                      </Link>
-                    </DropdownMenuItem>
-                     <DropdownMenuItem asChild>
-                      <Link href="/settings">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Paramètres</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Déconnexion</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-          </div>
-        </aside>
+        <SocialSidebar />
         
         <div className="flex flex-col flex-1">
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
