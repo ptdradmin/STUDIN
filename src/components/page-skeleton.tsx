@@ -19,7 +19,7 @@ export function PageSkeleton() {
     )
 }
 
-function CardSkeleton() {
+export function CardSkeleton() {
     return (
         <div className="rounded-none md:rounded-lg border-x-0 md:border p-3">
              <div className="flex items-center gap-3 mb-3">
