@@ -373,7 +373,7 @@ export default function SettingsPage() {
                             </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-6">
-                            <SettingsItem title="Version de l’application" action={<span className="text-sm text-muted-foreground">0.1.0</span>} />
+                            <SettingsItem title="Version de l’application" action={<span className="text-sm text-muted-foreground">1.0.0</span>} />
                             <SettingsLink title="Conditions d'utilisation" href="/terms" />
                             <SettingsLink title="Politique de Confidentialité" href="/privacy" />
                         </AccordionContent>
