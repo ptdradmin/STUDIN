@@ -10,13 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Send, Trash2, MoreHorizontal, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, getDoc, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, arrayRemove } from 'firebase/firestore';
+import { collection, query, where, getDoc, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, deleteDoc } from 'firebase/firestore';
 import type { Conversation, ChatMessage, UserProfile } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -263,28 +263,13 @@ export default function MessagesPage() {
         }
     };
 
-    const handleDeleteMessage = async (message: ChatMessage) => {
-        if (!firestore || !selectedConversation || message.senderId !== user?.uid) return;
-
-        const conversationRef = doc(firestore, 'conversations', selectedConversation.id);
-        
-        try {
-            await updateDoc(conversationRef, {
-                messages: arrayRemove(message)
-            });
-            // Note: This relies on finding the exact message object in the array, which works for this implementation.
-            toast({
-                title: 'Message supprimé',
-            });
-        } catch (error) {
-            const permissionError = new FirestorePermissionError({
-                path: `conversations/${selectedConversation.id}`,
-                operation: 'update',
-                requestResourceData: { messages: arrayRemove(message) }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            console.error("Error deleting message: ", error);
-        }
+    const handleDeleteMessage = (message: ChatMessage) => {
+      if (!firestore || !selectedConversation || !message.id || message.senderId !== user?.uid) return;
+      const messageRef = doc(firestore, 'conversations', selectedConversation.id, 'messages', message.id);
+      deleteDocumentNonBlocking(messageRef);
+      toast({
+        title: 'Message supprimé',
+      });
     };
 
 
@@ -294,18 +279,17 @@ export default function MessagesPage() {
 
         const messagesColRef = collection(firestore, 'conversations', selectedConversation.id, 'messages');
         const conversationDocRef = doc(firestore, 'conversations', selectedConversation.id);
+        const newMsgDocRef = doc(messagesColRef);
 
         const messageData = {
-            id: doc(messagesColRef).id,
+            id: newMsgDocRef.id,
             text: newMessage,
             senderId: user.uid,
             createdAt: serverTimestamp()
         };
 
-        // Use non-blocking addDoc for messages
-        addDocumentNonBlocking(doc(messagesColRef, messageData.id), messageData, {});
+        addDocumentNonBlocking(newMsgDocRef, messageData, {});
         
-        // Non-blocking update for conversation metadata
         updateDoc(conversationDocRef, {
             lastMessage: {
                 text: newMessage,
