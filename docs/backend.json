@@ -97,7 +97,11 @@
         "username",
         "email",
         "firstName",
-        "lastName"
+        "lastName",
+        "postalCode",
+        "city",
+        "university",
+        "fieldOfStudy"
       ]
     },
     "Housing": {

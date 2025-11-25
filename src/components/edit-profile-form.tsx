@@ -24,10 +24,10 @@ const profileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
   username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
-  university: z.string().optional(),
-  fieldOfStudy: z.string().optional(),
-  postalCode: z.string().optional(),
-  city: z.string().optional(),
+  university: z.string().min(1, "L'établissement est requis"),
+  fieldOfStudy: z.string().min(1, "Le domaine d'études est requis"),
+  postalCode: z.string().min(4, 'Code postal invalide'),
+  city: z.string().min(1, 'La ville est requise'),
   bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
   website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
@@ -45,8 +45,9 @@ const schoolsList = [
     'Université Saint-Louis - Bruxelles',
     // Hautes Écoles
     'HEC Liège',
+    'HEPL - Haute École de la Province de Liège',
+    'HELMo - Haute École Libre Mosane',
     'Haute École de la Province de Namur (HEPN)',
-    'Haute École de la Province de Liège (HEPL)',
     'Haute École Louvain en Hainaut (HELHa)',
     'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
     'Haute École Galilée (HEG)',
@@ -66,7 +67,6 @@ const schoolsList = [
     'Arts et Métiers (Campus de Charleroi)',
     // Campus Provincial
     'Campus Provincial de Namur',
-    'Campus Provincial de la HEPL',
     // Promotion Sociale
     'Institut provincial de Promotion sociale (IPC)',
     'EPFC - Promotion Sociale',

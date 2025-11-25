@@ -29,8 +29,9 @@ const schoolsList = [
     'Université Saint-Louis - Bruxelles',
     // Hautes Écoles
     'HEC Liège',
+    'HEPL - Haute École de la Province de Liège',
+    'HELMo - Haute École Libre Mosane',
     'Haute École de la Province de Namur (HEPN)',
-    'Haute École de la Province de Liège (HEPL)',
     'Haute École Louvain en Hainaut (HELHa)',
     'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
     'Haute École Galilée (HEG)',
@@ -50,7 +51,6 @@ const schoolsList = [
     'Arts et Métiers (Campus de Charleroi)',
     // Campus Provincial
     'Campus Provincial de Namur',
-    'Campus Provincial de la HEPL',
     // Promotion Sociale
     'Institut provincial de Promotion sociale (IPC)',
     'EPFC - Promotion Sociale',
@@ -72,10 +72,10 @@ const registerSchema = z.object({
   email: z.string().email("L'adresse e-mail n'est pas valide"),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
   confirmPassword: z.string(),
-  postalCode: z.string().min(4, 'Code postal invalide').optional(),
-  city: z.string().optional(),
-  university: z.string().optional(),
-  fieldOfStudy: z.string().optional(),
+  postalCode: z.string().min(4, 'Code postal invalide'),
+  city: z.string().min(1, 'La ville est requise'),
+  university: z.string().min(1, "L'établissement est requis"),
+  fieldOfStudy: z.string().min(1, "Le domaine d'études est requis"),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',
   path: ['confirmPassword'],
@@ -332,7 +332,7 @@ export default function RegisterForm() {
                   name="postalCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Code Postal (Optionnel)</FormLabel>
+                      <FormLabel>Code Postal</FormLabel>
                       <FormControl>
                         <Input placeholder="5000" {...field} disabled={!servicesReady} />
                       </FormControl>
@@ -345,7 +345,7 @@ export default function RegisterForm() {
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Ville (Optionnel)</FormLabel>
+                      <FormLabel>Ville</FormLabel>
                       <FormControl>
                         <Input placeholder="Namur" {...field} disabled={!servicesReady} />
                       </FormControl>
@@ -360,7 +360,7 @@ export default function RegisterForm() {
                 name="university"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Établissement (Optionnel)</FormLabel>
+                    <FormLabel>Établissement</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!servicesReady}>
                         <FormControl>
                           <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
@@ -380,7 +380,7 @@ export default function RegisterForm() {
                 name="fieldOfStudy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Domaine d'études (Optionnel)</FormLabel>
+                    <FormLabel>Domaine d'études</FormLabel>
                     <FormControl>
                       <Input placeholder="Ex: Informatique, Droit..." {...field} disabled={!servicesReady} />
                     </FormControl>
