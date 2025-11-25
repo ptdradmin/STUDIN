@@ -25,16 +25,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const MicrosoftIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg width="21" height="21" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <path d="M1 1H10V10H1V1Z" fill="#f25022"/>
-        <path d="M11 1H20V10H11V1Z" fill="#7fba00"/>
-        <path d="M1 11H10V20H1V11Z" fill="#00a4ef"/>
-        <path d="M11 11H20V20H11V11Z" fill="#ffb900"/>
-    </svg>
-);
-
-
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
