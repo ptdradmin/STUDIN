@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -71,10 +72,14 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
 
         toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
         onClose();
-    } catch(error) {
+    } catch(error: any) {
         if (!(error instanceof FirestorePermissionError)) {
-            console.error("Erreur de création de trajet:", error);
-            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer le trajet.' });
+            const contextualError = new FirestorePermissionError({
+                path: 'carpoolings',
+                operation: 'create',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', contextualError);
         }
     } finally {
         setLoading(false);

@@ -68,10 +68,14 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         
         toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
         onClose();
-    } catch (error) {
+    } catch (error: any) {
         if (!(error instanceof FirestorePermissionError)) {
-            console.error("Erreur de création de profil de tuteur:", error);
-            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer le profil.' });
+            const contextualError = new FirestorePermissionError({
+                path: 'tutorings',
+                operation: 'create',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', contextualError);
         }
     } finally {
         setLoading(false);

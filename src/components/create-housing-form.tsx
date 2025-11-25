@@ -120,10 +120,14 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
             toast({ title: 'Succès', description: 'Annonce de logement créée !' });
         }
         onClose();
-    } catch(error) {
+    } catch(error: any) {
         if (!(error instanceof FirestorePermissionError)) {
-            console.error("Erreur lors de la soumission du logement:", error);
-            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de soumettre l\'annonce.' });
+            const contextualError = new FirestorePermissionError({
+                path: isEditing ? `housings/${housingToEdit!.id}` : 'housings',
+                operation: isEditing ? 'update' : 'create',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', contextualError);
         }
     } finally {
         setLoading(false);

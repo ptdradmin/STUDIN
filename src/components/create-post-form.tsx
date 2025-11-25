@@ -101,16 +101,14 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         
         toast({ title: 'Succès', description: 'Publication créée !' });
         onClose();
-    } catch(error) {
-        const contextualError = new FirestorePermissionError({
-            path: 'posts',
-            operation: 'create',
-            requestResourceData: data,
-        });
-        errorEmitter.emit('permission-error', contextualError);
-        console.error("Erreur lors de la création de la publication: ", error);
+    } catch(error: any) {
         if (!(error instanceof FirestorePermissionError)) {
-          toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
+            const contextualError = new FirestorePermissionError({
+                path: 'posts',
+                operation: 'create',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', contextualError);
         }
     } finally {
         setLoading(false);
@@ -128,7 +126,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                 <div className="flex flex-col items-center justify-center aspect-square border-r">
                     {previewUrl ? (
                          <div className="relative w-full h-full">
-                            <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
+                            <Image src={previewUrl} alt="Aperçu de l'image" fill objectFit="cover" />
                         </div>
                     ) : (
                         <>

@@ -14,6 +14,7 @@ import { collection, serverTimestamp, doc, runTransaction } from 'firebase/fires
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
 import { Tutor } from '@/lib/types';
+import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const reviewSchema = z.object({
   rating: z.number().min(1, 'La note est requise').max(5),
@@ -85,9 +86,15 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
         onReviewSubmitted();
         onClose();
 
-    } catch (error) {
-        console.error("Erreur de publication d'avis:", error);
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de publier l'avis." });
+    } catch (error: any) {
+        if (!(error instanceof FirestorePermissionError)) {
+            const contextualError = new FirestorePermissionError({
+                path: 'tutoring_reviews',
+                operation: 'create',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', contextualError);
+        }
     } finally {
         setLoading(false);
     }
@@ -135,4 +142,3 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
     </Dialog>
   );
 }
-

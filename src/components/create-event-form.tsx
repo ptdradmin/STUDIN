@@ -89,10 +89,14 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
         toast({ title: 'Succès', description: 'Événement créé !' });
         onClose();
-    } catch(error) {
+    } catch(error: any) {
         if (!(error instanceof FirestorePermissionError)) {
-            console.error("Erreur de création d'événement:", error);
-            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de créer l\'événement.' });
+            const contextualError = new FirestorePermissionError({
+                path: 'events',
+                operation: 'create',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', contextualError);
         }
     } finally {
         setLoading(false);
