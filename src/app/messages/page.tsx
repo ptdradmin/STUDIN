@@ -83,8 +83,33 @@ function ChatWindowSkeleton() {
 
 function PageSkeleton() {
     return (
-        <div className="container mx-auto my-8">
-            <Skeleton className="h-[calc(100vh-100px)] w-full" />
+         <div className="flex min-h-screen w-full bg-background">
+            <SocialSidebar />
+             <div className="flex flex-col flex-1">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <div className="hidden md:flex flex-1 max-w-md items-center">
+                       <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="flex-1 md:hidden">
+                        <Skeleton className="h-9 w-9" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-9 w-9" />
+                    </div>
+                </header>
+                 <main className="flex-1 overflow-y-auto">
+                    <div className="h-full p-4 md:p-6">
+                        <Card className="h-[calc(100vh-8rem)] flex">
+                            <div className="w-1/3 border-r flex flex-col">
+                                <ConversationListSkeleton />
+                            </div>
+                            <div className="w-2/3 flex flex-col">
+                                <ChatWindowSkeleton />
+                            </div>
+                        </Card>
+                    </div>
+                </main>
+            </div>
         </div>
     )
 }
@@ -278,17 +303,19 @@ export default function MessagesPage() {
 
         const messagesColRef = collection(firestore, 'conversations', selectedConversation.id, 'messages');
         const conversationDocRef = doc(firestore, 'conversations', selectedConversation.id);
-        const newMsgDocRef = doc(messagesColRef); // Generate ID locally
-
+        
         const messageData = {
-            id: newMsgDocRef.id,
             text: newMessage,
             senderId: user.uid,
             createdAt: serverTimestamp()
         };
 
-        // Use the locally generated ref to set the document
-        addDocumentNonBlocking(newMsgDocRef, messageData, {});
+        addDocumentNonBlocking(messagesColRef, messageData)
+          .then(newDocRef => {
+            if (newDocRef) {
+              updateDoc(newDocRef, { id: newDocRef.id });
+            }
+          });
         
         updateDoc(conversationDocRef, {
             lastMessage: {
