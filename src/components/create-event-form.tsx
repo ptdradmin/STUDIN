@@ -79,7 +79,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             updatedAt: serverTimestamp(),
             endDate: data.startDate, // simplified
             locationName: data.address, // simplified
-            coordinates: [50.8503, 4.3517], // Default to Brussels, TODO: Geocode
+            latitude: 50.8503, 
+            longitude: 4.3517,
             imageHint: "student event",
             imageUrl: imageUrl,
         };
