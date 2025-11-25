@@ -22,6 +22,7 @@ import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useToast } from '@/hooks/use-toast';
 import { getOrCreateConversation } from '@/lib/conversations';
+import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -56,24 +57,6 @@ export default function TutoringPage() {
       return subjectMatch && levelMatch;
     });
   }, [tutors, subjectFilter, levelFilter]);
-
-
-  const handleContact = async (tutorId: string) => {
-    if (!user || !firestore) {
-        router.push('/login?from=/tutoring');
-        return;
-    }
-     if (user.uid === tutorId) {
-        toast({ title: "C'est vous !", description: "Vous ne pouvez pas vous contacter vous-même." });
-        return;
-    }
-    const conversationId = await getOrCreateConversation(firestore, user.uid, tutorId);
-    if (conversationId) {
-        router.push(`/messages/${conversationId}`);
-    } else {
-        toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
-    }
-  };
 
 
   const renderList = () => {
@@ -112,28 +95,28 @@ export default function TutoringPage() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTutors && filteredTutors.map(tutor => {
-              const isCurrentUser = user?.uid === tutor.tutorId;
               return (
-                  <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
-                    <div className="flex-shrink-0">
-                      <Image src={tutor.tutorAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.tutorUsername || "tuteur"} width={96} height={96} className="rounded-full" />
-                    </div>
-                    <div className="flex flex-col flex-grow mt-4">
-                      <h3 className="text-xl font-bold">{tutor.tutorUsername || 'Utilisateur'}</h3>
-                      <p className="text-sm text-muted-foreground">{tutor.level}</p>
-                      <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
-                      <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
-                          <Star className="h-5 w-5 fill-current" />
-                          <span className="font-bold text-base text-foreground">{tutor.rating?.toFixed(1) || 'N/A'}</span>
-                      </div>
-                      <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.pricePerHour}€/h</p>
-                    </div>
-                    <div className="w-full mt-4 space-y-2">
-                        {tutor.locationType !== 'online' && <Badge variant="outline">En personne</Badge>}
-                        {tutor.locationType !== 'in-person' && <Badge variant="outline">En ligne</Badge>}
-                    </div>
-                    {user && <Button className="w-full mt-4" onClick={() => handleContact(tutor.tutorId)} disabled={isCurrentUser}>{isCurrentUser ? 'Votre profil' : 'Contacter'}</Button>}
-                  </Card>
+                  <Link href={`/tutoring/${tutor.id}`} key={tutor.id} className="block h-full">
+                    <Card className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full">
+                        <div className="flex-shrink-0">
+                        <Image src={tutor.tutorAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.tutorUsername || "tuteur"} width={96} height={96} className="rounded-full" />
+                        </div>
+                        <div className="flex flex-col flex-grow mt-4">
+                        <h3 className="text-xl font-bold">{tutor.tutorUsername || 'Utilisateur'}</h3>
+                        <p className="text-sm text-muted-foreground">{tutor.level}</p>
+                        <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
+                        <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
+                            <Star className="h-5 w-5 fill-current" />
+                            <span className="font-bold text-base text-foreground">{tutor.rating?.toFixed(1) || 'N/A'}</span>
+                        </div>
+                        <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.pricePerHour}€/h</p>
+                        </div>
+                         <div className="w-full mt-4 space-x-2">
+                            {tutor.locationType !== 'online' && <Badge variant="outline">En personne</Badge>}
+                            {tutor.locationType !== 'in-person' && <Badge variant="outline">En ligne</Badge>}
+                        </div>
+                    </Card>
+                  </Link>
             )})}
         </div>
     );

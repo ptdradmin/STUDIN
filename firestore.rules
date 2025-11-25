@@ -73,6 +73,17 @@ service cloud.firestore {
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
+    
+    /**
+     * Checks if the authenticated user has paid for a tutoring session.
+     * This is a placeholder for a real payment/booking check.
+     */
+    function isStudentOfTutor(tutoringId, studentId) {
+        // In a real app, this would check a 'bookings' collection.
+        // For now, we allow any authenticated user to leave a review.
+        return isSignedIn() && isOwner(studentId);
+    }
+
 
     /**
      * Checks if the authenticated user is the driver of a specific carpool.
@@ -243,11 +254,9 @@ service cloud.firestore {
      * @principle Public Read with Owner-Only Writes. Reviews are public, but only the student who wrote the review can create, modify, or delete it.
      */
     match /tutoring_reviews/{tutoringReviewId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.studentId) && request.resource.data.studentId == resource.data.studentId;
-      allow delete: if isExistingOwner(resource.data.studentId);
+      allow get, list: if true;
+      allow create: if isSignedIn() && isStudentOfTutor(request.resource.data.tutoringId, request.resource.data.studentId);
+      allow update, delete: if isExistingOwner(resource.data.studentId);
     }
 
     // =====================================================================
