@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, orderBy, startAt, endAt } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2 } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
@@ -33,9 +33,13 @@ export default function UserSearch() {
       
       const searchTerm = searchQuery.toLowerCase();
       const usersRef = collection(firestore, 'users');
-      // Firestore does not support case-insensitive or partial text search natively.
-      // This query finds usernames that start with the search term.
-      const q = query(usersRef, where('username', '>=', searchTerm), where('username', '<=', searchTerm + '\uf8ff'), limit(10));
+      
+      const q = query(usersRef, 
+        orderBy('username'),
+        startAt(searchTerm),
+        endAt(searchTerm + '\uf8ff'),
+        limit(10)
+      );
       
       try {
         const querySnapshot = await getDocs(q);
