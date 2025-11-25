@@ -14,7 +14,7 @@ import { signOut } from 'firebase/auth';
 import type { Post, UserProfile, Favorite } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where, getDocs, documentId } from 'firebase/firestore';
+import { collection, doc, query, where, documentId } from 'firebase/firestore';
 
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
@@ -105,7 +105,7 @@ export default function CurrentUserProfilePage() {
   }, [firestore, user]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
 
-  // 1. Fetch favorite items for the current user
+  // 1. Fetch favorite items for the current user, filtering by itemType
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
       return query(
@@ -126,7 +126,8 @@ export default function CurrentUserProfilePage() {
   const savedPostsQuery = useMemoFirebase(() => {
       if (!firestore || savedPostIds.length === 0) return null;
       // Note: 'in' query is limited to 30 elements by Firestore.
-      return query(collection(firestore, 'posts'), where(documentId(), 'in', savedPostIds));
+      const safePostIds = savedPostIds.length > 30 ? savedPostIds.slice(0, 30) : savedPostIds;
+      return query(collection(firestore, 'posts'), where(documentId(), 'in', safePostIds));
   }, [firestore, savedPostIds]);
   const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
@@ -258,3 +259,5 @@ export default function CurrentUserProfilePage() {
     </>
   );
 }
+
+    

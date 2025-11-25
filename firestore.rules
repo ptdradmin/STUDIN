@@ -319,10 +319,14 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get: if isOwner(resource.data.userId);
-      allow list: if false;
+      // A user can list their OWN favorites, but not all favorites.
+      // This requires the client query to include `where('userId', '==', currentUserId)`
+      allow list: if isSignedIn() && request.query.get("userId") == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
+
+    
