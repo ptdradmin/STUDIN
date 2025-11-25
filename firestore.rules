@@ -302,8 +302,8 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get: if isOwner(resource.data.userId);
-      // A user can list their own favorites, and only their own.
-      allow list: if isSignedIn() && request.auth.uid == request.query.get('userId');
+      // A user can list their own favorites, but only their own, by querying on their userId.
+      allow list: if isSignedIn() && request.query.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
