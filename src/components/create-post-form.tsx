@@ -10,17 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, setDocumentNonBlocking, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon } from 'lucide-react';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
   location: z.string().optional(),
-  imageUrl: z.string().optional(),
 });
 
 type PostFormInputs = z.infer<typeof postSchema>;
@@ -35,7 +35,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     defaultValues: {
       caption: '',
       location: '',
-      imageUrl: '',
     }
   });
 
@@ -43,8 +42,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-
-  const imageUrl = watch('imageUrl');
+  const storage = useStorage();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "..";
@@ -58,24 +58,32 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setValue('imageUrl', reader.result as string);
+        setPreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
+    }
+    if (!imageFile) {
+        toast({ variant: 'destructive', title: 'Erreur', description: "Une image est requise pour la publication." });
+        return;
     }
     setLoading(true);
 
     try {
-        const postsCollection = collection(firestore, 'posts');
-        const newDocRef = doc(postsCollection);
+        const newDocRef = doc(collection(firestore, 'posts'));
+        const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
+        await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(imageRef);
+
         const postData = {
             ...data,
             id: newDocRef.id,
@@ -86,6 +94,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             updatedAt: serverTimestamp(),
             likes: [],
             comments: [],
+            imageUrl,
         };
 
         setDocumentNonBlocking(newDocRef, postData, {});
@@ -117,9 +126,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         <form onSubmit={handleSubmit(onSubmit)}>
            <div className="grid grid-cols-[1fr_40%] max-h-[70vh]">
                 <div className="flex flex-col items-center justify-center aspect-square border-r">
-                    {imageUrl ? (
+                    {previewUrl ? (
                          <div className="relative w-full h-full">
-                            <Image src={imageUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
+                            <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
                         </div>
                     ) : (
                         <>

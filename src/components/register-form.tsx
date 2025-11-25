@@ -15,60 +15,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
 const schoolsList = [
-    // Universités
-    'Université de Namur',
-    'Université de Liège',
-    'UCLouvain',
-    'ULB - Université Libre de Bruxelles',
-    'UMons',
-    'Université Saint-Louis - Bruxelles',
-    // Hautes Écoles
-    'HEC Liège',
-    'HEPL - Haute École de la Province de Liège',
-    'HELMo - Haute École Libre Mosane',
-    'Haute École de la Province de Namur (HEPN)',
-    'Haute École Louvain en Hainaut (HELHa)',
-    'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
-    'Haute École Galilée (HEG)',
-    'Haute École ICHEC - ECAM - ISFSC',
-    'Haute École de Bruxelles-Brabant (HE2B)',
-    'Haute École Francisco Ferrer',
-    'Haute École Léonard de Vinci',
-    'Haute École Robert Schuman',
-    // Écoles Supérieures des Arts
-    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
-    'La Cambre',
-    'Institut national supérieur des arts du spectacle (INSAS)',
-    'École supérieure des Arts Saint-Luc de Bruxelles',
-    "École supérieure des Arts de l'Image 'Le 75'",
-    // Arts & Métiers
-    'Arts et Métiers (Campus de Bruxelles)',
-    'Arts et Métiers (Campus de Charleroi)',
-    // Campus Provincial
-    'Campus Provincial de Namur',
-    // Promotion Sociale
-    'Institut provincial de Promotion sociale (IPC)',
-    'EPFC - Promotion Sociale',
-    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
-    // IFAPME
-    'IFAPME - Centre de Namur',
-    'IFAPME - Centre de Liège',
-    'IFAPME - Centre de Charleroi',
-    'IFAPME - Centre de Mons',
-    'IFAPME - Centre de Wavre',
-    // Autre
+    'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
+    'HEC Liège', 'HEPL - Haute École de la Province de Liège', 'HELMo - Haute École Libre Mosane',
+    'Haute École de la Province de Namur (HEPN)', 'Haute École Louvain en Hainaut (HELHa)', 'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+    'Haute École Galilée (HEG)', 'Haute École ICHEC - ECAM - ISFSC', 'Haute École de Bruxelles-Brabant (HE2B)',
+    'Haute École Francisco Ferrer', 'Haute École Léonard de Vinci', 'Haute École Robert Schuman',
+    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)', 'La Cambre', 'Institut national supérieur des arts du spectacle (INSAS)',
+    'École supérieure des Arts Saint-Luc de Bruxelles', "École supérieure des Arts de l'Image 'Le 75'",
+    'Arts et Métiers (Campus de Bruxelles)', 'Arts et Métiers (Campus de Charleroi)', 'Campus Provincial de Namur',
+    'Institut provincial de Promotion sociale (IPC)', 'EPFC - Promotion Sociale', 'École Industrielle et Commerciale de la Province de Namur (EICPN)',
+    'IFAPME - Centre de Namur', 'IFAPME - Centre de Liège', 'IFAPME - Centre de Charleroi', 'IFAPME - Centre de Mons', 'IFAPME - Centre de Wavre',
     'Autre'
 ];
-
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
+  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères.").regex(/^[a-z0-9_.]+$/, "Nom d'utilisateur invalide. Utilisez uniquement des minuscules, chiffres, points ou underscores."),
   email: z.string().email("L'adresse e-mail n'est pas valide"),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
   confirmPassword: z.string(),
@@ -107,6 +75,7 @@ export default function RegisterForm() {
     defaultValues: {
       firstName: '',
       lastName: '',
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -116,6 +85,14 @@ export default function RegisterForm() {
       fieldOfStudy: '',
     },
   });
+
+  const isUsernameUnique = async (username: string) => {
+    if (!firestore) return false;
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('username', '==', username));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+  };
 
   const createUserDocument = async (user: User, additionalData: Partial<RegisterFormValues> = {}) => {
       if (!firestore) return;
@@ -129,11 +106,11 @@ export default function RegisterForm() {
         const firstName = additionalData.firstName || firstNameFromProvider || '';
         const lastName = additionalData.lastName || lastNameFromProvider || '';
         
-        const usernameBase = additionalData.firstName && additionalData.lastName 
-          ? `${additionalData.firstName}.${additionalData.lastName}`
-          : email?.split('@')[0] || `user${user.uid.substring(0, 6)}`;
-        const username = usernameBase.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-
+        let username = additionalData.username || '';
+        if (!username) {
+            const base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
+            username = base.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+        }
 
         const userData = {
             id: user.uid,
@@ -196,11 +173,14 @@ export default function RegisterForm() {
     setLoading('email');
     
     if (!auth || !firestore) {
-        toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Le service d'authentification n'est pas disponible.",
-        });
+        toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
+        setLoading('');
+        return;
+    }
+
+    const uniqueUsername = await isUsernameUnique(data.username);
+    if (!uniqueUsername) {
+        form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
         setLoading('');
         return;
     }
@@ -212,7 +192,6 @@ export default function RegisterForm() {
         const photoURL = `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`;
 
         await updateProfile(user, { displayName, photoURL });
-        
         await user.reload();
 
         await createUserDocument(user, data);
@@ -279,6 +258,19 @@ export default function RegisterForm() {
                   )}
                 />
               </div>
+               <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom d'utilisateur</FormLabel>
+                      <FormControl>
+                        <Input placeholder="jean.dupont" {...field} disabled={!servicesReady} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 control={form.control}
                 name="email"

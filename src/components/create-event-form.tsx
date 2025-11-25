@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,12 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { FirestorePermissionError, errorEmitter } from '@/firebase';
-
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -24,7 +25,6 @@ const eventSchema = z.object({
   city: z.string().min(1, 'La ville est requise'),
   address: z.string().min(1, 'L\'adresse est requise'),
   price: z.preprocess((val) => Number(val), z.number().min(0, 'Le prix est requis')),
-  imageUrl: z.string().min(1, "L'image est requise"),
 });
 
 type EventFormInputs = z.infer<typeof eventSchema>;
@@ -34,7 +34,7 @@ interface CreateEventFormProps {
 }
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
-  const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<EventFormInputs>({
+  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
   });
 
@@ -42,28 +42,33 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const { toast } = useToast();
   const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
+  const storage = useStorage();
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setValue('imageUrl', reader.result as string, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
+      setImageFile(file);
     }
   };
 
   const onSubmit: SubmitHandler<EventFormInputs> = async (data) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
+    }
+    if (!imageFile) {
+        toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
+        return;
     }
     setLoading(true);
 
     try {
-        const eventsCollection = collection(firestore, 'events');
-        const newDocRef = doc(eventsCollection);
+        const newDocRef = doc(collection(firestore, 'events'));
+        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
+        await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(imageRef);
+
         const eventData = {
             ...data,
             id: newDocRef.id,
@@ -75,7 +80,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             endDate: data.startDate, // simplified
             locationName: data.address, // simplified
             coordinates: [50.8503, 4.3517], // Default to Brussels, TODO: Geocode
-            imageHint: "student event"
+            imageHint: "student event",
+            imageUrl: imageUrl,
         };
 
         setDocumentNonBlocking(newDocRef, eventData, {});
@@ -153,7 +159,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
           <div>
             <Label htmlFor="imageUrl">Image</Label>
             <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
-            {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
           </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>

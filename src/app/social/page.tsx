@@ -3,7 +3,7 @@
 
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
 import type { Post, UserProfile, Favorite } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +18,7 @@ import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import UserSearch from '@/components/user-search';
 import SocialSidebar from '@/components/social-sidebar';
+import { doc } from 'firebase/firestore';
 
 function SuggestionsSkeleton() {
     return (
@@ -104,16 +105,24 @@ export default function SocialPage() {
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login?from=/social');
-        }
-    }, [user, isUserLoading, router]);
+    const userProfileRef = useMemoFirebase(() => {
+      if (!user || !firestore) return null;
+      return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
-    const postsQuery = useMemoFirebase(
-        () => !firestore ? null : query(collection(firestore, 'posts'), orderBy('createdAt', 'desc')),
-        [firestore]
-    );
+    const followingIds = userProfile?.followingIds;
+
+    const postsQuery = useMemoFirebase(() => {
+        if (!firestore || !followingIds) return null;
+        if (followingIds.length === 0) return query(collection(firestore, 'posts'), where('userId', '==', '')); // empty query
+        const safeFollowingIds = followingIds.length > 30 ? followingIds.slice(0, 30) : followingIds;
+        return query(
+          collection(firestore, 'posts'), 
+          where('userId', 'in', safeFollowingIds),
+          orderBy('createdAt', 'desc')
+        );
+      }, [firestore, followingIds]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -149,6 +158,8 @@ export default function SocialPage() {
     }
     
     const isLoading = postsLoading || favoritesLoading;
+
+    const showWelcomeMessage = posts?.length === 0 && !postsLoading;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
@@ -196,6 +207,11 @@ export default function SocialPage() {
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {isLoading ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
+                             ) : showWelcomeMessage ? (
+                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
+                                    <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
+                                    <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
+                                </div>
                              ) : posts && posts.length > 0 ? (
                                 posts.map(post => (
                                     <PostCard 
@@ -225,5 +241,3 @@ export default function SocialPage() {
       </div>
     );
 }
-
-    
