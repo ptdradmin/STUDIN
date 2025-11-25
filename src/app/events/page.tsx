@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { collection, doc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
@@ -90,15 +90,17 @@ export default function EventsPage() {
     const batch = writeBatch(firestore);
     const eventRef = doc(firestore, 'events', event.id);
     const attendeeRef = doc(collection(firestore, 'event_attendees'));
-
-    batch.update(eventRef, { attendeeIds: arrayUnion(user.uid) });
-    batch.set(attendeeRef, {
+    
+    const attendeeData = {
       id: attendeeRef.id,
       eventId: event.id,
       userId: user.uid,
       status: 'attending',
       createdAt: serverTimestamp()
-    });
+    };
+
+    batch.update(eventRef, { attendeeIds: arrayUnion(user.uid) });
+    batch.set(attendeeRef, attendeeData);
 
     try {
       await batch.commit();
@@ -114,12 +116,15 @@ export default function EventsPage() {
         description: `Vous participez à l'événement : ${event.title}.`,
       });
     } catch (error) {
-      console.error("Error attending event:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur d'inscription",
-        description: "Une erreur est survenue. Veuillez réessayer.",
+       const permissionError = new FirestorePermissionError({
+          path: `events/${event.id} and event_attendees subcollection`,
+          operation: 'write',
+          requestResourceData: { 
+              eventUpdate: { attendeeIds: arrayUnion(user.uid) },
+              attendeeCreation: attendeeData,
+          }
       });
+      errorEmitter.emit('permission-error', permissionError);
     }
   };
 
