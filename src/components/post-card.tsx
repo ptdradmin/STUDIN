@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs, deleteDoc } from "firebase/firestore";
+import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +25,11 @@ import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 interface PostCardProps {
     post: Post;
+    isInitiallySaved?: boolean;
+    initialFavoriteId?: string | null;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, isInitiallySaved = false, initialFavoriteId = null }: PostCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -36,29 +38,13 @@ export default function PostCard({ post }: PostCardProps) {
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
 
-    const userFavoritesQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return query(
-            collection(firestore, 'favorites'),
-            where('userId', '==', user.uid),
-            where('itemId', '==', post.id),
-            where('itemType', '==', 'post')
-        );
-    }, [firestore, user?.uid, post.id]);
-
-    const { data: favoriteItems } = useCollection<Favorite>(userFavoritesQuery);
-    const [isSaved, setIsSaved] = useState(false);
-    const [favoriteId, setFavoriteId] = useState<string | null>(null);
-
+    const [isSaved, setIsSaved] = useState(isInitiallySaved);
+    const [favoriteId, setFavoriteId] = useState<string | null>(initialFavoriteId);
+    
     useEffect(() => {
-        if (favoriteItems && favoriteItems.length > 0) {
-            setIsSaved(true);
-            setFavoriteId(favoriteItems[0].id);
-        } else {
-            setIsSaved(false);
-            setFavoriteId(null);
-        }
-    }, [favoriteItems]);
+        setIsSaved(isInitiallySaved);
+        setFavoriteId(initialFavoriteId);
+    }, [isInitiallySaved, initialFavoriteId]);
 
 
     const getInitials = (name: string) => {
@@ -163,18 +149,27 @@ export default function PostCard({ post }: PostCardProps) {
         } else {
             // Save optimistically
             setIsSaved(true);
-            const newFav = {
+            const newFavData = {
                 userId: user.uid,
                 itemId: post.id,
                 itemType: 'post' as 'post',
                 createdAt: serverTimestamp(),
             };
+            const favoritesCol = collection(firestore, 'favorites');
             // The add document returns a promise with the new ref, which we can use to get the ID for potential rollback
-            addDocumentNonBlocking(collection(firestore, 'favorites'), newFav)
+            addDoc(favoritesCol, newFavData)
                 .then(docRef => {
                     if (docRef) setFavoriteId(docRef.id);
                 })
-                .catch(() => setIsSaved(false)); // Revert on failure
+                .catch((error) => {
+                    setIsSaved(false); // Revert on failure
+                     const permissionError = new FirestorePermissionError({
+                        path: favoritesCol.path,
+                        operation: 'create',
+                        requestResourceData: newFavData,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
             toast({ title: 'Enregistré', description: 'Publication ajoutée à vos favoris.' });
         }
     };
@@ -355,5 +350,3 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
     );
 }
-
-    

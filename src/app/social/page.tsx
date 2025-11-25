@@ -1,8 +1,8 @@
 
 'use client';
 
-import { collection, query, orderBy, limit } from 'firebase/firestore';
-import type { Post, UserProfile } from '@/lib/types';
+import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import type { Post, UserProfile, Favorite } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, Plus, Search } from 'lucide-react';
@@ -117,6 +117,23 @@ export default function SocialPage() {
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
+    const userFavoritesQuery = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
+    }, [firestore, user?.uid]);
+
+    const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
+    
+    const savedPostMap = useMemo(() => {
+        const map = new Map<string, string>();
+        if (favoriteItems) {
+            favoriteItems.forEach(fav => {
+                map.set(fav.itemId, fav.id);
+            });
+        }
+        return map;
+    }, [favoriteItems]);
+    
     const getInitials = (email?: string | null) => {
         if (!email) return '..';
         const nameParts = user?.displayName?.split(' ');
@@ -130,6 +147,8 @@ export default function SocialPage() {
     if (!user) {
         return <PageSkeleton />;
     }
+    
+    const isLoading = postsLoading || favoritesLoading;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
@@ -175,10 +194,17 @@ export default function SocialPage() {
                 <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
                     <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
-                             {postsLoading ? (
+                             {isLoading ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                              ) : posts && posts.length > 0 ? (
-                                posts.map(post => <PostCard key={post.id} post={post} />)
+                                posts.map(post => (
+                                    <PostCard 
+                                        key={post.id} 
+                                        post={post}
+                                        isInitiallySaved={savedPostMap.has(post.id)}
+                                        initialFavoriteId={savedPostMap.get(post.id)}
+                                    />
+                                ))
                             ) : (
                                 <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                     <p className="text-lg font-semibold">Le fil d'actualité est vide.</p>

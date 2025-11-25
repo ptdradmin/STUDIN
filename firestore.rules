@@ -322,12 +322,10 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.auth.uid == request.query.get("userId")[2];
+      allow list: if isSignedIn() && request.auth.uid == request.query.where.userId;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
-
-    
