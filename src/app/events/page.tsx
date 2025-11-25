@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, LayoutGrid, Map, Plus, Search } from "lucide-react";
+import { MapPin, LayoutGrid, Map, Plus, Search, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ import type { Event } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, doc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
@@ -76,11 +76,46 @@ export default function EventsPage() {
   }, [events, cityFilter, universityFilter, categoryFilter]);
 
 
-  const handleDetails = () => {
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "Plus de détails sur l'événement seront bientôt disponibles.",
+  const handleAttend = async (event: Event) => {
+    if (!user || !firestore) {
+      toast({ variant: 'destructive', title: 'Connexion requise', description: 'Vous devez être connecté pour participer.' });
+      return;
+    }
+    if ((event.attendeeIds || []).includes(user.uid)) {
+      toast({ title: 'Déjà inscrit', description: 'Vous participez déjà à cet événement.' });
+      return;
+    }
+
+    const batch = writeBatch(firestore);
+
+    // 1. Add user to attendeeIds on the event
+    const eventRef = doc(firestore, 'events', event.id);
+    batch.update(eventRef, { attendeeIds: arrayUnion(user.uid) });
+
+    // 2. Create an attendee document
+    const attendeeRef = doc(collection(firestore, 'event_attendees'));
+    batch.set(attendeeRef, {
+      id: attendeeRef.id,
+      eventId: event.id,
+      userId: user.uid,
+      status: 'attending',
+      createdAt: serverTimestamp()
     });
+
+    try {
+      await batch.commit();
+      toast({
+        title: 'Inscription réussie !',
+        description: `Vous participez à l'événement : ${event.title}.`,
+      });
+    } catch (error) {
+      console.error("Error attending event:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description: "Une erreur est survenue. Veuillez réessayer.",
+      });
+    }
   };
 
   const renderList = () => {
@@ -115,7 +150,9 @@ export default function EventsPage() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents && filteredEvents.map(event => (
+            {filteredEvents && filteredEvents.map(event => {
+              const isAttending = user && (event.attendeeIds || []).includes(user.uid);
+              return (
                 <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
                     <div className="relative">
                         <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
@@ -128,10 +165,12 @@ export default function EventsPage() {
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                             {event.city}
                         </p>
-                        <Button className="w-full mt-4" onClick={handleDetails}>Voir les détails</Button>
+                        <Button className="w-full mt-4" onClick={() => handleAttend(event)} disabled={isAttending || event.organizerId === user?.uid}>
+                          {isAttending ? 'Vous participez' : 'Participer'}
+                        </Button>
                     </CardContent>
                 </Card>
-            ))}
+            )})}
         </div>
     );
   }
@@ -250,5 +289,3 @@ export default function EventsPage() {
     </div>
   );
 }
-
-    

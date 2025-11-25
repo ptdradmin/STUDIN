@@ -193,7 +193,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.driverId) && request.resource.data.driverId == resource.data.driverId;
+      allow update: if isExistingOwner(resource.data.driverId);
       allow delete: if isExistingOwner(resource.data.driverId);
 
       /**
@@ -265,7 +265,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.organizerId) && request.resource.data.organizerId == resource.data.organizerId;
+      allow update: if isExistingOwner(resource.data.organizerId);
       allow delete: if isExistingOwner(resource.data.organizerId);
     }
 
@@ -321,7 +321,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.where.size() > 0 && request.query.where[0][0] == 'userId' && request.query.where[0][1] == '==' && request.query.where[0][2] == request.auth.uid;
+      allow list: if isSignedIn() && request.query.where[0][0] == 'userId' && request.query.where[0][1] == '==' && request.query.where[0][2] == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }

@@ -1,5 +1,4 @@
 
-
 {
   "entities": {
     "User": {
@@ -332,6 +331,13 @@
           "type": "number",
           "description": "Number of seats available in the car."
         },
+         "passengerIds": {
+          "type": "array",
+          "description": "List of user IDs who have booked this carpool.",
+          "items": {
+            "type": "string"
+          }
+        },
         "pricePerSeat": {
           "type": "number",
           "description": "Price per seat for the carpooling."
@@ -599,9 +605,12 @@
           "type": "number",
           "description": "Maximum number of attendees allowed for the event."
         },
-        "currentAttendees": {
-          "type": "number",
-          "description": "Current number of attendees for the event."
+         "attendeeIds": {
+          "type": "array",
+          "description": "List of user IDs who are attending this event.",
+          "items": {
+            "type": "string"
+          }
         },
         "imageUrl": {
           "type": "string",

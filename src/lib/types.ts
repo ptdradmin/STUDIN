@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export interface Housing {
@@ -81,6 +82,8 @@ export interface Event {
     createdAt: string;
     updatedAt: string;
     university?: string;
+    maxAttendees?: number;
+    attendeeIds?: string[];
 }
 
 export interface Tutor {
@@ -109,6 +112,7 @@ export interface Trip {
     departureTime: string;
     pricePerSeat: number;
     seatsAvailable: number;
+    passengerIds?: string[];
     coordinates: [number, number];
     departureAddress: string;
     arrivalAddress: string;

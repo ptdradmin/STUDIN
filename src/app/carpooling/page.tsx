@@ -13,7 +13,7 @@ import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp } from "firebase/firestore";
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -86,25 +86,58 @@ export default function CarpoolingPage() {
     });
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
-  const handleReserve = (trip: Trip) => {
+ const handleReserve = async (trip: Trip) => {
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
     }
-
     if (trip.driverId === user.uid) {
-        toast({
-            variant: "destructive",
-            title: "Action impossible",
-            description: "Vous ne pouvez pas réserver votre propre trajet.",
-        });
+        toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas réserver votre propre trajet." });
         return;
     }
-    
-    toast({
-        title: "Bientôt disponible",
-        description: `La réservation pour le trajet ${trip.departureCity} - ${trip.arrivalCity} sera bientôt possible.`,
+    if ((trip.passengerIds || []).includes(user.uid)) {
+        toast({ title: "Déjà réservé", description: "Vous avez déjà une place pour ce trajet." });
+        return;
+    }
+    if (trip.seatsAvailable <= 0) {
+        toast({ variant: "destructive", title: "Complet", description: "Ce trajet n'a plus de places disponibles." });
+        return;
+    }
+
+    const batch = writeBatch(firestore);
+
+    // 1. Decrement seats on the carpooling document
+    const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
+    batch.update(carpoolingRef, {
+      seatsAvailable: increment(-1),
+      passengerIds: arrayUnion(user.uid)
     });
+
+    // 2. Create a booking document
+    const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
+    batch.set(bookingRef, {
+      id: bookingRef.id,
+      carpoolId: trip.id,
+      passengerId: user.uid,
+      seatsBooked: 1,
+      status: 'confirmed',
+      createdAt: serverTimestamp()
+    });
+
+    try {
+      await batch.commit();
+      toast({
+        title: "Réservation confirmée !",
+        description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est réservée.`,
+      });
+    } catch (error) {
+      console.error("Error booking trip: ", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur de réservation",
+        description: "Une erreur est survenue. Veuillez réessayer.",
+      });
+    }
   };
 
   return (
@@ -181,6 +214,7 @@ export default function CarpoolingPage() {
                 <div className="space-y-4">
                   {isLoading && <TripListSkeleton />}
                   {!isLoading && filteredTrips.map(trip => {
+                    const isPassenger = user && (trip.passengerIds || []).includes(user.uid);
                     return (
                       <Card key={trip.id} className="transition-shadow hover:shadow-md">
                           <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -225,8 +259,8 @@ export default function CarpoolingPage() {
                               <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                   <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
                                   {user && (
-                                    <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0}>
-                                      {trip.seatsAvailable > 0 ? 'Réserver' : 'Complet'}
+                                    <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0 || isPassenger}>
+                                      {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
                                     </Button>
                                   )}
                               </div>
@@ -258,5 +292,3 @@ export default function CarpoolingPage() {
     </div>
   );
 }
-
-    
