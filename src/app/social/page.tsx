@@ -112,16 +112,19 @@ export default function SocialPage() {
     const followingIds = userProfile?.followingIds;
 
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !followingIds) return null;
-        if (followingIds.length === 0) return query(collection(firestore, 'posts'), where('userId', '==', '')); // empty query to return nothing
-        // Firestore 'in' queries are limited to 30 documents. For production, you'd need pagination or a different data model.
+        if (!firestore || !user) return null; // Always fetch something to avoid empty state flash for new users
+        if (!followingIds || followingIds.length === 0) {
+             // For new users, show some recent posts instead of an empty feed
+             return query(collection(firestore, 'posts'), orderBy('createdAt', 'desc'), limit(10));
+        }
+
         const safeFollowingIds = followingIds.length > 30 ? followingIds.slice(0, 30) : followingIds;
         return query(
           collection(firestore, 'posts'), 
           where('userId', 'in', safeFollowingIds),
           orderBy('createdAt', 'desc')
         );
-      }, [firestore, followingIds]);
+      }, [firestore, followingIds, user]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -151,15 +154,18 @@ export default function SocialPage() {
         return email.substring(0, 2).toUpperCase();
     }
     
-    // We rely on the root layout to handle the main loading state
-    if (!user) {
+    if (!user && !isUserLoading) {
+        router.push('/login?from=/social');
         return <PageSkeleton />;
     }
     
+    if (isUserLoading) {
+      return <PageSkeleton />;
+    }
+
     const isLoading = postsLoading || favoritesLoading;
 
-    const showWelcomeMessage = posts?.length === 0 && !postsLoading && followingIds && followingIds.length > 0;
-    const showSuggestionMessage = followingIds && followingIds.length === 0 && !postsLoading;
+    const showSuggestionMessage = posts?.length === 0 && !postsLoading && followingIds && followingIds.length === 0;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
@@ -170,33 +176,27 @@ export default function SocialPage() {
           
           <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex-1 md:hidden">
+                {/* Espace vide pour centrer le logo */}
+            </div>
+            
+            <div className="absolute left-1/2 -translate-x-1/2 md:hidden">
                  <Link href="/social" className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                         <GraduationCap className="h-5 w-5 text-white" />
                       </div>
-                      <h1 className="text-lg font-bold">STUD'IN</h1>
                   </Link>
             </div>
-            
+
             <div className="hidden md:flex flex-1 max-w-md items-center">
                 <UserSearch />
             </div>
 
-            <div className="flex items-center gap-2">
-                <div className="md:hidden">
-                    <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
-                </div>
-                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2" disabled={isUserLoading || !user}>
+            <div className="flex items-center gap-2 flex-1 justify-end">
+                <Button onClick={() => setShowCreatePost(true)} size="sm" variant="ghost" className="hidden md:flex items-center gap-2" disabled={isUserLoading || !user}>
                     <Plus className="h-4 w-4" />
                     Créer
                 </Button>
                  <NotificationsDropdown />
-                <Link href="/profile" className="md:hidden">
-                   <Avatar className="h-9 w-9 cursor-pointer">
-                      <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
-                      <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
-                    </Avatar>
-                </Link>
             </div>
           </header>
           
@@ -212,11 +212,6 @@ export default function SocialPage() {
                                     <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
                                     <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
                                 </div>
-                             ) : showWelcomeMessage ? (
-                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                    <p className="text-lg font-semibold">C'est un peu vide par ici...</p>
-                                    <p className="text-sm">Les personnes que vous suivez n'ont rien publié récemment.</p>
-                                </div>
                              ) : posts && posts.length > 0 ? (
                                 posts.map(post => (
                                     <PostCard 
@@ -226,7 +221,12 @@ export default function SocialPage() {
                                         initialFavoriteId={savedPostMap.get(post.id)}
                                     />
                                 ))
-                            ) : null}
+                            ) : (
+                               <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
+                                    <p className="text-lg font-semibold">C'est un peu vide par ici...</p>
+                                    <p className="text-sm">Les personnes que vous suivez n'ont rien publié récemment. Découvrez de nouveaux contenus !</p>
+                                </div>
+                            )}
                         </div>
                         <div className="hidden md:block">
                              <div className="sticky top-20">

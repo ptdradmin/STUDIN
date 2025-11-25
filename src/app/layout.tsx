@@ -6,15 +6,25 @@ import FirebaseClientProvider from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
 import { useUser } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
+import BottomNavbar from '@/components/bottom-navbar';
+import { usePathname } from 'next/navigation';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { isUserLoading } = useUser();
+  const pathname = usePathname();
+
+  const showBottomNav = !['/login', '/register', '/', '/about', '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact', '/faq'].includes(pathname);
 
   if (isUserLoading) {
     return <PageSkeleton />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {showBottomNav && <BottomNavbar />}
+    </>
+  );
 }
 
 
