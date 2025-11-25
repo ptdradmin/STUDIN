@@ -309,13 +309,22 @@ service cloud.firestore {
      */
     match /posts/{postId} {
         allow get: if isSignedIn();
-        allow list: if isSignedIn() &&
-                    // Ensure the query contains a 'userId' clause using 'in'.
-                    'userId' in request.query.keys() &&
-                    request.query.userId is list &&
-                    // Verify that the list of userIds in the query is a subset of the user's following list (plus their own ID).
-                    // This is a secure way to enforce that users can only fetch posts for their feed.
-                    request.query.userId.toSet().hasOnly(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid]));
+        // Allow list if:
+        // 1. It's for the social feed (querying multiple userIds).
+        // 2. It's for a single user's profile page (querying one userId).
+        allow list: if isSignedIn() && (
+            ( // Feed query
+                request.query.keys().hasAny(['where', 'orderBy', 'limit']) && // Check for a complex query
+                'userId' in request.query.where &&
+                request.query.where.userId is list && // 'in' operator
+                 request.query.where.userId.toSet().hasOnly(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid]))
+            ) ||
+            ( // Profile page query
+                request.query.keys().hasAny(['where', 'orderBy', 'limit']) &&
+                'userId' in request.query.where &&
+                request.query.where.userId is string // '==' operator
+            )
+        );
         
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         
@@ -341,7 +350,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.get('userId') == request.auth.uid;
+      allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
