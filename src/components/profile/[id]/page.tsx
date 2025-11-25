@@ -13,7 +13,7 @@ import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase 
 import type { Post, UserProfile } from '@/lib/types';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where } from 'firebase/firestore';
-import { toggleFollowUser } from '@/lib/actions';
+import { toggleFollowUser, createFollowNotification } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
