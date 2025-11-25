@@ -309,7 +309,9 @@ service cloud.firestore {
      */
     match /posts/{postId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      // list is intentionally omitted. Queries must be secured by other means.
+      // e.g. list: if request.query.where[...];
+      
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
       // Allow update if the user is the owner, OR if they are only changing the 'likes' or 'comments' fields.
@@ -334,7 +336,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.where[0][0] == 'userId' && request.query.where[0][2] == request.auth.uid;
+      allow list: if isSignedIn() && request.query.where.size() > 0 && request.query.where[0] == ['userId', '==', request.auth.uid];
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
@@ -350,9 +352,9 @@ service cloud.firestore {
      * @principle Enforces that only participants can interact with a conversation.
      */
     match /conversations/{conversationId} {
-      allow get, update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+      allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+      allow list: if isSignedIn() && request.query.where.size() > 0 && request.query.where[0] == ['participantIds', 'array-contains', request.auth.uid];
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
 
       /**
        * @description Manages messages within a conversation.
