@@ -110,13 +110,14 @@ export default function CurrentUserProfilePage() {
 
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
+      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid));
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
   const savedPostIds = useMemo(() => {
       if (!favoriteItems) return [];
-      return favoriteItems.map(fav => fav.itemId);
+      const postIds = favoriteItems.filter(f => f.itemType === 'post').map(fav => fav.itemId);
+      return postIds;
   }, [favoriteItems]);
 
   const savedPostsQuery = useMemoFirebase(() => {

@@ -178,5 +178,3 @@ export interface Favorite {
     itemType: 'post' | 'housing' | 'event' | 'tutor';
     createdAt: any;
 }
-
-    

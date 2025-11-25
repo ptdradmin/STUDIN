@@ -321,11 +321,10 @@ service cloud.firestore {
      * @principle Enforces document ownership. A user's favorites are private and can only be managed by that user.
      */
     match /favorites/{favoriteId} {
-      allow get: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.auth.uid == request.query.where.userId;
+      allow get, delete: if isOwner(resource.data.userId);
+      allow list: if isSignedIn() && request.query.where[0][2] == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
-      allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
