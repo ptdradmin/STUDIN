@@ -36,11 +36,8 @@ export default function PostCard({ post }: PostCardProps) {
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
 
-    // Fetch user's favorites to check if this post is saved
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        // This query specifically fetches favorites for the current user and this specific post.
-        // It's much more efficient and secure than fetching all favorites.
         return query(
             collection(firestore, 'favorites'),
             where('userId', '==', user.uid),
@@ -358,3 +355,5 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
     );
 }
+
+    
