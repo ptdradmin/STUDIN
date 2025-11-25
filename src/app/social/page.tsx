@@ -13,20 +13,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, Home, MessageSquare, Bed, Car, PartyPopper, Plus, User, Settings, LogOut, Search } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { signOut } from 'firebase/auth';
-import { useToast } from '@/hooks/use-toast';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import UserSearch from '@/components/user-search';
-import { useAuth } from '@/firebase';
 import SocialSidebar from '@/components/social-sidebar';
 
 function SuggestionsSkeleton() {
