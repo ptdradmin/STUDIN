@@ -15,12 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Home, MessageSquare, Bed, Car, PartyPopper, User, Settings, LogOut } from 'lucide-react';
+import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const mainNavItems = [
   { href: "/social", label: "Fil d'actualité", icon: Home },
-  { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/tutoring", label: "Tutorat", icon: GraduationCap },

@@ -116,7 +116,6 @@ export default function CarpoolingPage() {
         title: "Réservation confirmée !",
         description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} a été réservée.`,
     });
-     router.push(`/messages?recipient=${trip.driverId}`);
   };
 
   return (

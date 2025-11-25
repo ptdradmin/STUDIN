@@ -71,7 +71,10 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
             router.push('/login?from=/housing');
             return;
         }
-        router.push(`/messages?recipient=${housing.userId}`);
+        toast({
+            title: "Pris en charge",
+            description: "La fonctionnalité de messagerie sera bientôt disponible."
+        })
     }
 
     return (

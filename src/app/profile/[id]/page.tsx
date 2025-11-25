@@ -111,6 +111,17 @@ export default function UserProfilePage() {
         toast({ title: "Erreur", description: "Une erreur est survenue lors de la tentative de suivi.", variant: "destructive"})
     }
   }
+
+  const handleMessage = () => {
+    if (!user) {
+        router.push('/login');
+        return;
+    }
+     toast({
+      title: "Pris en charge",
+      description: "La fonctionnalité de messagerie sera bientôt disponible."
+    })
+  }
   
   const getInitials = (firstName?: string) => {
     if (!firstName) return '..';
@@ -171,7 +182,7 @@ export default function UserProfilePage() {
                                                         <Button variant={isFollowing ? "secondary" : "default"} size="sm" onClick={handleFollow}>
                                                             {isFollowing ? 'Ne plus suivre' : 'Suivre'}
                                                         </Button>
-                                                        <Button variant="secondary" size="sm" onClick={() => router.push(`/messages?recipient=${profileId}`)}>
+                                                        <Button variant="secondary" size="sm" onClick={handleMessage}>
                                                             Message
                                                         </Button>
                                                     </>
@@ -240,5 +251,3 @@ export default function UserProfilePage() {
     </div>
   );
 }
-
-    

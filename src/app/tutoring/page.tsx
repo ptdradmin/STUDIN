@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
+import { useToast } from '@/hooks/use-toast';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -31,6 +32,7 @@ export default function TutoringPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
   
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -60,7 +62,10 @@ export default function TutoringPage() {
         router.push('/login?from=/tutoring');
         return;
     }
-    router.push(`/messages?recipient=${tutorId}`);
+    toast({
+      title: "Pris en charge",
+      description: "La fonctionnalité de messagerie sera bientôt disponible."
+    })
   };
 
 
