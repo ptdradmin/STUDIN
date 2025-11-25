@@ -34,12 +34,28 @@ const profileSchema = z.object({
 type ProfileFormInputs = z.infer<typeof profileSchema>;
 
 const universities = [
+    // Universités
     'Université de Namur',
     'Université de Liège',
     'UCLouvain',
     'ULB - Université Libre de Bruxelles',
     'UMons',
+    'Université Saint-Louis - Bruxelles',
+    // Hautes Écoles
     'HEC Liège',
+    'Haute École de la Province de Namur (HEPN)',
+    'Haute École de la Province de Liège (HEPL)',
+    'Haute École Louvain en Hainaut (HELHa)',
+    'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+    'Haute École Galilée (HEG)',
+    'Haute École ICHEC - ECAM - ISFSC',
+    // IFAPME
+    'IFAPME - Centre de Namur',
+    'IFAPME - Centre de Liège',
+    'IFAPME - Centre de Charleroi',
+    'IFAPME - Centre de Mons',
+    'IFAPME - Centre de Wavre',
+    // Autre
     'Autre'
 ];
 
@@ -282,13 +298,13 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
 
             <FormSection title="Informations Académiques">
                  <div>
-                    <Label htmlFor="university">Université</Label>
+                    <Label htmlFor="university">Établissement</Label>
                     <Controller
                             name="university"
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger><SelectValue placeholder="Sélectionnez votre université" /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
                                     <SelectContent>
                                         {universities.map(uni => (
                                             <SelectItem key={uni} value={uni}>{uni}</SelectItem>
@@ -319,3 +335,5 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
+
+    

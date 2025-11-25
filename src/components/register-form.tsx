@@ -14,18 +14,34 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, OAuthProvider, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
 const universities = [
+    // Universités
     'Université de Namur',
     'Université de Liège',
     'UCLouvain',
     'ULB - Université Libre de Bruxelles',
     'UMons',
+    'Université Saint-Louis - Bruxelles',
+    // Hautes Écoles
     'HEC Liège',
+    'Haute École de la Province de Namur (HEPN)',
+    'Haute École de la Province de Liège (HEPL)',
+    'Haute École Louvain en Hainaut (HELHa)',
+    'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+    'Haute École Galilée (HEG)',
+    'Haute École ICHEC - ECAM - ISFSC',
+    // IFAPME
+    'IFAPME - Centre de Namur',
+    'IFAPME - Centre de Liège',
+    'IFAPME - Centre de Charleroi',
+    'IFAPME - Centre de Mons',
+    'IFAPME - Centre de Wavre',
+    // Autre
     'Autre'
 ];
 
@@ -58,7 +74,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
+  const [loading, setLoading] = useState(''); // can be 'google', 'email'
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
@@ -293,10 +309,10 @@ export default function RegisterForm() {
                 name="university"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Université (Optionnel)</FormLabel>
+                    <FormLabel>Établissement (Optionnel)</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!servicesReady}>
                         <FormControl>
-                          <SelectTrigger><SelectValue placeholder="Sélectionnez votre université" /></SelectTrigger>
+                          <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
                             {universities.map(uni => (
@@ -340,3 +356,5 @@ export default function RegisterForm() {
     </Card>
   );
 }
+
+    
