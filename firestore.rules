@@ -8,7 +8,7 @@ rules_version = '2';
  * This ruleset enforces a security model where publicly listed items (like
  * housing, carpools, events, and tutoring) are readable by anyone, but can
  * only be created, modified, or deleted by their authenticated owners. Core
- * user data (profiles, favorites, messages) is strictly private and accessible
+ * user data (profiles, favorites) is strictly private and accessible
  * only to the user themselves. This provides a secure-by-default environment
  * while allowing for a rich, publicly browsable application experience.
  *
@@ -99,6 +99,23 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
     }
 
+    /**
+     * Validates that all required fields for a User profile are present upon creation.
+     */
+    function hasRequiredUserFields() {
+      let data = request.resource.data;
+      return data.id == request.auth.uid
+          && data.username is string && data.username.size() > 0
+          && data.email is string && data.email.size() > 0
+          && data.firstName is string && data.firstName.size() > 0
+          && data.lastName is string && data.lastName.size() > 0
+          && data.postalCode is string && data.postalCode.size() > 0
+          && data.city is string && data.city.size() > 0
+          && data.university is string && data.university.size() > 0
+          && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0
+          && data.createdAt is timestamp;
+    }
+
 
     // =====================================================================
     // User Profile Rules
@@ -114,7 +131,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow create: if isOwner(userId);
+      allow create: if isOwner(userId) && hasRequiredUserFields();
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
       

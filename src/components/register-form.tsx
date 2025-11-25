@@ -128,7 +128,12 @@ export default function RegisterForm() {
 
         const firstName = additionalData.firstName || firstNameFromProvider || '';
         const lastName = additionalData.lastName || lastNameFromProvider || '';
-        const username = user.displayName?.replace(/\s+/g, '.').toLowerCase() || email?.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '') || `user_${user.uid.substring(0, 6)}`;
+        
+        const usernameBase = additionalData.firstName && additionalData.lastName 
+          ? `${additionalData.firstName}.${additionalData.lastName}`
+          : email?.split('@')[0] || `user${user.uid.substring(0, 6)}`;
+        const username = usernameBase.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+
 
         const userData = {
             id: user.uid,

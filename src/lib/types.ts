@@ -105,8 +105,8 @@ export interface UserProfile {
     lastName: string;
     university: string;
     fieldOfStudy: string;
-    postalCode?: string;
-    city?: string;
+    postalCode: string;
+    city: string;
     bio: string;
     website?: string;
     gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
