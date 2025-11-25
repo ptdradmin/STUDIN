@@ -107,22 +107,21 @@ export default function SocialPage() {
       if (!user || !firestore) return null;
       return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
-    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const followingIds = userProfile?.followingIds;
 
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
+        if (!firestore || !user || isProfileLoading) return null;
         
-        let idsToQuery = followingIds;
-
-        // If the user is not following anyone, we include their own ID
-        // to show their own posts in the feed.
-        if (!idsToQuery || idsToQuery.length === 0) {
-            idsToQuery = [user.uid];
-        } else if (!idsToQuery.includes(user.uid)) {
-            idsToQuery = [...idsToQuery, user.uid];
+        // If the user is not following anyone, don't query for posts.
+        // The UI will show a suggestion message.
+        if (!followingIds || followingIds.length === 0) {
+            return null; 
         }
+
+        // Always include the user's own ID in the query
+        const idsToQuery = [...new Set([...followingIds, user.uid])];
 
         // Firestore 'in' queries are limited to 30 documents.
         const safeFollowingIds = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
@@ -133,7 +132,7 @@ export default function SocialPage() {
           orderBy('createdAt', 'desc'),
           limit(20) // Limit the number of posts fetched
         );
-      }, [firestore, followingIds, user]);
+      }, [firestore, user, followingIds, isProfileLoading]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -159,13 +158,12 @@ export default function SocialPage() {
         return <PageSkeleton />;
     }
     
-    if (isUserLoading) {
+    if (isUserLoading || isProfileLoading) {
       return <PageSkeleton />;
     }
 
     const isLoading = postsLoading || favoritesLoading;
-
-    const showSuggestionMessage = posts?.length === 0 && !postsLoading && followingIds && followingIds.length === 0;
+    const showSuggestionMessage = !followingIds || followingIds.length === 0;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
@@ -205,7 +203,7 @@ export default function SocialPage() {
                 <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
                     <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
-                             {isLoading ? (
+                             {isLoading && !showSuggestionMessage ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                              ) : showSuggestionMessage ? (
                                 <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
