@@ -63,8 +63,8 @@ export default function TutoringPage() {
         return;
     }
     toast({
-      title: "Pris en charge",
-      description: "La fonctionnalité de messagerie sera bientôt disponible."
+      title: "Fonctionnalité en développement",
+      description: "La messagerie sera bientôt disponible pour contacter les tuteurs."
     })
   };
 

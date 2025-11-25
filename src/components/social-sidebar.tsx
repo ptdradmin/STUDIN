@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut } from 'lucide-react';
+import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const mainNavItems = [
