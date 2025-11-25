@@ -120,7 +120,7 @@ export default function CurrentUserProfilePage() {
 
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid));
+      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
@@ -203,10 +203,10 @@ export default function CurrentUserProfilePage() {
                                         </div>
                                         <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
                                             <p><span className="font-semibold">{userPosts?.length || 0}</span> publications</p>
-                                            <button onClick={() => setModalContent({ title: "Abonnés", userIds: userProfile.followerIds || [] })} className="cursor-pointer hover:underline">
+                                            <button onClick={() => setModalContent({ title: "Abonnés", userIds: userProfile.followerIds || [] })} className="cursor-pointer hover:underline" disabled={(userProfile.followerIds || []).length === 0}>
                                                 <span className="font-semibold">{followersCount}</span> abonnés
                                             </button>
-                                            <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline">
+                                            <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline" disabled={(userProfile.followingIds || []).length === 0}>
                                                 <span className="font-semibold">{followingCount}</span> abonnements
                                             </button>
                                         </div>
@@ -271,7 +271,4 @@ export default function CurrentUserProfilePage() {
         </div>
     </div>
   );
-
-    
-
-    
+}

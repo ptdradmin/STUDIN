@@ -20,23 +20,44 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import { getOrCreateConversation } from '@/lib/conversations';
 
 
-const ProfileGrid = ({ posts }: { posts: Post[] }) => (
-    <div className="grid grid-cols-3 gap-1">
-        {posts.map(post => (
-            <div key={post.id} className="relative aspect-square bg-muted">
-                {post.imageUrl && (
-                    <Image 
-                        src={post.imageUrl}
-                        alt="User post"
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 33vw, 25vw"
-                    />
-                )}
+const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-3 gap-1 mt-1">
+                <Skeleton className="aspect-square" />
+                <Skeleton className="aspect-square" />
+                <Skeleton className="aspect-square" />
             </div>
-        ))}
-    </div>
-);
+        )
+    }
+
+    if (posts.length === 0) {
+        return (
+            <div className="text-center p-10">
+                <h3 className="text-lg font-semibold">Aucune publication</h3>
+                <p className="text-muted-foreground text-sm">Cet utilisateur n'a encore rien publié.</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className="grid grid-cols-3 gap-1">
+            {posts.map(post => (
+                <div key={post.id} className="relative aspect-square bg-muted">
+                    {post.imageUrl && (
+                        <Image 
+                            src={post.imageUrl}
+                            alt="User post"
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 768px) 33vw, 25vw"
+                        />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
 
 function ProfilePageSkeleton() {
     return (
@@ -193,7 +214,7 @@ export default function UserProfilePage() {
                                         <div className="flex flex-col sm:flex-row items-center gap-4">
                                             <h2 className="text-2xl font-light">{userProfile.username}</h2>
                                             <div className="flex items-center gap-2">
-                                                {user && (
+                                                {user && !isCurrentUserProfile && (
                                                     <>
                                                         <Button variant={isFollowing ? "secondary" : "default"} size="sm" onClick={handleFollow}>
                                                             {isFollowing ? 'Ne plus suivre' : 'Suivre'}
@@ -241,12 +262,7 @@ export default function UserProfilePage() {
                                     </TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="posts">
-                                    {userPosts && userPosts.length > 0 ? <ProfileGrid posts={userPosts} /> : (
-                                        <div className="text-center p-10">
-                                            <h3 className="text-lg font-semibold">Aucune publication</h3>
-                                            <p className="text-muted-foreground text-sm">Cet utilisateur n'a encore rien publié.</p>
-                                        </div>
-                                    )}
+                                    <ProfileGrid posts={userPosts || []} isLoading={postsLoading} />
                                 </TabsContent>
                             </Tabs>
                         </div>
