@@ -100,21 +100,10 @@ export default function CarpoolingPage() {
         });
         return;
     }
-
-    const bookingData = {
-        carpoolId: trip.id,
-        passengerId: user.uid,
-        seatsBooked: 1, // Simple booking for now
-        status: 'confirmed',
-        createdAt: serverTimestamp(),
-    };
-
-    const bookingsCollection = collection(firestore, `carpoolings/${trip.id}/carpool_bookings`);
-    addDocumentNonBlocking(bookingsCollection, bookingData);
-
+    
     toast({
-        title: "Réservation confirmée !",
-        description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} a été réservée.`,
+        title: "Bientôt disponible",
+        description: `La réservation pour le trajet ${trip.departureCity} - ${trip.arrivalCity} sera bientôt possible.`,
     });
   };
 
