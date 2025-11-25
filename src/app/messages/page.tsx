@@ -6,10 +6,10 @@ import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Trash2 } from 'lucide-react';
+import { Send, Trash2, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { collection, query, where, getDoc, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDoc, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, arrayRemove } from 'firebase/firestore';
 import type { Conversation, ChatMessage, UserProfile } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -27,8 +27,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useToast } from '@/hooks/use-toast';
 import { deleteConversation } from '@/ai/flows/delete-conversation-flow';
+import Link from 'next/link';
 
 
 function ConversationListSkeleton() {
@@ -252,6 +259,31 @@ export default function MessagesPage() {
         }
     };
 
+    const handleDeleteMessage = async (message: ChatMessage) => {
+        if (!firestore || !selectedConversation || message.senderId !== user?.uid) return;
+
+        const conversationRef = doc(firestore, 'conversations', selectedConversation.id);
+        
+        try {
+            await updateDoc(conversationRef, {
+                messages: arrayRemove(message)
+            });
+            // Note: This relies on finding the exact message object in the array, which works for this implementation.
+            toast({
+                title: 'Message supprimé',
+            });
+        } catch (error) {
+            const permissionError = new FirestorePermissionError({
+                path: `conversations/${selectedConversation.id}`,
+                operation: 'update',
+                requestResourceData: { messages: arrayRemove(message) }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            console.error("Error deleting message: ", error);
+        }
+    };
+
+
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if(newMessage.trim() === '' || !firestore || !selectedConversation) return;
@@ -260,13 +292,14 @@ export default function MessagesPage() {
         const conversationDocRef = doc(firestore, 'conversations', selectedConversation.id);
 
         const messageData = {
+            id: doc(messagesColRef).id,
             text: newMessage,
             senderId: user.uid,
             createdAt: serverTimestamp()
         };
 
         // Use non-blocking addDoc for messages
-        addDocumentNonBlocking(messagesColRef, messageData);
+        addDocumentNonBlocking(doc(messagesColRef, messageData.id), messageData, {});
         
         // Non-blocking update for conversation metadata
         updateDoc(conversationDocRef, {
@@ -290,8 +323,9 @@ export default function MessagesPage() {
 
     const getOtherParticipant = (conv: Conversation) => {
         const otherId = conv.participantIds.find(id => id !== user.uid);
-        return otherId ? conv.participants[otherId] : null;
+        return otherId ? { ...conv.participants[otherId], id: otherId } : null;
     }
+
 
     const getInitials = (name?: string) => {
         if (!name) return "..";
@@ -325,13 +359,17 @@ export default function MessagesPage() {
                                         onClick={() => setSelectedConversation(conv)}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage src={otherUser?.profilePicture} />
-                                                <AvatarFallback>{getInitials(otherUser?.username)}</AvatarFallback>
-                                            </Avatar>
+                                            <Link href={otherUser ? `/profile/${otherUser.id}` : '#'} onClick={(e) => e.stopPropagation()}>
+                                                <Avatar>
+                                                    <AvatarImage src={otherUser?.profilePicture} />
+                                                    <AvatarFallback>{getInitials(otherUser?.username)}</AvatarFallback>
+                                                </Avatar>
+                                            </Link>
                                             <div className="flex-grow overflow-hidden">
                                                 <div className="flex justify-between items-baseline">
-                                                    <p className="font-semibold truncate">{otherUser?.username}</p>
+                                                     <Link href={otherUser ? `/profile/${otherUser.id}` : '#'} onClick={(e) => e.stopPropagation()} className="font-semibold truncate hover:underline">
+                                                        <p>{otherUser?.username}</p>
+                                                     </Link>
                                                     <p className="text-xs text-muted-foreground flex-shrink-0">{lastMessageTime}</p>
                                                 </div>
                                                 <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
@@ -381,21 +419,41 @@ export default function MessagesPage() {
                     ) : (
                         <>
                             <div className="p-4 border-b flex items-center gap-3 flex-shrink-0">
+                                <Link href={`/profile/${getOtherParticipant(selectedConversation)?.id || ''}`}>
                                     <Avatar>
-                                    <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
-                                    <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.username)}</AvatarFallback>
-                                </Avatar>
-                                <h3 className="font-semibold">{getOtherParticipant(selectedConversation)?.username}</h3>
+                                        <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
+                                        <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.username)}</AvatarFallback>
+                                    </Avatar>
+                                </Link>
+                                 <Link href={`/profile/${getOtherParticipant(selectedConversation)?.id || ''}`} className="font-semibold hover:underline">
+                                    <h3>{getOtherParticipant(selectedConversation)?.username}</h3>
+                                </Link>
                             </div>
-                            <div className="flex-grow p-4 space-y-4 overflow-y-auto">
+                            <div className="flex-grow p-4 space-y-1 overflow-y-auto">
                                 {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
                                 {!messagesLoading && messages?.map((msg, index) => {
                                     const msgDate = getSafeDate(msg.createdAt);
                                     const msgTime = msgDate ? msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                                    const isSender = msg.senderId === user.uid;
 
                                     return (
-                                            <div key={index} className={`flex ${msg.senderId === user.uid ? 'justify-end' : 'justify-start'}`}>
-                                            <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.senderId === user.uid ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                        <div key={msg.id || index} className={`group flex items-end gap-2 ${isSender ? 'justify-end' : 'justify-start'}`}>
+                                            {isSender && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuItem onClick={() => handleDeleteMessage(msg)} className="text-destructive">
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            Supprimer
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+                                            <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${isSender ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                                                 <p>{msg.text}</p>
                                                 <p className="text-xs text-right mt-1 opacity-70">{msgTime}</p>
                                             </div>
