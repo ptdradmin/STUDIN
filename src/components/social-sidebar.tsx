@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -18,7 +19,7 @@ import { GraduationCap, Home, MessageSquare, Bed, Car, PartyPopper, User, Settin
 import { useToast } from '@/hooks/use-toast';
 
 const mainNavItems = [
-  { href: "/social", label: "Accueil", icon: Home },
+  { href: "/social", label: "Fil d'actualité", icon: Home },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/carpooling", label: "Covoiturage", icon: Car },

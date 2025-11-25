@@ -20,6 +20,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 const navLinks = [
+  { href: "/social", label: "Fil d'actualité", icon: <Home className="mr-2 h-4 w-4" /> },
   { href: "/housing", label: "Logement", icon: <Home className="mr-2 h-4 w-4" /> },
   { href: "/carpooling", label: "Covoiturage", icon: <Car className="mr-2 h-4 w-4" /> },
   { href: "/tutoring", label: "Tutorat", icon: <BookOpen className="mr-2 h-4 w-4" /> },
