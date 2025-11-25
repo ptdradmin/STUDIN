@@ -309,18 +309,19 @@ service cloud.firestore {
      */
     match /posts/{postId} {
         allow get: if isSignedIn();
-        // Allow list if:
-        // 1. It's for the social feed (querying multiple userIds).
-        // 2. It's for a single user's profile page (querying one userId).
         allow list: if isSignedIn() && (
-            ( // Feed query
+            ( // Feed query: check if the 'userId' in the query is in the user's following list.
                 'userId' in request.query.where &&
-                request.query.where.userId is list && // 'in' operator
-                 request.query.where.userId.toSet().hasOnly(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid]))
+                request.query.where.userId is list && 
+                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.hasAny(request.query.where.userId)
             ) ||
-            ( // Profile page query
+            ( // Profile page query: check if a single userId is being queried.
                 'userId' in request.query.where &&
-                request.query.where.userId is string // '==' operator
+                request.query.where.userId is string
+            ) ||
+            ( // Saved posts query: check if document ID is in a list
+                '__name__' in request.query.where &&
+                request.query.where.__name__ is list
             )
         );
         
@@ -381,7 +382,5 @@ service cloud.firestore {
     }
   }
 }
-
-    
 
     
