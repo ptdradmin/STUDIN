@@ -311,7 +311,7 @@ service cloud.firestore {
     match /posts/{postId} {
         allow get: if isSignedIn();
         allow list: if isSignedIn() && (
-            ( // Feed query: check if the 'userId' in the query is in the user's following list.
+            ( // Feed query: check if the 'userId' in the query is in the user's following list or is the user's own ID.
                 'userId' in request.query.where &&
                 request.query.where.userId is list && 
                 get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.hasAny(request.query.where.userId)
@@ -320,7 +320,7 @@ service cloud.firestore {
                 'userId' in request.query.where &&
                 request.query.where.userId is string
             ) ||
-            ( // Saved posts query: check if document ID is in a list
+             ( // Saved posts query: check if document ID is in a list
                 '__name__' in request.query.where &&
                 request.query.where.__name__ is list
             )
@@ -350,7 +350,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.userId == request.auth.uid;
+      allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
@@ -383,5 +383,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

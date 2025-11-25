@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, Plus } from 'lucide-react';
@@ -43,16 +43,37 @@ function SuggestionsSkeleton() {
 function Suggestions() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const [suggestedUsers, setSuggestedUsers] = useState<UserProfile[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const suggestionsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return query(
-            collection(firestore, 'users'),
-            limit(10)
-        );
+    useEffect(() => {
+        const fetchSuggestions = async () => {
+            if (!firestore || !user) return;
+            setIsLoading(true);
+
+            // Fetch current user's following list
+            const userDocRef = doc(firestore, 'users', user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            const followingIds = userDocSnap.data()?.followingIds || [];
+            
+            const usersToExclude = [user.uid, ...followingIds];
+
+            const suggestionsQuery = query(
+                collection(firestore, 'users'),
+                limit(15) // Fetch a bit more to have a chance to filter
+            );
+            
+            const querySnapshot = await getDocs(suggestionsQuery);
+            const users = querySnapshot.docs
+                .map(doc => doc.data() as UserProfile)
+                .filter(u => !usersToExclude.includes(u.id))
+                .slice(0, 5);
+            
+            setSuggestedUsers(users);
+            setIsLoading(false);
+        };
+        fetchSuggestions();
     }, [firestore, user]);
-
-    const { data: suggestedUsers, isLoading } = useCollection<UserProfile>(suggestionsQuery);
 
      const getInitials = (name?: string) => {
         if (!name) return "..";
@@ -60,14 +81,12 @@ function Suggestions() {
         if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
         return name.substring(0, 2).toUpperCase();
     }
-    
-    const filteredSuggestions = suggestedUsers?.filter(u => u.id !== user?.uid).slice(0, 5);
 
     if (isLoading) {
         return <SuggestionsSkeleton />;
     }
 
-    if (!filteredSuggestions || filteredSuggestions.length === 0) {
+    if (suggestedUsers.length === 0) {
         return null;
     }
 
@@ -77,7 +96,7 @@ function Suggestions() {
                 <CardTitle className="text-base">Suggestions pour vous</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                {filteredSuggestions.map(u => (
+                {suggestedUsers.map(u => (
                     <div key={u.id} className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
                             <AvatarImage src={u.profilePicture} />
@@ -114,15 +133,12 @@ export default function SocialPage() {
     const postsQuery = useMemoFirebase(() => {
         if (!firestore || !user || isProfileLoading) return null;
         
-        // If the user is not following anyone, don't query for posts.
-        // The UI will show a suggestion message.
-        if (!followingIds || followingIds.length === 0) {
-            return null; 
-        }
+        // Create the list of user IDs to query. Always include the current user's ID.
+        const idsToQuery = [...new Set([...(followingIds || []), user.uid])];
 
-        // Always include the user's own ID in the query
-        const idsToQuery = [...new Set([...followingIds, user.uid])];
-
+        // If the user isn't following anyone yet, idsToQuery will only contain their own ID.
+        // We can proceed with a query for just their posts.
+        
         // Firestore 'in' queries are limited to 30 documents.
         const safeFollowingIds = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
         
@@ -130,7 +146,7 @@ export default function SocialPage() {
           collection(firestore, 'posts'), 
           where('userId', 'in', safeFollowingIds),
           orderBy('createdAt', 'desc'),
-          limit(20) // Limit the number of posts fetched
+          limit(20)
         );
       }, [firestore, user, followingIds, isProfileLoading]);
 
@@ -205,7 +221,7 @@ export default function SocialPage() {
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {isLoading && !showSuggestionMessage ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                             ) : showSuggestionMessage ? (
+                             ) : showSuggestionMessage && posts && posts.length === 0 ? (
                                 <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                     <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
                                     <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
