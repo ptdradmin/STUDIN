@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import SocialSidebar from "@/components/social-sidebar";
 import UserSearch from "@/components/user-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
+import { createNotification } from "@/lib/actions";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -105,16 +106,13 @@ export default function CarpoolingPage() {
     }
 
     const batch = writeBatch(firestore);
-
-    // 1. Decrement seats on the carpooling document
     const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
+    const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
+
     batch.update(carpoolingRef, {
       seatsAvailable: increment(-1),
       passengerIds: arrayUnion(user.uid)
     });
-
-    // 2. Create a booking document
-    const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
     batch.set(bookingRef, {
       id: bookingRef.id,
       carpoolId: trip.id,
@@ -126,6 +124,13 @@ export default function CarpoolingPage() {
 
     try {
       await batch.commit();
+      await createNotification(firestore, {
+          type: 'carpool_booking',
+          senderId: user.uid,
+          recipientId: trip.driverId,
+          relatedId: trip.id,
+          message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
+      });
       toast({
         title: "Réservation confirmée !",
         description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est réservée.`,

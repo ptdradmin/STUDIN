@@ -14,6 +14,7 @@ import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
+import { createNotification } from "@/lib/actions";
 
 function MessagesHeader({ conversation }: { conversation: Conversation | null }) {
     const { user } = useUser();
@@ -83,7 +84,7 @@ export default function ConversationPage() {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if (!user || !firestore || !conversationRef || !newMessage.trim()) return;
+        if (!user || !firestore || !conversationRef || !newMessage.trim() || !conversation) return;
 
         const messagesColRef = collection(firestore, 'conversations', conversationId, 'messages');
         const messageData = {
@@ -91,6 +92,9 @@ export default function ConversationPage() {
             text: newMessage,
             createdAt: serverTimestamp(),
         };
+
+        const otherParticipantId = conversation.participantIds.find(id => id !== user.uid);
+        if (!otherParticipantId) return;
 
         setNewMessage('');
         await addDoc(messagesColRef, messageData);
@@ -102,6 +106,14 @@ export default function ConversationPage() {
             },
             updatedAt: serverTimestamp()
         });
+
+        await createNotification(firestore, {
+            type: 'new_message',
+            senderId: user.uid,
+            recipientId: otherParticipantId,
+            relatedId: conversationId,
+            message: `vous a envoyé un message : "${newMessage.substring(0, 30)}${newMessage.length > 30 ? '...' : ''}"`
+        })
     }
 
     return (

@@ -107,6 +107,8 @@ export interface TutoringReview {
   id: string;
   tutoringId: string;
   studentId: string;
+  studentName: string;
+  studentAvatar?: string;
   rating: number;
   comment: string;
   createdAt: any;
@@ -174,14 +176,15 @@ export interface Conversation {
 
 export interface Notification {
   id: string;
-  type: 'new_follower' | 'like' | 'comment';
+  type: 'new_follower' | 'like' | 'comment' | 'new_message' | 'carpool_booking' | 'event_attendance';
   senderId: string;
   senderProfile: {
       username: string;
       profilePicture: string;
   };
   recipientId: string;
-  postId?: string;
+  relatedId: string;
+  message: string;
   read: boolean;
   createdAt: any;
 }

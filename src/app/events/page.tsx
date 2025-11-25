@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
+import { createNotification } from '@/lib/actions';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -87,13 +88,10 @@ export default function EventsPage() {
     }
 
     const batch = writeBatch(firestore);
-
-    // 1. Add user to attendeeIds on the event
     const eventRef = doc(firestore, 'events', event.id);
-    batch.update(eventRef, { attendeeIds: arrayUnion(user.uid) });
-
-    // 2. Create an attendee document
     const attendeeRef = doc(collection(firestore, 'event_attendees'));
+
+    batch.update(eventRef, { attendeeIds: arrayUnion(user.uid) });
     batch.set(attendeeRef, {
       id: attendeeRef.id,
       eventId: event.id,
@@ -104,6 +102,13 @@ export default function EventsPage() {
 
     try {
       await batch.commit();
+      await createNotification(firestore, {
+          type: 'event_attendance',
+          senderId: user.uid,
+          recipientId: event.organizerId,
+          relatedId: event.id,
+          message: `participe à votre événement : ${event.title}.`
+      });
       toast({
         title: 'Inscription réussie !',
         description: `Vous participez à l'événement : ${event.title}.`,
