@@ -114,7 +114,9 @@ service cloud.firestore {
           && data.postalCode is string && data.postalCode.size() > 0
           && data.city is string && data.city.size() > 0
           && data.university is string && data.university.size() > 0
-          && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0;
+          && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0
+          && data.followerIds is list
+          && data.followingIds is list;
     }
 
 
@@ -180,7 +182,7 @@ service cloud.firestore {
      * @principle Public Read, Public Interaction, Private Content Edit.
      */
     match /reels/{reelId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId)) ||
@@ -305,7 +307,8 @@ service cloud.firestore {
      * @principle Public Read, Public Interaction, Private Content Edit. Posts are public, interactions (likes/comments) are public, but only the author can edit the core content.
      */
     match /posts/{postId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
       // Allow update if the user is the owner, OR if they are only changing the 'likes' or 'comments' fields.
