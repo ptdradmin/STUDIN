@@ -1,4 +1,5 @@
 
+
 export interface Housing {
   id: string;
   title: string;
@@ -28,6 +29,25 @@ export interface Post {
     userId: string;
     userDisplayName: string;
     userAvatarUrl: string;
+    createdAt: any;
+    likes: string[];
+    comments: {
+        userId: string;
+        userDisplayName: string;
+        userAvatarUrl?: string;
+        text: string;
+        createdAt: string;
+    }[];
+}
+
+export interface Reel {
+    id: string;
+    videoUrl: string;
+    thumbnailUrl?: string;
+    caption: string;
+    userId: string;
+    userDisplayName: string;
+    userAvatarUrl?: string;
     createdAt: any;
     likes: string[];
     comments: {

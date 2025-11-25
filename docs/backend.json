@@ -1,4 +1,5 @@
 
+
 {
   "entities": {
     "User": {
@@ -217,6 +218,61 @@
         "address",
         "city"
       ]
+    },
+    "Reel": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Reel",
+      "type": "object",
+      "description": "Represents a short video reel on the STUD'IN platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the reel entity."
+        },
+        "videoUrl": {
+          "type": "string",
+          "description": "URL of the video file.",
+          "format": "uri"
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "URL of the video thumbnail.",
+          "format": "uri"
+        },
+        "caption": {
+          "type": "string",
+          "description": "Caption for the reel."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User (Creator). (Relationship: User 1:N Reel)"
+        },
+        "userDisplayName": {
+          "type": "string",
+          "description": "Display name of the user who created the reel."
+        },
+        "userAvatarUrl": {
+          "type": "string",
+          "description": "Avatar URL of the user who created the reel.",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the reel was created.",
+          "format": "date-time"
+        },
+        "likes": {
+          "type": "array",
+          "description": "List of user IDs who liked the reel.",
+          "items": { "type": "string" }
+        },
+        "comments": {
+          "type": "array",
+          "description": "List of comments on the reel.",
+          "items": { "type": "object" }
+        }
+      },
+      "required": ["id", "videoUrl", "userId", "caption", "createdAt"]
     },
     "Carpooling": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -750,6 +806,14 @@
           "entityName": "Notification",
           "schema": { "$ref": "#/backend/entities/Notification" },
           "description": "Stores notifications for a specific user. Only the recipient can read them."
+        }
+      },
+      {
+        "path": "/reels/{reelId}",
+        "definition": {
+          "entityName": "Reel",
+          "schema": { "$ref": "#/backend/entities/Reel" },
+          "description": "Stores short video reels. Publicly readable."
         }
       },
       {

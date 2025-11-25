@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -15,11 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut } from 'lucide-react';
+import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const mainNavItems = [
   { href: "/social", label: "Fil d'actualité", icon: Home },
+  { href: "/reels", label: "Reels", icon: Film },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/tutoring", label: "Tutorat", icon: GraduationCap },

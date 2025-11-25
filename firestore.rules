@@ -158,6 +158,26 @@ service cloud.firestore {
       allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
     }
+    
+    // =====================================================================
+    // Reels Rules
+    // =====================================================================
+    /**
+     * @description Manages short video reels.
+     * @path /reels/{reelId}
+     * @allow Any authenticated user can read reels. The owner can write/delete/edit content.
+     * @deny An anonymous user tries to list reels. A user tries to delete another user's reel.
+     * @principle Public Read, Public Interaction, Private Content Edit.
+     */
+    match /reels/{reelId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+                      (isOwner(resource.data.userId)) ||
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
+                    );
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
 
     // =====================================================================
     // Carpooling Rules
@@ -302,7 +322,6 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get: if isOwner(resource.data.userId);
-      // A user can list their own favorites, but only their own, by querying on their userId.
       allow list: if isSignedIn() && request.query.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
