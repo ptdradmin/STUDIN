@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -716,8 +717,7 @@
     "providers": [
       "password",
       "anonymous",
-      "google.com",
-      "microsoft.com"
+      "google.com"
     ]
   },
   "firestore": {
@@ -844,5 +844,3 @@
     "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the STUD'IN application. It follows the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).\n\n*   **Authorization Independence:** Achieved through denormalization. Specifically, the `userId` is included in `housings`, `carpoolings`, `tutorings`, `events`, and `favorites`. This allows security rules to validate ownership without needing to perform expensive `get()` operations to retrieve the user ID from a parent document. This ensures atomic operations and simplifies rule logic.\n*   **Clarity of Intent:** The structure uses consistent naming conventions and explicit state modeling to enhance debuggability. For example, `userId` is consistently used to denote the owner of a document. Clear naming conventions are used everywhere.\n*   **DBAC (No Custom Claims):** The structure relies solely on `request.auth.uid` for authorization. Roles are not stored in custom claims, but rather can be managed directly in the database if needed (e.g., via a separate `/roles_admin/{uid}` collection, which is not implemented here, since it's not needed).\n*   **QAPs (Rules are not Filters):** The structure supports secure list operations. By segregating data with different access needs into separate collections and using path-based ownership for private data, the security rules can efficiently validate access without acting as filters. For example, housing listings are stored in `/housings` and are accessible to all users, but only the owner can modify their listings. Carpool bookings can be listed/read by the Carpool's driver using query parameter filtering in rules.\n\n**Explanation of Specific Paths:**\n\n*   `/users/{userId}`: Stores user profiles. This is private data, accessible only to the user with the matching `userId`.\n*   `/housings/{housingId}`: Stores housing listings. Includes `userId` for ownership validation.\n*   `/carpoolings/{carpoolingId}`: Stores carpooling offers. Includes `driverId` for ownership validation.\n*   `/carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}`: Stores bookings for carpooling. Includes `passengerId` and the carpooling's `driverId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/tutorings/{tutoringId}`: Stores tutoring offers. Includes `tutorId` for ownership validation.\n*   `/tutoring_reviews/{tutoringReviewId}`: Stores reviews for tutoring. Includes `studentId` and the tutoring's `tutorId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/events/{eventId}`: Stores events. Includes `organizerId` for ownership validation.\n*   `/event_attendees/{eventAttendeeId}`: Stores records of users attending events. The `userId` is included so security rules can validate the attendance.\n*   `/messages/{messageId}`: (DEPRECATED) Stores messages between users. Both `senderId` and `receiverId` are included, enabling security rules to validate that only the sender or receiver can access the message.  Consider using subcollections under each user to improve query performance for chat applications if scaling requires it.\n*   `/favorites/{favoriteId}`: Stores user favorites. Includes `userId` for ownership validation.\n*   `/conversations/{conversationId}`: Stores metadata for a chat conversation. The `participantIds` array is used in security rules to ensure only participants can access it.\n*   `/conversations/{conversationId}/messages/{messageId}`: A subcollection for messages. Security rules inherit the context from the parent conversation, ensuring only participants can read/write messages."
   }
 }
-
-    

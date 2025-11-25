@@ -154,22 +154,6 @@ export default function RegisterForm() {
     }
   };
 
-  const handleMicrosoftSignIn = async () => {
-    if (!auth || !firestore) return;
-    setLoading('microsoft');
-    const provider = new OAuthProvider('microsoft.com');
-    try {
-        const result = await signInWithPopup(auth, provider);
-        await createUserDocument(result.user);
-        handleSuccess();
-    } catch (error: any) {
-        handleError(error);
-    } finally {
-        setLoading('');
-    }
-  }
-
-
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading('email');
     
@@ -218,14 +202,10 @@ export default function RegisterForm() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-           <div className="grid grid-cols-2 gap-4">
+           <div className="grid grid-cols-1 gap-4">
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
                 <GoogleIcon className="mr-2 h-4 w-4" />
                 Google
-              </Button>
-               <Button variant="outline" className="w-full" onClick={handleMicrosoftSignIn} disabled={!!loading || !servicesReady}>
-                <MicrosoftIcon className="mr-2 h-4 w-4" />
-                Microsoft
               </Button>
            </div>
           <div className="relative">
