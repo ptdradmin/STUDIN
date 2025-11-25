@@ -63,11 +63,6 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
     
     const handleContact = () => {
         if (!user) {
-            toast({
-                variant: 'destructive',
-                title: "Connexion requise",
-                description: "Vous devez être connecté pour contacter un propriétaire.",
-            });
             router.push('/login?from=/housing');
             return;
         }
@@ -133,11 +128,15 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
                         <p className="text-2xl font-bold text-primary">{housing.price}€</p>
                         <p className="text-xs text-muted-foreground -mt-1">/mois</p>
                     </div>
-                     <Button onClick={handleContact} disabled={isOwner}>
-                        {isOwner ? "Votre annonce" : "Contacter"}
-                    </Button>
+                    {user && (
+                         <Button onClick={handleContact} disabled={isOwner}>
+                            {isOwner ? "Votre annonce" : "Contacter"}
+                        </Button>
+                    )}
                 </div>
             </CardContent>
         </Card>
     );
 }
+
+    

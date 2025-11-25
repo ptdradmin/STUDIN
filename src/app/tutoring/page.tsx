@@ -90,6 +90,17 @@ export default function TutoringPage() {
         </div>
       );
     }
+    
+    if (filteredTutors?.length === 0) {
+        return (
+            <Card className="col-span-full text-center py-20">
+                <CardContent>
+                    <h3 className="text-xl font-semibold">Aucun tuteur ne correspond à votre recherche</h3>
+                    <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer vos services !</p>
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -116,14 +127,6 @@ export default function TutoringPage() {
                     {user && <Button className="w-full mt-4" onClick={() => handleContact(tutor.tutorId)}>Contacter</Button>}
                   </Card>
             )})}
-             {!isLoading && filteredTutors?.length === 0 && (
-                <Card className="col-span-full text-center py-20">
-                    <CardContent>
-                        <h3 className="text-xl font-semibold">Aucun tuteur ne correspond à votre recherche</h3>
-                        <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer vos services !</p>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
   }
@@ -230,3 +233,5 @@ export default function TutoringPage() {
     </div>
   );
 }
+
+    

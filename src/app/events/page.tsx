@@ -102,6 +102,17 @@ export default function EventsPage() {
       )
     }
 
+    if (filteredEvents?.length === 0) {
+        return (
+            <Card className="col-span-full text-center py-20">
+                <CardContent>
+                    <h3 className="text-xl font-semibold">Aucun événement ne correspond à votre recherche</h3>
+                    <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à créer un événement !</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents && filteredEvents.map(event => (
@@ -121,14 +132,6 @@ export default function EventsPage() {
                     </CardContent>
                 </Card>
             ))}
-             {!isLoading && filteredEvents?.length === 0 && (
-              <Card className="col-span-full text-center py-20">
-                <CardContent>
-                  <h3 className="text-xl font-semibold">Aucun événement ne correspond à votre recherche</h3>
-                  <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à créer un événement !</p>
-                </CardContent>
-              </Card>
-            )}
         </div>
     );
   }
@@ -247,3 +250,5 @@ export default function EventsPage() {
     </div>
   );
 }
+
+    
