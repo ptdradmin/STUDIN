@@ -326,7 +326,31 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
+
+    // =====================================================================
+    // Conversation & Message Rules
+    // =====================================================================
+    /**
+     * @description Manages chat conversations and messages.
+     * @path /conversations/{conversationId}
+     * @allow A user can only access a conversation if they are a participant.
+     * @deny A user cannot access a conversation they are not a part of.
+     * @principle Enforces that only participants can interact with a conversation.
+     */
+    match /conversations/{conversationId} {
+      allow get, update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
+
+      /**
+       * @description Manages messages within a conversation.
+       * @path /conversations/{conversationId}/messages/{messageId}
+       * @allow A user can read/write messages in a conversation they are part of.
+       * @deny A user cannot read/write messages in a conversation they are not part of.
+       */
+      match /messages/{messageId} {
+        allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+      }
+    }
   }
 }
-
-    
