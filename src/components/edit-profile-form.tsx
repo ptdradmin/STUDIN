@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useAuth, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { doc, updateDoc, serverTimestamp, getDocs, collection, query, where, writeBatch } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
@@ -19,6 +19,8 @@ import { updateProfile } from 'firebase/auth';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
+import { updateUserPosts } from '@/lib/actions';
+
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
@@ -145,36 +147,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     return name.substring(0, 2).toUpperCase();
   }
   
-  const updateUserPosts = async (userId: string, updatedProfile: Partial<Pick<UserProfile, 'username' | 'profilePicture'>>) => {
-    if (!firestore) return;
-    const postsQuery = query(collection(firestore, 'posts'), where('userId', '==', userId));
-    const batch = writeBatch(firestore);
-    
-    try {
-        const querySnapshot = await getDocs(postsQuery);
-        querySnapshot.forEach(doc => {
-            const postRef = doc.ref;
-            const updatedData: any = {};
-            if(updatedProfile.username) updatedData.userDisplayName = updatedProfile.username;
-            if(updatedProfile.profilePicture) updatedData.userAvatarUrl = updatedProfile.profilePicture;
-            
-            if(Object.keys(updatedData).length > 0) {
-              batch.update(postRef, updatedData);
-            }
-        });
-        await batch.commit();
-    } catch (serverError) {
-         const permissionError = new FirestorePermissionError({
-            path: `posts collection for user ${userId}`,
-            operation: 'update',
-            requestResourceData: updatedProfile,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Permission error while updating user posts:", serverError);
-        throw permissionError;
-    }
-};
-
   const onSubmit: SubmitHandler<ProfileFormInputs> = async (data) => {
     if (!user || !firestore || !storage || !auth) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible.' });
@@ -222,19 +194,17 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
             });
         }
 
-        if(data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture) {
-            await updateUserPosts(user.uid, { username: data.username, profilePicture: newPhotoURL });
+        if(firestore && (data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture)) {
+            await updateUserPosts(firestore, user.uid, { username: data.username, profilePicture: newPhotoURL });
         }
 
         toast({ title: 'Succès', description: 'Profil mis à jour !' });
         onClose();
 
     } catch (error) {
-        if (error instanceof FirestorePermissionError) {
-          // The error has already been emitted, so we just log it for debugging
-          console.error("A known permission error occurred:", error);
-        } else {
-            console.error("Erreur de mise à jour du profil: ", error);
+        // The updateUserPosts function will emit a detailed permission error if it fails.
+        // If the error is not a FirestorePermissionError, we create a new one for the user profile update.
+        if (!(error instanceof FirestorePermissionError)) {
              const contextualError = new FirestorePermissionError({
                 path: `users/${user.uid}`,
                 operation: 'update',
@@ -371,5 +341,3 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
-
-    

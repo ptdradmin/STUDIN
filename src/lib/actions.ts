@@ -14,7 +14,7 @@ import {
   getDocs,
   query,
   where,
-  addDoc,
+  setDoc,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
@@ -151,7 +151,7 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
         } satisfies SecurityRuleContext);
 
         errorEmitter.emit('permission-error', permissionError);
-        console.error("Erreur de permission lors de la mise à jour des publications :", serverError);
+        // We re-throw the original error to let the caller know something went wrong.
         throw serverError;
     }
 };
