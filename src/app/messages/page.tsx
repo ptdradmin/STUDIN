@@ -1,7 +1,8 @@
+
 'use client';
 
-import { useFirestore, useUser } from "@/firebase";
-import { useCollection, useMemoFirebase } from "@/firebase/firestore/use-collection";
+import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { useCollection } from "@/firebase/firestore/use-collection";
 import type { Conversation, UserProfile } from "@/lib/types";
 import { collection, query, where } from "firebase/firestore";
 import Link from "next/link";
