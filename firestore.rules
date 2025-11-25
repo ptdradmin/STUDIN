@@ -314,13 +314,11 @@ service cloud.firestore {
         // 2. It's for a single user's profile page (querying one userId).
         allow list: if isSignedIn() && (
             ( // Feed query
-                request.query.keys().hasAny(['where', 'orderBy', 'limit']) && // Check for a complex query
                 'userId' in request.query.where &&
                 request.query.where.userId is list && // 'in' operator
                  request.query.where.userId.toSet().hasOnly(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid]))
             ) ||
             ( // Profile page query
-                request.query.keys().hasAny(['where', 'orderBy', 'limit']) &&
                 'userId' in request.query.where &&
                 request.query.where.userId is string // '==' operator
             )
@@ -383,5 +381,7 @@ service cloud.firestore {
     }
   }
 }
+
+    
 
     
