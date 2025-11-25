@@ -26,6 +26,8 @@ const profileSchema = z.object({
   username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
   university: z.string().optional(),
   fieldOfStudy: z.string().optional(),
+  postalCode: z.string().optional(),
+  city: z.string().optional(),
   bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
   website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
@@ -33,7 +35,7 @@ const profileSchema = z.object({
 
 type ProfileFormInputs = z.infer<typeof profileSchema>;
 
-const universities = [
+const schoolsList = [
     // Universités
     'Université de Namur',
     'Université de Liège',
@@ -44,7 +46,6 @@ const universities = [
     // Hautes Écoles
     'HEC Liège',
     'Haute École de la Province de Namur (HEPN)',
-    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
     'Haute École de la Province de Liège (HEPL)',
     'Haute École Louvain en Hainaut (HELHa)',
     'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
@@ -58,6 +59,18 @@ const universities = [
     'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
     'La Cambre',
     'Institut national supérieur des arts du spectacle (INSAS)',
+    'École supérieure des Arts Saint-Luc de Bruxelles',
+    "École supérieure des Arts de l'Image 'Le 75'",
+    // Arts & Métiers
+    'Arts et Métiers (Campus de Bruxelles)',
+    'Arts et Métiers (Campus de Charleroi)',
+    // Campus Provincial
+    'Campus Provincial de Namur',
+    'Campus Provincial de la HEPL',
+    // Promotion Sociale
+    'Institut provincial de Promotion sociale (IPC)',
+    'EPFC - Promotion Sociale',
+    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
     // IFAPME
     'IFAPME - Centre de Namur',
     'IFAPME - Centre de Liège',
@@ -95,6 +108,8 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         username: userProfile?.username || '',
         university: userProfile?.university || '',
         fieldOfStudy: userProfile?.fieldOfStudy || '',
+        postalCode: userProfile?.postalCode || '',
+        city: userProfile?.city || '',
         bio: userProfile?.bio || '',
         website: userProfile?.website || '',
         gender: userProfile?.gender,
@@ -306,6 +321,18 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
              </FormSection>
 
             <FormSection title="Informations Académiques">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="postalCode">Code Postal</Label>
+                        <Input id="postalCode" {...register('postalCode')} />
+                        {errors.postalCode && <p className="text-xs text-destructive">{errors.postalCode.message}</p>}
+                    </div>
+                    <div>
+                        <Label htmlFor="city">Ville</Label>
+                        <Input id="city" {...register('city')} />
+                        {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
+                    </div>
+                </div>
                  <div>
                     <Label htmlFor="university">Établissement</Label>
                     <Controller
@@ -315,7 +342,7 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
                                     <SelectContent>
-                                        {universities.map(uni => (
+                                        {schoolsList.map(uni => (
                                             <SelectItem key={uni} value={uni}>{uni}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -344,7 +371,5 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
-
-    
 
     

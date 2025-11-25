@@ -19,7 +19,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
-const universities = [
+const schoolsList = [
     // Universités
     'Université de Namur',
     'Université de Liège',
@@ -30,7 +30,6 @@ const universities = [
     // Hautes Écoles
     'HEC Liège',
     'Haute École de la Province de Namur (HEPN)',
-    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
     'Haute École de la Province de Liège (HEPL)',
     'Haute École Louvain en Hainaut (HELHa)',
     'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
@@ -44,6 +43,18 @@ const universities = [
     'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
     'La Cambre',
     'Institut national supérieur des arts du spectacle (INSAS)',
+    'École supérieure des Arts Saint-Luc de Bruxelles',
+    "École supérieure des Arts de l'Image 'Le 75'",
+    // Arts & Métiers
+    'Arts et Métiers (Campus de Bruxelles)',
+    'Arts et Métiers (Campus de Charleroi)',
+    // Campus Provincial
+    'Campus Provincial de Namur',
+    'Campus Provincial de la HEPL',
+    // Promotion Sociale
+    'Institut provincial de Promotion sociale (IPC)',
+    'EPFC - Promotion Sociale',
+    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
     // IFAPME
     'IFAPME - Centre de Namur',
     'IFAPME - Centre de Liège',
@@ -54,12 +65,15 @@ const universities = [
     'Autre'
 ];
 
+
 const registerSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
   email: z.string().email("L'adresse e-mail n'est pas valide"),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
   confirmPassword: z.string(),
+  postalCode: z.string().min(4, 'Code postal invalide').optional(),
+  city: z.string().optional(),
   university: z.string().optional(),
   fieldOfStudy: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
@@ -96,6 +110,8 @@ export default function RegisterForm() {
       email: '',
       password: '',
       confirmPassword: '',
+      postalCode: '',
+      city: '',
       university: '',
       fieldOfStudy: '',
     },
@@ -120,6 +136,8 @@ export default function RegisterForm() {
             username,
             firstName,
             lastName,
+            postalCode: additionalData.postalCode || '',
+            city: additionalData.city || '',
             university: additionalData.university || '',
             fieldOfStudy: additionalData.fieldOfStudy || '',
             profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
@@ -192,12 +210,7 @@ export default function RegisterForm() {
         
         await user.reload();
 
-        await createUserDocument(user, {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            university: data.university,
-            fieldOfStudy: data.fieldOfStudy
-        });
+        await createUserDocument(user, data);
 
         handleSuccess();
     } catch (error: any) {
@@ -312,6 +325,35 @@ export default function RegisterForm() {
                   )}
                 />
               </div>
+
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="postalCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Code Postal (Optionnel)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="5000" {...field} disabled={!servicesReady} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ville (Optionnel)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Namur" {...field} disabled={!servicesReady} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <FormField
                 control={form.control}
@@ -324,7 +366,7 @@ export default function RegisterForm() {
                           <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                            {universities.map(uni => (
+                            {schoolsList.map(uni => (
                                 <SelectItem key={uni} value={uni}>{uni}</SelectItem>
                             ))}
                         </SelectContent>
@@ -365,7 +407,5 @@ export default function RegisterForm() {
     </Card>
   );
 }
-
-    
 
     
