@@ -37,13 +37,13 @@ function MessagesHeader({ conversation }: { conversation: Conversation | null })
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => router.push('/messages')}>
                 <ArrowLeft />
             </Button>
-            <Link href={`/profile/${otherParticipantId}`}>
+            <Link href={`/profile/${otherParticipantId}`} className="flex items-center gap-3">
                 <Avatar>
                     <AvatarImage src={otherParticipant?.profilePicture} />
                     <AvatarFallback>{otherParticipant?.username?.substring(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
+                <p className="font-semibold">{otherParticipant?.username}</p>
             </Link>
-            <p className="font-semibold">{otherParticipant?.username}</p>
         </div>
     )
 }
@@ -81,6 +81,15 @@ export default function ConversationPage() {
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+    
+    // Mark conversation as read when it's opened
+    useEffect(() => {
+        if (conversationRef && user && conversation?.lastMessage && conversation.lastMessage.senderId !== user.uid && conversation.unread) {
+             updateDoc(conversationRef, {
+                unread: false,
+             });
+        }
+    }, [conversation, conversationRef, user]);
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
@@ -104,7 +113,8 @@ export default function ConversationPage() {
                 text: newMessage,
                 timestamp: serverTimestamp(),
             },
-            updatedAt: serverTimestamp()
+            updatedAt: serverTimestamp(),
+            unread: true, // Mark as unread for the other user
         });
 
         await createNotification(firestore, {

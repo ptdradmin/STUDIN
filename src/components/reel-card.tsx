@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { Reel } from "@/lib/types";
@@ -7,8 +6,10 @@ import { Button } from "./ui/button";
 import { Heart, MessageCircle, Send, MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
+import { doc, updateDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReelCardProps {
     reel: Reel;
@@ -16,8 +17,12 @@ interface ReelCardProps {
 
 export default function ReelCard({ reel }: ReelCardProps) {
     const { user } = useUser();
-    const [isLiked, setIsLiked] = useState(user ? reel.likes.includes(user.uid) : false);
-    const [likeCount, setLikeCount] = useState(reel.likes.length);
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    
+    const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
+    const hasLiked = user && optimisticLikes.includes(user.uid);
+
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
@@ -25,13 +30,29 @@ export default function ReelCard({ reel }: ReelCardProps) {
     };
     
     const handleLike = () => {
-        // TODO: Implement actual Firestore logic
-        if (isLiked) {
-            setLikeCount(prev => prev - 1);
-        } else {
-            setLikeCount(prev => prev + 1);
+        if (!user || !firestore) {
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
+            return;
         }
-        setIsLiked(!isLiked);
+
+        const reelRef = doc(firestore, "reels", reel.id);
+        const currentLikes = optimisticLikes;
+        const newLikes = hasLiked
+            ? currentLikes.filter(uid => uid !== user.uid)
+            : [...currentLikes, user.uid];
+
+        setOptimisticLikes(newLikes);
+
+        updateDoc(reelRef, { likes: newLikes })
+            .catch(serverError => {
+                setOptimisticLikes(currentLikes);
+                const permissionError = new FirestorePermissionError({
+                    path: reelRef.path,
+                    operation: 'update',
+                    requestResourceData: { likes: newLikes }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
     }
 
     return (
@@ -68,8 +89,8 @@ export default function ReelCard({ reel }: ReelCardProps) {
                 <div className="flex flex-col items-center space-y-4">
                     <Button variant="ghost" size="icon" className="text-white h-12 w-12" onClick={handleLike}>
                         <div className="flex flex-col items-center">
-                            <Heart className={`h-7 w-7 ${isLiked ? 'text-red-500 fill-red-500' : ''}`} />
-                            <span className="text-xs font-semibold">{likeCount}</span>
+                            <Heart className={`h-7 w-7 ${hasLiked ? 'text-red-500 fill-red-500' : ''}`} />
+                            <span className="text-xs font-semibold">{optimisticLikes.length}</span>
                         </div>
                     </Button>
                     <Button variant="ghost" size="icon" className="text-white h-12 w-12">

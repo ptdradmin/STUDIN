@@ -4,7 +4,7 @@
 import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import type { Conversation, UserProfile } from "@/lib/types";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, where, orderBy } from "firebase/firestore";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from 'date-fns';
@@ -12,6 +12,7 @@ import { fr } from 'date-fns/locale';
 import SocialSidebar from "@/components/social-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function ConversationList() {
     const { user } = useUser();
@@ -19,7 +20,7 @@ function ConversationList() {
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        return query(collection(firestore, 'conversations'), where('participantIds', 'array-contains', user.uid));
+        return query(collection(firestore, 'conversations'), where('participantIds', 'array-contains', user.uid), orderBy('updatedAt', 'desc'));
     }, [user, firestore]);
 
     const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
@@ -65,30 +66,31 @@ function ConversationList() {
     return (
         <div className="space-y-1">
             {conversations
-              .sort((a, b) => b.updatedAt?.toMillis() - a.updatedAt?.toMillis())
               .map(convo => {
                 const otherParticipant = getOtherParticipant(convo);
                 const timeAgo = convo.updatedAt ? formatDistanceToNow(convo.updatedAt.toDate(), { addSuffix: true, locale: fr }) : '';
+                const isUnread = convo.unread && convo.lastMessage?.senderId !== user?.uid;
 
                 if (!otherParticipant) return null;
 
                 return (
                     <Link href={`/messages/${convo.id}`} key={convo.id}>
-                        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
+                        <div className={cn("flex items-start gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer", isUnread && "bg-primary/5")}>
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={otherParticipant.profilePicture} />
                                 <AvatarFallback>{getInitials(otherParticipant.username)}</AvatarFallback>
                             </Avatar>
                             <div className="flex-grow overflow-hidden">
                                 <div className="flex justify-between items-start">
-                                    <p className="font-semibold truncate">{otherParticipant.username}</p>
+                                    <p className={cn("font-semibold truncate", isUnread && "font-bold")}>{otherParticipant.username}</p>
                                     <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo}</span>
                                 </div>
-                                <p className="text-sm text-muted-foreground truncate">
+                                <p className={cn("text-sm text-muted-foreground truncate", isUnread && "text-foreground font-medium")}>
                                     {convo.lastMessage?.senderId === user?.uid && "Vous: "}
                                     {convo.lastMessage?.text || "Aucun message"}
                                 </p>
                             </div>
+                             {isUnread && <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>}
                         </div>
                     </Link>
                 );

@@ -17,6 +17,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { getOrCreateConversation } from "@/lib/conversations";
@@ -46,11 +57,9 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
 
     const handleDelete = async () => {
         if (!firestore || !isOwner) return;
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette annonce ?")) {
-            const housingRef = doc(firestore, "housings", housing.id);
-            deleteDocumentNonBlocking(housingRef);
-            toast({ title: "Succès", description: "Annonce supprimée." });
-        }
+        const housingRef = doc(firestore, "housings", housing.id);
+        deleteDocumentNonBlocking(housingRef);
+        toast({ title: "Succès", description: "Annonce supprimée." });
     };
 
     const handleCardClick = (e: React.MouseEvent) => {
@@ -99,9 +108,25 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                                 <DropdownMenuItem onClick={() => onEdit(housing)}>Modifier</DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleDelete} className="text-destructive focus:text-destructive">
-                                    Supprimer
-                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                            Supprimer
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Cette action est irréversible et supprimera définitivement votre annonce.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -141,5 +166,3 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
         </Card>
     );
 }
-
-    

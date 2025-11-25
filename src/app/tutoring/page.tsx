@@ -20,8 +20,6 @@ import { useRouter } from "next/navigation";
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import { useToast } from '@/hooks/use-toast';
-import { getOrCreateConversation } from '@/lib/conversations';
 import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -34,7 +32,6 @@ export default function TutoringPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const { toast } = useToast();
   
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);

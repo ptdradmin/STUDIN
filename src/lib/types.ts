@@ -172,6 +172,7 @@ export interface Conversation {
     };
     createdAt: Timestamp;
     updatedAt: Timestamp;
+    unread?: boolean;
 }
 
 export interface Notification {
