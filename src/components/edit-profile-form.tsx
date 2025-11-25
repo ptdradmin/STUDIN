@@ -44,11 +44,20 @@ const universities = [
     // Hautes Écoles
     'HEC Liège',
     'Haute École de la Province de Namur (HEPN)',
+    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
     'Haute École de la Province de Liège (HEPL)',
     'Haute École Louvain en Hainaut (HELHa)',
     'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
     'Haute École Galilée (HEG)',
     'Haute École ICHEC - ECAM - ISFSC',
+    'Haute École de Bruxelles-Brabant (HE2B)',
+    'Haute École Francisco Ferrer',
+    'Haute École Léonard de Vinci',
+    'Haute École Robert Schuman',
+    // Écoles Supérieures des Arts
+    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
+    'La Cambre',
+    'Institut national supérieur des arts du spectacle (INSAS)',
     // IFAPME
     'IFAPME - Centre de Namur',
     'IFAPME - Centre de Liège',
@@ -335,5 +344,7 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
+
+    
 
     
