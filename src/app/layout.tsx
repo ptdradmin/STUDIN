@@ -1,10 +1,22 @@
-
 'use client';
 
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import FirebaseClientProvider from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
+import { useUser } from '@/firebase';
+import { PageSkeleton } from '@/components/page-skeleton';
+
+function AppContent({ children }: { children: React.ReactNode }) {
+  const { isUserLoading } = useUser();
+
+  if (isUserLoading) {
+    return <PageSkeleton />;
+  }
+
+  return <>{children}</>;
+}
+
 
 export default function RootLayout({
   children,
@@ -28,7 +40,9 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <LanguageProvider>
           <FirebaseClientProvider>
-            {children}
+            <AppContent>
+                {children}
+            </AppContent>
             <Toaster />
           </FirebaseClientProvider>
         </LanguageProvider>

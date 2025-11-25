@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GraduationCap, Home, MessageSquare, Bed, Car, PartyPopper, Plus, User, Settings, LogOut, Search } from 'lucide-react';
+import { GraduationCap, Plus, Search } from 'lucide-react';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import UserSearch from '@/components/user-search';
@@ -125,7 +125,8 @@ export default function SocialPage() {
         return email.substring(0, 2).toUpperCase();
     }
     
-    if (isUserLoading || !user) {
+    // We rely on the root layout to handle the main loading state
+    if (!user) {
         return <PageSkeleton />;
     }
 
@@ -193,18 +194,6 @@ export default function SocialPage() {
                 </div>
            </div>
           </main>
-          
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t p-2 flex justify-around z-40">
-            <Link href="/social" className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5"><Home className="h-6 w-6" /><span className="text-xs">Accueil</span></Link>
-            <Link href="/messages" className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5"><MessageSquare className="h-6 w-6" /><span className="text-xs">Messages</span></Link>
-            <button className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5" onClick={() => setShowCreatePost(true)} disabled={isUserLoading || !user}>
-                <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center -mt-6 border-4 border-background">
-                    <Plus className="h-6 w-6"/>
-                </div>
-            </button>
-            <Link href="/events" className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5"><PartyPopper className="h-6 w-6" /><span className="text-xs">Événements</span></Link>
-            <Link href="/profile" className="flex flex-col items-center justify-center text-muted-foreground hover:text-primary w-1/5"><User className="h-6 w-6" /><span className="text-xs">Profil</span></Link>
-          </nav>
         </div>
       </div>
     );
