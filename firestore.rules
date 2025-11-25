@@ -349,7 +349,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
+      allow list: if isSignedIn() && request.query.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
@@ -382,5 +382,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
