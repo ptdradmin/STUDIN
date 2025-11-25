@@ -112,17 +112,26 @@ export default function SocialPage() {
     const followingIds = userProfile?.followingIds;
 
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null; // Always fetch something to avoid empty state flash for new users
-        if (!followingIds || followingIds.length === 0) {
-             // For new users, show some recent posts instead of an empty feed
-             return query(collection(firestore, 'posts'), orderBy('createdAt', 'desc'), limit(10));
+        if (!firestore || !user) return null;
+        
+        let idsToQuery = followingIds;
+
+        // If the user is not following anyone, we include their own ID
+        // to show their own posts in the feed.
+        if (!idsToQuery || idsToQuery.length === 0) {
+            idsToQuery = [user.uid];
+        } else if (!idsToQuery.includes(user.uid)) {
+            idsToQuery = [...idsToQuery, user.uid];
         }
 
-        const safeFollowingIds = followingIds.length > 30 ? followingIds.slice(0, 30) : followingIds;
+        // Firestore 'in' queries are limited to 30 documents.
+        const safeFollowingIds = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
+        
         return query(
           collection(firestore, 'posts'), 
           where('userId', 'in', safeFollowingIds),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(20) // Limit the number of posts fetched
         );
       }, [firestore, followingIds, user]);
 

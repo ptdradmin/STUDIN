@@ -308,19 +308,24 @@ service cloud.firestore {
      * @principle Public Read, Public Interaction, Private Content Edit. Posts are public, interactions (likes/comments) are public, but only the author can edit the core content.
      */
     match /posts/{postId} {
-      allow get: if isSignedIn();
-      // list is intentionally omitted. Queries must be secured by other means.
-      // e.g. list: if request.query.where[...];
-      
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // Allow update if the user is the owner, OR if they are only changing the 'likes' or 'comments' fields.
-      allow update: if isSignedIn() && (
-                      (isOwner(resource.data.userId)) ||
-                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
-                    );
+        allow get: if isSignedIn();
+        allow list: if isSignedIn() &&
+                  (
+                    // Allow listing user's own posts
+                    request.query.where.size() > 0 && 'userId' in request.query.where[0] && request.query.where[0][2] == request.auth.uid ||
+                    // Allow listing posts from followed users
+                    request.query.where.size() > 0 && 'userId' in request.query.where[0] && request.query.where[0][2] in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds
+                  );
+        
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        
+        // Allow update if the user is the owner, OR if they are only changing the 'likes' or 'comments' fields.
+        allow update: if isSignedIn() && (
+                        (isOwner(resource.data.userId)) ||
+                        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
+                      );
 
-      allow delete: if isExistingOwner(resource.data.userId);
+        allow delete: if isExistingOwner(resource.data.userId);
     }
 
     // =====================================================================
@@ -336,7 +341,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.where.size() > 0 && request.query.where[0] == ['userId', '==', request.auth.uid];
+      allow list: if isSignedIn() && request.query.where.size() > 0 && 'userId' in request.query.where[0] && request.query.where[0][2] == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
@@ -369,5 +374,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
