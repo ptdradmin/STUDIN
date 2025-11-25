@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -279,7 +278,7 @@ export default function MessagesPage() {
 
         const messagesColRef = collection(firestore, 'conversations', selectedConversation.id, 'messages');
         const conversationDocRef = doc(firestore, 'conversations', selectedConversation.id);
-        const newMsgDocRef = doc(messagesColRef);
+        const newMsgDocRef = doc(messagesColRef); // Generate ID locally
 
         const messageData = {
             id: newMsgDocRef.id,
@@ -288,6 +287,7 @@ export default function MessagesPage() {
             createdAt: serverTimestamp()
         };
 
+        // Use the locally generated ref to set the document
         addDocumentNonBlocking(newMsgDocRef, messageData, {});
         
         updateDoc(conversationDocRef, {
