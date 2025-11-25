@@ -10,8 +10,7 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search } from "lucide-react
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, doc, writeBatch, arrayUnion, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -108,19 +107,21 @@ export default function CarpoolingPage() {
     const batch = writeBatch(firestore);
     const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
     const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
-
-    batch.update(carpoolingRef, {
-      seatsAvailable: increment(-1),
-      passengerIds: arrayUnion(user.uid)
-    });
-    batch.set(bookingRef, {
+    
+    const bookingData = {
       id: bookingRef.id,
       carpoolId: trip.id,
       passengerId: user.uid,
       seatsBooked: 1,
       status: 'confirmed',
       createdAt: serverTimestamp()
+    };
+
+    batch.update(carpoolingRef, {
+      seatsAvailable: increment(-1),
+      passengerIds: arrayUnion(user.uid)
     });
+    batch.set(bookingRef, bookingData);
 
     try {
       await batch.commit();
@@ -136,12 +137,15 @@ export default function CarpoolingPage() {
         description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est réservée.`,
       });
     } catch (error) {
-      console.error("Error booking trip: ", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur de réservation",
-        description: "Une erreur est survenue. Veuillez réessayer.",
+       const permissionError = new FirestorePermissionError({
+          path: `carpoolings/${trip.id} and carpool_bookings subcollection`,
+          operation: 'write',
+          requestResourceData: { 
+              carpoolingUpdate: { seatsAvailable: -1, passengerIds: user.uid },
+              bookingCreation: bookingData,
+          }
       });
+      errorEmitter.emit('permission-error', permissionError);
     }
   };
 
