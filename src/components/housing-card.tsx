@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { getOrCreateConversation } from "@/lib/conversations";
 
 interface HousingCardProps {
     housing: Housing;
@@ -61,15 +62,17 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
         onClick(housing);
     }
     
-    const handleContact = () => {
-        if (!user) {
+    const handleContact = async () => {
+        if (!user || !firestore) {
             router.push('/login?from=/housing');
             return;
         }
-        toast({
-            title: "Fonctionnalité en développement",
-            description: "La messagerie sera bientôt disponible pour contacter les propriétaires."
-        })
+        const conversationId = await getOrCreateConversation(firestore, user.uid, housing.userId);
+        if (conversationId) {
+            router.push(`/messages/${conversationId}`);
+        } else {
+            toast({ title: "Erreur", description: "Impossible de démarrer la conversation", variant: "destructive" });
+        }
     }
 
     return (

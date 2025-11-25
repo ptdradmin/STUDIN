@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export interface Housing {
   id: string;
   title: string;
@@ -139,7 +141,7 @@ export interface ChatMessage {
     id: string;
     text: string;
     senderId: string;
-    createdAt: any;
+    createdAt: Timestamp;
 }
 
 export interface Conversation {
@@ -149,10 +151,10 @@ export interface Conversation {
     lastMessage?: {
         text: string;
         senderId: string;
-        timestamp: any;
+        timestamp: Timestamp;
     };
-    createdAt: any;
-    updatedAt: any;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 
 export interface Notification {

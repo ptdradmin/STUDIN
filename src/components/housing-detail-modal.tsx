@@ -14,6 +14,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bed, Home, MapPin } from 'lucide-react';
+import { useUser, useFirestore } from '@/firebase';
+import { useRouter } from 'next/navigation';
+import { getOrCreateConversation } from '@/lib/conversations';
+import { useToast } from '@/hooks/use-toast';
 
 interface HousingDetailModalProps {
   housing: Housing;
@@ -21,6 +25,30 @@ interface HousingDetailModalProps {
 }
 
 export default function HousingDetailModal({ housing, onClose }: HousingDetailModalProps) {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const router = useRouter();
+  const { toast } = useToast();
+  
+  const handleContact = async () => {
+      if (!user || !firestore) {
+          router.push('/login?from=/housing');
+          return;
+      }
+      if (user.uid === housing.userId) {
+          toast({ title: "C'est votre annonce", description: "Vous ne pouvez pas vous contacter vous-même."});
+          return;
+      }
+
+      const conversationId = await getOrCreateConversation(firestore, user.uid, housing.userId);
+      if (conversationId) {
+          router.push(`/messages/${conversationId}`);
+          onClose();
+      } else {
+          toast({ title: "Erreur", description: "Impossible de démarrer la conversation", variant: "destructive" });
+      }
+  }
+
   return (
     <Dialog open={true} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[600px] p-0">
@@ -55,7 +83,7 @@ export default function HousingDetailModal({ housing, onClose }: HousingDetailMo
                 <p className="text-3xl font-bold text-primary">{housing.price}€</p>
                 <p className="text-sm text-muted-foreground -mt-1">/mois</p>
             </div>
-          <Button size="lg">Contacter le propriétaire</Button>
+          <Button size="lg" onClick={handleContact}>Contacter le propriétaire</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

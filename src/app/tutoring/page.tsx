@@ -21,6 +21,7 @@ import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useToast } from '@/hooks/use-toast';
+import { getOrCreateConversation } from '@/lib/conversations';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -57,15 +58,21 @@ export default function TutoringPage() {
   }, [tutors, subjectFilter, levelFilter]);
 
 
-  const handleContact = (tutorId: string) => {
-    if (!user) {
+  const handleContact = async (tutorId: string) => {
+    if (!user || !firestore) {
         router.push('/login?from=/tutoring');
         return;
     }
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "La messagerie sera bientôt disponible pour contacter les tuteurs."
-    })
+     if (user.uid === tutorId) {
+        toast({ title: "C'est vous !", description: "Vous ne pouvez pas vous contacter vous-même." });
+        return;
+    }
+    const conversationId = await getOrCreateConversation(firestore, user.uid, tutorId);
+    if (conversationId) {
+        router.push(`/messages/${conversationId}`);
+    } else {
+        toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
+    }
   };
 
 
@@ -105,6 +112,7 @@ export default function TutoringPage() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTutors && filteredTutors.map(tutor => {
+              const isCurrentUser = user?.uid === tutor.tutorId;
               return (
                   <Card key={tutor.id} className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl">
                     <div className="flex-shrink-0">
@@ -124,7 +132,7 @@ export default function TutoringPage() {
                         {tutor.locationType !== 'online' && <Badge variant="outline">En personne</Badge>}
                         {tutor.locationType !== 'in-person' && <Badge variant="outline">En ligne</Badge>}
                     </div>
-                    {user && <Button className="w-full mt-4" onClick={() => handleContact(tutor.tutorId)}>Contacter</Button>}
+                    {user && <Button className="w-full mt-4" onClick={() => handleContact(tutor.tutorId)} disabled={isCurrentUser}>{isCurrentUser ? 'Votre profil' : 'Contacter'}</Button>}
                   </Card>
             )})}
         </div>

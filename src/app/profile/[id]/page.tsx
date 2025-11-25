@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
+import { getOrCreateConversation } from '@/lib/conversations';
 
 
 const ProfileGrid = ({ posts }: { posts: Post[] }) => (
@@ -112,15 +113,17 @@ export default function UserProfilePage() {
     }
   }
 
-  const handleMessage = () => {
-    if (!user) {
+  const handleMessage = async () => {
+    if (!user || !firestore) {
         router.push('/login');
         return;
     }
-     toast({
-      title: "Fonctionnalité en développement",
-      description: "La messagerie sera bientôt disponible."
-    })
+    const conversationId = await getOrCreateConversation(firestore, user.uid, profileId);
+    if (conversationId) {
+        router.push(`/messages/${conversationId}`);
+    } else {
+        toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
+    }
   }
   
   const getInitials = (firstName?: string) => {
