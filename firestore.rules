@@ -182,7 +182,8 @@ service cloud.firestore {
      * @principle Public Read, Public Interaction, Private Content Edit.
      */
     match /reels/{reelId} {
-      allow get: if isSignedIn();
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId)) ||
@@ -333,7 +334,7 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.where[0][0] == 'userId' && request.query.where[0][1] == '==' && request.query.where[0][2] == request.auth.uid;
+      allow list: if isSignedIn() && request.query.where[0][0] == 'userId' && request.query.where[0][2] == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
     }
