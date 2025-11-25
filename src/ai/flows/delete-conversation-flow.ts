@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -7,7 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import * as admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const DeleteConversationInputSchema = z.string().describe("The ID of the conversation to delete.");
 export type DeleteConversationInput = z.infer<typeof DeleteConversationInputSchema>;
@@ -18,10 +17,6 @@ const DeleteConversationOutputSchema = z.object({
 });
 export type DeleteConversationOutput = z.infer<typeof DeleteConversationOutputSchema>;
 
-// Initialize Firebase Admin SDK if not already initialized
-if (admin.apps.length === 0) {
-  admin.initializeApp();
-}
 
 /**
  * Deletes a conversation and all its messages.
@@ -40,24 +35,13 @@ const deleteConversationFlow = ai.defineFlow(
     outputSchema: DeleteConversationOutputSchema,
   },
   async (conversationId) => {
-    const db = admin.firestore();
-    const messagesCollectionRef = db.collection(`conversations/${conversationId}/messages`);
+    // Use getFirestore() which handles initialization implicitly.
+    const db = getFirestore();
     const conversationDocRef = db.doc(`conversations/${conversationId}`);
 
     try {
-      // Get all messages to delete
-      const messagesSnapshot = await messagesCollectionRef.get();
-        
-      // Use a batch to delete all messages
-      const batch = db.batch();
-      messagesSnapshot.docs.forEach(doc => {
-          batch.delete(doc.ref);
-      });
-
-      // Finally, delete the conversation document itself
-      batch.delete(conversationDocRef);
-      
-      await batch.commit();
+      // Use recursiveDelete for efficient and safe deletion of subcollections.
+      await db.recursiveDelete(conversationDocRef);
 
       return {
           success: true,
