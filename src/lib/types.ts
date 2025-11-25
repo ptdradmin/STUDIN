@@ -17,7 +17,8 @@ export interface Housing {
   userId: string;
   ownerUsername: string;
   ownerAvatarUrl?: string;
-  createdAt: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   availableFrom?: string;
   isAvailable?: boolean;
 }
@@ -30,7 +31,8 @@ export interface Post {
     userId: string;
     userDisplayName: string;
     userAvatarUrl: string;
-    createdAt: any;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
     likes: string[];
     comments: {
         userId: string;
@@ -49,7 +51,7 @@ export interface Reel {
     userId: string;
     userDisplayName: string;
     userAvatarUrl?: string;
-    createdAt: any;
+    createdAt: Timestamp;
     likes: string[];
     comments: {
         userId: string;
@@ -79,8 +81,8 @@ export interface Event {
     imageUrl: string;
     imageHint: string;
     coordinates: [number, number];
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
     university?: string;
     maxAttendees?: number;
     attendeeIds?: string[];
@@ -99,8 +101,8 @@ export interface Tutor {
     coordinates: [number, number];
     description: string;
     locationType: 'online' | 'in-person' | 'both';
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 
 export interface TutoringReview {
@@ -111,7 +113,7 @@ export interface TutoringReview {
   studentAvatar?: string;
   rating: number;
   comment: string;
-  createdAt: any;
+  createdAt: Timestamp;
 }
 
 
@@ -125,13 +127,13 @@ export interface Trip {
     departureTime: string;
     pricePerSeat: number;
     seatsAvailable: number;
-    passengerIds?: string[];
+    passengerIds: string[];
     coordinates: [number, number];
     departureAddress: string;
     arrivalAddress: string;
     description: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 
 export interface UserProfile {
@@ -148,10 +150,10 @@ export interface UserProfile {
     website?: string;
     gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
     profilePicture: string;
-    followerIds?: string[];
-    followingIds?: string[];
-    createdAt: any;
-    updatedAt: any;
+    followerIds: string[];
+    followingIds: string[];
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 }
 
 export interface ChatMessage {
@@ -184,10 +186,10 @@ export interface Notification {
       profilePicture: string;
   };
   recipientId: string;
-  relatedId: string;
-  message: string;
+  relatedId?: string;
+  message?: string;
   read: boolean;
-  createdAt: any;
+  createdAt: Timestamp;
 }
 
 export interface Favorite {
@@ -195,5 +197,7 @@ export interface Favorite {
     userId: string;
     itemId: string;
     itemType: 'post' | 'housing' | 'event' | 'tutor';
-    createdAt: any;
+    createdAt: Timestamp;
 }
+
+    

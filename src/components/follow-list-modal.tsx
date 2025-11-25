@@ -2,7 +2,7 @@
 'use client';
 
 import { useFirestore, useMemoFirebase, useCollection, useUser } from '@/firebase';
-import { collection, query, where, doc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
+import { collection, query, where, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toggleFollowUser } from '@/lib/actions';
 
 interface FollowListModalProps {
@@ -34,20 +34,13 @@ function UserRowSkeleton() {
     )
 }
 
-function UserRow({ userProfile, currentUser, firestore, onAction, currentUserId }: { userProfile: UserProfile, currentUser: UserProfile | null, firestore: any, onAction: any, currentUserId: string}) {
+function UserRow({ userProfile, currentUserId, isFollowing, onFollowToggle }: { userProfile: UserProfile, currentUserId: string, isFollowing: boolean, onFollowToggle: (targetUserId: string, wasFollowing: boolean) => void }) {
     const isCurrentUser = userProfile.id === currentUserId;
-    const isFollowing = currentUser?.followingIds?.includes(userProfile.id);
-    const { toast } = useToast();
 
-    const handleFollowToggle = async (e: React.MouseEvent) => {
+    const handleFollowClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!currentUser) {
-            toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive"});
-            return;
-        }
-        await toggleFollowUser(firestore, currentUser.id, userProfile.id, isFollowing || false);
-        toast({ title: isFollowing ? "Ne plus suivre" : "Suivi" });
-        onAction(); // To trigger a re-render/refetch in parent if needed
+        e.preventDefault();
+        onFollowToggle(userProfile.id, isFollowing);
     }
 
     const getInitials = (name?: string) => {
@@ -57,7 +50,7 @@ function UserRow({ userProfile, currentUser, firestore, onAction, currentUserId 
 
     return (
         <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted">
-            <Link href={`/profile/${userProfile.id}`} className="flex items-center gap-3">
+            <Link href={`/profile/${userProfile.id}`} className="flex items-center gap-3 flex-grow">
                 <Avatar>
                     <AvatarImage src={userProfile.profilePicture} />
                     <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
@@ -67,8 +60,8 @@ function UserRow({ userProfile, currentUser, firestore, onAction, currentUserId 
                     <p className="text-xs text-muted-foreground">{userProfile.firstName} {userProfile.lastName}</p>
                 </div>
             </Link>
-            {!isCurrentUser && currentUser && (
-                 <Button variant={isFollowing ? 'secondary' : 'default'} size="sm" onClick={handleFollowToggle}>
+            {!isCurrentUser && (
+                 <Button variant={isFollowing ? 'secondary' : 'default'} size="sm" onClick={handleFollowClick} className="ml-4">
                     {isFollowing ? 'Abonné(e)' : 'Suivre'}
                 </Button>
             )}
@@ -79,8 +72,11 @@ function UserRow({ userProfile, currentUser, firestore, onAction, currentUserId 
 export default function FollowListModal({ title, userIds, onClose }: FollowListModalProps) {
     const firestore = useFirestore();
     const { user: authUser } = useUser();
-    const [_, setForceRender] = useState(0); // Helper to force re-render
-
+    const { toast } = useToast();
+    
+    // Local state to manage following status optimistically
+    const [localFollowingIds, setLocalFollowingIds] = useState<string[]>([]);
+    
     const usersQuery = useMemoFirebase(() => {
         if (!firestore || !userIds || userIds.length === 0) return null;
         const safeUserIds = userIds.length > 30 ? userIds.slice(0, 30) : userIds;
@@ -94,6 +90,39 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
 
     const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
     const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<UserProfile>(currentUserRef);
+    
+    useState(() => {
+        if (currentUser?.followingIds) {
+            setLocalFollowingIds(currentUser.followingIds);
+        }
+    });
+
+    const handleFollowToggle = async (targetUserId: string, wasFollowing: boolean) => {
+        if (!authUser || !firestore) {
+            toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive"});
+            return;
+        }
+
+        // Optimistic update
+        if (wasFollowing) {
+            setLocalFollowingIds(prev => prev.filter(id => id !== targetUserId));
+        } else {
+            setLocalFollowingIds(prev => [...prev, targetUserId]);
+        }
+
+        try {
+            await toggleFollowUser(firestore, authUser.uid, targetUserId, wasFollowing);
+            toast({ title: wasFollowing ? "Ne plus suivre" : "Suivi" });
+        } catch (error) {
+            // Revert optimistic update on error
+             if (wasFollowing) {
+                setLocalFollowingIds(prev => [...prev, targetUserId]);
+            } else {
+                setLocalFollowingIds(prev => prev.filter(id => id !== targetUserId));
+            }
+            toast({ title: "Erreur", description: "L'action a échoué.", variant: "destructive" });
+        }
+    }
     
     if (!userIds || userIds.length === 0) {
         return (
@@ -116,17 +145,16 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
         </DialogHeader>
         <div className="max-h-[60vh] overflow-y-auto -mx-6 px-6">
             <div className="space-y-1">
-                {(isLoading || isCurrentUserLoading) && Array.from({length: 3}).map((_, i) => <UserRowSkeleton key={i} />)}
+                {(isLoading || isCurrentUserLoading) && Array.from({length: Math.min(userIds.length, 3)}).map((_, i) => <UserRowSkeleton key={i} />)}
                 
                 {!isLoading && !isCurrentUserLoading && users && authUser && (
                    users.map(u => (
                      <UserRow 
                         key={u.id}
                         userProfile={u}
-                        currentUser={currentUser}
-                        firestore={firestore}
-                        onAction={() => setForceRender(c => c + 1)}
                         currentUserId={authUser.uid}
+                        isFollowing={currentUser?.followingIds?.includes(u.id) || false}
+                        onFollowToggle={handleFollowToggle}
                      />
                    ))
                 )}

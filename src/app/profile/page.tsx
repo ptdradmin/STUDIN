@@ -63,16 +63,26 @@ function ProfilePageSkeleton() {
     return (
         <div className="mx-auto max-w-4xl">
             <div className="p-4 md:p-6">
-                <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
+                <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
                     <Skeleton className="h-24 w-24 md:h-36 md:w-36 rounded-full flex-shrink-0" />
-                    <div className="space-y-3 text-center sm:text-left">
-                        <Skeleton className="h-6 w-40 mx-auto sm:mx-0" />
-                        <div className="flex justify-center sm:justify-start gap-4">
-                           <Skeleton className="h-4 w-20" />
-                           <Skeleton className="h-4 w-20" />
-                           <Skeleton className="h-4 w-20" />
+                    <div className="space-y-4 text-center sm:text-left w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                           <Skeleton className="h-6 w-32" />
+                           <div className="flex items-center gap-2">
+                                <Skeleton className="h-9 w-28" />
+                                <Skeleton className="h-9 w-12" />
+                           </div>
                         </div>
-                        <Skeleton className="h-4 w-48 pt-2 mx-auto sm:mx-0" />
+                        <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
+                           <Skeleton className="h-5 w-20" />
+                           <Skeleton className="h-5 w-20" />
+                           <Skeleton className="h-5 w-24" />
+                        </div>
+                        <div className="space-y-2">
+                             <Skeleton className="h-5 w-24 mx-auto sm:mx-0" />
+                             <Skeleton className="h-4 w-32 mx-auto sm:mx-0" />
+                             <Skeleton className="h-4 w-48 mx-auto sm:mx-0" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -186,9 +196,8 @@ export default function CurrentUserProfilePage() {
                                             <h2 className="text-2xl font-light">{userProfile?.username || user.email?.split('@')[0]}</h2>
                                             <div className="flex items-center gap-2">
                                                 <Button variant="secondary" size="sm" onClick={() => setShowEditForm(true)}>Modifier le profil</Button>
-                                                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                                                <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9">
                                                     <LogOut className="h-4 w-4"/>
-                                                    <span className="ml-2 hidden sm:inline">Déconnexion</span>
                                                 </Button>
                                             </div>
                                         </div>
@@ -220,7 +229,7 @@ export default function CurrentUserProfilePage() {
                             
                             {modalContent && (
                                 <FollowListModal
-                                    key={modalContent.title}
+                                    key={modalContent.title + modalContent.userIds.length}
                                     title={modalContent.title}
                                     userIds={modalContent.userIds}
                                     onClose={() => setModalContent(null)}
@@ -262,5 +271,7 @@ export default function CurrentUserProfilePage() {
         </div>
     </div>
   );
+
+    
 
     

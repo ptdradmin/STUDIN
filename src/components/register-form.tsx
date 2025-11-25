@@ -108,8 +108,19 @@ export default function RegisterForm() {
         
         let username = additionalData.username || '';
         if (!username) {
-            const base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
+            let base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
             username = base.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+            // Check for uniqueness and append number if needed
+            let isUnique = await isUsernameUnique(username);
+            let counter = 1;
+            while(!isUnique) {
+                const newUsername = `${username}${counter}`;
+                isUnique = await isUsernameUnique(newUsername);
+                if (isUnique) {
+                    username = newUsername;
+                }
+                counter++;
+            }
         }
 
         const userData = {
@@ -404,3 +415,5 @@ export default function RegisterForm() {
     </Card>
   );
 }
+
+    

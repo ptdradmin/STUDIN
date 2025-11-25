@@ -26,7 +26,8 @@ function ConversationList() {
     const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
 
     const getOtherParticipant = (convo: Conversation) => {
-        const otherId = convo.participantIds.find(id => id !== user?.uid);
+        if (!user) return null;
+        const otherId = convo.participantIds.find(id => id !== user.uid);
         return otherId ? convo.participants[otherId] : null;
     }
     
@@ -68,10 +69,10 @@ function ConversationList() {
             {conversations
               .map(convo => {
                 const otherParticipant = getOtherParticipant(convo);
+                if (!otherParticipant) return null;
+                
                 const timeAgo = convo.updatedAt ? formatDistanceToNow(convo.updatedAt.toDate(), { addSuffix: true, locale: fr }) : '';
                 const isUnread = convo.unread && convo.lastMessage?.senderId !== user?.uid;
-
-                if (!otherParticipant) return null;
 
                 return (
                     <Link href={`/messages/${convo.id}`} key={convo.id}>
@@ -124,3 +125,5 @@ export default function MessagesPage() {
         </div>
     );
 }
+
+    
