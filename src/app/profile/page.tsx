@@ -124,9 +124,9 @@ export default function CurrentUserProfilePage() {
   }, [favoriteItems]);
 
   const savedPostsQuery = useMemoFirebase(() => {
-      if (!firestore || savedPostIds.length === 0) return null;
-      const safePostIds = savedPostIds.length > 30 ? savedPostIds.slice(0, 30) : savedPostIds;
-      return query(collection(firestore, 'posts'), where(documentId(), 'in', safePostIds));
+    if (!firestore || savedPostIds.length === 0) return null;
+    const safePostIds = savedPostIds.length > 30 ? savedPostIds.slice(0, 30) : savedPostIds;
+    return query(collection(firestore, 'posts'), where(documentId(), 'in', safePostIds));
   }, [firestore, savedPostIds]);
   const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 

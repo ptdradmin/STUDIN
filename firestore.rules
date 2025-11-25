@@ -319,12 +319,11 @@ service cloud.firestore {
      */
     match /favorites/{favoriteId} {
       allow get: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.userId == request.auth.uid;
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
-
     
