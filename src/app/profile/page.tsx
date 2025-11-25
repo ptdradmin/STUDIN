@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -122,6 +121,7 @@ export default function CurrentUserProfilePage() {
 
   const savedPostsQuery = useMemoFirebase(() => {
     if (!firestore || savedPostIds.length === 0) return null;
+    // Firestore 'in' queries are limited to 30 documents. For this app, we'll cap it.
     const safePostIds = savedPostIds.length > 30 ? savedPostIds.slice(0, 30) : savedPostIds;
     return query(collection(firestore, 'posts'), where(documentId(), 'in', safePostIds));
   }, [firestore, savedPostIds]);
@@ -219,6 +219,7 @@ export default function CurrentUserProfilePage() {
                             
                             {modalContent && (
                                 <FollowListModal
+                                    key={modalContent.title}
                                     title={modalContent.title}
                                     userIds={modalContent.userIds}
                                     onClose={() => setModalContent(null)}

@@ -1,7 +1,6 @@
-
 'use client';
 
-import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where, doc } from 'firebase/firestore';
 import type { Post, UserProfile, Favorite } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
@@ -18,7 +17,6 @@ import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import UserSearch from '@/components/user-search';
 import SocialSidebar from '@/components/social-sidebar';
-import { doc } from 'firebase/firestore';
 
 function SuggestionsSkeleton() {
     return (
@@ -115,7 +113,8 @@ export default function SocialPage() {
 
     const postsQuery = useMemoFirebase(() => {
         if (!firestore || !followingIds) return null;
-        if (followingIds.length === 0) return query(collection(firestore, 'posts'), where('userId', '==', '')); // empty query
+        if (followingIds.length === 0) return query(collection(firestore, 'posts'), where('userId', '==', '')); // empty query to return nothing
+        // Firestore 'in' queries are limited to 30 documents. For production, you'd need pagination or a different data model.
         const safeFollowingIds = followingIds.length > 30 ? followingIds.slice(0, 30) : followingIds;
         return query(
           collection(firestore, 'posts'), 
@@ -159,7 +158,8 @@ export default function SocialPage() {
     
     const isLoading = postsLoading || favoritesLoading;
 
-    const showWelcomeMessage = posts?.length === 0 && !postsLoading;
+    const showWelcomeMessage = posts?.length === 0 && !postsLoading && followingIds && followingIds.length > 0;
+    const showSuggestionMessage = followingIds && followingIds.length === 0 && !postsLoading;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
@@ -207,10 +207,15 @@ export default function SocialPage() {
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {isLoading ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                             ) : showWelcomeMessage ? (
+                             ) : showSuggestionMessage ? (
                                 <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                     <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
                                     <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
+                                </div>
+                             ) : showWelcomeMessage ? (
+                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
+                                    <p className="text-lg font-semibold">C'est un peu vide par ici...</p>
+                                    <p className="text-sm">Les personnes que vous suivez n'ont rien publié récemment.</p>
                                 </div>
                              ) : posts && posts.length > 0 ? (
                                 posts.map(post => (
@@ -221,12 +226,7 @@ export default function SocialPage() {
                                         initialFavoriteId={savedPostMap.get(post.id)}
                                     />
                                 ))
-                            ) : (
-                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                    <p className="text-lg font-semibold">Le fil d'actualité est vide.</p>
-                                    <p className="text-sm">Soyez le premier à poster quelque chose !</p>
-                                </div>
-                            )}
+                            ) : null}
                         </div>
                         <div className="hidden md:block">
                              <div className="sticky top-20">
