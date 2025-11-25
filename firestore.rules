@@ -7,6 +7,7 @@ rules_version = '2';
  * Core Philosophy:
  * This ruleset enforces a security model where publicly listed items (like
  * housing, carpools, events, and tutoring) are readable by anyone, but can
+
  * only be created, modified, or deleted by their authenticated owners. Core
  * user data (profiles, favorites) is strictly private and accessible
  * only to the user themselves. This provides a secure-by-default environment
@@ -382,3 +383,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
