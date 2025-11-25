@@ -108,7 +108,11 @@ export default function CurrentUserProfilePage() {
   // 1. Fetch favorite items for the current user
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
+      return query(
+        collection(firestore, 'favorites'), 
+        where('userId', '==', user.uid),
+        where('itemType', '==', 'post')
+      );
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
