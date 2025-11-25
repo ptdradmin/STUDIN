@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, AtSign, Search } from 'lucide-react';
+import { Grid3x3, Search } from 'lucide-react';
 import Image from 'next/image';
-import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Post, UserProfile } from '@/lib/types';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where } from 'firebase/firestore';
-import { toggleFollowUser, createFollowNotification } from '@/lib/actions';
+import { toggleFollowUser } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
@@ -104,9 +104,6 @@ export default function UserProfilePage() {
     const wasFollowing = isFollowing;
     try {
         await toggleFollowUser(firestore, user.uid, userProfile.id, wasFollowing);
-        if (!wasFollowing) {
-            await createFollowNotification(firestore, user.uid, userProfile.id);
-        }
         toast({ title: wasFollowing ? "Ne plus suivre" : "Suivi", description: `Vous ${wasFollowing ? 'ne suivez plus' : 'suivez maintenant'} ${userProfile.username}.`})
     } catch(error) {
         toast({ title: "Erreur", description: "Une erreur est survenue lors de la tentative de suivi.", variant: "destructive"})
@@ -118,7 +115,8 @@ export default function UserProfilePage() {
         router.push('/login');
         return;
     }
-    const conversationId = await getOrCreateConversation(firestore, user.uid, profileId);
+    if (!userProfile) return;
+    const conversationId = await getOrCreateConversation(firestore, user.uid, userProfile.id);
     if (conversationId) {
         router.push(`/messages/${conversationId}`);
     } else {
@@ -212,7 +210,7 @@ export default function UserProfilePage() {
                             
                             {modalContent && (
                                 <FollowListModal
-                                    key={modalContent.title}
+                                    key={modalContent.title + profileId}
                                     title={modalContent.title}
                                     userIds={modalContent.userIds}
                                     onClose={() => setModalContent(null)}
@@ -221,14 +219,10 @@ export default function UserProfilePage() {
 
 
                             <Tabs defaultValue="posts" className="w-full">
-                                <TabsList className="grid w-full grid-cols-2 rounded-none border-y">
+                                <TabsList className="grid w-full grid-cols-1 rounded-none border-y">
                                     <TabsTrigger value="posts" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                                         <Grid3x3 className="h-5 w-5" />
                                         <span className="hidden md:inline ml-2">Publications</span>
-                                    </TabsTrigger>
-                                    <TabsTrigger value="tagged" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
-                                        <AtSign className="h-5 w-5" />
-                                        <span className="hidden md:inline ml-2">Mentions</span>
                                     </TabsTrigger>
                                 </TabsList>
                                 <TabsContent value="posts">
@@ -239,12 +233,6 @@ export default function UserProfilePage() {
                                         </div>
                                     )}
                                 </TabsContent>
-                                <TabsContent value="tagged">
-                                    <div className="text-center p-10">
-                                        <h3 className="text-lg font-semibold">Photos de cet utilisateur</h3>
-                                        <p className="text-muted-foreground text-sm">Lorsque des personnes mentionnent cet utilisateur dans des photos, elles apparaissent ici.</p>
-                                    </div>
-                                </TabsContent>
                             </Tabs>
                         </div>
                     )}
@@ -253,4 +241,5 @@ export default function UserProfilePage() {
         </div>
     </div>
   );
-}
+
+    
