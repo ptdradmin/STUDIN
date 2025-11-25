@@ -120,7 +120,7 @@ export default function SocialPage() {
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
-    }, [firestore, user?.uid]);
+    }, [firestore, user]);
 
     const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
     
@@ -225,3 +225,5 @@ export default function SocialPage() {
       </div>
     );
 }
+
+    
