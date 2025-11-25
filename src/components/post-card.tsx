@@ -10,7 +10,7 @@ import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmar
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useCollection, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, query, where, addDoc, serverTimestamp, getDocs, deleteDoc } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
@@ -37,18 +37,32 @@ export default function PostCard({ post }: PostCardProps) {
     const [showAllComments, setShowAllComments] = useState(false);
 
     // Fetch user's favorites to check if this post is saved
-    const favoritesQuery = useMemoFirebase(() => {
+    const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
+        // This query specifically fetches favorites for the current user and this specific post.
+        // It's much more efficient and secure than fetching all favorites.
         return query(
             collection(firestore, 'favorites'),
             where('userId', '==', user.uid),
+            where('itemId', '==', post.id),
             where('itemType', '==', 'post')
         );
-    }, [firestore, user?.uid]);
+    }, [firestore, user?.uid, post.id]);
 
-    const { data: favoriteItems } = useCollection<Favorite>(favoritesQuery);
+    const { data: favoriteItems } = useCollection<Favorite>(userFavoritesQuery);
+    const [isSaved, setIsSaved] = useState(false);
+    const [favoriteId, setFavoriteId] = useState<string | null>(null);
 
-    const isSaved = favoriteItems?.some(fav => fav.itemId === post.id);
+    useEffect(() => {
+        if (favoriteItems && favoriteItems.length > 0) {
+            setIsSaved(true);
+            setFavoriteId(favoriteItems[0].id);
+        } else {
+            setIsSaved(false);
+            setFavoriteId(null);
+        }
+    }, [favoriteItems]);
+
 
     const getInitials = (name: string) => {
         if (!name) return '??';
@@ -144,24 +158,30 @@ export default function PostCard({ post }: PostCardProps) {
              return;
         }
 
-        if (isSaved) {
-            // Unsave
-            const favoriteToDelete = favoriteItems?.find(fav => fav.itemId === post.id);
-            if (favoriteToDelete) {
-                deleteDocumentNonBlocking(doc(firestore, 'favorites', favoriteToDelete.id));
-                toast({ title: 'Non enregistré', description: 'Publication retirée de vos favoris.' });
-            }
+        if (isSaved && favoriteId) {
+            // Unsave optimistically
+            setIsSaved(false);
+            deleteDocumentNonBlocking(doc(firestore, 'favorites', favoriteId));
+            toast({ title: 'Non enregistré', description: 'Publication retirée de vos favoris.' });
         } else {
-            // Save
-            await addDoc(collection(firestore, 'favorites'), {
+            // Save optimistically
+            setIsSaved(true);
+            const newFav = {
                 userId: user.uid,
                 itemId: post.id,
-                itemType: 'post',
+                itemType: 'post' as 'post',
                 createdAt: serverTimestamp(),
-            });
+            };
+            // The add document returns a promise with the new ref, which we can use to get the ID for potential rollback
+            addDocumentNonBlocking(collection(firestore, 'favorites'), newFav)
+                .then(docRef => {
+                    if (docRef) setFavoriteId(docRef.id);
+                })
+                .catch(() => setIsSaved(false)); // Revert on failure
             toast({ title: 'Enregistré', description: 'Publication ajoutée à vos favoris.' });
         }
     };
+
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

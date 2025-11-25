@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -63,6 +64,7 @@ export function useCollection<T = any>(
 
   useEffect(() => {
     // If the query is null or undefined, reset state and do nothing.
+    // This is an intentional state for when a query depends on data that is not yet available.
     if (!targetRefOrQuery) {
       setData(null);
       setIsLoading(false);
