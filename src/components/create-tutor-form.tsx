@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -59,6 +60,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             rating: 0,
+            totalReviews: 0,
             coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
         };
 

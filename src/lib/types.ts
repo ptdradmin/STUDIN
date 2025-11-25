@@ -95,12 +95,23 @@ export interface Tutor {
     level: string;
     pricePerHour: number;
     rating?: number;
+    totalReviews?: number;
     coordinates: [number, number];
     description: string;
     locationType: 'online' | 'in-person' | 'both';
     createdAt: string;
     updatedAt: string;
 }
+
+export interface TutoringReview {
+  id: string;
+  tutoringId: string;
+  studentId: string;
+  rating: number;
+  comment: string;
+  createdAt: any;
+}
+
 
 export interface Trip {
     id: string;
