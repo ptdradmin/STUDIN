@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -70,7 +71,7 @@ export const toggleFollowUser = async (
         }
     } satisfies SecurityRuleContext);
     errorEmitter.emit('permission-error', permissionError);
-    console.error("Erreur de permission lors de la tentative de suivi/non-suivi :", serverError);
+    // Rethrow the error so the calling component knows the operation failed
     throw serverError;
   }
 };
@@ -100,7 +101,10 @@ export const createNotification = async (
                 createdAt: serverTimestamp(),
             };
             
-            await addDoc(notificationRef, finalNotifData);
+            const docRef = doc(notificationRef);
+
+            await setDoc(docRef, { ...finalNotifData, id: docRef.id });
+
         }
     } catch (serverError) {
         const permissionError = new FirestorePermissionError({

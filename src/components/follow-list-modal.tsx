@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toggleFollowUser } from '@/lib/actions';
 
 interface FollowListModalProps {
@@ -34,7 +34,7 @@ function UserRowSkeleton() {
     )
 }
 
-function UserRow({ userProfile, currentUserId, isFollowing, onFollowToggle }: { userProfile: UserProfile, currentUserId: string, isFollowing: boolean, onFollowToggle: (targetUserId: string, wasFollowing: boolean) => void }) {
+function UserRow({ userProfile, currentUserId, isFollowing, onFollowToggle, isUpdating }: { userProfile: UserProfile, currentUserId: string, isFollowing: boolean, onFollowToggle: (targetUserId: string, wasFollowing: boolean) => void, isUpdating: boolean }) {
     const isCurrentUser = userProfile.id === currentUserId;
 
     const handleFollowClick = (e: React.MouseEvent) => {
@@ -61,7 +61,7 @@ function UserRow({ userProfile, currentUserId, isFollowing, onFollowToggle }: { 
                 </div>
             </Link>
             {!isCurrentUser && (
-                 <Button variant={isFollowing ? 'secondary' : 'default'} size="sm" onClick={handleFollowClick} className="ml-4">
+                 <Button variant={isFollowing ? 'secondary' : 'default'} size="sm" onClick={handleFollowClick} className="ml-4" disabled={isUpdating}>
                     {isFollowing ? 'Abonné(e)' : 'Suivre'}
                 </Button>
             )}
@@ -76,6 +76,7 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
     
     // Local state to manage following status optimistically
     const [localFollowingIds, setLocalFollowingIds] = useState<string[]>([]);
+    const [updatingFollow, setUpdatingFollow] = useState<string | null>(null);
     
     const usersQuery = useMemoFirebase(() => {
         if (!firestore || !userIds || userIds.length === 0) return null;
@@ -91,17 +92,19 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
     const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
     const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<UserProfile>(currentUserRef);
     
-    useState(() => {
+    useEffect(() => {
         if (currentUser?.followingIds) {
             setLocalFollowingIds(currentUser.followingIds);
         }
-    });
+    }, [currentUser]);
 
     const handleFollowToggle = async (targetUserId: string, wasFollowing: boolean) => {
         if (!authUser || !firestore) {
             toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive"});
             return;
         }
+
+        setUpdatingFollow(targetUserId);
 
         // Optimistic update
         if (wasFollowing) {
@@ -120,7 +123,8 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
             } else {
                 setLocalFollowingIds(prev => prev.filter(id => id !== targetUserId));
             }
-            toast({ title: "Erreur", description: "L'action a échoué.", variant: "destructive" });
+        } finally {
+            setUpdatingFollow(null);
         }
     }
     
@@ -153,8 +157,9 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
                         key={u.id}
                         userProfile={u}
                         currentUserId={authUser.uid}
-                        isFollowing={currentUser?.followingIds?.includes(u.id) || false}
+                        isFollowing={localFollowingIds.includes(u.id)}
                         onFollowToggle={handleFollowToggle}
+                        isUpdating={updatingFollow === u.id}
                      />
                    ))
                 )}
@@ -170,5 +175,3 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
     </Dialog>
   );
 }
-
-    
