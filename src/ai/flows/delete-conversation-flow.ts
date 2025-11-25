@@ -6,6 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import * as admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 
 const DeleteConversationInputSchema = z.string().describe("The ID of the conversation to delete.");
@@ -16,6 +17,12 @@ const DeleteConversationOutputSchema = z.object({
   message: z.string(),
 });
 export type DeleteConversationOutput = z.infer<typeof DeleteConversationOutputSchema>;
+
+
+// Initialize Firebase Admin SDK if not already initialized
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 
 
 /**
@@ -35,7 +42,7 @@ const deleteConversationFlow = ai.defineFlow(
     outputSchema: DeleteConversationOutputSchema,
   },
   async (conversationId) => {
-    // Use getFirestore() which handles initialization implicitly.
+    // Use getFirestore() which handles initialization implicitly after initializeApp() has been called.
     const db = getFirestore();
     const conversationDocRef = db.doc(`conversations/${conversationId}`);
 
