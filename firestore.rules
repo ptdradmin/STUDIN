@@ -30,8 +30,6 @@ rules_version = '2';
  * - Secure Subcollections: Access to subcollection documents (e.g., carpool
  *   bookings) is granted to both the owner of the parent document (the driver)
  *   and the owner of the subcollection document (the passenger).
- * - Message Privacy: Messages are only readable by participants of a conversation.
- *   Listing all conversations is allowed only for participants.
  *
  * Denormalization for Authorization:
  * To ensure performant and secure access control, owner IDs (e.g., `userId`,
@@ -90,13 +88,6 @@ service cloud.firestore {
      */
     function isEventOrganizer(eventId) {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
-    }
-    
-    /**
-     * Checks if the authenticated user is a participant in a conversation.
-     */
-    function isParticipant(conversationId) {
-      return isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
     }
 
     /**
@@ -299,37 +290,6 @@ service cloud.firestore {
     }
 
     // =====================================================================
-    // Messaging Rules (New)
-    // =====================================================================
-
-    /**
-     * @description Manages chat conversations.
-     * @path /conversations/{conversationId}
-     * @allow A user can list conversations they are part of. A user can read/write a conversation only if they are a participant.
-     * @deny A user cannot access a conversation they are not a part of.
-     * @principle Shared Access (Closed Collaborators). Access to conversation metadata is restricted to participants.
-     */
-    match /conversations/{conversationId} {
-      allow get, update: if isParticipant(conversationId);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow delete: if false; // Conversations are not deletable for now
-
-      /**
-       * @description Manages messages within a conversation.
-       * @path /conversations/{conversationId}/messages/{messageId}
-       * @allow Participants of a conversation can read and write messages.
-       * @deny A user cannot access messages in a conversation they are not part of.
-       * @principle Inherited Access. Security is derived from the parent conversation document.
-       */
-      match /messages/{messageId} {
-        allow get, list, create: if isParticipant(conversationId);
-        allow update, delete: if isOwner(resource.data.senderId); // Allow sender to delete their own message
-      }
-    }
-
-
-    // =====================================================================
     // Favorites Rules
     // =====================================================================
 
@@ -343,12 +303,10 @@ service cloud.firestore {
     match /favorites/{favoriteId} {
       allow get: if isOwner(resource.data.userId);
       // A user can list their own favorites, and only their own.
-      allow list: if isSignedIn() && request.query.userId == request.auth.uid;
+      allow list: if isSignedIn() && request.auth.uid == request.query.get('userId');
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
-
-    
