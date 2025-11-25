@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Star, LayoutGrid, Map, Plus, GraduationCap } from "lucide-react";
+import { Star, LayoutGrid, Map, Plus, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,9 @@ import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebas
 import { collection } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
-import Link from 'next/link';
+import SocialSidebar from '@/components/social-sidebar';
+import UserSearch from '@/components/user-search';
+import NotificationsDropdown from '@/components/notifications-dropdown';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -143,19 +145,25 @@ export default function TutoringPage() {
   }
 
   return (
-    <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex h-16 items-center justify-between">
-              <Link href="/" className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                      <GraduationCap className="h-6 w-6 text-white" />
-                  </div>
-                  <h1 className="text-xl font-bold">STUD'IN</h1>
-              </Link>
-          </div>
-      </header>
-      <div className="container mx-auto px-4 py-8">
-          <Card>
+    <div className="flex min-h-screen w-full bg-background">
+      <SocialSidebar />
+      <div className="flex flex-col flex-1">
+        {showCreateForm && <CreateTutorForm onClose={() => setShowCreateForm(false)} />}
+
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="hidden md:flex flex-1 max-w-md items-center">
+                <UserSearch />
+            </div>
+            <div className="flex-1 md:hidden">
+                <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
+            </div>
+            <div className="flex items-center gap-2">
+                <NotificationsDropdown />
+            </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle>Trouver un tuteur</CardTitle>
             </CardHeader>
@@ -183,9 +191,7 @@ export default function TutoringPage() {
             </CardContent>
           </Card>
 
-          {showCreateForm && <CreateTutorForm onClose={() => setShowCreateForm(false)} />}
-
-            <div className="mt-8">
+          <div className="mt-8">
             <div className="flex justify-between items-center mb-4 gap-4">
               <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
               <div className="flex items-center gap-2">
@@ -214,7 +220,8 @@ export default function TutoringPage() {
             </div>
             {viewMode === 'list' ? renderList() : renderMap()}
           </div>
+        </main>
       </div>
-    </>
+    </div>
   );
 }

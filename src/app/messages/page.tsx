@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -6,7 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Trash2, MoreHorizontal } from 'lucide-react';
+import { Send, Trash2, MoreHorizontal, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection, query, where, getDoc, doc, addDoc, serverTimestamp, updateDoc, orderBy, Timestamp, arrayRemove } from 'firebase/firestore';
@@ -36,6 +37,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { deleteConversation } from '@/ai/flows/delete-conversation-flow';
 import Link from 'next/link';
+import SocialSidebar from '@/components/social-sidebar';
+import UserSearch from '@/components/user-search';
+import NotificationsDropdown from '@/components/notifications-dropdown';
 
 
 function ConversationListSkeleton() {
@@ -80,8 +84,8 @@ function ChatWindowSkeleton() {
 
 function PageSkeleton() {
     return (
-         <div className="container mx-auto my-8">
-            <Skeleton className="h-[calc(100vh-200px)] w-full" />
+        <div className="container mx-auto my-8">
+            <Skeleton className="h-[calc(100vh-100px)] w-full" />
         </div>
     )
 }
@@ -337,149 +341,166 @@ export default function MessagesPage() {
     }
     
     return (
-        <div className="container mx-auto my-8">
-            <Card className="h-[calc(100vh-200px)] flex">
-                {/* Conversations List */}
-                <div className="w-1/3 border-r flex flex-col">
-                    <div className="p-4 border-b flex-shrink-0">
-                        <h2 className="text-xl font-bold">Messages</h2>
+        <div className="flex min-h-screen w-full bg-background">
+            <SocialSidebar />
+            <div className="flex flex-col flex-1">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <div className="hidden md:flex flex-1 max-w-md items-center">
+                        <UserSearch />
                     </div>
-                    {conversationsLoading ? <ConversationListSkeleton /> : (
-                        <div className="divide-y flex-grow overflow-y-auto">
-                            {conversations && conversations.map(conv => {
-                                const otherUser = getOtherParticipant(conv);
-                                const lastMessageDate = getSafeDate(conv.lastMessage?.timestamp);
-                                const lastMessageTime = lastMessageDate ? formatDistanceToNow(lastMessageDate, { addSuffix: true, locale: fr }) : '';
+                    <div className="flex-1 md:hidden">
+                        <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <NotificationsDropdown />
+                    </div>
+                </header>
+                <main className="flex-1 overflow-y-auto">
+                    <div className="h-full p-4 md:p-6">
+                        <Card className="h-[calc(100vh-8rem)] flex">
+                            {/* Conversations List */}
+                            <div className="w-1/3 border-r flex flex-col">
+                                <div className="p-4 border-b flex-shrink-0">
+                                    <h2 className="text-xl font-bold">Messages</h2>
+                                </div>
+                                {conversationsLoading ? <ConversationListSkeleton /> : (
+                                    <div className="divide-y flex-grow overflow-y-auto">
+                                        {conversations && conversations.map(conv => {
+                                            const otherUser = getOtherParticipant(conv);
+                                            const lastMessageDate = getSafeDate(conv.lastMessage?.timestamp);
+                                            const lastMessageTime = lastMessageDate ? formatDistanceToNow(lastMessageDate, { addSuffix: true, locale: fr }) : '';
 
+                                            return (
+                                                <div 
+                                                    key={conv.id} 
+                                                    className={`p-4 cursor-pointer hover:bg-muted/50 group relative ${selectedConversation?.id === conv.id ? 'bg-muted' : ''}`}
+                                                    onClick={() => setSelectedConversation(conv)}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <Link href={otherUser ? `/profile/${otherUser.id}` : '#'} onClick={(e) => e.stopPropagation()}>
+                                                            <Avatar>
+                                                                <AvatarImage src={otherUser?.profilePicture} />
+                                                                <AvatarFallback>{getInitials(otherUser?.username)}</AvatarFallback>
+                                                            </Avatar>
+                                                        </Link>
+                                                        <div className="flex-grow overflow-hidden">
+                                                            <div className="flex justify-between items-baseline">
+                                                                <Link href={otherUser ? `/profile/${otherUser.id}` : '#'} onClick={(e) => e.stopPropagation()} className="font-semibold truncate hover:underline">
+                                                                    <p>{otherUser?.username}</p>
+                                                                </Link>
+                                                                <p className="text-xs text-muted-foreground flex-shrink-0">{lastMessageTime}</p>
+                                                            </div>
+                                                            <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Supprimer la conversation ?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        Cette action est irréversible. L'historique des messages sera définitivement perdu.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteConversation(conv.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                        Supprimer
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                        {!conversationsLoading && conversations?.length === 0 && (
+                                            <div className="p-8 text-center text-sm text-muted-foreground">
+                                                Commencez une nouvelle conversation depuis la page d'une annonce.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
-                                return (
-                                    <div 
-                                        key={conv.id} 
-                                        className={`p-4 cursor-pointer hover:bg-muted/50 group relative ${selectedConversation?.id === conv.id ? 'bg-muted' : ''}`}
-                                        onClick={() => setSelectedConversation(conv)}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Link href={otherUser ? `/profile/${otherUser.id}` : '#'} onClick={(e) => e.stopPropagation()}>
+                            {/* Chat Window */}
+                            <div className="w-2/3 flex flex-col">
+                                {!selectedConversation ? (
+                                    <div className="flex-grow flex items-center justify-center">
+                                        {conversationsLoading ? <ChatWindowSkeleton /> : <p className="text-muted-foreground">Sélectionnez une conversation pour commencer</p>}
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="p-4 border-b flex items-center gap-3 flex-shrink-0">
+                                            <Link href={`/profile/${getOtherParticipant(selectedConversation)?.id || ''}`}>
                                                 <Avatar>
-                                                    <AvatarImage src={otherUser?.profilePicture} />
-                                                    <AvatarFallback>{getInitials(otherUser?.username)}</AvatarFallback>
+                                                    <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
+                                                    <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.username)}</AvatarFallback>
                                                 </Avatar>
                                             </Link>
-                                            <div className="flex-grow overflow-hidden">
-                                                <div className="flex justify-between items-baseline">
-                                                     <Link href={otherUser ? `/profile/${otherUser.id}` : '#'} onClick={(e) => e.stopPropagation()} className="font-semibold truncate hover:underline">
-                                                        <p>{otherUser?.username}</p>
-                                                     </Link>
-                                                    <p className="text-xs text-muted-foreground flex-shrink-0">{lastMessageTime}</p>
-                                                </div>
-                                                <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.text}</p>
-                                            </div>
+                                            <Link href={`/profile/${getOtherParticipant(selectedConversation)?.id || ''}`} className="font-semibold hover:underline">
+                                                <h3>{getOtherParticipant(selectedConversation)?.username}</h3>
+                                            </Link>
                                         </div>
-                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                             <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Supprimer la conversation ?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Cette action est irréversible. L'historique des messages sera définitivement perdu.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeleteConversation(conv.id)} className="bg-destructive hover:bg-destructive/90">
-                                                            Supprimer
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                            {!conversationsLoading && conversations?.length === 0 && (
-                                 <div className="p-8 text-center text-sm text-muted-foreground">
-                                    Commencez une nouvelle conversation depuis la page d'une annonce.
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                                        <div className="flex-grow p-4 space-y-1 overflow-y-auto">
+                                            {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
+                                            {!messagesLoading && messages?.map((msg, index) => {
+                                                const msgDate = getSafeDate(msg.createdAt);
+                                                const msgTime = msgDate ? msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                                                const isSender = msg.senderId === user.uid;
 
-                {/* Chat Window */}
-                <div className="w-2/3 flex flex-col">
-                    {!selectedConversation ? (
-                        <div className="flex-grow flex items-center justify-center">
-                            {conversationsLoading ? <ChatWindowSkeleton /> : <p className="text-muted-foreground">Sélectionnez une conversation pour commencer</p>}
-                        </div>
-                    ) : (
-                        <>
-                            <div className="p-4 border-b flex items-center gap-3 flex-shrink-0">
-                                <Link href={`/profile/${getOtherParticipant(selectedConversation)?.id || ''}`}>
-                                    <Avatar>
-                                        <AvatarImage src={getOtherParticipant(selectedConversation)?.profilePicture} />
-                                        <AvatarFallback>{getInitials(getOtherParticipant(selectedConversation)?.username)}</AvatarFallback>
-                                    </Avatar>
-                                </Link>
-                                 <Link href={`/profile/${getOtherParticipant(selectedConversation)?.id || ''}`} className="font-semibold hover:underline">
-                                    <h3>{getOtherParticipant(selectedConversation)?.username}</h3>
-                                </Link>
-                            </div>
-                            <div className="flex-grow p-4 space-y-1 overflow-y-auto">
-                                {messagesLoading && <div className="text-center text-muted-foreground">Chargement des messages...</div>}
-                                {!messagesLoading && messages?.map((msg, index) => {
-                                    const msgDate = getSafeDate(msg.createdAt);
-                                    const msgTime = msgDate ? msgDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                                    const isSender = msg.senderId === user.uid;
-
-                                    return (
-                                        <div key={msg.id || index} className={`group flex items-end gap-2 ${isSender ? 'justify-end' : 'justify-start'}`}>
-                                            {isSender && (
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent>
-                                                        <DropdownMenuItem onClick={() => handleDeleteMessage(msg)} className="text-destructive">
-                                                            <Trash2 className="mr-2 h-4 w-4" />
-                                                            Supprimer
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            )}
-                                            <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${isSender ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                                <p>{msg.text}</p>
-                                                <p className="text-xs text-right mt-1 opacity-70">{msgTime}</p>
-                                            </div>
+                                                return (
+                                                    <div key={msg.id || index} className={`group flex items-end gap-2 ${isSender ? 'justify-end' : 'justify-start'}`}>
+                                                        {isSender && (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        <MoreHorizontal className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent>
+                                                                    <DropdownMenuItem onClick={() => handleDeleteMessage(msg)} className="text-destructive">
+                                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                                        Supprimer
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        )}
+                                                        <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${isSender ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                                                            <p>{msg.text}</p>
+                                                            <p className="text-xs text-right mt-1 opacity-70">{msgTime}</p>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                            <div ref={messagesEndRef} />
                                         </div>
-                                    )
-                                })}
-                                <div ref={messagesEndRef} />
+                                        <div className="p-4 border-t bg-background flex-shrink-0">
+                                            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                                                <Input 
+                                                    value={newMessage}
+                                                    onChange={(e) => setNewMessage(e.target.value)}
+                                                    placeholder="Écrivez votre message..." 
+                                                    className="flex-grow"
+                                                    disabled={messagesLoading}
+                                                />
+                                                <Button type="submit" size="icon" disabled={!newMessage.trim() || messagesLoading}>
+                                                    <Send className="h-5 w-5" />
+                                                </Button>
+                                            </form>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                            <div className="p-4 border-t bg-background flex-shrink-0">
-                                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                                    <Input 
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Écrivez votre message..." 
-                                        className="flex-grow"
-                                        disabled={messagesLoading}
-                                    />
-                                    <Button type="submit" size="icon" disabled={!newMessage.trim() || messagesLoading}>
-                                        <Send className="h-5 w-5" />
-                                    </Button>
-                                </form>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </Card>
+                        </Card>
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }
