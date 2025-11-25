@@ -14,6 +14,7 @@ const footerLinks = {
     'Légal': [
         { href: '/terms', label: 'Conditions' },
         { href: '/privacy', label: 'Confidentialité' },
+        { href: '/community-rules', label: 'Règles de la communauté' },
     ],
     'Support': [
         { href: '/help', label: "Centre d'aide" },

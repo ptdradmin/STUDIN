@@ -1,3 +1,4 @@
+
 'use client';
 
 import './globals.css';
@@ -13,9 +14,24 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const { isUserLoading } = useUser();
   const pathname = usePathname();
 
-  const showBottomNav = !['/login', '/register', '/', '/about', '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact', '/faq'].includes(pathname);
+  const publicPages = [
+    '/',
+    '/login',
+    '/register',
+    '/about',
+    '/who-we-are',
+    '/press',
+    '/terms',
+    '/privacy',
+    '/help',
+    '/contact',
+    '/faq',
+    '/community-rules'
+  ];
 
-  if (isUserLoading) {
+  const showBottomNav = !publicPages.includes(pathname);
+
+  if (isUserLoading && !publicPages.includes(pathname)) {
     return <PageSkeleton />;
   }
 

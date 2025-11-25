@@ -8,6 +8,7 @@ import { collection, query, orderBy, limit } from "firebase/firestore";
 import type { Reel } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Film } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
 
 // Données de substitution pour la démonstration
 const placeholderReels: Reel[] = [
@@ -22,7 +23,7 @@ const placeholderReels: Reel[] = [
     comments: [
       { userId: 'user2', userDisplayName: 'Bob', text: 'Superbe!', createdAt: new Date().toISOString(), userAvatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=bob' },
     ],
-    createdAt: new Date().toISOString(),
+    createdAt: Timestamp.fromDate(new Date()),
   },
   {
     id: '2',
@@ -33,7 +34,7 @@ const placeholderReels: Reel[] = [
     userAvatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=bob',
     likes: ['user1', 'user4', 'user5'],
     comments: [],
-    createdAt: new Date(Date.now() - 3600 * 1000).toISOString(),
+    createdAt: Timestamp.fromDate(new Date(Date.now() - 3600 * 1000)),
   },
     {
     id: '3',
@@ -44,7 +45,7 @@ const placeholderReels: Reel[] = [
     userAvatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=charlie',
     likes: ['user1'],
     comments: [],
-    createdAt: new Date(Date.now() - 86400 * 1000 * 2).toISOString(),
+    createdAt: Timestamp.fromDate(new Date(Date.now() - 86400 * 1000 * 2)),
   },
 ];
 
@@ -59,7 +60,7 @@ export default function ReelsPage() {
 
     const { data: reels, isLoading } = useCollection<Reel>(reelsQuery);
 
-    const reelsToDisplay = reels && reels.length > 0 ? reels : placeholderReels;
+    const reelsToDisplay = (reels && reels.length > 0) || isLoading ? reels : placeholderReels;
 
     return (
         <div className="flex h-screen w-full bg-black">
@@ -71,7 +72,7 @@ export default function ReelsPage() {
                              <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
                         </div>
                     )}
-                    {!isLoading && reelsToDisplay.length > 0 ? (
+                    {!isLoading && reelsToDisplay && reelsToDisplay.length > 0 ? (
                         reelsToDisplay.map((reel, index) => (
                            <div key={reel.id} className="h-full w-full flex justify-center items-center snap-start py-4">
                                 <ReelCard reel={reel} />
