@@ -9,12 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, updateDocumentNonBlocking, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { collection, serverTimestamp, doc, runTransaction } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
 import { Tutor } from '@/lib/types';
-import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const reviewSchema = z.object({
   rating: z.number().min(1, 'La note est requise').max(5),
@@ -87,14 +86,12 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
         onClose();
 
     } catch (error: any) {
-        if (!(error instanceof FirestorePermissionError)) {
-            const contextualError = new FirestorePermissionError({
-                path: 'tutoring_reviews',
-                operation: 'create',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
+        const permissionError = new FirestorePermissionError({
+            path: 'tutoring_reviews',
+            operation: 'create',
+            requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', permissionError);
     } finally {
         setLoading(false);
     }

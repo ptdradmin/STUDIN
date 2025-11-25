@@ -10,7 +10,7 @@ import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet-routing-machine';
 import type { Housing, Trip, Event, Tutor } from '@/lib/types';
-import { Bed, GraduationCap, PartyPopper, Car } from 'lucide-react';
+import { Bed, GraduationCap, PartyPopper, Car, BookOpen } from 'lucide-react';
 
 // Fix for default icon paths in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -27,7 +27,7 @@ const getIcon = (type: string) => {
         case 'housing': iconUrl = 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png'; break;
         case 'trip': iconUrl = 'https://cdn-icons-png.flaticon.com/512/3448/3448653.png'; break;
         case 'event': iconUrl = 'https://cdn-icons-png.flaticon.com/512/9483/9483842.png'; break;
-        case 'tutor': iconUrl = 'https://cdn-icons-png.flaticon.com/512/306/306411.png'; break;
+        case 'tutor': iconUrl = 'https://cdn-icons-png.flaticon.com/512/1904/1904425.png'; break;
         default: iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
     }
     return new L.Icon({
@@ -54,7 +54,7 @@ const getPopupContent = (item: any, type: string) => {
             return `
                 <div class="w-48">
                     <h3 class="font-bold">${t.departureCity} → ${t.arrivalCity}</h3>
-                    <p class="text-sm">Par ${t.driverId}</p>
+                    <p class="text-sm">Par ${t.driverUsername}</p>
                     <p class="text-lg font-bold text-primary">${t.pricePerSeat}€</p>
                 </div>
             `;
