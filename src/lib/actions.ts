@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -57,6 +56,7 @@ export const toggleFollowUser = async (
             type: 'new_follower',
             senderId: currentUserId,
             recipientId: targetUserId,
+            message: `a commencé à vous suivre.`
         });
     }
   } catch (serverError) {
@@ -115,7 +115,7 @@ export const createNotification = async (
 };
 
 
-export const updateUserPosts = async (firestore: Firestore, userId: string, updatedProfile: Partial<UserProfile>) => {
+export const updateUserPosts = async (firestore: Firestore, userId: string, updatedProfile: Partial<Pick<UserProfile, 'username' | 'profilePicture'>>) => {
     const postsQuery = query(collection(firestore, 'posts'), where('userId', '==', userId));
     const batch = writeBatch(firestore);
     
@@ -125,12 +125,14 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
         const querySnapshot = await getDocs(postsQuery);
         querySnapshot.forEach(doc => {
             const postRef = doc.ref;
-            const updatedData = {
-                userDisplayName: updatedProfile.username,
-                userAvatarUrl: updatedProfile.profilePicture,
-            };
-            batch.update(postRef, updatedData);
-            postsToUpdate.push({ path: postRef.path, data: updatedData });
+            const updatedData: any = {};
+            if(updatedProfile.username) updatedData.userDisplayName = updatedProfile.username;
+            if(updatedProfile.profilePicture) updatedData.userAvatarUrl = updatedProfile.profilePicture;
+            
+            if(Object.keys(updatedData).length > 0) {
+              batch.update(postRef, updatedData);
+              postsToUpdate.push({ path: postRef.path, data: updatedData });
+            }
         });
         await batch.commit();
     } catch (serverError) {
@@ -146,5 +148,6 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
 
         errorEmitter.emit('permission-error', permissionError);
         console.error("Erreur de permission lors de la mise à jour des publications :", serverError);
+        throw serverError;
     }
 };

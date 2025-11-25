@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -148,7 +147,7 @@ export default function UserProfilePage() {
   const loading = isUserLoading || postsLoading || profileLoading;
   const isCurrentUserProfile = user && user.uid === profileId;
 
-  if (isCurrentUserProfile) {
+  if (isCurrentUserProfile && !isUserLoading) {
     router.replace('/profile');
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -257,7 +256,4 @@ export default function UserProfilePage() {
         </div>
     </div>
   );
-
-    
-
-    
+}

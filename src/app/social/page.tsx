@@ -9,10 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GraduationCap, Plus, Search } from 'lucide-react';
+import { GraduationCap, Plus } from 'lucide-react';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import UserSearch from '@/components/user-search';
@@ -144,15 +144,6 @@ export default function SocialPage() {
         }
         return map;
     }, [favoriteItems]);
-    
-    const getInitials = (email?: string | null) => {
-        if (!email) return '..';
-        const nameParts = user?.displayName?.split(' ');
-        if(nameParts && nameParts.length > 1 && nameParts[0] && nameParts[1]) {
-            return nameParts[0][0] + nameParts[1][0];
-        }
-        return email.substring(0, 2).toUpperCase();
-    }
     
     if (!user && !isUserLoading) {
         router.push('/login?from=/social');
