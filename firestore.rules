@@ -311,18 +311,20 @@ service cloud.firestore {
     match /posts/{postId} {
         allow get: if isSignedIn();
         allow list: if isSignedIn() && (
-            ( // Feed query: check if the 'userId' in the query is in the user's following list or is the user's own ID.
-                'userId' in request.query.where &&
-                request.query.where.userId is list && 
-                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.hasAny(request.query.where.userId)
-            ) ||
             ( // Profile page query: check if a single userId is being queried.
                 'userId' in request.query.where &&
                 request.query.where.userId is string
             ) ||
-             ( // Saved posts query: check if document ID is in a list
+            ( // Saved posts query: check if document ID is in a list
                 '__name__' in request.query.where &&
                 request.query.where.__name__ is list
+            ) ||
+            ( // Feed query: Check that the queried userIds are a subset of the user's following list + self.
+                'userId' in request.query.where &&
+                request.query.where.userId is list &&
+                request.query.where.userId.hasAll(
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid])
+                )
             )
         );
         
