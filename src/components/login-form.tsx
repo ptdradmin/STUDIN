@@ -26,7 +26,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function LoginForm() {
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
@@ -71,7 +71,7 @@ export default function LoginForm() {
   const handleError = (error: any) => {
       let description = "Une erreur est survenue.";
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        description = "Identifiant ou mot de passe incorrect."
+        description = "Adresse e-mail ou mot de passe incorrect."
       }
       toast({
         variant: "destructive",
@@ -109,33 +109,8 @@ export default function LoginForm() {
       return;
     }
 
-    let emailToLogin = identifier;
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-
-    if (!isEmail) {
-        // It's a username, find the corresponding email
-        try {
-            const usersRef = collection(firestore, 'users');
-            const q = query(usersRef, where('username', '==', identifier), limit(1));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                handleError({ code: 'auth/user-not-found' });
-                setLoading('');
-                return;
-            }
-            const userDoc = querySnapshot.docs[0].data();
-            emailToLogin = userDoc.email;
-        } catch (error) {
-            handleError(error);
-            setLoading('');
-            return;
-        }
-    }
-
-
     try {
-      await signInWithEmailAndPassword(auth, emailToLogin, password);
+      await signInWithEmailAndPassword(auth, email, password);
       handleSuccess();
     } catch (error: any) {
       handleError(error);
@@ -176,14 +151,14 @@ export default function LoginForm() {
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identifier">Email ou nom d'utilisateur</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="identifier"
-                type="text"
-                placeholder="email ou nom d'utilisateur"
+                id="email"
+                type="email"
+                placeholder="votre.email@example.com"
                 required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={!servicesReady}
               />
             </div>
