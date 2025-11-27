@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -7,18 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Bookmark, LogOut, Search } from 'lucide-react';
+import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post, UserProfile, Favorite } from '@/lib/types';
+import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where, documentId } from 'firebase/firestore';
+import { collection, doc, query, where, documentId, getDocs } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
     if (isLoading) {
@@ -58,6 +58,76 @@ const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean 
         </div>
     );
 };
+
+const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
+    const firestore = useFirestore();
+
+    const housingQuery = useMemoFirebase(() => query(collection(firestore!, 'housings'), where('userId', '==', user.uid)), [firestore, user.uid]);
+    const carpoolQuery = useMemoFirebase(() => query(collection(firestore!, 'carpoolings'), where('driverId', '==', user.uid)), [firestore, user.uid]);
+    const tutorQuery = useMemoFirebase(() => query(collection(firestore!, 'tutorings'), where('tutorId', '==', user.uid)), [firestore, user.uid]);
+
+    const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
+    const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
+    const { data: tutorings, isLoading: l3 } = useCollection<Tutor>(tutorQuery);
+
+    const isLoading = l1 || l2 || l3;
+    const allListings = [...(housings || []), ...(carpools || []), ...(tutorings || [])];
+
+    if(isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
+    if (allListings.length === 0) return <div className="text-center p-10"><p>Vous n'avez aucune annonce active.</p></div>
+
+    return (
+        <div className="space-y-4 p-4">
+            {housings?.map(h => <Card key={h.id}><CardContent className="p-4">Logement: <Link href="/housing" className="font-semibold hover:underline">{h.title}</Link></CardContent></Card>)}
+            {carpools?.map(c => <Card key={c.id}><CardContent className="p-4">Covoiturage: <Link href="/carpooling" className="font-semibold hover:underline">{c.departureCity} à {c.arrivalCity}</Link></CardContent></Card>)}
+            {tutorings?.map(t => <Card key={t.id}><CardContent className="p-4">Tutorat: <Link href="/tutoring" className="font-semibold hover:underline">{t.subject}</Link></CardContent></Card>)}
+        </div>
+    )
+}
+
+const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
+    const firestore = useFirestore();
+    const [bookedCarpools, setBookedCarpools] = useState<Trip[]>([]);
+    const [attendedEvents, setAttendedEvents] = useState<Event[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if(!firestore) return;
+            setIsLoading(true);
+
+            // Fetch Carpool Bookings
+            const bookingsQuery = query(collection(firestore, 'carpool_bookings'), where('passengerId', '==', user.uid));
+            const bookingSnapshots = await getDocs(bookingsQuery);
+            const carpoolIds = bookingSnapshots.docs.map(doc => doc.data().carpoolId);
+            if (carpoolIds.length > 0) {
+                const carpoolsQuery = query(collection(firestore, 'carpoolings'), where('id', 'in', carpoolIds));
+                const carpoolsSnapshot = await getDocs(carpoolsQuery);
+                setBookedCarpools(carpoolsSnapshot.docs.map(d => d.data() as Trip));
+            }
+
+            // Fetch Event Attendances
+            const eventsQuery = query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid));
+            const eventsSnapshot = await getDocs(eventsQuery);
+            setAttendedEvents(eventsSnapshot.docs.map(doc => doc.data() as Event));
+            
+            setIsLoading(false);
+        }
+        fetchData();
+
+    }, [firestore, user.uid]);
+
+    if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
+    if (bookedCarpools.length === 0 && attendedEvents.length === 0) return <div className="text-center p-10"><p>Vous n'avez aucune activité à venir.</p></div>
+
+    return (
+        <div className="space-y-4 p-4">
+            {bookedCarpools.map(c => <Card key={c.id}><CardContent className="p-4">Covoiturage réservé: <Link href="/carpooling" className="font-semibold hover:underline">{c.departureCity} à {c.arrivalCity}</Link></CardContent></Card>)}
+            {attendedEvents.map(e => <Card key={e.id}><CardContent className="p-4">Participation à l'événement: <Link href="/events" className="font-semibold hover:underline">{e.title}</Link></CardContent></Card>)}
+        </div>
+    )
+}
+
 
 function ProfilePageSkeleton() {
     return (
@@ -238,10 +308,18 @@ export default function CurrentUserProfilePage() {
 
 
                             <Tabs defaultValue="posts" className="w-full">
-                                <TabsList className="grid w-full grid-cols-2 rounded-none border-y">
+                                <TabsList className="grid w-full grid-cols-4 rounded-none border-y">
                                     <TabsTrigger value="posts" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                                         <Grid3x3 className="h-5 w-5" />
                                         <span className="hidden md:inline ml-2">Publications</span>
+                                    </TabsTrigger>
+                                     <TabsTrigger value="listings" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                        <Package className="h-5 w-5" />
+                                        <span className="hidden md:inline ml-2">Mes Annonces</span>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="activities" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                        <CalendarClock className="h-5 w-5" />
+                                        <span className="hidden md:inline ml-2">Mes Activités</span>
                                     </TabsTrigger>
                                     <TabsTrigger value="saved" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                                         <Bookmark className="h-5 w-5" />
@@ -250,6 +328,12 @@ export default function CurrentUserProfilePage() {
                                 </TabsList>
                                 <TabsContent value="posts">
                                 <ProfileGrid posts={userPosts || []} isLoading={postsLoading} />
+                                </TabsContent>
+                                <TabsContent value="listings">
+                                    <MyListings user={user} />
+                                </TabsContent>
+                                <TabsContent value="activities">
+                                    <MyActivities user={user} />
                                 </TabsContent>
                                 <TabsContent value="saved">
                                     {(savedPostsLoading || favoritesLoading) ? (
