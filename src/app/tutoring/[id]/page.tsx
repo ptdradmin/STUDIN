@@ -164,13 +164,13 @@ export default function TutorProfilePage() {
                                 <div className="grid md:grid-cols-[150px_1fr] gap-6 md:gap-8">
                                     <div className="flex flex-col items-center text-center gap-4">
                                         <Avatar className="h-36 w-36 border-4 border-primary/20">
-                                            <AvatarImage src={tutor.tutorAvatarUrl} />
+                                            <AvatarImage src={tutor.userAvatarUrl} />
                                             <AvatarFallback>
-                                                {tutor.tutorUsername?.substring(0, 2).toUpperCase()}
+                                                {tutor.username?.substring(0, 2).toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="space-y-1">
-                                             <h1 className="text-2xl font-bold">{tutor.tutorUsername}</h1>
+                                             <h1 className="text-2xl font-bold">{tutor.username}</h1>
                                              <p className="text-muted-foreground">{tutor.level}</p>
                                         </div>
                                        

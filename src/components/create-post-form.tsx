@@ -88,7 +88,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             ...data,
             id: newDocRef.id,
             userId: user.uid,
-            userDisplayName: user.displayName || user.email?.split('@')[0],
+            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
             userAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -149,7 +149,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                                 <AvatarImage src={user.photoURL ?? undefined} />
                                 <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                             </Avatar>
-                            <p className="font-semibold text-sm">{user.displayName}</p>
+                            <p className="font-semibold text-sm">{user.displayName?.split(' ')[0]}</p>
                         </div>
                     )}
                     <div>

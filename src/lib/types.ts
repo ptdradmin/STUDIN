@@ -3,6 +3,9 @@ import type { Timestamp } from 'firebase/firestore';
 
 export interface Housing {
   id: string;
+  userId: string;
+  username: string;
+  userAvatarUrl?: string;
   title: string;
   description: string;
   type: 'kot' | 'studio' | 'colocation';
@@ -14,29 +17,24 @@ export interface Housing {
   imageUrl: string;
   imageHint: string;
   coordinates: [number, number];
-  userId: string;
-  ownerUsername: string;
-  ownerAvatarUrl?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  availableFrom?: string;
-  isAvailable?: boolean;
 }
 
 export interface Post {
     id: string;
+    userId: string;
+    username: string;
+    userAvatarUrl?: string;
     caption: string;
     imageUrl?: string;
     location?: string;
-    userId: string;
-    userDisplayName: string;
-    userAvatarUrl: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;
     likes: string[];
     comments: {
         userId: string;
-        userDisplayName: string;
+        username: string;
         userAvatarUrl?: string;
         text: string;
         createdAt: string;
@@ -45,17 +43,17 @@ export interface Post {
 
 export interface Reel {
     id: string;
+    userId: string;
+    username: string;
+    userAvatarUrl?: string;
     videoUrl: string;
     thumbnailUrl?: string;
     caption: string;
-    userId: string;
-    userDisplayName: string;
-    userAvatarUrl?: string;
     createdAt: Timestamp;
     likes: string[];
     comments: {
         userId: string;
-        userDisplayName: string;
+        username: string;
         userAvatarUrl?: string;
         text: string;
         createdAt: string;
@@ -65,8 +63,8 @@ export interface Reel {
 export interface Event {
     id: string;
     organizerId: string;
-    organizerUsername: string;
-    organizerAvatarUrl?: string;
+    username: string;
+    userAvatarUrl?: string;
     title: string;
     description: string;
     category: 'soirée' | 'conférence' | 'sport' | 'culture';
@@ -91,8 +89,8 @@ export interface Event {
 export interface Tutor {
     id: string;
     tutorId: string;
-    tutorUsername: string;
-    tutorAvatarUrl?: string;
+    username: string;
+    userAvatarUrl?: string;
     subject: string;
     level: string;
     pricePerHour: number;
@@ -116,12 +114,11 @@ export interface TutoringReview {
   createdAt: Timestamp;
 }
 
-
 export interface Trip {
     id: string;
     driverId: string;
-    driverUsername: string;
-    driverAvatarUrl?: string;
+    username: string;
+    userAvatarUrl?: string;
     departureCity: string;
     arrivalCity: string;
     departureTime: string;

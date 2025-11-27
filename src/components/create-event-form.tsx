@@ -73,8 +73,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             ...data,
             id: newDocRef.id,
             organizerId: user.uid,
-            organizerUsername: user.displayName || user.email?.split('@')[0],
-            organizerAvatarUrl: user.photoURL,
+            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+            userAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             endDate: data.startDate, // simplified

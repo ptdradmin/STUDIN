@@ -96,10 +96,10 @@ export default function TutoringPage() {
                   <Link href={`/tutoring/${tutor.id}`} key={tutor.id} className="block h-full">
                     <Card className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full">
                         <div className="flex-shrink-0">
-                        <Image src={tutor.tutorAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.tutorUsername || "tuteur"} width={96} height={96} className="rounded-full" />
+                        <Image src={tutor.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.username || "tuteur"} width={96} height={96} className="rounded-full" />
                         </div>
                         <div className="flex flex-col flex-grow mt-4">
-                        <h3 className="text-xl font-bold">{tutor.tutorUsername || 'Utilisateur'}</h3>
+                        <h3 className="text-xl font-bold">{tutor.username || 'Utilisateur'}</h3>
                         <p className="text-sm text-muted-foreground">{tutor.level}</p>
                         <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
                         <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">

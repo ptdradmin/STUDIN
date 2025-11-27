@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Reel } from "@/lib/types";
@@ -76,11 +77,11 @@ export default function ReelCard({ reel }: ReelCardProps) {
                         <Link href={`/profile/${reel.userId}`}>
                            <Avatar className="h-9 w-9 border-2 border-white">
                                 <AvatarImage src={reel.userAvatarUrl} />
-                                <AvatarFallback>{getInitials(reel.userDisplayName)}</AvatarFallback>
+                                <AvatarFallback>{getInitials(reel.username)}</AvatarFallback>
                             </Avatar>
                         </Link>
                         <Link href={`/profile/${reel.userId}`}>
-                            <p className="font-semibold text-sm drop-shadow">{reel.userDisplayName}</p>
+                            <p className="font-semibold text-sm drop-shadow">{reel.username}</p>
                         </Link>
                     </div>
                     <p className="text-sm drop-shadow">{reel.caption}</p>

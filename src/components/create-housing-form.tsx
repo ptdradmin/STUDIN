@@ -108,8 +108,8 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 ...data,
                 id: newDocRef.id,
                 userId: user.uid,
-                ownerUsername: user.displayName || user.email?.split('@')[0],
-                ownerAvatarUrl: user.photoURL,
+                username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+                userAvatarUrl: user.photoURL,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 coordinates: [50.8503, 4.3517], // TODO: Geocode address

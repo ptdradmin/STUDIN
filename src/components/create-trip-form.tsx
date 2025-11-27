@@ -59,8 +59,8 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
             ...data,
             id: newDocRef.id,
             driverId: user.uid,
-            driverUsername: user.displayName || user.email?.split('@')[0],
-            driverAvatarUrl: user.photoURL,
+            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+            userAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             departureAddress: data.departureCity, // simplified

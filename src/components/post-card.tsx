@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from "next/image";
@@ -181,7 +182,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
         const postRef = doc(firestore, "posts", post.id);
         const newComment = {
             userId: user.uid,
-            userDisplayName: user.displayName || user.email?.split('@')[0] || 'Anonyme',
+            username: user.displayName?.split(' ')[0] || 'Anonyme',
             userAvatarUrl: user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`,
             text: comment,
             createdAt: new Date().toISOString(),
@@ -221,13 +222,13 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
                         <Avatar className="h-9 w-9">
-                            <AvatarImage src={post.userAvatarUrl} alt={post.userDisplayName} />
-                            <AvatarFallback>{getInitials(post.userDisplayName)}</AvatarFallback>
+                            <AvatarImage src={post.userAvatarUrl} alt={post.username} />
+                            <AvatarFallback>{getInitials(post.username)}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <div className="grid gap-0.5">
                         <Link href={`/profile/${post.userId}`}>
-                            <span className="font-semibold text-sm cursor-pointer hover:underline">{post.userDisplayName}</span>
+                            <span className="font-semibold text-sm cursor-pointer hover:underline">{post.username}</span>
                         </Link>
                         {post.location && (
                             <p className="text-xs text-muted-foreground flex items-center cursor-pointer hover:underline">
@@ -271,7 +272,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                 <div className="relative aspect-square bg-muted">
                     <Image
                         src={post.imageUrl}
-                        alt={`Post by ${post.userDisplayName}`}
+                        alt={`Post by ${post.username}`}
                         fill
                         className="object-cover"
                         data-ai-hint="social media post"
@@ -299,7 +300,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                 {optimisticLikes.length > 0 && <p className="font-semibold text-sm mt-1 px-2">{optimisticLikes.length} J'aime</p>}
                 <div className="text-sm mt-1 px-2">
                     <Link href={`/profile/${post.userId}`}>
-                        <span className="font-semibold cursor-pointer hover:underline">{post.userDisplayName}</span>
+                        <span className="font-semibold cursor-pointer hover:underline">{post.username}</span>
                     </Link>
                     <span className="ml-2">{post.caption}</span>
                 </div>
@@ -315,7 +316,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                         {displayedComments.map((comment, index) => (
                             <div key={index} className="flex items-start gap-2">
                                 <Link href={`/profile/${comment.userId}`}>
-                                    <span className="font-semibold cursor-pointer hover:underline">{comment.userDisplayName}</span>
+                                    <span className="font-semibold cursor-pointer hover:underline">{comment.username}</span>
                                 </Link>
                                 <span className="">{comment.text}</span>
                             </div>

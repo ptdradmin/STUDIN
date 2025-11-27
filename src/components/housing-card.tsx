@@ -135,10 +135,10 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
             <CardContent className="p-4 flex flex-col flex-grow">
                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Avatar className="h-6 w-6">
-                        <AvatarImage src={housing.ownerAvatarUrl} alt={housing.ownerUsername} />
-                        <AvatarFallback>{getInitials(housing.ownerUsername)}</AvatarFallback>
+                        <AvatarImage src={housing.userAvatarUrl} alt={housing.username} />
+                        <AvatarFallback>{getInitials(housing.username)}</AvatarFallback>
                     </Avatar>
-                    <span>{housing.ownerUsername}</span>
+                    <span>{housing.username}</span>
                  </div>
                 <h3 className="text-lg font-semibold leading-tight truncate mt-2">{housing.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1 flex items-center">

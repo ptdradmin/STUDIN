@@ -115,13 +115,13 @@
         "imageUrl": { "type": "string", "format": "uri" },
         "location": { "type": "string" },
         "userId": { "type": "string" },
-        "userDisplayName": { "type": "string" },
+        "username": { "type": "string" },
         "userAvatarUrl": { "type": "string", "format": "uri" },
         "createdAt": { "type": "string", "format": "date-time" },
         "likes": { "type": "array", "items": { "type": "string" } },
         "comments": { "type": "array", "items": { "type": "object" } }
       },
-      "required": ["id", "caption", "userId", "userDisplayName", "createdAt"]
+      "required": ["id", "caption", "userId", "username", "createdAt"]
     },
     "Housing": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -129,113 +129,25 @@
       "type": "object",
       "description": "Represents a housing listing on the STUD'IN platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the housing entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Housing)"
-        },
-        "title": {
-          "type": "string",
-          "description": "Title of the housing listing."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the housing."
-        },
-        "type": {
-          "type": "string",
-          "description": "Type of housing (e.g., kot, studio, colocation)."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the housing."
-        },
-        "address": {
-          "type": "string",
-          "description": "Address of the housing."
-        },
-        "city": {
-          "type": "string",
-          "description": "City where the housing is located."
-        },
-        "postalCode": {
-          "type": "string",
-          "description": "Postal code of the housing location."
-        },
-        "latitude": {
-          "type": "number",
-          "description": "Latitude of the housing location."
-        },
-        "longitude": {
-          "type": "number",
-          "description": "Longitude of the housing location."
-        },
-        "bedrooms": {
-          "type": "number",
-          "description": "Number of bedrooms in the housing."
-        },
-        "bathrooms": {
-          "type": "number",
-          "description": "Number of bathrooms in the housing."
-        },
-        "surfaceArea": {
-          "type": "number",
-          "description": "Surface area of the housing in square meters."
-        },
-        "availableFrom": {
-          "type": "string",
-          "description": "Date from which the housing is available.",
-          "format": "date-time"
-        },
-        "photos": {
-          "type": "array",
-          "description": "Array of URLs to photos of the housing.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "amenities": {
-          "type": "array",
-          "description": "Array of amenities available in the housing (e.g., wifi, parking, furnished).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "universityNearby": {
-          "type": "string",
-          "description": "Name of the university nearby."
-        },
-        "distanceToCampus": {
-          "type": "number",
-          "description": "Distance to the campus in meters."
-        },
-        "isAvailable": {
-          "type": "boolean",
-          "description": "Indicates whether the housing is currently available."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the housing listing was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp of when the housing listing was last updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatarUrl": { "type": "string", "format": "uri" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string" },
+        "price": { "type": "number" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "bedrooms": { "type": "number" },
+        "surface_area": { "type": "number" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "imageHint": { "type": "string" },
+        "coordinates": { "type": "array", "items": { "type": "number" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "userId",
-        "title",
-        "type",
-        "price",
-        "address",
-        "city"
-      ]
+      "required": [ "id", "userId", "username", "title", "type", "price", "address", "city" ]
     },
     "Reel": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -243,52 +155,15 @@
       "type": "object",
       "description": "Represents a short video reel on the STUD'IN platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the reel entity."
-        },
-        "videoUrl": {
-          "type": "string",
-          "description": "URL of the video file.",
-          "format": "uri"
-        },
-        "thumbnailUrl": {
-          "type": "string",
-          "description": "URL of the video thumbnail.",
-          "format": "uri"
-        },
-        "caption": {
-          "type": "string",
-          "description": "Caption for the reel."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User (Creator). (Relationship: User 1:N Reel)"
-        },
-        "userDisplayName": {
-          "type": "string",
-          "description": "Display name of the user who created the reel."
-        },
-        "userAvatarUrl": {
-          "type": "string",
-          "description": "Avatar URL of the user who created the reel.",
-          "format": "uri"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the reel was created.",
-          "format": "date-time"
-        },
-        "likes": {
-          "type": "array",
-          "description": "List of user IDs who liked the reel.",
-          "items": { "type": "string" }
-        },
-        "comments": {
-          "type": "array",
-          "description": "List of comments on the reel.",
-          "items": { "type": "object" }
-        }
+        "id": { "type": "string" },
+        "videoUrl": { "type": "string", "format": "uri" },
+        "caption": { "type": "string" },
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatarUrl": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "array", "items": { "type": "string" } },
+        "comments": { "type": "array", "items": { "type": "object" } }
       },
       "required": ["id", "videoUrl", "userId", "caption", "createdAt"]
     },
@@ -298,94 +173,19 @@
       "type": "object",
       "description": "Represents a carpooling offer on the STUD'IN platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the carpooling entity."
-        },
-        "driverId": {
-          "type": "string",
-          "description": "Reference to User (Driver). (Relationship: User 1:N Carpooling)"
-        },
-        "departureCity": {
-          "type": "string",
-          "description": "City of departure for the carpooling."
-        },
-        "departureAddress": {
-          "type": "string",
-          "description": "Address of departure for the carpooling."
-        },
-        "arrivalCity": {
-          "type": "string",
-          "description": "City of arrival for the carpooling."
-        },
-        "arrivalAddress": {
-          "type": "string",
-          "description": "Address of arrival for the carpooling."
-        },
-        "departureTime": {
-          "type": "string",
-          "description": "Date and time of departure.",
-          "format": "date-time"
-        },
-        "seatsAvailable": {
-          "type": "number",
-          "description": "Number of seats available in the car."
-        },
-         "passengerIds": {
-          "type": "array",
-          "description": "List of user IDs who have booked this carpool.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "pricePerSeat": {
-          "type": "number",
-          "description": "Price per seat for the carpooling."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the carpooling offer."
-        },
-        "carModel": {
-          "type": "string",
-          "description": "Model of the car used for carpooling."
-        },
-        "preferences": {
-          "type": "array",
-          "description": "Array of preferences for the carpooling (e.g., non-smoking, music, animals).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "isRecurring": {
-          "type": "boolean",
-          "description": "Indicates whether the carpooling is a recurring event."
-        },
-        "recurringDays": {
-          "type": "array",
-          "description": "Array of days on which the carpooling recurs (e.g., Monday, Wednesday).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the carpooling (e.g., active, full, completed, cancelled)."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the carpooling offer was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "driverId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatarUrl": { "type": "string", "format": "uri" },
+        "departureCity": { "type": "string" },
+        "arrivalCity": { "type": "string" },
+        "departureTime": { "type": "string", "format": "date-time" },
+        "seatsAvailable": { "type": "number" },
+        "pricePerSeat": { "type": "number" },
+        "passengerIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "driverId",
-        "departureCity",
-        "arrivalCity",
-        "departureTime",
-        "seatsAvailable"
-      ]
+      "required": [ "id", "driverId", "username", "departureCity", "arrivalCity", "departureTime", "seatsAvailable", "pricePerSeat" ]
     },
     "CarpoolBooking": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -393,37 +193,14 @@
       "type": "object",
       "description": "Represents a booking for a carpooling offer.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the carpool booking entity."
-        },
-        "carpoolId": {
-          "type": "string",
-          "description": "Reference to Carpooling. (Relationship: Carpooling 1:N CarpoolBooking)"
-        },
-        "passengerId": {
-          "type": "string",
-          "description": "Reference to User (Passenger). (Relationship: User 1:N CarpoolBooking)"
-        },
-        "seatsBooked": {
-          "type": "number",
-          "description": "Number of seats booked."
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the booking (e.g., pending, confirmed, cancelled)."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the booking was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "carpoolId": { "type": "string" },
+        "passengerId": { "type": "string" },
+        "seatsBooked": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "carpoolId",
-        "passengerId"
-      ]
+      "required": [ "id", "carpoolId", "passengerId" ]
     },
     "Tutoring": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -431,76 +208,20 @@
       "type": "object",
       "description": "Represents a tutoring offer on the STUD'IN platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the tutoring entity."
-        },
-        "tutorId": {
-          "type": "string",
-          "description": "Reference to User (Tutor). (Relationship: User 1:N Tutoring)"
-        },
-        "subject": {
-          "type": "string",
-          "description": "Subject of the tutoring offer."
-        },
-        "level": {
-          "type": "string",
-          "description": "Level of the tutoring offer (e.g., bachelier, master, secondaire)."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the tutoring offer."
-        },
-        "pricePerHour": {
-          "type": "number",
-          "description": "Price per hour for the tutoring."
-        },
-        "locationType": {
-          "type": "string",
-          "description": "Type of location for the tutoring (e.g., online, in-person, both)."
-        },
-        "availableLocations": {
-          "type": "array",
-          "description": "Array of available locations for in-person tutoring (e.g., cities, campuses).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "availability": {
-          "type": "string",
-          "description": "Availability schedule for the tutor (e.g., JSON format)."
-        },
-        "rating": {
-          "type": "number",
-          "description": "Average rating for the tutor."
-        },
-        "totalReviews": {
-          "type": "number",
-          "description": "Total number of reviews for the tutor."
-        },
-        "qualifications": {
-          "type": "array",
-          "description": "Array of tutor's qualifications.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "isAvailable": {
-          "type": "boolean",
-          "description": "Indicates whether the tutoring offer is currently available."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the tutoring offer was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "tutorId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatarUrl": { "type": "string", "format": "uri" },
+        "subject": { "type": "string" },
+        "level": { "type": "string" },
+        "description": { "type": "string" },
+        "pricePerHour": { "type": "number" },
+        "locationType": { "type": "string" },
+        "rating": { "type": "number" },
+        "totalReviews": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "tutorId",
-        "subject",
-        "level"
-      ]
+      "required": [ "id", "tutorId", "username", "subject", "level", "pricePerHour" ]
     },
     "TutoringReview": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -508,38 +229,16 @@
       "type": "object",
       "description": "Represents a review for a tutoring offer.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the tutoring review entity."
-        },
-        "tutoringId": {
-          "type": "string",
-          "description": "Reference to Tutoring. (Relationship: Tutoring 1:N TutoringReview)"
-        },
-        "studentId": {
-          "type": "string",
-          "description": "Reference to User (Student). (Relationship: User 1:N TutoringReview)"
-        },
-        "rating": {
-          "type": "number",
-          "description": "Rating given by the student (1-5)."
-        },
-        "comment": {
-          "type": "string",
-          "description": "Comment provided by the student."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the review was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "tutoringId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentAvatar": { "type": "string", "format": "uri" },
+        "rating": { "type": "number" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "tutoringId",
-        "studentId",
-        "rating"
-      ]
+      "required": [ "id", "tutoringId", "studentId", "rating" ]
     },
     "Event": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -547,103 +246,22 @@
       "type": "object",
       "description": "Represents an event on the STUD'IN platform.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the event entity."
-        },
-        "organizerId": {
-          "type": "string",
-          "description": "Reference to User (Organizer). (Relationship: User 1:N Event)"
-        },
-        "title": {
-          "type": "string",
-          "description": "Title of the event."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the event."
-        },
-        "category": {
-          "type": "string",
-          "description": "Category of the event (e.g., soirée, conference, sport, culture)."
-        },
-        "startDate": {
-          "type": "string",
-          "description": "Date and time when the event starts.",
-          "format": "date-time"
-        },
-        "endDate": {
-          "type": "string",
-          "description": "Date and time when the event ends.",
-          "format": "date-time"
-        },
-        "locationName": {
-          "type": "string",
-          "description": "Name of the event location."
-        },
-        "address": {
-          "type": "string",
-          "description": "Address of the event location."
-        },
-        "city": {
-          "type": "string",
-          "description": "City where the event is located."
-        },
-        "latitude": {
-          "type": "number",
-          "description": "Latitude of the event location."
-        },
-        "longitude": {
-          "type": "number",
-          "description": "Longitude of the event location."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the event."
-        },
-        "maxAttendees": {
-          "type": "number",
-          "description": "Maximum number of attendees allowed for the event."
-        },
-         "attendeeIds": {
-          "type": "array",
-          "description": "List of user IDs who are attending this event.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL of the event image.",
-          "format": "uri"
-        },
-        "university": {
-          "type": "string",
-          "description": "University associated with the event."
-        },
-        "tags": {
-          "type": "array",
-          "description": "Array of tags associated with the event (e.g., gratuit, étudiant, musique).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "isPublic": {
-          "type": "boolean",
-          "description": "Indicates whether the event is public or private."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the event was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "organizerId": { "type": "string" },
+        "username": { "type": "string" },
+        "userAvatarUrl": { "type": "string", "format": "uri" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "city": { "type": "string" },
+        "address": { "type": "string" },
+        "price": { "type": "number" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "attendeeIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "organizerId",
-        "title",
-        "startDate"
-      ]
+      "required": [ "id", "organizerId", "username", "title", "startDate" ]
     },
     "EventAttendee": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -651,68 +269,27 @@
       "type": "object",
       "description": "Represents a user attending an event.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the event attendee entity."
-        },
-        "eventId": {
-          "type": "string",
-          "description": "Reference to Event. (Relationship: Event 1:N EventAttendee)"
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User (Attendee). (Relationship: User 1:N EventAttendee)"
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the user's attendance (e.g., attending, maybe, not_attending)."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the attendance record was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "eventId": { "type": "string" },
+        "userId": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "eventId",
-        "userId"
-      ]
+      "required": [ "id", "eventId", "userId" ]
     },
     "Favorite": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Favorite",
       "type": "object",
-      "description": "Represents a user's favorite item (housing, tutoring, event).",
+      "description": "Represents a user's favorite item.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the favorite entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Favorite)"
-        },
-        "itemType": {
-          "type": "string",
-          "description": "Type of item that is favorited (e.g., housing, tutoring, event, post)."
-        },
-        "itemId": {
-          "type": "string",
-          "description": "Reference to the specific item favorited. The item's type is defined by itemType."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp of when the favorite record was created.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "itemType": { "type": "string" },
+        "itemId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "userId",
-        "itemType",
-        "itemId"
-      ]
+      "required": [ "id", "userId", "itemType", "itemId" ]
     },
     "Conversation": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -720,44 +297,13 @@
       "type": "object",
       "description": "Represents a chat conversation between users.",
       "properties": {
-        "participantIds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Array of user IDs participating in the conversation."
-        },
-        "participants": {
-          "type": "object",
-          "description": "Map of participant user profiles."
-        },
-        "lastMessage": {
-          "type": "object",
-          "properties": {
-            "text": {
-              "type": "string"
-            },
-            "senderId": {
-              "type": "string"
-            },
-            "timestamp": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "participants": { "type": "object" },
+        "lastMessage": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "participantIds"
-      ]
+      "required": [ "participantIds" ]
     },
     "ChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -765,25 +311,11 @@
       "type": "object",
       "description": "Represents a single message within a conversation.",
       "properties": {
-        "text": {
-          "type": "string",
-          "description": "The content of the message."
-        },
-        "senderId": {
-          "type": "string",
-          "description": "The user ID of the message sender."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp of when the message was sent."
-        }
+        "text": { "type": "string" },
+        "senderId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "text",
-        "senderId",
-        "createdAt"
-      ]
+      "required": [ "text", "senderId", "createdAt" ]
     },
     "Notification": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -791,20 +323,15 @@
       "type": "object",
       "description": "Represents a notification for a user.",
       "properties": {
-        "id": { "type": "string", "description": "Unique ID for the notification." },
-        "type": { "type": "string", "enum": ["new_follower", "like", "comment"], "description": "Type of notification." },
-        "senderId": { "type": "string", "description": "ID of the user who triggered the notification." },
-        "senderProfile": { 
-          "type": "object",
-          "properties": {
-              "username": { "type": "string" },
-              "profilePicture": { "type": "string", "format": "uri" }
-          }
-        },
-        "recipientId": { "type": "string", "description": "ID of the user who receives the notification." },
-        "postId": { "type": "string", "description": "ID of the relevant post (for likes/comments)." },
-        "read": { "type": "boolean", "default": false, "description": "Whether the notification has been read." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation." }
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderProfile": { "type": "object" },
+        "recipientId": { "type": "string" },
+        "relatedId": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "type", "senderId", "recipientId", "createdAt"]
     }
@@ -817,143 +344,61 @@
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles. Accessible only to the user with the matching userId."
-        }
-      },
-       {
-        "path": "/users/{userId}/notifications/{notificationId}",
-        "definition": {
-          "entityName": "Notification",
-          "schema": { "$ref": "#/backend/entities/Notification" },
-          "description": "Stores notifications for a specific user. Only the recipient can read them."
-        }
-      },
-       {
-        "path": "/posts/{postId}",
-        "definition": {
-          "entityName": "Post",
-          "schema": { "$ref": "#/backend/entities/Post" },
-          "description": "Stores social media posts. Publicly readable."
-        }
-      },
-      {
-        "path": "/reels/{reelId}",
-        "definition": {
-          "entityName": "Reel",
-          "schema": { "$ref": "#/backend/entities/Reel" },
-          "description": "Stores short video reels. Publicly readable."
-        }
-      },
-      {
-        "path": "/housings/{housingId}",
-        "definition": {
-          "entityName": "Housing",
-          "schema": {
-            "$ref": "#/backend/entities/Housing"
-          },
-          "description": "Stores housing listings. Includes userId for ownership validation."
-        }
-      },
-      {
-        "path": "/carpoolings/{carpoolingId}",
-        "definition": {
-          "entityName": "Carpooling",
-          "schema": {
-            "$ref": "#/backend/entities/Carpooling"
-          },
-          "description": "Stores carpooling offers. Includes driverId for ownership validation."
-        }
-      },
-      {
-        "path": "/carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}",
-        "definition": {
-          "entityName": "CarpoolBooking",
-          "schema": {
-            "$ref": "#/backend/entities/CarpoolBooking"
-          },
-          "description": "Stores bookings for carpooling. Includes passengerId and the carpooling's driverId."
-        }
-      },
-      {
-        "path": "/tutorings/{tutoringId}",
-        "definition": {
-          "entityName": "Tutoring",
-          "schema": {
-            "$ref": "#/backend/entities/Tutoring"
-          },
-          "description": "Stores tutoring offers. Includes tutorId for ownership validation."
-        }
-      },
-      {
-        "path": "/tutoring_reviews/{tutoringReviewId}",
-        "definition": {
-          "entityName": "TutoringReview",
-          "schema": {
-            "$ref": "#/backend/entities/TutoringReview"
-          },
-          "description": "Stores reviews for tutoring. Includes studentId and the tutoring's tutorId."
-        }
-      },
-      {
-        "path": "/events/{eventId}",
-        "definition": {
-          "entityName": "Event",
-          "schema": {
-            "$ref": "#/backend/entities/Event"
-          },
-          "description": "Stores events. Includes organizerId for ownership validation."
-        }
-      },
-      {
-        "path": "/event_attendees/{eventAttendeeId}",
-        "definition": {
-          "entityName": "EventAttendee",
-          "schema": {
-            "$ref": "#/backend/entities/EventAttendee"
-          },
-          "description": "Stores records of users attending events. Includes userId for attendance validation."
-        }
-      },
-      {
-        "path": "/favorites/{favoriteId}",
-        "definition": {
-          "entityName": "Favorite",
-          "schema": {
-            "$ref": "#/backend/entities/Favorite"
-          },
-          "description": "Stores user favorites. Includes userId for ownership validation."
-        }
-      },
-      {
-        "path": "/conversations/{conversationId}",
-        "definition": {
-          "entityName": "Conversation",
-          "schema": {
-            "$ref": "#/backend/entities/Conversation"
-          },
-          "description": "Stores metadata for a chat conversation between users."
-        }
-      },
-      {
-        "path": "/conversations/{conversationId}/messages/{messageId}",
-        "definition": {
-          "entityName": "ChatMessage",
-          "schema": {
-            "$ref": "#/backend/entities/ChatMessage"
-          },
-          "description": "Stores the individual messages for a specific conversation."
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the STUD'IN application. It follows the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).\n\n*   **Authorization Independence:** Achieved through denormalization. Specifically, the `userId` is included in `housings`, `carpoolings`, `tutorings`, `events`, and `favorites`. This allows security rules to validate ownership without needing to perform expensive `get()` operations to retrieve the user ID from a parent document. This ensures atomic operations and simplifies rule logic.\n*   **Clarity of Intent:** The structure uses consistent naming conventions and explicit state modeling to enhance debuggability. For example, `userId` is consistently used to denote the owner of a document. Clear naming conventions are used everywhere.\n*   **DBAC (No Custom Claims):** The structure relies solely on `request.auth.uid` for authorization. Roles are not stored in custom claims, but rather can be managed directly in the database if needed (e.g., via a separate `/roles_admin/{uid}` collection, which is not implemented here, since it's not needed).\n*   **QAPs (Rules are not Filters):** The structure supports secure list operations. By segregating data with different access needs into separate collections and using path-based ownership for private data, the security rules can efficiently validate access without acting as filters. For example, housing listings are stored in `/housings` and are accessible to all users, but only the owner can modify their listings. Carpool bookings can be listed/read by the Carpool's driver using query parameter filtering in rules.\n\n**Explanation of Specific Paths:**\n\n*   `/users/{userId}`: Stores user profiles. This is private data, accessible only to the user with the matching `userId`.\n*   `/housings/{housingId}`: Stores housing listings. Includes `userId` for ownership validation.\n*   `/carpoolings/{carpoolingId}`: Stores carpooling offers. Includes `driverId` for ownership validation.\n*   `/carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}`: Stores bookings for carpooling. Includes `passengerId` and the carpooling's `driverId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/tutorings/{tutoringId}`: Stores tutoring offers. Includes `tutorId` for ownership validation.\n*   `/tutoring_reviews/{tutoringReviewId}`: Stores reviews for tutoring. Includes `studentId` and the tutoring's `tutorId` can be retrieved to validate that the user is allowed to perform actions on this document.\n*   `/events/{eventId}`: Stores events. Includes `organizerId` for ownership validation.\n*   `/event_attendees/{eventAttendeeId}`: Stores records of users attending events. The `userId` is included so security rules can validate the attendance.\n*   `/messages/{messageId}`: (DEPRECATED) Stores messages between users. Both `senderId` and `receiverId` are included, enabling security rules to validate that only the sender or receiver can access the message.  Consider using subcollections under each user to improve query performance for chat applications if scaling requires it.\n*   `/favorites/{favoriteId}`: Stores user favorites. Includes `userId` for ownership validation.\n*   `/conversations/{conversationId}`: Stores metadata for a chat conversation. The `participantIds` array is used in security rules to ensure only participants can access it.\n*   `/conversations/{conversationId}/messages/{messageId}`: A subcollection for messages. Security rules inherit the context from the parent conversation,
- ensuring only participants can read/write messages."
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles. Accessible only to the user with the matching userId."
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "Stores notifications for a specific user. Only the recipient can read them."
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Stores social media posts. Publicly readable."
+    },
+    "/reels/{reelId}": {
+      "schema": { "$ref": "#/entities/Reel" },
+      "description": "Stores short video reels. Publicly readable."
+    },
+    "/housings/{housingId}": {
+      "schema": { "$ref": "#/entities/Housing" },
+      "description": "Stores housing listings. Includes userId for ownership validation."
+    },
+    "/carpoolings/{carpoolingId}": {
+      "schema": { "$ref": "#/entities/Carpooling" },
+      "description": "Stores carpooling offers. Includes driverId for ownership validation."
+    },
+    "/carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}": {
+      "schema": { "$ref": "#/entities/CarpoolBooking" },
+      "description": "Stores bookings for carpooling. Includes passengerId and the carpooling's driverId."
+    },
+    "/tutorings/{tutoringId}": {
+      "schema": { "$ref": "#/entities/Tutoring" },
+      "description": "Stores tutoring offers. Includes tutorId for ownership validation."
+    },
+    "/tutoring_reviews/{tutoringReviewId}": {
+      "schema": { "$ref": "#/entities/TutoringReview" },
+      "description": "Stores reviews for tutoring. Includes studentId and the tutoring's tutorId."
+    },
+    "/events/{eventId}": {
+      "schema": { "$ref": "#/entities/Event" },
+      "description": "Stores events. Includes organizerId for ownership validation."
+    },
+    "/event_attendees/{eventAttendeeId}": {
+      "schema": { "$ref": "#/entities/EventAttendee" },
+      "description": "Stores records of users attending events. Includes userId for attendance validation."
+    },
+    "/favorites/{favoriteId}": {
+      "schema": { "$ref": "#/entities/Favorite" },
+      "description": "Stores user favorites. Includes userId for ownership validation."
+    },
+    "/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/Conversation" },
+      "description": "Stores metadata for a chat conversation between users."
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Stores the individual messages for a specific conversation."
+    }
   }
 }

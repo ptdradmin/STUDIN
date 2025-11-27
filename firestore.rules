@@ -1,110 +1,36 @@
 
 rules_version = '2';
 
-/**
- * @name STUD'IN Firestore Security Rules
- *
- * Core Philosophy:
- * This ruleset enforces a security model where publicly listed items (like
- * housing, carpools, events, and tutoring) are readable by anyone, but can
-
- * only be created, modified, or deleted by their authenticated owners. Core
- * user data (profiles, favorites) is strictly private and accessible
- * only to the user themselves. This provides a secure-by-default environment
- * while allowing for a rich, publicly browsable application experience.
- *
- * Data Structure:
- * The data is organized into top-level collections representing the major
- * features of the app (e.g., /housings, /carpoolings, /events). User-specific
- * data that should be private is stored in /users/{userId}. Relationships
- * are established through denormalized owner IDs (e.g., userId, driverId,
- * tutorId) stored directly on the documents, which is essential for writing
- * efficient and secure rules.
- *
- * Key Security Decisions:
- * - User Enumeration is Disallowed: It is not possible to list all users of
- *   the application (allow list: if false; on /users).
- * - Public Listings, Private Writes: Collections like /housings are publicly
- *   queryable, but write access is strictly limited to the document owner.
- * - Private User Content: Data in /users/{userId} and /favorites/{favoriteId}
- *   is accessible only by the owning user.
- * - Secure Subcollections: Access to subcollection documents (e.g., carpool
- *   bookings) is granted to both the owner of the parent document (the driver)
- *   and the owner of the subcollection document (the passenger).
- *
- * Denormalization for Authorization:
- * To ensure performant and secure access control, owner IDs (e.g., `userId`,
- * `driverId`, `organizerId`) are denormalized and stored directly on the
- * documents they protect. This avoids slow and costly cross-document `get()`
- * calls in rules, leading to a faster and more reliable security model.
- *
- * Structural Segregation:
- * This ruleset uses separate collections for public and private data. For
- * example, user profiles are in a user-specific path `/users/{userId}`, while
- * public housing listings are in a separate top-level `/housings` collection.
- * This is more secure and performant than mixing public and private documents
- * in the same collection.
- */
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // =====================================================================
     // Helper Functions
     // =====================================================================
-
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing document ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Checks for ownership on an existing document. Used for update/delete.
-     * CRITICAL: Prevents operations on non-existent documents.
-     */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
     
-    /**
-     * Checks if the authenticated user has paid for a tutoring session.
-     * This is a placeholder for a real payment/booking check.
-     */
     function isStudentOfTutor(tutoringId, studentId) {
-        // In a real app, this would check a 'bookings' collection.
-        // For now, we allow any authenticated user to leave a review.
         return isSignedIn() && isOwner(studentId);
     }
 
-
-    /**
-     * Checks if the authenticated user is the driver of a specific carpool.
-     * Requires a document read, which is counted towards billing quotas.
-     */
     function isDriver(carpoolingId) {
       return isSignedIn() && get(/databases/$(database)/documents/carpoolings/$(carpoolingId)).data.driverId == request.auth.uid;
     }
 
-    /**
-     * Checks if the authenticated user is the organizer of a specific event.
-     * Requires a document read.
-     */
     function isEventOrganizer(eventId) {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
 
-    /**
-     * Validates that all required fields for a User profile are present upon creation.
-     */
     function hasRequiredUserFields() {
       let data = request.resource.data;
       return data.id == request.auth.uid
@@ -120,18 +46,9 @@ service cloud.firestore {
           && data.followingIds is list;
     }
 
-
     // =====================================================================
     // User Profile Rules
     // =====================================================================
-
-    /**
-     * @description Manages user profile data.
-     * @path /users/{userId}
-     * @allow A user (UID 'user_abc') creates their own profile document at /users/user_abc. Any signed in user can read a profile.
-     * @deny An anonymous user tries to read a profile. A user ('user_xyz') tries to update another user's ('user_abc') profile.
-     * @principle Restricts write access to a user's own data. A user has full control over their own profile document.
-     */
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
@@ -139,31 +56,16 @@ service cloud.firestore {
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);
       
-      /**
-       * @description Manages notifications for a user.
-       * @path /users/{userId}/notifications/{notificationId}
-       * @allow A user can read/list their own notifications. Other users can create notifications for this user.
-       * @deny A user cannot read another user's notifications.
-       * @principle Private Read, Public Write. Ensures notifications are private to the recipient but can be sent by anyone.
-       */
       match /notifications/{notificationId} {
-        allow get, list, update: if isOwner(userId); // Only owner can read/update (e.g., mark as read)
-        allow create: if isSignedIn(); // Any signed-in user can create a notification (e.g., follow, like)
-        allow delete: if isOwner(userId); // Owner can delete notifications
+        allow get, list, update: if isOwner(userId);
+        allow create: if isSignedIn();
+        allow delete: if isOwner(userId);
       }
     }
 
     // =====================================================================
     // Housing Rules
     // =====================================================================
-
-    /**
-     * @description Manages housing listings.
-     * @path /housings/{housingId}
-     * @allow Any user, signed in or not, can read a housing listing. The owner ('user_abc') creates a new listing with 'userId: "user_abc"'.
-     * @deny A user ('user_xyz') tries to update a listing owned by 'user_abc'.
-     * @principle Public Read with Owner-Only Writes. Listings are public, but write operations are restricted to the user who created the listing.
-     */
     match /housings/{housingId} {
       allow get: if true;
       allow list: if true;
@@ -175,13 +77,6 @@ service cloud.firestore {
     // =====================================================================
     // Reels Rules
     // =====================================================================
-    /**
-     * @description Manages short video reels.
-     * @path /reels/{reelId}
-     * @allow Any authenticated user can read reels. The owner can write/delete/edit content.
-     * @deny An anonymous user tries to list reels. A user tries to delete another user's reel.
-     * @principle Public Read, Public Interaction, Private Content Edit.
-     */
     match /reels/{reelId} {
       allow get: if true;
       allow list: if true;
@@ -196,14 +91,6 @@ service cloud.firestore {
     // =====================================================================
     // Carpooling Rules
     // =====================================================================
-
-    /**
-     * @description Manages carpooling offers.
-     * @path /carpoolings/{carpoolingId}
-     * @allow Any user can view carpooling offers. A driver ('driver_abc') creates an offer with 'driverId: "driver_abc"'.
-     * @deny A user ('user_xyz') attempts to delete an offer created by 'driver_abc'.
-     * @principle Public Read with Owner-Only Writes. Carpool offers are public, but only the driver can create, update, or delete their own offers.
-     */
     match /carpoolings/{carpoolingId} {
       allow get: if true;
       allow list: if true;
@@ -211,13 +98,6 @@ service cloud.firestore {
       allow update: if isExistingOwner(resource.data.driverId);
       allow delete: if isExistingOwner(resource.data.driverId);
 
-      /**
-       * @description Manages bookings for a carpool.
-       * @path /carpoolings/{carpoolingId}/carpool_bookings/{carpoolBookingId}
-       * @allow A passenger ('user_abc') creates a booking with 'passengerId: "user_abc"'. The driver of the carpool can read the booking.
-       * @deny A random user ('user_xyz') tries to read a booking for a carpool they are not part of.
-       * @principle Shared Access (Closed Collaborators). Access is granted to the passenger who owns the booking and the driver who owns the parent carpool.
-       */
       match /carpool_bookings/{carpoolBookingId} {
         allow get: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
         allow list: if isDriver(carpoolingId);
@@ -230,14 +110,6 @@ service cloud.firestore {
     // =====================================================================
     // Tutoring Rules
     // =====================================================================
-
-    /**
-     * @description Manages tutoring offers.
-     * @path /tutorings/{tutoringId}
-     * @allow Anyone can browse tutoring offers. A tutor ('tutor_abc') creates an offer with 'tutorId: "tutor_abc"'.
-     * @deny A user ('user_xyz') tries to modify an offer created by 'tutor_abc'.
-     * @principle Public Read with Owner-Only Writes. Tutoring offers are public, but only the tutor can manage their listings.
-     */
     match /tutorings/{tutoringId} {
       allow get: if true;
       allow list: if true;
@@ -249,14 +121,6 @@ service cloud.firestore {
     // =====================================================================
     // Tutoring Review Rules
     // =====================================================================
-    
-    /**
-     * @description Manages reviews for tutoring sessions.
-     * @path /tutoring_reviews/{tutoringReviewId}
-     * @allow Anyone can read reviews. A student ('student_abc') who took the class creates a review with 'studentId: "student_abc"'.
-     * @deny A tutor tries to delete a review left by a student.
-     * @principle Public Read with Owner-Only Writes. Reviews are public, but only the student who wrote the review can create, modify, or delete it.
-     */
     match /tutoring_reviews/{tutoringReviewId} {
       allow get, list: if true;
       allow create: if isSignedIn() && isStudentOfTutor(request.resource.data.tutoringId, request.resource.data.studentId);
@@ -266,14 +130,6 @@ service cloud.firestore {
     // =====================================================================
     // Event Rules
     // =====================================================================
-
-    /**
-     * @description Manages events.
-     * @path /events/{eventId}
-     * @allow Any user can view events. An organizer ('organizer_abc') creates an event with 'organizerId: "organizer_abc"'.
-     * @deny A user ('user_xyz') tries to cancel an event created by 'organizer_abc'.
-     * @principle Public Read with Owner-Only Writes. Events are public, but only the event organizer can manage them.
-     */
     match /events/{eventId} {
       allow get: if true;
       allow list: if true;
@@ -282,13 +138,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(resource.data.organizerId);
     }
 
-    /**
-     * @description Manages event attendee records.
-     * @path /event_attendees/{eventAttendeeId}
-     * @allow An attendee ('user_abc') creates an attendance record with 'userId: "user_abc"'. The event organizer can read the record.
-     * @deny A random user tries to see who is attending an event. Listing all attendees is disallowed for privacy.
-     * @principle Shared Access (Closed Collaborators). Only the attendee and the event organizer can read an attendance record. Only the attendee can create or delete it.
-     */
     match /event_attendees/{eventAttendeeId} {
       allow get: if isOwner(resource.data.userId) || isEventOrganizer(resource.data.eventId);
       allow list: if false;
@@ -300,14 +149,6 @@ service cloud.firestore {
     // =====================================================================
     // Social (Posts) Rules
     // =====================================================================
-
-    /**
-     * @description Manages social media posts.
-     * @path /posts/{postId}
-     * @allow Any authenticated user can read posts. Any signed-in user can like or comment. The owner can write/delete/edit content.
-     * @deny An anonymous user tries to list posts. A user tries to delete another user's post. A user tries to edit another user's caption.
-     * @principle Public Read, Public Interaction, Private Content Edit. Posts are public, interactions (likes/comments) are public, but only the author can edit the core content.
-     */
     match /posts/{postId} {
         allow get: if isSignedIn();
         allow list: if isSignedIn() && (
@@ -320,17 +161,16 @@ service cloud.firestore {
                 request.query.where.__name__ is list
             ) ||
             ( // Feed query: Check that the queried userIds are a subset of the user's following list + self.
-                'userId' in request.query.where &&
-                request.query.where.userId is list &&
-                request.query.where.userId.hasAll(
-                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid])
-                )
+                 'userId' in request.query.where &&
+                 request.query.where.userId is list &&
+                 request.query.where.userId.hasAll(
+                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid])
+                 )
             )
         );
         
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         
-        // Allow update if the user is the owner, OR if they are only changing the 'likes' or 'comments' fields.
         allow update: if isSignedIn() && (
                         (isOwner(resource.data.userId)) ||
                         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
@@ -342,14 +182,6 @@ service cloud.firestore {
     // =====================================================================
     // Favorites Rules
     // =====================================================================
-
-    /**
-     * @description Manages user's favorite items.
-     * @path /favorites/{favoriteId}
-     * @allow A user ('user_abc') creates a favorite record with 'userId: "user_abc"'.
-     * @deny Another user ('user_xyz') tries to read or delete 'user_abc's favorite record.
-     * @principle Enforces document ownership. A user's favorites are private and can only be managed by that user.
-     */
     match /favorites/{favoriteId} {
       allow get, delete: if isOwner(resource.data.userId);
       allow list: if isSignedIn() && request.query.where.userId == request.auth.uid;
@@ -360,24 +192,11 @@ service cloud.firestore {
     // =====================================================================
     // Conversation & Message Rules
     // =====================================================================
-    /**
-     * @description Manages chat conversations and messages.
-     * @path /conversations/{conversationId}
-     * @allow A user can only access a conversation if they are a participant.
-     * @deny A user cannot access a conversation they are not a part of.
-     * @principle Enforces that only participants can interact with a conversation.
-     */
     match /conversations/{conversationId} {
       allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow list: if isSignedIn() && request.query.where.participantIds.hasAny([request.auth.uid]);
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
 
-      /**
-       * @description Manages messages within a conversation.
-       * @path /conversations/{conversationId}/messages/{messageId}
-       * @allow A user can read/write messages in a conversation they are part of.
-       * @deny A user cannot read/write messages in a conversation they are not part of.
-       */
       match /messages/{messageId} {
         allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;

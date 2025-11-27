@@ -228,10 +228,10 @@ export default function CarpoolingPage() {
                       <Card key={trip.id} className="transition-shadow hover:shadow-md">
                           <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                               <div className="flex items-center gap-3">
-                                  <Image src={trip.driverAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.driverUsername || "conducteur"} width={48} height={48} className="rounded-full" />
+                                  <Image src={trip.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.username || "conducteur"} width={48} height={48} className="rounded-full" />
                               </div>
                               <div className="hidden sm:flex flex-col items-center">
-                                  <p className="font-semibold text-sm">{trip.driverUsername || 'Utilisateur'}</p>
+                                  <p className="font-semibold text-sm">{trip.username || 'Utilisateur'}</p>
                                   <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
                               </div>
                               <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
