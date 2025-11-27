@@ -61,6 +61,16 @@ service cloud.firestore {
         allow create: if isSignedIn();
         allow delete: if isOwner(userId);
       }
+      
+      // =====================================================================
+      // Favorites Subcollection Rules
+      // =====================================================================
+      match /favorites/{favoriteId} {
+        allow get, delete: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if false;
+      }
     }
 
     // =====================================================================
@@ -178,17 +188,7 @@ service cloud.firestore {
 
         allow delete: if isExistingOwner(resource.data.userId);
     }
-
-    // =====================================================================
-    // Favorites Rules
-    // =====================================================================
-    match /favorites/{favoriteId} {
-      allow get, delete: if isOwner(resource.data.userId);
-      allow list: if isSignedIn() && request.query.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if false;
-    }
-
+    
     // =====================================================================
     // Conversation & Message Rules
     // =====================================================================
@@ -204,3 +204,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

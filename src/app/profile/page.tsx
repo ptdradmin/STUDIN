@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -191,7 +192,7 @@ export default function CurrentUserProfilePage() {
 
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
+      return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
@@ -357,3 +358,5 @@ export default function CurrentUserProfilePage() {
     </div>
   );
 }
+
+    

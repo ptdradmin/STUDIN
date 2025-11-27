@@ -10,7 +10,7 @@ import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmar
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,10 +141,20 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
              return;
         }
 
+        const favoritesColRef = collection(firestore, `users/${user.uid}/favorites`);
+
         if (isSaved && favoriteId) {
             // Unsave optimistically
             setIsSaved(false);
-            deleteDocumentNonBlocking(doc(firestore, 'favorites', favoriteId));
+            const favDocRef = doc(favoritesColRef, favoriteId);
+            deleteDoc(favDocRef).catch((error) => {
+                 setIsSaved(true); // Revert on failure
+                 const permissionError = new FirestorePermissionError({
+                    path: favDocRef.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
             toast({ title: 'Non enregistré', description: 'Publication retirée de vos favoris.' });
         } else {
             // Save optimistically
@@ -155,16 +165,15 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                 itemType: 'post' as 'post',
                 createdAt: serverTimestamp(),
             };
-            const favoritesCol = collection(firestore, 'favorites');
-            // The add document returns a promise with the new ref, which we can use to get the ID for potential rollback
-            addDoc(favoritesCol, newFavData)
+            
+            addDoc(favoritesColRef, newFavData)
                 .then(docRef => {
                     if (docRef) setFavoriteId(docRef.id);
                 })
                 .catch((error) => {
                     setIsSaved(false); // Revert on failure
                      const permissionError = new FirestorePermissionError({
-                        path: favoritesCol.path,
+                        path: favoritesColRef.path,
                         operation: 'create',
                         requestResourceData: newFavData,
                     });
@@ -350,3 +359,5 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
         </div>
     );
 }
+
+    

@@ -352,6 +352,10 @@
       "schema": { "$ref": "#/entities/Notification" },
       "description": "Stores notifications for a specific user. Only the recipient can read them."
     },
+    "/users/{userId}/favorites/{favoriteId}": {
+      "schema": { "$ref": "#/entities/Favorite" },
+      "description": "Stores user favorites. Includes userId for ownership validation."
+    },
     "/posts/{postId}": {
       "schema": { "$ref": "#/entities/Post" },
       "description": "Stores social media posts. Publicly readable."
@@ -388,10 +392,6 @@
       "schema": { "$ref": "#/entities/EventAttendee" },
       "description": "Stores records of users attending events. Includes userId for attendance validation."
     },
-    "/favorites/{favoriteId}": {
-      "schema": { "$ref": "#/entities/Favorite" },
-      "description": "Stores user favorites. Includes userId for ownership validation."
-    },
     "/conversations/{conversationId}": {
       "schema": { "$ref": "#/entities/Conversation" },
       "description": "Stores metadata for a chat conversation between users."
@@ -402,3 +402,5 @@
     }
   }
 }
+
+    
