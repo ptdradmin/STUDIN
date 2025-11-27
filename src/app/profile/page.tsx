@@ -96,11 +96,12 @@ const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
             if(!firestore) return;
             setIsLoading(true);
 
-            // Fetch Carpool Bookings
+            // Fetch Carpool Bookings by checking carpool_bookings subcollection (more scalable)
             const bookingsQuery = query(collection(firestore, 'carpool_bookings'), where('passengerId', '==', user.uid));
             const bookingSnapshots = await getDocs(bookingsQuery);
             const carpoolIds = bookingSnapshots.docs.map(doc => doc.data().carpoolId);
             if (carpoolIds.length > 0) {
+                // Fetch the actual carpool documents
                 const carpoolsQuery = query(collection(firestore, 'carpoolings'), where('id', 'in', carpoolIds));
                 const carpoolsSnapshot = await getDocs(carpoolsQuery);
                 setBookedCarpools(carpoolsSnapshot.docs.map(d => d.data() as Trip));
