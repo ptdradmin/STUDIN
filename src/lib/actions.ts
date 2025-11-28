@@ -71,8 +71,6 @@ export const toggleFollowUser = async (
         }
     } satisfies SecurityRuleContext);
     errorEmitter.emit('permission-error', permissionError);
-    // Rethrow the error so the calling component knows the operation failed
-    throw serverError;
   }
 };
 
