@@ -67,7 +67,7 @@ service cloud.firestore {
       // =====================================================================
       match /favorites/{favoriteId} {
         allow get, delete: if isOwner(userId);
-        allow list: if isOwner(userId) && request.query.where.userId == userId;
+        allow list: if isOwner(userId);
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if false;
       }
