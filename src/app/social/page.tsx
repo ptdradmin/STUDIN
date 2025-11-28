@@ -1,6 +1,7 @@
+
 'use client';
 
-import { collection, query, orderBy, limit, where, doc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where, doc, getDoc, getDocs } from 'firebase/firestore';
 import type { Post, UserProfile, Favorite } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
@@ -154,8 +155,12 @@ export default function SocialPage() {
     
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return query(collection(firestore, 'favorites'), where('userId', '==', user.uid), where('itemType', '==', 'post'));
+        return query(
+            collection(firestore, `users/${user.uid}/favorites`),
+            where('itemType', '==', 'post')
+        );
     }, [firestore, user]);
+
 
     const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
     
