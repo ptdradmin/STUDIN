@@ -51,16 +51,20 @@ export const toggleFollowUser = async (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  // Utilise la fonction non bloquante pour la gestion d'erreur
-  commitBatchNonBlocking(batch, {
-    path: `users/${currentUserId} and users/${targetUserId}`,
-    operation: 'update',
-    requestResourceData: { 
-        action: isCurrentlyFollowing ? 'unfollow' : 'follow',
-        currentUserId,
-        targetUserId 
-    }
+  // Utilisation de la gestion d'erreur contextuelle
+  batch.commit().catch(serverError => {
+      const permissionError = new FirestorePermissionError({
+        path: `users/${currentUserId} and users/${targetUserId}`,
+        operation: 'update',
+        requestResourceData: {
+          action: isCurrentlyFollowing ? 'unfollow' : 'follow',
+          currentUserId,
+          targetUserId,
+        },
+      });
+      errorEmitter.emit('permission-error', permissionError);
   });
+
 
   // La création de notification peut continuer en parallèle
   if (!isCurrentlyFollowing) {
