@@ -50,34 +50,36 @@ export const toggleFollowUser = (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  // Non-blocking commit with error handling
-  batch.commit().then(() => {
-    // On success, create notification if it was a follow action
-    if (!isCurrentlyFollowing) {
-      createNotification(firestore, {
-          type: 'new_follower',
-          senderId: currentUserId,
-          recipientId: targetUserId,
-          message: `a commencé à vous suivre.`
-      }).catch(err => {
-         // Even if notification fails, the follow action succeeded.
-         // We can still log this specific error if needed.
-         console.error("Failed to create follow notification:", err);
+  // Non-blocking commit with explicit error handling
+  batch.commit()
+    .then(() => {
+      // On success, create notification if it was a follow action
+      if (!isCurrentlyFollowing) {
+        createNotification(firestore, {
+            type: 'new_follower',
+            senderId: currentUserId,
+            recipientId: targetUserId,
+            message: `a commencé à vous suivre.`
+        }).catch(err => {
+           // Even if notification fails, the follow action succeeded.
+           // We can still log this specific error if needed.
+           console.error("Failed to create follow notification:", err);
+        });
+      }
+    })
+    .catch((serverError) => {
+      // On failure, create and emit the contextual permission error
+      const permissionError = new FirestorePermissionError({
+        path: `users/${currentUserId} and users/${targetUserId}`,
+        operation: 'update',
+        requestResourceData: {
+          action: isCurrentlyFollowing ? 'unfollow' : 'follow',
+          currentUserId,
+          targetUserId,
+        },
       });
-    }
-  }).catch((serverError) => {
-    // On failure, create and emit the contextual permission error
-    const permissionError = new FirestorePermissionError({
-      path: `users/${currentUserId} et users/${targetUserId}`,
-      operation: 'update',
-      requestResourceData: {
-        action: isCurrentlyFollowing ? 'unfollow' : 'follow',
-        currentUserId,
-        targetUserId,
-      },
+      errorEmitter.emit('permission-error', permissionError);
     });
-    errorEmitter.emit('permission-error', permissionError);
-  });
 };
 
 /**
