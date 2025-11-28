@@ -135,17 +135,15 @@ export default function SocialPage() {
         if (!firestore || !user || isProfileLoading) return null;
         
         // Create the list of user IDs to query. Always include the current user's ID.
-        const idsToQuery = [...new Set([...(followingIds || []), user.uid])];
-
-        // If the user isn't following anyone yet, idsToQuery will only contain their own ID.
-        // We can proceed with a query for just their posts.
+        const idsToQuery = [...new Set([user.uid, ...(followingIds || [])])];
         
         // Firestore 'in' queries are limited to 30 documents.
-        const safeFollowingIds = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
+        // Slice the array to respect the limit.
+        const safeIdsToQuery = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', safeFollowingIds),
+          where('userId', 'in', safeIdsToQuery),
           orderBy('createdAt', 'desc'),
           limit(20)
         );
@@ -155,10 +153,7 @@ export default function SocialPage() {
     
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return query(
-            collection(firestore, `users/${user.uid}/favorites`),
-            where('itemType', '==', 'post')
-        );
+        return query(collection(firestore, `users/${user.uid}/favorites`));
     }, [firestore, user]);
 
 
@@ -168,7 +163,9 @@ export default function SocialPage() {
         const map = new Map<string, string>();
         if (favoriteItems) {
             favoriteItems.forEach(fav => {
-                map.set(fav.itemId, fav.id);
+                if (fav.itemType === 'post') {
+                    map.set(fav.itemId, fav.id);
+                }
             });
         }
         return map;

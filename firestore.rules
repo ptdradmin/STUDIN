@@ -45,6 +45,14 @@ service cloud.firestore {
           && data.followerIds is list
           && data.followingIds is list;
     }
+    
+    function canListUserPosts() {
+      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      // The user can query for posts where the userId is in their own following list + their own id.
+      // The `in` operator is limited to 30 items.
+      return request.query.where.userId.size() <= 30 &&
+             request.query.where.userId.hasAny(userProfile.followingIds.concat([request.auth.uid]));
+    }
 
     // =====================================================================
     // User Profile Rules
@@ -161,7 +169,7 @@ service cloud.firestore {
     // =====================================================================
     match /posts/{postId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow list: if isSignedIn() && canListUserPosts();
       
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
