@@ -21,15 +21,23 @@ function ConversationList() {
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        // This query now includes orderBy, which is crucial for security rules to evaluate it correctly.
         return query(
             collection(firestore, 'conversations'), 
-            where('participantIds', 'array-contains', user.uid),
-            orderBy('updatedAt', 'desc')
+            where('participantIds', 'array-contains', user.uid)
         );
     }, [user, firestore]);
 
     const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
+    
+    const sortedConversations = useMemo(() => {
+        if (!conversations) return [];
+        return [...conversations].sort((a, b) => {
+            const dateA = a.updatedAt?.toDate() || 0;
+            const dateB = b.updatedAt?.toDate() || 0;
+            return (dateB as number) - (dateA as number);
+        });
+    }, [conversations]);
+
 
     const getOtherParticipant = (convo: Conversation) => {
         if (!user) return null;
@@ -58,7 +66,7 @@ function ConversationList() {
         )
     }
     
-    if (!conversations || conversations.length === 0) {
+    if (!sortedConversations || sortedConversations.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
@@ -72,7 +80,7 @@ function ConversationList() {
 
     return (
         <div className="space-y-1">
-            {conversations
+            {sortedConversations
               .map(convo => {
                 const otherParticipant = getOtherParticipant(convo);
                 if (!otherParticipant) return null;
