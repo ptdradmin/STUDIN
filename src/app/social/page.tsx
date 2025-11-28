@@ -134,23 +134,25 @@ export default function SocialPage() {
     const postsQuery = useMemoFirebase(() => {
         if (!firestore || !user || isProfileLoading) return null;
         
-        // Create the list of user IDs to query. Always include the current user's ID.
         const idsToQuery = [...new Set([user.uid, ...(followingIds || [])])];
         
-        // Firestore 'in' queries are limited to 30 documents.
-        // Slice the array to respect the limit.
+        if (idsToQuery.length === 0) return null;
+
         const safeIdsToQuery = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', safeIdsToQuery),
-          orderBy('createdAt', 'desc'),
-          limit(20)
+          where('userId', 'in', safeIdsToQuery)
         );
       }, [firestore, user, followingIds, isProfileLoading]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
+    const sortedPosts = useMemo(() => {
+      if (!posts) return [];
+      return [...posts].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+    }, [posts]);
+
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, `users/${user.uid}/favorites`));
@@ -223,13 +225,13 @@ export default function SocialPage() {
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {isLoading && !showSuggestionMessage ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                             ) : showSuggestionMessage && posts && posts.length === 0 ? (
+                             ) : showSuggestionMessage && sortedPosts.length === 0 ? (
                                 <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                     <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
                                     <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
                                 </div>
-                             ) : posts && posts.length > 0 ? (
-                                posts.map(post => (
+                             ) : sortedPosts.length > 0 ? (
+                                sortedPosts.map(post => (
                                     <PostCard 
                                         key={post.id} 
                                         post={post}

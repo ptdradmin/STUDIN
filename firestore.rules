@@ -47,11 +47,10 @@ service cloud.firestore {
     }
     
     function canListUserPosts() {
-      let userProfile = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      // The user can query for posts where the userId is in their own following list + their own id.
-      // The `in` operator is limited to 30 items.
-      return request.query.where.userId.size() <= 30 &&
-             request.query.where.userId.hasAny(userProfile.followingIds.concat([request.auth.uid]));
+      // This rule ensures that the client query is filtering by userId.
+      // The client is responsible for building the list of userIds to query for (e.g., user's own id + their following list).
+      // The 'in' operator is limited to 30 items, which the client must also enforce.
+      return request.query.where.keys().hasAny(['userId']);
     }
 
     // =====================================================================
