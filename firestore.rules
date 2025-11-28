@@ -161,7 +161,7 @@ service cloud.firestore {
     // =====================================================================
     match /posts/{postId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn(); // Simplified for feed query
+      allow list: if isSignedIn();
       
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
