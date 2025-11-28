@@ -46,13 +46,6 @@ service cloud.firestore {
           && data.followingIds is list;
     }
     
-    function canListUserPosts() {
-      // This rule ensures that the client query is filtering by userId.
-      // The client is responsible for building the list of userIds to query for (e.g., user's own id + their following list).
-      // The 'in' operator is limited to 30 items, which the client must also enforce.
-      return request.query.where.keys().hasAny(['userId']);
-    }
-
     // =====================================================================
     // User Profile Rules
     // =====================================================================
@@ -168,7 +161,7 @@ service cloud.firestore {
     // =====================================================================
     match /posts/{postId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && canListUserPosts();
+      allow list: if false;
       
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
