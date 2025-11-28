@@ -160,29 +160,21 @@ service cloud.firestore {
     // Social (Posts) Rules
     // =====================================================================
     match /posts/{postId} {
-        allow get: if isSignedIn();
-        allow list: if isSignedIn() && (
-            // Profile page query: check if a single userId is being queried.
-            (request.query.where.userId is string) ||
-            // Saved posts query: check if document ID is in a list
-            (request.query.where.__name__ is list) ||
-            // Feed query: Check that the queried userIds are a subset of the user's following list + self.
-            (
-                request.query.where.userId is list &&
-                request.query.where.userId.hasAll(
-                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid])
-                )
-            )
-        );
-        
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        
-        allow update: if isSignedIn() && (
-                        (isOwner(resource.data.userId)) ||
-                        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
-                      );
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() &&
+          request.query.where.userId is list &&
+          request.query.where.userId.hasAll(
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.followingIds.concat([request.auth.uid])
+          );
+      
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      allow update: if isSignedIn() && (
+                      (isOwner(resource.data.userId)) ||
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
+                    );
 
-        allow delete: if isExistingOwner(resource.data.userId);
+      allow delete: if isExistingOwner(resource.data.userId);
     }
     
     // =====================================================================
@@ -190,7 +182,7 @@ service cloud.firestore {
     // =====================================================================
     match /conversations/{conversationId} {
       allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
-      allow list: if isSignedIn() && request.query.where.participantIds.hasAny([request.auth.uid]);
+      allow list: if isSignedIn() && request.query.where.participantIds == request.auth.uid;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
 
       match /messages/{messageId} {
