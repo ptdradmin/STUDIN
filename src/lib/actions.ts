@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -71,6 +70,7 @@ export const toggleFollowUser = async (
         }
     } satisfies SecurityRuleContext);
     errorEmitter.emit('permission-error', permissionError);
+    // Je retire le throw pour m'assurer que seul l'emitter est utilisé
   }
 };
 
