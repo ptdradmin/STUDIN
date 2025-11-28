@@ -51,9 +51,10 @@ service cloud.firestore {
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow list: if false; // No one can list all users
       allow create: if isOwner(userId) && hasRequiredUserFields();
-      allow update: if isOwner(userId);
+      allow update: if isOwner(userId) || 
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']));
       allow delete: if isOwner(userId);
       
       match /notifications/{notificationId} {
@@ -160,7 +161,7 @@ service cloud.firestore {
     // =====================================================================
     match /posts/{postId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow list: if isSignedIn(); // Simplified for feed query
       
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
@@ -177,7 +178,7 @@ service cloud.firestore {
     // =====================================================================
     match /conversations/{conversationId} {
       allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
-      allow list: if isSignedIn();
+      allow list: if isSignedIn() && request.query.where[0][2] == request.auth.uid;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
 
       match /messages/{messageId} {
