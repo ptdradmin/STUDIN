@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -29,7 +28,7 @@ import type { UserProfile, Notification } from './types';
  * @param targetUserId - L'ID de l'utilisateur à suivre ou à ne plus suivre.
  * @param isCurrentlyFollowing - Un booléen indiquant si l'utilisateur actuel suit déjà l'utilisateur cible.
  */
-export const toggleFollowUser = async (
+export const toggleFollowUser = (
   firestore: Firestore,
   currentUserId: string,
   targetUserId: string,
@@ -50,18 +49,20 @@ export const toggleFollowUser = async (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  try {
-    await batch.commit();
-    if (!isCurrentlyFollowing) {
-      // Create notification only on follow
-      await createNotification(firestore, {
-          type: 'new_follower',
-          senderId: currentUserId,
-          recipientId: targetUserId,
-          message: `a commencé à vous suivre.`
-      });
-    }
-  } catch (serverError) {
+  // Non-blocking commit with proper error handling
+  batch.commit()
+    .then(() => {
+        if (!isCurrentlyFollowing) {
+          // Create notification only on follow, this is also a non-blocking operation
+          createNotification(firestore, {
+              type: 'new_follower',
+              senderId: currentUserId,
+              recipientId: targetUserId,
+              message: `a commencé à vous suivre.`
+          });
+        }
+    })
+    .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
         path: `users/${currentUserId} and users/${targetUserId}`,
         operation: 'update',
@@ -72,7 +73,7 @@ export const toggleFollowUser = async (
         },
       });
       errorEmitter.emit('permission-error', permissionError);
-  }
+    });
 };
 
 /**
