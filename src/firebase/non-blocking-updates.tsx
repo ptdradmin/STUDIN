@@ -96,7 +96,7 @@ export function deleteDocumentNonBlocking(docRef: DocumentReference) {
  * Initiates a batch write operation.
  * Does NOT await the commit operation internally.
  */
-export function commitBatchNonBlocking(batch: WriteBatch, context: { operation: 'update' | 'create' | 'delete', path: string, requestResourceData?: any }) {
+export function commitBatchNonBlocking(batch: WriteBatch, context: { operation: 'update' | 'create' | 'delete' | 'write', path: string, requestResourceData?: any }) {
     batch.commit().catch(error => {
          errorEmitter.emit(
             'permission-error',

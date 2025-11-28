@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -18,6 +19,7 @@ import {
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import type { UserProfile, Notification } from './types';
+import { commitBatchNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 /**
@@ -49,28 +51,30 @@ export const toggleFollowUser = async (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  try {
-    await batch.commit();
-    if (!isCurrentlyFollowing) {
-        await createNotification(firestore, {
-            type: 'new_follower',
-            senderId: currentUserId,
-            recipientId: targetUserId,
-            message: `a commencé à vous suivre.`
-        });
+  // Utilise la fonction non bloquante pour la gestion d'erreur
+  commitBatchNonBlocking(batch, {
+    path: `users/${currentUserId} and users/${targetUserId}`,
+    operation: 'update',
+    requestResourceData: { 
+        action: isCurrentlyFollowing ? 'unfollow' : 'follow',
+        currentUserId,
+        targetUserId 
     }
-  } catch (serverError) {
-    const permissionError = new FirestorePermissionError({
-        path: `users/${currentUserId} and users/${targetUserId}`,
-        operation: 'update',
-        requestResourceData: { 
-            action: isCurrentlyFollowing ? 'unfollow' : 'follow',
-            currentUserId,
-            targetUserId 
-        }
-    } satisfies SecurityRuleContext);
-    errorEmitter.emit('permission-error', permissionError);
-    // Je retire le throw pour m'assurer que seul l'emitter est utilisé
+  });
+
+  // La création de notification peut continuer en parallèle
+  if (!isCurrentlyFollowing) {
+    try {
+      await createNotification(firestore, {
+          type: 'new_follower',
+          senderId: currentUserId,
+          recipientId: targetUserId,
+          message: `a commencé à vous suivre.`
+      });
+    } catch(e) {
+      // La gestion de l'erreur pour la notification est déjà dans createNotification
+      console.error("Échec de la création de la notification de suivi.")
+    }
   }
 };
 
