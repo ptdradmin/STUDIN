@@ -29,7 +29,7 @@ import type { UserProfile, Notification } from './types';
  * @param targetUserId - L'ID de l'utilisateur à suivre ou à ne plus suivre.
  * @param isCurrentlyFollowing - Un booléen indiquant si l'utilisateur actuel suit déjà l'utilisateur cible.
  */
-export const toggleFollowUser = async (
+export const toggleFollowUser = (
   firestore: Firestore,
   currentUserId: string,
   targetUserId: string,
@@ -50,31 +50,34 @@ export const toggleFollowUser = async (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  try {
-    await batch.commit();
-
+  // Non-blocking commit with error handling
+  batch.commit().then(() => {
+    // On success, create notification if it was a follow action
     if (!isCurrentlyFollowing) {
-      // La création de la notification peut continuer après que le commit ait réussi
-      await createNotification(firestore, {
+      createNotification(firestore, {
           type: 'new_follower',
           senderId: currentUserId,
           recipientId: targetUserId,
           message: `a commencé à vous suivre.`
+      }).catch(err => {
+         // Even if notification fails, the follow action succeeded.
+         // We can still log this specific error if needed.
+         console.error("Failed to create follow notification:", err);
       });
     }
-  } catch (serverError) {
-      // Créer et émettre une erreur contextuelle en cas d'échec
-      const permissionError = new FirestorePermissionError({
-        path: `users/${currentUserId} et users/${targetUserId}`,
-        operation: 'update',
-        requestResourceData: {
-          action: isCurrentlyFollowing ? 'unfollow' : 'follow',
-          currentUserId,
-          targetUserId,
-        },
-      });
-      errorEmitter.emit('permission-error', permissionError);
-  }
+  }).catch((serverError) => {
+    // On failure, create and emit the contextual permission error
+    const permissionError = new FirestorePermissionError({
+      path: `users/${currentUserId} et users/${targetUserId}`,
+      operation: 'update',
+      requestResourceData: {
+        action: isCurrentlyFollowing ? 'unfollow' : 'follow',
+        currentUserId,
+        targetUserId,
+      },
+    });
+    errorEmitter.emit('permission-error', permissionError);
+  });
 };
 
 /**
