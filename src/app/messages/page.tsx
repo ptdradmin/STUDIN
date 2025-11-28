@@ -4,7 +4,7 @@
 import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import type { Conversation, UserProfile } from "@/lib/types";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query, where, orderBy } from "firebase/firestore";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from 'date-fns';
@@ -21,22 +21,15 @@ function ConversationList() {
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!user || !firestore) return null;
-        // The orderBy clause is removed to comply with Firestore security rules for array-contains.
-        // Sorting will be done client-side.
-        return query(collection(firestore, 'conversations'), where('participantIds', 'array-contains', user.uid));
+        // This query now includes orderBy, which is crucial for security rules to evaluate it correctly.
+        return query(
+            collection(firestore, 'conversations'), 
+            where('participantIds', 'array-contains', user.uid),
+            orderBy('updatedAt', 'desc')
+        );
     }, [user, firestore]);
 
     const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
-    
-    const sortedConversations = useMemo(() => {
-        if (!conversations) return [];
-        // Sort conversations by the last message timestamp, descending.
-        return [...conversations].sort((a, b) => {
-            const timeA = a.updatedAt?.toMillis() || 0;
-            const timeB = b.updatedAt?.toMillis() || 0;
-            return timeB - timeA;
-        });
-    }, [conversations]);
 
     const getOtherParticipant = (convo: Conversation) => {
         if (!user) return null;
@@ -65,7 +58,7 @@ function ConversationList() {
         )
     }
     
-    if (!sortedConversations || sortedConversations.length === 0) {
+    if (!conversations || conversations.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
@@ -79,7 +72,7 @@ function ConversationList() {
 
     return (
         <div className="space-y-1">
-            {sortedConversations
+            {conversations
               .map(convo => {
                 const otherParticipant = getOtherParticipant(convo);
                 if (!otherParticipant) return null;
