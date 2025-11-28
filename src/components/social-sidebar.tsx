@@ -19,7 +19,6 @@ import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Fil
 import { useToast } from '@/hooks/use-toast';
 
 const mainNavItems = [
-  { href: "/social", label: "Fil d'actualité", icon: Home },
   { href: "/reels", label: "Reels", icon: Film },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/housing", label: "Logements", icon: Bed },

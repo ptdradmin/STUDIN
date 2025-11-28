@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { useCollection, useDoc } from "@/firebase/firestore/use-collection";
+import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from "@/firebase";
 import type { Conversation, ChatMessage, UserProfile } from "@/lib/types";
 import { collection, query, where, doc, orderBy, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
