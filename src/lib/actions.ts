@@ -62,7 +62,8 @@ export const toggleFollowUser = (
           });
         }
     })
-    .catch(async (serverError) => {
+    .catch((serverError) => {
+      // Create the rich, contextual error asynchronously.
       const permissionError = new FirestorePermissionError({
         path: `users/${currentUserId} and users/${targetUserId}`,
         operation: 'update',
