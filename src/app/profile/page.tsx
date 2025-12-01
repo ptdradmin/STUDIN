@@ -11,7 +11,7 @@ import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock } from 'lucid
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event } from '@/lib/types';
+import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event, CarpoolBooking } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where, documentId, getDocs } from 'firebase/firestore';
@@ -88,44 +88,39 @@ const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
 
 const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     const firestore = useFirestore();
-    const [bookedCarpools, setBookedCarpools] = useState<Trip[]>([]);
-    const [attendedEvents, setAttendedEvents] = useState<Event[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    
+    // Booked Carpools
+    const carpoolBookingsQuery = useMemoFirebase(() => 
+        !firestore ? null : query(collection(firestore, 'carpool_bookings'), where('passengerId', '==', user.uid)),
+        [firestore, user.uid]
+    );
+    const { data: carpoolBookings, isLoading: l1 } = useCollection<CarpoolBooking>(carpoolBookingsQuery);
+    
+    const bookedCarpoolIds = useMemo(() => carpoolBookings?.map(b => b.carpoolId) || [], [carpoolBookings]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if(!firestore) return;
-            setIsLoading(true);
+    const bookedCarpoolsQuery = useMemoFirebase(() => 
+        !firestore || bookedCarpoolIds.length === 0 ? null : query(collection(firestore, 'carpoolings'), where('id', 'in', bookedCarpoolIds)),
+        [firestore, bookedCarpoolIds]
+    );
+    const { data: bookedCarpools, isLoading: l2 } = useCollection<Trip>(bookedCarpoolsQuery);
+    
+    // Attended Events
+    const attendedEventsQuery = useMemoFirebase(() =>
+        !firestore ? null : query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid)),
+        [firestore, user.uid]
+    );
+    const { data: attendedEvents, isLoading: l3 } = useCollection<Event>(attendedEventsQuery);
 
-            // Fetch Carpool Bookings by checking carpool_bookings subcollection (more scalable)
-            const bookingsQuery = query(collection(firestore, 'carpool_bookings'), where('passengerId', '==', user.uid));
-            const bookingSnapshots = await getDocs(bookingsQuery);
-            const carpoolIds = bookingSnapshots.docs.map(doc => doc.data().carpoolId);
-            if (carpoolIds.length > 0) {
-                // Fetch the actual carpool documents
-                const carpoolsQuery = query(collection(firestore, 'carpoolings'), where('id', 'in', carpoolIds));
-                const carpoolsSnapshot = await getDocs(carpoolsQuery);
-                setBookedCarpools(carpoolsSnapshot.docs.map(d => d.data() as Trip));
-            }
 
-            // Fetch Event Attendances
-            const eventsQuery = query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid));
-            const eventsSnapshot = await getDocs(eventsQuery);
-            setAttendedEvents(eventsSnapshot.docs.map(doc => doc.data() as Event));
-            
-            setIsLoading(false);
-        }
-        fetchData();
-
-    }, [firestore, user.uid]);
-
+    const isLoading = l1 || l2 || l3;
+    
     if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
-    if (bookedCarpools.length === 0 && attendedEvents.length === 0) return <div className="text-center p-10"><p>Vous n'avez aucune activité à venir.</p></div>
+    if (bookedCarpools?.length === 0 && attendedEvents?.length === 0) return <div className="text-center p-10"><p>Vous n'avez aucune activité à venir.</p></div>
 
     return (
         <div className="space-y-4 p-4">
-            {bookedCarpools.map(c => <Card key={c.id}><CardContent className="p-4">Covoiturage réservé: <Link href="/carpooling" className="font-semibold hover:underline">{c.departureCity} à {c.arrivalCity}</Link></CardContent></Card>)}
-            {attendedEvents.map(e => <Card key={e.id}><CardContent className="p-4">Participation à l'événement: <Link href="/events" className="font-semibold hover:underline">{e.title}</Link></CardContent></Card>)}
+            {bookedCarpools?.map(c => <Card key={c.id}><CardContent className="p-4">Covoiturage réservé: <Link href="/carpooling" className="font-semibold hover:underline">{c.departureCity} à {c.arrivalCity}</Link></CardContent></Card>)}
+            {attendedEvents?.map(e => <Card key={e.id}><CardContent className="p-4">Participation à l'événement: <Link href="/events" className="font-semibold hover:underline">{e.title}</Link></CardContent></Card>)}
         </div>
     )
 }
@@ -358,5 +353,7 @@ export default function CurrentUserProfilePage() {
     </div>
   );
 }
+
+    
 
     

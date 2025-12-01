@@ -133,6 +133,15 @@ export interface Trip {
     updatedAt: Timestamp;
 }
 
+export interface CarpoolBooking {
+  id: string;
+  carpoolId: string;
+  passengerId: string;
+  seatsBooked: number;
+  status: string;
+  createdAt: Timestamp;
+}
+
 export interface UserProfile {
     id: string;
     username: string;
@@ -196,3 +205,5 @@ export interface Favorite {
     itemType: 'post' | 'housing' | 'event' | 'tutor';
     createdAt: Timestamp;
 }
+
+    
