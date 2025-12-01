@@ -124,10 +124,10 @@ export default function CarpoolingPage() {
 
     batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
-
+    
     commitBatchNonBlocking(batch, {
         operation: 'write',
-        path: `carpoolings/${trip.id} and carpoolings/${trip.id}/carpool_bookings subcollection`,
+        path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
         requestResourceData: { 
             carpoolingUpdate: carpoolingUpdateData,
             bookingCreation: bookingData
@@ -291,6 +291,5 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-}
 
     
