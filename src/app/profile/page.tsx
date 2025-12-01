@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock } from 'lucide-react';
+import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -66,22 +66,73 @@ const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
     const housingQuery = useMemoFirebase(() => query(collection(firestore!, 'housings'), where('userId', '==', user.uid)), [firestore, user.uid]);
     const carpoolQuery = useMemoFirebase(() => query(collection(firestore!, 'carpoolings'), where('driverId', '==', user.uid)), [firestore, user.uid]);
     const tutorQuery = useMemoFirebase(() => query(collection(firestore!, 'tutorings'), where('tutorId', '==', user.uid)), [firestore, user.uid]);
+    const eventQuery = useMemoFirebase(() => query(collection(firestore!, 'events'), where('organizerId', '==', user.uid)), [firestore, user.uid]);
 
     const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
     const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
     const { data: tutorings, isLoading: l3 } = useCollection<Tutor>(tutorQuery);
+    const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
 
-    const isLoading = l1 || l2 || l3;
-    const allListings = [...(housings || []), ...(carpools || []), ...(tutorings || [])];
+    const isLoading = l1 || l2 || l3 || l4;
+    const allListings = [...(housings || []), ...(carpools || []), ...(tutorings || []), ...(events || [])];
 
     if(isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
-    if (allListings.length === 0) return <div className="text-center p-10"><p>Vous n'avez aucune annonce active.</p></div>
+    if (allListings.length === 0) return <div className="text-center p-10"><p className="text-muted-foreground">Vous n'avez aucune annonce active.</p></div>
 
     return (
         <div className="space-y-4 p-4">
-            {housings?.map(h => <Card key={h.id}><CardContent className="p-4">Logement: <Link href="/housing" className="font-semibold hover:underline">{h.title}</Link></CardContent></Card>)}
-            {carpools?.map(c => <Card key={c.id}><CardContent className="p-4">Covoiturage: <Link href="/carpooling" className="font-semibold hover:underline">{c.departureCity} à {c.arrivalCity}</Link></CardContent></Card>)}
-            {tutorings?.map(t => <Card key={t.id}><CardContent className="p-4">Tutorat: <Link href="/tutoring" className="font-semibold hover:underline">{t.subject}</Link></CardContent></Card>)}
+            {housings?.map(h => (
+                <Link href="/housing" key={h.id}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <Bed className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Logement</p>
+                                <p className="font-semibold">{h.title}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+            ))}
+            {carpools?.map(c => (
+                 <Link href="/carpooling" key={c.id}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <Car className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Covoiturage</p>
+                                <p className="font-semibold">{c.departureCity} à {c.arrivalCity}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 </Link>
+            ))}
+            {tutorings?.map(t => (
+                <Link href="/tutoring" key={t.id}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <BookOpen className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Tutorat</p>
+                                <p className="font-semibold">{t.subject}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+            ))}
+            {events?.map(e => (
+                 <Link href="/events" key={e.id}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <PartyPopper className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Événement</p>
+                                <p className="font-semibold">{e.title}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+            ))}
         </div>
     )
 }
@@ -89,7 +140,6 @@ const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
 const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     const firestore = useFirestore();
     
-    // Booked Carpools
     const carpoolBookingsQuery = useMemoFirebase(() => 
         !firestore ? null : query(collection(firestore, 'carpool_bookings'), where('passengerId', '==', user.uid)),
         [firestore, user.uid]
@@ -104,7 +154,6 @@ const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     );
     const { data: bookedCarpools, isLoading: l2 } = useCollection<Trip>(bookedCarpoolsQuery);
     
-    // Attended Events
     const attendedEventsQuery = useMemoFirebase(() =>
         !firestore ? null : query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid)),
         [firestore, user.uid]
@@ -115,7 +164,7 @@ const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     const isLoading = l1 || l2 || l3;
     
     if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
-    if (bookedCarpools?.length === 0 && attendedEvents?.length === 0) return <div className="text-center p-10"><p>Vous n'avez aucune activité à venir.</p></div>
+    if (!isLoading && bookedCarpools?.length === 0 && attendedEvents?.length === 0) return <div className="text-center p-10"><p className="text-muted-foreground">Vous n'avez aucune activité à venir.</p></div>
 
     return (
         <div className="space-y-4 p-4">
