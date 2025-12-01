@@ -104,7 +104,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.driverId) || isSignedIn();
+      allow update: if isSignedIn();
       allow delete: if isExistingOwner(resource.data.driverId);
 
       match /carpool_bookings/{carpoolBookingId} {
