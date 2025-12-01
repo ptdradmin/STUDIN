@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function ConversationList() {
     const { user } = useUser();
@@ -23,22 +24,13 @@ function ConversationList() {
         if (!user || !firestore) return null;
         return query(
             collection(firestore, 'conversations'), 
-            where('participantIds', 'array-contains', user.uid)
+            where('participantIds', 'array-contains', user.uid),
+            orderBy('updatedAt', 'desc')
         );
     }, [user, firestore]);
 
     const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
     
-    const sortedConversations = useMemo(() => {
-        if (!conversations) return [];
-        return [...conversations].sort((a, b) => {
-            const dateA = a.updatedAt?.toDate() || 0;
-            const dateB = b.updatedAt?.toDate() || 0;
-            return (dateB as number) - (dateA as number);
-        });
-    }, [conversations]);
-
-
     const getOtherParticipant = (convo: Conversation) => {
         if (!user) return null;
         const otherId = convo.participantIds.find(id => id !== user.uid);
@@ -52,13 +44,13 @@ function ConversationList() {
 
     if (isLoading) {
         return (
-             <div className="space-y-2">
+             <div className="space-y-2 p-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted animate-pulse">
-                        <div className="h-12 w-12 rounded-full bg-background"></div>
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg">
+                        <Skeleton className="h-12 w-12 rounded-full" />
                         <div className="flex-grow space-y-2">
-                            <div className="h-4 w-24 bg-background rounded"></div>
-                            <div className="h-3 w-40 bg-background rounded"></div>
+                            <Skeleton className="h-4 w-24 rounded" />
+                            <Skeleton className="h-3 w-40 rounded" />
                         </div>
                     </div>
                 ))}
@@ -66,7 +58,7 @@ function ConversationList() {
         )
     }
     
-    if (!sortedConversations || sortedConversations.length === 0) {
+    if (!conversations || conversations.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
@@ -80,7 +72,7 @@ function ConversationList() {
 
     return (
         <div className="space-y-1">
-            {sortedConversations
+            {conversations
               .map(convo => {
                 const otherParticipant = getOtherParticipant(convo);
                 if (!otherParticipant) return null;
@@ -120,7 +112,7 @@ export default function MessagesPage() {
         <div className="flex min-h-screen w-full bg-background">
             <SocialSidebar />
             <div className="flex-1 grid grid-cols-1 md:grid-cols-[350px_1fr]">
-                <aside className="border-r flex flex-col">
+                <aside className="border-r flex flex-col h-screen">
                     <div className="p-4 border-b">
                          <h1 className="text-2xl font-bold">Messages</h1>
                     </div>
