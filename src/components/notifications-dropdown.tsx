@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "./ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { Bell, Heart, Car, MessageSquare, CalendarCheck2 } from "lucide-react";
+import { Bell, Heart, Car, MessageSquare, CalendarCheck2, User } from "lucide-react";
 import Link from "next/link";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit, doc, writeBatch } from "firebase/firestore";
