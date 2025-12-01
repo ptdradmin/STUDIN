@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { toggleFavorite } from "@/lib/actions";
+import { toggleFavorite, createNotification } from "@/lib/actions";
 
 
 interface PostCardProps {
@@ -104,22 +104,35 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
 
         const postRef = doc(firestore, "posts", post.id);
         const currentLikes = optimisticLikes;
-        const newLikes = hasLiked
-            ? currentLikes.filter(uid => uid !== user.uid)
-            : [...currentLikes, user.uid];
+        const isLiking = !hasLiked;
+
+        const newLikes = isLiking
+            ? [...currentLikes, user.uid]
+            : currentLikes.filter(uid => uid !== user.uid);
 
         setOptimisticLikes(newLikes);
 
-        updateDoc(postRef, { likes: newLikes })
-            .catch(serverError => {
-                setOptimisticLikes(currentLikes);
-                const permissionError = new FirestorePermissionError({
-                    path: postRef.path,
-                    operation: 'update',
-                    requestResourceData: { likes: newLikes }
+        try {
+            await updateDoc(postRef, { likes: newLikes });
+
+            if (isLiking && post.userId !== user.uid) {
+                await createNotification(firestore, {
+                    type: 'like',
+                    senderId: user.uid,
+                    recipientId: post.userId,
+                    relatedId: post.id,
+                    message: 'a aimé votre publication.',
                 });
-                errorEmitter.emit('permission-error', permissionError);
+            }
+        } catch (serverError) {
+             setOptimisticLikes(currentLikes);
+             const permissionError = new FirestorePermissionError({
+                path: postRef.path,
+                operation: 'update',
+                requestResourceData: { likes: newLikes }
             });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     };
     
     const handleShare = () => {
@@ -163,18 +176,29 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
         
         const previousComments = optimisticComments;
         setOptimisticComments([...previousComments, newComment]);
+        const submittedComment = comment;
         setComment('');
 
-        updateDoc(postRef, { comments: arrayUnion(newComment) })
-            .catch(serverError => {
-                setOptimisticComments(previousComments);
-                const permissionError = new FirestorePermissionError({
-                    path: postRef.path,
-                    operation: 'update',
-                    requestResourceData: { comments: arrayUnion(newComment) }
+        try {
+            await updateDoc(postRef, { comments: arrayUnion(newComment) });
+            if (post.userId !== user.uid) {
+                await createNotification(firestore, {
+                    type: 'comment',
+                    senderId: user.uid,
+                    recipientId: post.userId,
+                    relatedId: post.id,
+                    message: `a commenté : "${submittedComment.substring(0,20)}..."`,
                 });
-                errorEmitter.emit('permission-error', permissionError);
+            }
+        } catch (serverError) {
+             setOptimisticComments(previousComments);
+             const permissionError = new FirestorePermissionError({
+                path: postRef.path,
+                operation: 'update',
+                requestResourceData: { comments: arrayUnion(newComment) }
             });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     }
 
 
