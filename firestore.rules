@@ -135,7 +135,8 @@ service cloud.firestore {
     // Tutoring Review Rules
     // =====================================================================
     match /tutoring_reviews/{tutoringReviewId} {
-      allow get, list: if true;
+      allow get: if true;
+      allow list: if request.query.keys().hasOnly(['tutoringId', 'orderBy', 'limit']);
       allow create: if isSignedIn() && isStudentOfTutor(request.resource.data.tutoringId, request.resource.data.studentId);
       allow update, delete: if isExistingOwner(resource.data.studentId);
     }
