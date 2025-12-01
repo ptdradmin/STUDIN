@@ -10,7 +10,7 @@ import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmar
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, updateDoc, arrayUnion, arrayRemove, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { toggleFavorite } from "@/lib/actions";
 
 
 interface PostCardProps {
@@ -39,12 +40,10 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
     const [showAllComments, setShowAllComments] = useState(false);
 
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
-    const [favoriteId, setFavoriteId] = useState<string | null>(initialFavoriteId);
     
     useEffect(() => {
         setIsSaved(isInitiallySaved);
-        setFavoriteId(initialFavoriteId);
-    }, [isInitiallySaved, initialFavoriteId]);
+    }, [isInitiallySaved]);
 
 
     const getInitials = (name: string) => {
@@ -113,10 +112,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
 
         updateDoc(postRef, { likes: newLikes })
             .catch(serverError => {
-                // Revert optimistic update on failure
                 setOptimisticLikes(currentLikes);
-
-                // Create and emit the contextual error
                 const permissionError = new FirestorePermissionError({
                     path: postRef.path,
                     operation: 'update',
@@ -127,7 +123,6 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
     };
     
     const handleShare = () => {
-        // In a real app, this would generate a shareable link to the post
         navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
         toast({
             title: "Lien copié !",
@@ -140,46 +135,15 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
              toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.'});
              return;
         }
-
-        const favoritesColRef = collection(firestore, `users/${user.uid}/favorites`);
-
-        if (isSaved && favoriteId) {
-            // Unsave optimistically
-            setIsSaved(false);
-            const favDocRef = doc(favoritesColRef, favoriteId);
-            deleteDoc(favDocRef).catch((error) => {
-                 setIsSaved(true); // Revert on failure
-                 const permissionError = new FirestorePermissionError({
-                    path: favDocRef.path,
-                    operation: 'delete',
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-            toast({ title: 'Non enregistré', description: 'Publication retirée de vos favoris.' });
-        } else {
-            // Save optimistically
-            setIsSaved(true);
-            const newFavData = {
-                userId: user.uid,
-                itemId: post.id,
-                itemType: 'post' as 'post',
-                createdAt: serverTimestamp(),
-            };
-            
-            addDoc(favoritesColRef, newFavData)
-                .then(docRef => {
-                    if (docRef) setFavoriteId(docRef.id);
-                })
-                .catch((error) => {
-                    setIsSaved(false); // Revert on failure
-                     const permissionError = new FirestorePermissionError({
-                        path: favoritesColRef.path,
-                        operation: 'create',
-                        requestResourceData: newFavData,
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
-                });
-            toast({ title: 'Enregistré', description: 'Publication ajoutée à vos favoris.' });
+        
+        const wasSaved = isSaved;
+        setIsSaved(!wasSaved);
+        try {
+            await toggleFavorite(firestore, user.uid, { id: post.id, type: 'post' }, wasSaved);
+            toast({ title: wasSaved ? 'Retiré des favoris' : 'Ajouté aux favoris' });
+        } catch (error) {
+            setIsSaved(wasSaved);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour les favoris.' });
         }
     };
 
@@ -203,7 +167,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
 
         updateDoc(postRef, { comments: arrayUnion(newComment) })
             .catch(serverError => {
-                setOptimisticComments(previousComments); // Revert on failure
+                setOptimisticComments(previousComments);
                 const permissionError = new FirestorePermissionError({
                     path: postRef.path,
                     operation: 'update',
@@ -359,5 +323,3 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
         </div>
     );
 }
-
-    
