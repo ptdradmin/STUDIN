@@ -10,7 +10,7 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search } from "lucide-react
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter } from "@/firebase";
+import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter, commitBatchNonBlocking } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, doc, writeBatch, arrayUnion, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -123,30 +123,27 @@ export default function CarpoolingPage() {
     });
     batch.set(bookingRef, bookingData);
 
-    try {
-      await batch.commit();
-      await createNotification(firestore, {
-          type: 'carpool_booking',
-          senderId: user.uid,
-          recipientId: trip.driverId,
-          relatedId: trip.id,
-          message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
-      });
-      toast({
-        title: "Réservation confirmée !",
-        description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est réservée.`,
-      });
-    } catch (error) {
-       const permissionError = new FirestorePermissionError({
-          path: `carpoolings/${trip.id} and carpool_bookings subcollection`,
-          operation: 'write',
-          requestResourceData: { 
-              carpoolingUpdate: { seatsAvailable: -1, passengerIds: user.uid },
-              bookingCreation: bookingData,
-          }
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    }
+    commitBatchNonBlocking(batch, {
+        operation: 'write',
+        path: `carpoolings/${trip.id} and carpool_bookings subcollection`,
+        requestResourceData: { 
+          carpoolingUpdate: { seatsAvailable: -1, passengerIds: user.uid },
+          bookingCreation: bookingData,
+        }
+    });
+
+    await createNotification(firestore, {
+        type: 'carpool_booking',
+        senderId: user.uid,
+        recipientId: trip.driverId,
+        relatedId: trip.id,
+        message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
+    });
+    
+    toast({
+      title: "Réservation confirmée !",
+      description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est réservée.`,
+    });
   };
 
   return (

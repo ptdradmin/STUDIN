@@ -105,6 +105,8 @@ export function commitBatchNonBlocking(batch: WriteBatch, context: { operation: 
                 operation: context.operation,
                 requestResourceData: context.requestResourceData,
             })
-        )
+        );
+        // Re-throw the original error to allow individual promise rejections to be caught if needed.
+        throw error;
     });
 }
