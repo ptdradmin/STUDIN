@@ -142,7 +142,7 @@ export default function CarpoolingPage() {
           title: "Réservation confirmée !",
           description: "Votre place a été réservée avec succès.",
       });
-    }).catch((serverError) => {
+    }).catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
           path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
           operation: 'write',
