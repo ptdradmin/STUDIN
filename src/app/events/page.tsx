@@ -282,8 +282,8 @@ export default function EventsPage() {
                                   <SelectItem value="all">Toutes</SelectItem>
                                   <SelectItem value="soirée">Soirée</SelectItem>
                                   <SelectItem value="conférence">Conférence</SelectItem>
-                                  <SelectItem value="culture">Culture</SelectItem>
                                   <SelectItem value="sport">Sport</SelectItem>
+                                  <SelectItem value="culture">Culture</SelectItem>
                               </SelectContent>
                           </Select>
                       </div>
