@@ -54,7 +54,10 @@ service cloud.firestore {
       allow list: if false; // No one can list all users
       allow create: if isOwner(userId) && hasRequiredUserFields();
       allow update: if isOwner(userId) || 
-                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']));
+                      (isSignedIn() && (
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']) ||
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingIds'])
+                      ));
       allow delete: if isOwner(userId);
       
       match /notifications/{notificationId} {
