@@ -131,15 +131,15 @@ export default function CarpoolingPage() {
     });
 
     batch.commit().catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-          path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
-          operation: 'write',
-          requestResourceData: { 
-              carpoolingUpdate: carpoolingUpdateData,
-              bookingCreation: bookingData
-          }
-      });
-      errorEmitter.emit('permission-error', permissionError);
+        const permissionError = new FirestorePermissionError({
+            path: `carpoolings/${trip.id} and carpoolings/${trip.id}/carpool_bookings subcollection`,
+            operation: 'write',
+            requestResourceData: { 
+                carpoolingUpdate: carpoolingUpdateData,
+                bookingCreation: bookingData
+            }
+        });
+        errorEmitter.emit('permission-error', permissionError);
     });
   };
 
@@ -295,3 +295,5 @@ export default function CarpoolingPage() {
     </div>
   );
 }
+
+    
