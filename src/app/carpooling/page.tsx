@@ -130,7 +130,7 @@ export default function CarpoolingPage() {
         description: `Nous traitons votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
     });
 
-    batch.commit().catch(error => {
+    batch.commit().catch((serverError) => {
       const permissionError = new FirestorePermissionError({
           path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
           operation: 'write',
@@ -295,5 +295,3 @@ export default function CarpoolingPage() {
     </div>
   );
 }
-
-    
