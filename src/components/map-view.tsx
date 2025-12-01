@@ -1,3 +1,4 @@
+
 'use client';
 
 import 'leaflet/dist/leaflet.css';
@@ -135,6 +136,7 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
       markersRef.current = L.markerClusterGroup().addTo(map);
     }
     
+    // Cleanup on unmount
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
@@ -142,64 +144,67 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
       }
     };
   }, []);
-
-  const handlePopupClick = (e: L.LeafletMouseEvent) => {
-    const content = e.target.getPopup().getContent();
-    if (typeof content === 'string' && onMarkerClick) {
-        const div = document.createElement('div');
-        div.innerHTML = content;
-        const itemElement = div.firstChild as HTMLElement;
-        const id = itemElement?.dataset.id;
-        const type = itemElement?.dataset.type;
-
-        if (id && type) {
-            const item = items.find(i => i.id === id);
-            if (item) {
-                onMarkerClick(item);
-            }
-        }
-    }
-  }
   
+  const handlePopupClick = (e: L.LeafletMouseEvent) => {
+      const popup = e.target.getPopup();
+      if (!popup || !onMarkerClick) return;
+
+      const content = popup.getContent();
+      if (typeof content !== 'string') return;
+
+      const div = document.createElement('div');
+      div.innerHTML = content;
+      const itemElement = div.firstChild as HTMLElement | null;
+      
+      const id = itemElement?.dataset.id;
+      if (id) {
+          const item = items.find(i => i.id === id);
+          if (item) {
+              onMarkerClick(item);
+          }
+      }
+  };
+
+
   useEffect(() => {
     const markers = markersRef.current;
-    if (markers) {
-      markers.clearLayers();
-      
-      if (!items || !itemType) return;
-      
-      items.forEach((item) => {
-        if (!item.coordinates || !Array.isArray(item.coordinates) || item.coordinates.length !== 2) return;
+    const map = mapInstanceRef.current;
+
+    if (!markers || !map) return;
+
+    // Clear existing layers
+    markers.clearLayers();
+
+    // Remove old listeners before adding new ones
+    map.off('popupopen', handlePopupClick);
+
+    if (!items || items.length === 0) return;
+
+    items.forEach((item) => {
+        if (!item.coordinates || !Array.isArray(item.coordinates) || item.coordinates.length !== 2) {
+            console.warn("Item skipped due to invalid coordinates:", item);
+            return;
+        }
         
         const marker = L.marker(item.coordinates as L.LatLngExpression, {
-          icon: icons[itemType],
+            icon: icons[itemType],
         }).bindPopup(getPopupContent(item, itemType));
         
-        if (onMarkerClick) {
-            marker.on('click', handlePopupClick);
-        }
-        
         markers.addLayer(marker);
-      });
+    });
 
-      if (items.length > 0 && mapInstanceRef.current) {
-        const validCoords = items
-          .map(item => item.coordinates)
-          .filter(coord => Array.isArray(coord) && coord.length === 2);
-        
-        if (validCoords.length > 0) {
-          const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
-          mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-        }
-      }
+    // Add new listener
+    if (onMarkerClick) {
+        map.on('popupopen', handlePopupClick);
     }
 
-    return () => {
-       markers?.eachLayer(layer => {
-            if (layer instanceof L.Marker) {
-                layer.off('click');
-            }
-       });
+    const validCoords = items
+        .map(item => item.coordinates)
+        .filter(coord => Array.isArray(coord) && coord.length === 2 && coord[0] != null && coord[1] != null);
+      
+    if (validCoords.length > 0) {
+        const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
     }
 
   }, [items, itemType, onMarkerClick]);
