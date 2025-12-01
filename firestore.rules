@@ -19,10 +19,6 @@ service cloud.firestore {
       return isOwner(userId) && resource != null;
     }
     
-    function isStudentOfTutor(tutoringId, studentId) {
-        return isSignedIn() && isOwner(studentId);
-    }
-
     function isDriver(carpoolingId) {
       return isSignedIn() && get(/databases/$(database)/documents/carpoolings/$(carpoolingId)).data.driverId == request.auth.uid;
     }
@@ -137,7 +133,7 @@ service cloud.firestore {
     match /tutoring_reviews/{tutoringReviewId} {
       allow get: if true;
       allow list: if request.query.keys().hasOnly(['tutoringId', 'orderBy', 'limit']);
-      allow create: if isSignedIn() && isStudentOfTutor(request.resource.data.tutoringId, request.resource.data.studentId);
+      allow create: if isSignedIn();
       allow update, delete: if isExistingOwner(resource.data.studentId);
     }
 
