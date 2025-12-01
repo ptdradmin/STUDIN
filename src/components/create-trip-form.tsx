@@ -43,12 +43,14 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
   const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
-  const onSubmit: SubmitHandler<TripFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<TripFormInputs> = (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour proposer un trajet.' });
       return;
     }
     setLoading(true);
+    onClose();
+    toast({ title: 'Création...', description: 'Votre trajet est en cours de publication.' });
 
     const carpoolingsCollection = collection(firestore, 'carpoolings');
     const newDocRef = doc(carpoolingsCollection);
@@ -61,16 +63,15 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         userAvatarUrl: user.photoURL,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        passengerIds: [],
         departureAddress: data.departureCity, // simplified
         arrivalAddress: data.arrivalCity, // simplified
         coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
     };
     
     setDocumentNonBlocking(newDocRef, tripData);
-
     toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
-    setLoading(false);
-    onClose();
+    setLoading(false); // Not strictly necessary as modal closes, but good practice.
   };
 
   return (

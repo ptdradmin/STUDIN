@@ -86,10 +86,16 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
 
     setLoading(true);
     
+    // Close form immediately for better UX
+    onClose();
+    toast({ title: isEditing ? 'Mise à jour...' : 'Création...', description: 'Votre annonce est en cours de traitement.' });
+
     try {
         let imageUrl = housingToEdit?.imageUrl;
+        const housingId = housingToEdit?.id || doc(collection(firestore, 'housings')).id;
+
         if (imageFile) {
-            const imageRef = storageRef(storage, `housings/${housingToEdit?.id || doc(collection(firestore, 'housings')).id}/${imageFile.name}`);
+            const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
             await uploadBytes(imageRef, imageFile);
             imageUrl = await getDownloadURL(imageRef);
         }
@@ -100,10 +106,10 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           updateDocumentNonBlocking(housingRef, dataToUpdate);
           toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
-            const newDocRef = doc(collection(firestore, 'housings'));
+            const newDocRef = doc(firestore, 'housings', housingId);
             const dataToCreate = {
                 ...data,
-                id: newDocRef.id,
+                id: housingId,
                 userId: user.uid,
                 username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
                 userAvatarUrl: user.photoURL,
@@ -116,11 +122,9 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
             setDocumentNonBlocking(newDocRef, dataToCreate);
             toast({ title: 'Succès', description: 'Annonce de logement créée !' });
         }
-        onClose();
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de soumettre le formulaire." });
-    } finally {
-        setLoading(false);
+        setLoading(false); // Only set loading false on error as success closes modal
     }
   };
 

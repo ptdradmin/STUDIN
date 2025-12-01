@@ -77,6 +77,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         return;
     }
     setLoading(true);
+    onClose();
+    toast({ title: 'Publication...', description: 'Votre publication est en cours de création.' });
 
     try {
         const newDocRef = doc(collection(firestore, 'posts'));
@@ -100,10 +102,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         setDocumentNonBlocking(newDocRef, postData);
         
         toast({ title: 'Succès', description: 'Publication créée !' });
-        onClose();
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
-    } finally {
         setLoading(false);
     }
   };

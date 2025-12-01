@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -61,6 +61,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         return;
     }
     setLoading(true);
+    onClose();
+    toast({ title: 'Création...', description: 'Votre événement est en cours de publication.' });
 
     try {
         const newDocRef = doc(collection(firestore, 'events'));
@@ -76,10 +78,10 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             userAvatarUrl: user.photoURL,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
+            attendeeIds: [],
             endDate: data.startDate, // simplified
             locationName: data.address, // simplified
-            latitude: 50.8503, 
-            longitude: 4.3517,
+            coordinates: [50.8503, 4.3517], 
             imageHint: "student event",
             imageUrl: imageUrl,
         };
@@ -87,10 +89,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         setDocumentNonBlocking(newDocRef, eventData);
 
         toast({ title: 'Succès', description: 'Événement créé !' });
-        onClose();
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer l'événement." });
-    } finally {
         setLoading(false);
     }
   };

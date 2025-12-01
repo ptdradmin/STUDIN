@@ -39,12 +39,14 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
   const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
-  const onSubmit: SubmitHandler<TutorFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<TutorFormInputs> = (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
     setLoading(true);
+    onClose();
+    toast({ title: 'Création...', description: 'Votre profil de tuteur est en cours de création.' });
     
     const tutoringsCollection = collection(firestore, 'tutorings');
     const newDocRef = doc(tutoringsCollection);
@@ -66,7 +68,6 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     
     toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
     setLoading(false);
-    onClose();
   };
 
   return (
