@@ -12,7 +12,7 @@ import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@
 import type { Tutor, TutoringReview, UserProfile } from '@/lib/types';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
-import UserSearch from '@/components/user-search';
+import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -147,7 +147,7 @@ export default function TutorProfilePage() {
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div className="hidden md:flex flex-1 max-w-md items-center">
-                    <UserSearch />
+                    <GlobalSearch />
                 </div>
                 <div className="flex-1 md:hidden">
                     <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>

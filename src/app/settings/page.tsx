@@ -44,7 +44,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import SocialSidebar from "@/components/social-sidebar";
-import UserSearch from "@/components/user-search";
+import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
 
 const SettingsItem = ({
@@ -153,7 +153,7 @@ export default function SettingsPage() {
         <div className="flex flex-col flex-1">
              <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="hidden md:flex flex-1 max-w-md items-center">
-                    <UserSearch />
+                    <GlobalSearch />
                 </div>
                 <div className="flex-1 md:hidden">
                     <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>

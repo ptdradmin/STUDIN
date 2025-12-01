@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, Plus } from 'lucide-react';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import UserSearch from '@/components/user-search';
+import GlobalSearch from '@/components/global-search';
 import SocialSidebar from '@/components/social-sidebar';
 
 function SuggestionsSkeleton() {
@@ -206,7 +206,7 @@ export default function SocialPage() {
             </div>
 
             <div className="hidden md:flex flex-1 max-w-md items-center">
-                <UserSearch />
+                <GlobalSearch />
             </div>
 
             <div className="flex items-center gap-2 flex-1 justify-end">
