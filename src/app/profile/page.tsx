@@ -20,6 +20,10 @@ import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import HousingCard from '@/components/housing-card';
+import HousingDetailModal from '@/components/housing-detail-modal';
+import { toggleFavorite } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
     if (isLoading) {
@@ -190,7 +194,6 @@ const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     )
 }
 
-
 function ProfilePageSkeleton() {
     return (
         <div className="mx-auto max-w-4xl">
@@ -234,9 +237,11 @@ export default function CurrentUserProfilePage() {
   const { user, isUserLoading } = useUser();
   const { auth, firestore } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [modalContent, setModalContent] = useState<{title: string, userIds: string[]} | null>(null);
+  const [selectedHousing, setSelectedHousing] = useState<Housing | null>(null);
 
   const userRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -252,24 +257,45 @@ export default function CurrentUserProfilePage() {
 
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
+      return query(collection(firestore, `users/${user.uid}/favorites`));
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
-  const savedPostIds = useMemo(() => {
-      if (!favoriteItems) return [];
-      const postIds = favoriteItems.filter(f => f.itemType === 'post').map(fav => fav.itemId);
-      return postIds;
+  const savedItemIds = useMemo(() => {
+    const ids = { post: [], housing: [], event: [], tutor: [] };
+    if (favoriteItems) {
+      favoriteItems.forEach(fav => {
+        if (ids[fav.itemType]) {
+          ids[fav.itemType].push(fav.itemId);
+        }
+      });
+    }
+    return ids;
   }, [favoriteItems]);
 
   const savedPostsQuery = useMemoFirebase(() => {
-    if (!firestore || savedPostIds.length === 0) return null;
-    // Firestore 'in' queries are limited to 30 documents. For this app, we'll cap it.
-    const safePostIds = savedPostIds.length > 30 ? savedPostIds.slice(0, 30) : savedPostIds;
-    return query(collection(firestore, 'posts'), where(documentId(), 'in', safePostIds));
-  }, [firestore, savedPostIds]);
+    if (!firestore || savedItemIds.post.length === 0) return null;
+    return query(collection(firestore, 'posts'), where(documentId(), 'in', savedItemIds.post.slice(0, 30)));
+  }, [firestore, savedItemIds.post]);
   const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
+  const savedHousingsQuery = useMemoFirebase(() => {
+    if (!firestore || savedItemIds.housing.length === 0) return null;
+    return query(collection(firestore, 'housings'), where(documentId(), 'in', savedItemIds.housing.slice(0, 30)));
+  }, [firestore, savedItemIds.housing]);
+  const { data: savedHousings, isLoading: savedHousingsLoading } = useCollection<Housing>(savedHousingsQuery);
+  
+  const savedEventsQuery = useMemoFirebase(() => {
+    if (!firestore || savedItemIds.event.length === 0) return null;
+    return query(collection(firestore, 'events'), where(documentId(), 'in', savedItemIds.event.slice(0, 30)));
+  }, [firestore, savedItemIds.event]);
+  const { data: savedEvents, isLoading: savedEventsLoading } = useCollection<Event>(savedEventsQuery);
+
+  const savedTutorsQuery = useMemoFirebase(() => {
+    if (!firestore || savedItemIds.tutor.length === 0) return null;
+    return query(collection(firestore, 'tutorings'), where(documentId(), 'in', savedItemIds.tutor.slice(0, 30)));
+  }, [firestore, savedItemIds.tutor]);
+  const { data: savedTutors, isLoading: savedTutorsLoading } = useCollection<Tutor>(savedTutorsQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -283,6 +309,20 @@ export default function CurrentUserProfilePage() {
         router.push('/');
     }
   }
+
+    const handleToggleFavorite = async (item: {id: string, type: Favorite['itemType']}) => {
+        if (!user || !firestore) {
+            toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
+            return;
+        }
+        const isFavorited = favoriteItems?.some(fav => fav.itemId === item.id) || false;
+        try {
+            await toggleFavorite(firestore, user.uid, item, isFavorited);
+            toast({ title: isFavorited ? 'Retiré des favoris' : 'Ajouté aux favoris' });
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour les favoris.' });
+        }
+    };
   
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
@@ -297,6 +337,8 @@ export default function CurrentUserProfilePage() {
 
   const followersCount = userProfile?.followerIds?.length || 0;
   const followingCount = userProfile?.followingIds?.length || 0;
+
+  const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading;
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -314,6 +356,8 @@ export default function CurrentUserProfilePage() {
                 </div>
             </header>
             <main className="flex-1 overflow-y-auto">
+                {selectedHousing && <HousingDetailModal housing={selectedHousing} onClose={() => setSelectedHousing(null)} />}
+
                 <div className="container mx-auto px-4 py-8">
                     {loading || !user || !userProfile ? <ProfilePageSkeleton /> : (
                         <div className="mx-auto max-w-4xl">
@@ -397,16 +441,76 @@ export default function CurrentUserProfilePage() {
                                 <TabsContent value="activities">
                                     <MyActivities user={user} />
                                 </TabsContent>
-                                <TabsContent value="saved">
-                                    {(savedPostsLoading || favoritesLoading) ? (
-                                        <ProfileGrid posts={[]} isLoading={true} />
-                                    ) : savedPosts && savedPosts.length > 0 ? (
-                                        <ProfileGrid posts={savedPosts} />
-                                    ) : (
-                                        <div className="text-center p-10">
-                                            <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
-                                            <p className="text-muted-foreground text-sm">Les publications que vous enregistrez apparaîtront ici.</p>
+                                <TabsContent value="saved" className="p-4">
+                                     {savedItemsLoading ? (
+                                        <div className="space-y-4">
+                                          <Skeleton className="h-24 w-full" />
+                                          <Skeleton className="h-24 w-full" />
                                         </div>
+                                    ) : (
+                                      (savedPosts?.length || 0) + (savedHousings?.length || 0) + (savedEvents?.length || 0) + (savedTutors?.length || 0) === 0 ? (
+                                        <div className="text-center py-10">
+                                            <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
+                                            <p className="text-muted-foreground text-sm">Les éléments que vous enregistrez apparaîtront ici.</p>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-6">
+                                          {savedHousings && savedHousings.length > 0 && (
+                                              <div>
+                                                  <h3 className="font-semibold mb-2">Logements</h3>
+                                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={setSelectedHousing} />)}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          {savedEvents && savedEvents.length > 0 && (
+                                              <div>
+                                                  <h3 className="font-semibold mb-2">Événements</h3>
+                                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                      {savedEvents.map(e => (
+                                                        <Link href={`/events`} key={e.id}>
+                                                          <Card className="hover:bg-muted/50 transition-colors">
+                                                              <CardContent className="p-4 flex items-center gap-4">
+                                                                  <PartyPopper className="h-5 w-5 text-primary" />
+                                                                  <div><p className="font-semibold">{e.title}</p></div>
+                                                              </CardContent>
+                                                          </Card>
+                                                        </Link>
+                                                      ))}
+                                                  </div>
+                                              </div>
+                                          )}
+                                           {savedTutors && savedTutors.length > 0 && (
+                                              <div>
+                                                  <h3 className="font-semibold mb-2">Tuteurs</h3>
+                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                      {savedTutors.map(t => (
+                                                        <Link href={`/tutoring/${t.id}`} key={t.id}>
+                                                          <Card className="hover:bg-muted/50 transition-colors">
+                                                              <CardContent className="p-4 flex items-center gap-4">
+                                                                  <BookOpen className="h-5 w-5 text-primary" />
+                                                                  <div><p className="font-semibold">{t.subject} par {t.username}</p></div>
+                                                              </CardContent>
+                                                          </Card>
+                                                        </Link>
+                                                      ))}
+                                                  </div>
+                                              </div>
+                                          )}
+                                          {savedPosts && savedPosts.length > 0 && (
+                                            <div>
+                                              <h3 className="font-semibold mb-2">Publications</h3>
+                                              <div className="columns-2 md:columns-3 gap-4 space-y-4">
+                                                {savedPosts.map(p => (
+                                                  <div key={p.id} className="break-inside-avoid">
+                                                    <Image src={p.imageUrl!} alt={p.caption} width={300} height={300} className="rounded-lg w-full h-auto" />
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      )
                                     )}
                                 </TabsContent>
                             </Tabs>
@@ -418,8 +522,3 @@ export default function CurrentUserProfilePage() {
     </div>
   );
 }
-
-    
-
-    
-

@@ -8,9 +8,9 @@ import { LayoutGrid, Map, Plus, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Housing } from '@/lib/types';
+import type { Housing, Favorite } from '@/lib/types';
 import CreateHousingForm from '@/components/create-housing-form';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -43,6 +43,13 @@ export default function HousingPage() {
   }, [firestore]);
 
   const { data: housings, isLoading } = useCollection<Housing>(housingsCollection);
+
+  const favoritesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'housing'));
+  }, [user, firestore]);
+  const { data: favorites } = useCollection<Favorite>(favoritesQuery);
+  const favoritedIds = useMemo(() => new Set(favorites?.map(f => f.itemId)), [favorites]);
 
   const filteredHousings = useMemo(() => {
     if (!housings) return [];
@@ -156,6 +163,7 @@ export default function HousingPage() {
                     isLoading={isLoading} 
                     onEdit={handleEdit}
                     onCardClick={handleCardClick}
+                    favoritedIds={favoritedIds}
                 />
                 )}
                 {viewMode === 'map' && (

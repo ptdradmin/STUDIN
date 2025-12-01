@@ -15,10 +15,11 @@ import {
   query,
   where,
   setDoc,
+  deleteDoc,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
-import type { UserProfile, Notification } from './types';
+import type { UserProfile, Notification, Favorite } from './types';
 
 
 /**
@@ -155,5 +156,49 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
         errorEmitter.emit('permission-error', permissionError);
         // We re-throw the original error to let the caller know something went wrong.
         throw serverError;
+    }
+};
+
+export const toggleFavorite = async (
+    firestore: Firestore,
+    userId: string,
+    item: { id: string; type: Favorite['itemType'] },
+    isCurrentlyFavorited: boolean
+) => {
+    const favoritesColRef = collection(firestore, `users/${userId}/favorites`);
+    
+    if (isCurrentlyFavorited) {
+        // Un-favorite: find and delete the favorite document
+        const q = query(favoritesColRef, where("itemId", "==", item.id));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            const favDoc = querySnapshot.docs[0];
+            await deleteDoc(favDoc.ref).catch((error) => {
+                const permissionError = new FirestorePermissionError({
+                    path: favDoc.ref.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                throw error;
+            });
+        }
+    } else {
+        // Favorite: add a new favorite document
+        const newFavData: Omit<Favorite, 'id'> = {
+            userId: userId,
+            itemId: item.id,
+            itemType: item.type,
+            createdAt: serverTimestamp() as any,
+        };
+        const newDocRef = doc(favoritesColRef);
+        await setDoc(newDocRef, {...newFavData, id: newDocRef.id }).catch((error) => {
+            const permissionError = new FirestorePermissionError({
+                path: newDocRef.path,
+                operation: 'create',
+                requestResourceData: newFavData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw error;
+        });
     }
 };

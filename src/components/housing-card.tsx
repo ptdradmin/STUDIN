@@ -2,11 +2,11 @@
 'use client';
 
 import Image from "next/image";
-import type { Housing } from "@/lib/types";
+import type { Housing, Favorite } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon } from "lucide-react";
+import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon, Bookmark } from "lucide-react";
 import { useUser, useFirestore } from "@/firebase";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc } from "firebase/firestore";
@@ -31,18 +31,26 @@ import {
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { getOrCreateConversation } from "@/lib/conversations";
+import { toggleFavorite } from "@/lib/actions";
+import { useState, useEffect } from "react";
 
 interface HousingCardProps {
     housing: Housing;
     onEdit: (housing: Housing) => void;
     onClick: (housing: Housing) => void;
+    isFavorited?: boolean;
 }
 
-export default function HousingCard({ housing, onEdit, onClick }: HousingCardProps) {
+export default function HousingCard({ housing, onEdit, onClick, isFavorited = false }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
+    const [isSaved, setIsSaved] = useState(isFavorited);
+
+    useEffect(() => {
+        setIsSaved(isFavorited);
+    }, [isFavorited]);
     
     const isOwner = user && user.uid === housing.userId;
 
@@ -63,7 +71,7 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
     };
 
     const handleCardClick = (e: React.MouseEvent) => {
-        // Prevent click event from firing when interacting with dropdown or contact button
+        // Prevent click event from firing when interacting with dropdown or buttons
         const target = e.target as HTMLElement;
         if (target.closest('[data-radix-dropdown-menu-trigger]') || target.closest('button')) {
             return;
@@ -71,7 +79,8 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
         onClick(housing);
     }
     
-    const handleContact = async () => {
+    const handleContact = async (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (!user || !firestore) {
             router.push('/login?from=/housing');
             return;
@@ -83,6 +92,24 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
             toast({ title: "Erreur", description: "Impossible de démarrer la conversation", variant: "destructive" });
         }
     }
+
+    const handleFavoriteClick = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user || !firestore) {
+            toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
+            return;
+        }
+        const wasSaved = isSaved;
+        setIsSaved(!wasSaved); 
+        try {
+            await toggleFavorite(firestore, user.uid, { id: housing.id, type: 'housing' }, wasSaved);
+            toast({ title: wasSaved ? 'Retiré des favoris' : 'Ajouté aux favoris' });
+        } catch (error) {
+            setIsSaved(wasSaved); // Revert on error
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour les favoris.' });
+        }
+    };
+
 
     return (
         <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer">
@@ -98,6 +125,13 @@ export default function HousingCard({ housing, onEdit, onClick }: HousingCardPro
                 <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                     {housing.type}
                 </Badge>
+                <div className="absolute top-1 right-12">
+                   {user && !isOwner && (
+                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={handleFavoriteClick}>
+                            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+                        </Button>
+                    )}
+                </div>
                  {isOwner && (
                     <div className="absolute top-1 left-1">
                         <DropdownMenu>

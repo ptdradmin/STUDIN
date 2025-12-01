@@ -11,9 +11,10 @@ interface HousingListingsProps {
     isLoading: boolean;
     onEdit: (housing: Housing) => void;
     onCardClick: (housing: Housing) => void;
+    favoritedIds: Set<string>;
 }
 
-export default function HousingListings({ housings, isLoading, onEdit, onCardClick }: HousingListingsProps) {
+export default function HousingListings({ housings, isLoading, onEdit, onCardClick, favoritedIds }: HousingListingsProps) {
   
   if (isLoading) {
     return (
@@ -45,7 +46,8 @@ export default function HousingListings({ housings, isLoading, onEdit, onCardCli
                         key={housing.id} 
                         housing={housing}
                         onEdit={onEdit} 
-                        onClick={onCardClick} 
+                        onClick={onCardClick}
+                        isFavorited={favoritedIds.has(housing.id)}
                     />
                 ))}
             </div>

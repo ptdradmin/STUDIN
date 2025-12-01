@@ -6,21 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Star, LayoutGrid, Map, Plus, Search } from "lucide-react";
+import { Star, LayoutGrid, Map, Plus, Search, Bookmark } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Tutor } from "@/lib/types";
+import type { Tutor, Favorite } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { toggleFavorite } from '@/lib/actions';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -32,6 +34,7 @@ export default function TutoringPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
   
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -46,6 +49,13 @@ export default function TutoringPage() {
 
   const { data: tutors, isLoading } = useCollection<Tutor>(tutorsCollection);
 
+  const favoritesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'tutor'));
+  }, [user, firestore]);
+  const { data: favorites } = useCollection<Favorite>(favoritesQuery);
+  const favoritedIds = useMemo(() => new Set(favorites?.map(f => f.itemId)), [favorites]);
+
   const filteredTutors = useMemo(() => {
     if (!tutors) return [];
     return tutors.filter(tutor => {
@@ -54,6 +64,21 @@ export default function TutoringPage() {
       return subjectMatch && levelMatch;
     });
   }, [tutors, subjectFilter, levelFilter]);
+
+  const handleFavoriteClick = async (e: React.MouseEvent, tutor: Tutor, isFavorited: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user || !firestore) {
+      toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
+      return;
+    }
+    try {
+      await toggleFavorite(firestore, user.uid, { id: tutor.id, type: 'tutor' }, isFavorited);
+      toast({ title: isFavorited ? 'Retiré des favoris' : 'Ajouté aux favoris' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour les favoris.' });
+    }
+  };
 
 
   const renderList = () => {
@@ -92,9 +117,16 @@ export default function TutoringPage() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTutors && filteredTutors.map(tutor => {
+              const isFavorited = favoritedIds.has(tutor.id);
+              const isOwner = user?.uid === tutor.tutorId;
               return (
                   <Link href={`/tutoring/${tutor.id}`} key={tutor.id} className="block h-full">
-                    <Card className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full">
+                    <Card className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full relative">
+                        {user && !isOwner && (
+                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 right-2" onClick={(e) => handleFavoriteClick(e, tutor, isFavorited)}>
+                                <Bookmark className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+                            </Button>
+                        )}
                         <div className="flex-shrink-0">
                         <Image src={tutor.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.username || "tuteur"} width={96} height={96} className="rounded-full" />
                         </div>

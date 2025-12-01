@@ -6,21 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, LayoutGrid, Map, Plus, Search, User } from "lucide-react";
+import { MapPin, LayoutGrid, Map, Plus, Search, User, Bookmark } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Event } from "@/lib/types";
+import type { Event, Favorite } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter } from '@/firebase';
-import { collection, doc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, arrayUnion, serverTimestamp, query, where } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
 import UserSearch from '@/components/user-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import { createNotification } from '@/lib/actions';
+import { createNotification, toggleFavorite } from '@/lib/actions';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -47,6 +47,13 @@ export default function EventsPage() {
   }, [firestore]);
 
   const { data: events, isLoading } = useCollection<Event>(eventsCollection);
+
+  const favoritesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'event'));
+  }, [user, firestore]);
+  const { data: favorites } = useCollection<Favorite>(favoritesQuery);
+  const favoritedIds = useMemo(() => new Set(favorites?.map(f => f.itemId)), [favorites]);
 
   useEffect(() => {
     if (!events || !firestore) return;
@@ -128,6 +135,20 @@ export default function EventsPage() {
     }
   };
 
+    const handleFavoriteClick = async (event: Event, isFavorited: boolean) => {
+        if (!user || !firestore) {
+            toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
+            return;
+        }
+        try {
+            await toggleFavorite(firestore, user.uid, { id: event.id, type: 'event' }, isFavorited);
+            toast({ title: isFavorited ? 'Retiré des favoris' : 'Ajouté aux favoris' });
+        } catch (e) {
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour les favoris.' });
+        }
+    };
+
+
   const renderList = () => {
     if (isLoading) {
       return (
@@ -162,11 +183,18 @@ export default function EventsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents && filteredEvents.map(event => {
               const isAttending = user && (event.attendeeIds || []).includes(user.uid);
+              const isFavorited = favoritedIds.has(event.id);
+              const isOwner = user?.uid === event.organizerId;
               return (
                 <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
                     <div className="relative">
                         <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
                         <Badge className="absolute top-2 right-2">{event.category}</Badge>
+                         {user && !isOwner && (
+                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 left-2" onClick={() => handleFavoriteClick(event, isFavorited)}>
+                                <Bookmark className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+                            </Button>
+                        )}
                     </div>
                     <CardContent className="p-4 flex flex-col flex-grow">
                         <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
@@ -175,7 +203,7 @@ export default function EventsPage() {
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                             {event.city}
                         </p>
-                        <Button className="w-full mt-4" onClick={() => handleAttend(event)} disabled={isAttending || event.organizerId === user?.uid}>
+                        <Button className="w-full mt-4" onClick={() => handleAttend(event)} disabled={isAttending || isOwner}>
                           {isAttending ? 'Vous participez' : 'Participer'}
                         </Button>
                     </CardContent>
