@@ -1,3 +1,4 @@
+
 'use client';
 
 import 'leaflet/dist/leaflet.css';
@@ -126,13 +127,29 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
       });
       mapInstanceRef.current = map;
 
-      L.tileLayer(
+      const planLayer = L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
         {
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         }
-      ).addTo(map);
+      );
+      
+       const satelliteLayer = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        {
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        }
+      );
+
+      const baseMaps = {
+          "Plan": planLayer,
+          "Satellite": satelliteLayer
+      };
+
+      planLayer.addTo(map); // Default layer
+      L.control.layers(baseMaps).addTo(map);
+
 
       markersRef.current = L.markerClusterGroup().addTo(map);
 
