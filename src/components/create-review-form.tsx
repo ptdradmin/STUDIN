@@ -49,55 +49,50 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
     }
     setLoading(true);
 
-    try {
-        const reviewRef = doc(collection(firestore, 'tutoring_reviews'));
-        const tutorRef = doc(firestore, 'tutorings', tutor.id);
+    const reviewRef = doc(collection(firestore, 'tutoring_reviews'));
+    const tutorRef = doc(firestore, 'tutorings', tutor.id);
 
-        const reviewData = {
-            id: reviewRef.id,
-            tutoringId: tutor.id,
-            studentId: user.uid,
-            studentName: user.displayName || 'Anonyme',
-            studentAvatar: user.photoURL,
-            ...data,
-            createdAt: serverTimestamp(),
-        };
+    const reviewData = {
+        id: reviewRef.id,
+        tutoringId: tutor.id,
+        studentId: user.uid,
+        studentName: user.displayName || 'Anonyme',
+        studentAvatar: user.photoURL,
+        ...data,
+        createdAt: serverTimestamp(),
+    };
 
-        await runTransaction(firestore, async (transaction) => {
-            const tutorDoc = await transaction.get(tutorRef);
-            if (!tutorDoc.exists()) {
-                throw "Le profil du tuteur n'existe pas !";
-            }
+    runTransaction(firestore, async (transaction) => {
+        const tutorDoc = await transaction.get(tutorRef);
+        if (!tutorDoc.exists()) {
+            throw "Le profil du tuteur n'existe pas !";
+        }
 
-            const oldTotalReviews = tutorDoc.data().totalReviews || 0;
-            const oldAverageRating = tutorDoc.data().rating || 0;
+        const oldTotalReviews = tutorDoc.data().totalReviews || 0;
+        const oldAverageRating = tutorDoc.data().rating || 0;
 
-            const newTotalReviews = oldTotalReviews + 1;
-            const newAverageRating = ((oldAverageRating * oldTotalReviews) + data.rating) / newTotalReviews;
+        const newTotalReviews = oldTotalReviews + 1;
+        const newAverageRating = ((oldAverageRating * oldTotalReviews) + data.rating) / newTotalReviews;
 
-            transaction.set(reviewRef, reviewData);
-            transaction.update(tutorRef, { 
-                totalReviews: newTotalReviews,
-                rating: newAverageRating,
-            });
+        transaction.set(reviewRef, reviewData);
+        transaction.update(tutorRef, { 
+            totalReviews: newTotalReviews,
+            rating: newAverageRating,
         });
-        
+    }).then(() => {
         toast({ title: 'Succès', description: 'Avis publié !' });
         onReviewSubmitted();
         onClose();
-
-    } catch (error: any) {
-        // Since runTransaction has its own error handling, we'll emit a generic error
-        // for permission issues within the transaction.
-        const permissionError = new FirestorePermissionError({
-            path: `tutoring_reviews or tutorings/${tutor.id}`,
+    }).catch((error) => {
+         const permissionError = new FirestorePermissionError({
+            path: `tutoring_reviews ou tutorings/${tutor.id}`,
             operation: 'write', // 'write' covers set and update in a transaction
             requestResourceData: { review: data, tutorId: tutor.id },
         });
         errorEmitter.emit('permission-error', permissionError);
-    } finally {
+    }).finally(() => {
         setLoading(false);
-    }
+    });
   };
 
   return (
