@@ -86,7 +86,7 @@ export default function CarpoolingPage() {
     });
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
- const handleReserve = (trip: Trip) => {
+ const handleReserve = async (trip: Trip) => {
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
@@ -104,6 +104,11 @@ export default function CarpoolingPage() {
         return;
     }
 
+    toast({
+        title: "Réservation en cours...",
+        description: `Nous traitons votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
+    });
+    
     const batch = writeBatch(firestore);
     const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
     const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
@@ -124,13 +129,21 @@ export default function CarpoolingPage() {
 
     batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
-    
-    toast({
-        title: "Réservation en cours...",
-        description: `Nous traitons votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
-    });
 
-    batch.commit().catch(async (serverError) => {
+    try {
+        await batch.commit();
+        await createNotification(firestore, {
+            type: 'carpool_booking',
+            senderId: user.uid,
+            recipientId: trip.driverId,
+            relatedId: trip.id,
+            message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
+        });
+        toast({
+            title: "Réservation confirmée !",
+            description: "Votre place a été réservée avec succès.",
+        });
+    } catch (serverError) {
         const permissionError = new FirestorePermissionError({
             path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
             operation: 'write',
@@ -140,7 +153,7 @@ export default function CarpoolingPage() {
             }
         });
         errorEmitter.emit('permission-error', permissionError);
-    });
+    }
   };
 
   return (
@@ -294,7 +307,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-    
-
-    
