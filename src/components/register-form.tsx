@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -10,12 +10,11 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { useAuth, useFirestore } from '@/firebase';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 
@@ -86,32 +85,6 @@ export default function RegisterForm() {
     },
   });
 
-  // Effect to handle user creation post-auth, non-blocking
-  useEffect(() => {
-    if (!auth || !firestore) return;
-  
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user && user.metadata.creationTime === user.metadata.lastSignInTime) {
-        // This is a new user
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (!userDoc.exists()) {
-          // If the document doesn't exist, it means our form data wasn't pre-populated,
-          // so this is likely a Google Sign-In or a case where the form submission
-          // logic needs to be completed here.
-          const registrationData = (window as any).__REGISTRATION_DATA__;
-          await createUserDocument(user, registrationData || {});
-          delete (window as any).__REGISTRATION_DATA__;
-
-          handleSuccess();
-        }
-      }
-    });
-
-    return () => unsubscribe();
-  }, [auth, firestore]);
-
   const isUsernameUnique = async (username: string) => {
     if (!firestore) return false;
     const usersRef = collection(firestore, 'users');
@@ -123,56 +96,51 @@ export default function RegisterForm() {
   const createUserDocument = async (user: User, additionalData: Partial<RegisterFormValues> = {}) => {
       if (!firestore) return;
       const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
 
-      if (!userDoc.exists()) {
-        const { email, displayName, photoURL } = user;
-        const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
+      const { email, displayName, photoURL } = user;
+      const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
 
-        const firstName = additionalData.firstName || firstNameFromProvider || '';
-        const lastName = additionalData.lastName || lastNameFromProvider || '';
-        
-        let username = additionalData.username || '';
-        if (!username) {
-            let base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
-            username = base.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-            let isUnique = await isUsernameUnique(username);
-            let counter = 1;
-            while(!isUnique) {
-                const newUsername = `${username}${counter}`;
-                isUnique = await isUsernameUnique(newUsername);
-                if (isUnique) {
-                    username = newUsername;
-                }
-                counter++;
-            }
-        }
+      const firstName = additionalData.firstName || firstNameFromProvider || '';
+      const lastName = additionalData.lastName || lastNameFromProvider || '';
+      
+      let username = additionalData.username || '';
+      if (!username) {
+          let base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
+          username = base.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+          let isUnique = await isUsernameUnique(username);
+          let counter = 1;
+          while(!isUnique) {
+              const newUsername = `${username}${counter}`;
+              isUnique = await isUsernameUnique(newUsername);
+              if (isUnique) {
+                  username = newUsername;
+              }
+              counter++;
+          }
+      }
 
-        const userData = {
-            id: user.uid,
-            email,
-            username,
-            firstName,
-            lastName,
-            postalCode: additionalData.postalCode || '',
-            city: additionalData.city || '',
-            university: additionalData.university || '',
-            fieldOfStudy: additionalData.fieldOfStudy || '',
-            profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
-            followerIds: [],
-            followingIds: [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-        
-        // This is still an await, but it happens in the background via onAuthStateChanged
-        await setDoc(userDocRef, userData, { merge: true });
+      const userData = {
+          id: user.uid,
+          email,
+          username,
+          firstName,
+          lastName,
+          postalCode: additionalData.postalCode || '',
+          city: additionalData.city || '',
+          university: additionalData.university || '',
+          fieldOfStudy: additionalData.fieldOfStudy || '',
+          profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+          followerIds: [],
+          followingIds: [],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+      };
+      
+      await setDoc(userDocRef, userData);
 
-        // Also update the auth profile
-        const newDisplayName = `${firstName} ${lastName}`;
-        if(user.displayName !== newDisplayName || user.photoURL !== userData.profilePicture) {
-          await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
-        }
+      const newDisplayName = `${firstName} ${lastName}`;
+      if(auth?.currentUser && (auth.currentUser.displayName !== newDisplayName || auth.currentUser.photoURL !== userData.profilePicture)) {
+        await updateProfile(auth.currentUser, { displayName: newDisplayName, photoURL: userData.profilePicture });
       }
   }
 
@@ -203,8 +171,9 @@ export default function RegisterForm() {
     setLoading('google');
     const provider = new GoogleAuthProvider();
     try {
-      // This will trigger the onAuthStateChanged listener for the new user
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await createUserDocument(result.user);
+      handleSuccess();
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -229,23 +198,12 @@ export default function RegisterForm() {
     }
 
     try {
-        // Store data to be used by onAuthStateChanged
-        (window as any).__REGISTRATION_DATA__ = data;
-        
-        // Non-blocking call
-        createUserWithEmailAndPassword(auth, data.email, data.password).catch(error => {
-            // Handle auth error immediately, but don't block
-            handleError(error);
-            delete (window as any).__REGISTRATION_DATA__;
-            setLoading('');
-        });
-
-        // Redirect immediately, user creation happens in background
-        toast({ title: "Finalisation de l'inscription...", description: "Veuillez patienter." });
-        router.push('/social');
-
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      await createUserDocument(userCredential.user, data);
+      handleSuccess();
     } catch (error: any) {
         handleError(error);
+    } finally {
         setLoading('');
     }
   };

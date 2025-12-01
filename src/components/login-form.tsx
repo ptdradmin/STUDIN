@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider, User } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 
 
@@ -29,11 +29,20 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(''); // can be 'google', 'microsoft', 'email'
+  const [loading, setLoading] = useState(''); // can be 'google', 'email'
   const router = useRouter();
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
+
+  const isUsernameUnique = async (username: string) => {
+    if (!firestore) return false;
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('username', '==', username));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+  };
+
 
   const createUserDocument = async (user: User) => {
     if (!firestore) return;
@@ -44,16 +53,35 @@ export default function LoginForm() {
       const { email, displayName, photoURL } = user;
       const [firstName, lastName] = displayName?.split(' ') || ['', ''];
       
+      let username = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
+      username = username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+      
+      let isUnique = await isUsernameUnique(username);
+      let counter = 1;
+      while(!isUnique) {
+          const newUsername = `${username}${counter}`;
+          isUnique = await isUsernameUnique(newUsername);
+          if (isUnique) {
+              username = newUsername;
+          }
+          counter++;
+      }
+
       const userData = {
         id: user.uid,
         email,
+        username,
         firstName,
         lastName,
         university: '',
         fieldOfStudy: '',
+        postalCode: '',
+        city: '',
         profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        followerIds: [],
+        followingIds: [],
       };
       await setDoc(userDocRef, userData, { merge: true });
     }
@@ -66,6 +94,7 @@ export default function LoginForm() {
       });
       const from = searchParams.get('from') || '/social';
       router.push(from);
+      router.refresh();
   }
 
   const handleError = (error: any) => {
