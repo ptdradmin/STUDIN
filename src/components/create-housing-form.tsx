@@ -85,28 +85,27 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     }
 
     setLoading(true);
-    
-    // Close form immediately for better UX
     onClose();
     toast({ title: isEditing ? 'Mise à jour...' : 'Création...', description: 'Votre annonce est en cours de traitement.' });
 
     try {
-        let imageUrl = housingToEdit?.imageUrl;
         const housingId = housingToEdit?.id || doc(collection(firestore, 'housings')).id;
-
-        if (imageFile) {
-            const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
-            await uploadBytes(imageRef, imageFile);
-            imageUrl = await getDownloadURL(imageRef);
-        }
+        const housingRef = doc(firestore, 'housings', housingId);
 
         if (isEditing && housingToEdit) {
-          const housingRef = doc(firestore, 'housings', housingToEdit.id);
-          const dataToUpdate = { ...data, imageUrl, updatedAt: serverTimestamp() };
-          updateDocumentNonBlocking(housingRef, dataToUpdate);
-          toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
+            const dataToUpdate = { ...data, updatedAt: serverTimestamp() };
+            updateDocumentNonBlocking(housingRef, dataToUpdate);
+
+            if (imageFile) {
+                const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
+                uploadBytes(imageRef, imageFile).then(snapshot => {
+                    getDownloadURL(snapshot.ref).then(imageUrl => {
+                        updateDocumentNonBlocking(housingRef, { imageUrl });
+                    });
+                });
+            }
+            toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
-            const newDocRef = doc(firestore, 'housings', housingId);
             const dataToCreate = {
                 ...data,
                 id: housingId,
@@ -117,9 +116,18 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 updatedAt: serverTimestamp(),
                 coordinates: [50.8503, 4.3517], // TODO: Geocode address
                 imageHint: "student room",
-                imageUrl,
+                imageUrl: '', // Initially empty
             };
-            setDocumentNonBlocking(newDocRef, dataToCreate);
+            setDocumentNonBlocking(housingRef, dataToCreate);
+
+            if (imageFile) {
+                const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
+                uploadBytes(imageRef, imageFile).then(snapshot => {
+                    getDownloadURL(snapshot.ref).then(imageUrl => {
+                        updateDocumentNonBlocking(housingRef, { imageUrl });
+                    });
+                });
+            }
             toast({ title: 'Succès', description: 'Annonce de logement créée !' });
         }
     } catch(error: any) {

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -82,10 +82,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
     try {
         const newDocRef = doc(collection(firestore, 'posts'));
-        const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(imageRef);
-
+        
         const postData = {
             ...data,
             id: newDocRef.id,
@@ -96,10 +93,19 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             updatedAt: serverTimestamp(),
             likes: [],
             comments: [],
-            imageUrl,
+            imageUrl: '', // Initially empty
         };
-
+        
+        // Create document immediately
         setDocumentNonBlocking(newDocRef, postData);
+        
+        // Upload image and update in background
+        const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
+        uploadBytes(imageRef, imageFile).then(snapshot => {
+            getDownloadURL(snapshot.ref).then(imageUrl => {
+                updateDocumentNonBlocking(newDocRef, { imageUrl });
+            });
+        });
         
         toast({ title: 'Succès', description: 'Publication créée !' });
     } catch(error: any) {

@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -66,9 +66,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
     try {
         const newDocRef = doc(collection(firestore, 'events'));
-        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(imageRef);
 
         const eventData = {
             ...data,
@@ -83,10 +80,19 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             locationName: data.address, // simplified
             coordinates: [50.8503, 4.3517], 
             imageHint: "student event",
-            imageUrl: imageUrl,
+            imageUrl: '', // Initially empty
         };
 
+        // Create document immediately without image URL
         setDocumentNonBlocking(newDocRef, eventData);
+
+        // Upload image and update document in the background
+        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
+        uploadBytes(imageRef, imageFile).then(snapshot => {
+            getDownloadURL(snapshot.ref).then(imageUrl => {
+                updateDocumentNonBlocking(newDocRef, { imageUrl });
+            });
+        });
 
         toast({ title: 'Succès', description: 'Événement créé !' });
     } catch(error: any) {
