@@ -86,7 +86,7 @@ export default function CarpoolingPage() {
     });
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
- const handleReserve = async (trip: Trip) => {
+ const handleReserve = (trip: Trip) => {
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
@@ -130,30 +130,29 @@ export default function CarpoolingPage() {
     batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
 
-    try {
-        await batch.commit();
-        await createNotification(firestore, {
-            type: 'carpool_booking',
-            senderId: user.uid,
-            recipientId: trip.driverId,
-            relatedId: trip.id,
-            message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
-        });
-        toast({
-            title: "Réservation confirmée !",
-            description: "Votre place a été réservée avec succès.",
-        });
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
-            operation: 'write',
-            requestResourceData: { 
-                carpoolingUpdate: carpoolingUpdateData,
-                bookingCreation: bookingData
-            }
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    }
+    batch.commit().then(() => {
+      createNotification(firestore, {
+          type: 'carpool_booking',
+          senderId: user.uid,
+          recipientId: trip.driverId,
+          relatedId: trip.id,
+          message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
+      });
+      toast({
+          title: "Réservation confirmée !",
+          description: "Votre place a été réservée avec succès.",
+      });
+    }).catch((serverError) => {
+      const permissionError = new FirestorePermissionError({
+          path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
+          operation: 'write',
+          requestResourceData: { 
+              carpoolingUpdate: carpoolingUpdateData,
+              bookingCreation: bookingData
+          }
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   return (
@@ -307,3 +306,5 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
+
+    
