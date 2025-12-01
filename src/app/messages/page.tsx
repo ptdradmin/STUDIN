@@ -1,109 +1,20 @@
 
 'use client';
 
-import { useFirestore, useUser, useMemoFirebase } from "@/firebase";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import type { Conversation, UserProfile } from "@/lib/types";
-import { collection, query, where, orderBy } from "firebase/firestore";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import SocialSidebar from "@/components/social-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useMemo } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 
-function ConversationList() {
-    const { user } = useUser();
-    const firestore = useFirestore();
-
-    const conversationsQuery = useMemoFirebase(() => {
-        if (!user || !firestore) return null;
-        return query(
-            collection(firestore, 'conversations'), 
-            where('participantIds', 'array-contains', user.uid),
-            orderBy('updatedAt', 'desc')
-        );
-    }, [user, firestore]);
-
-    const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
-    
-    const getOtherParticipant = (convo: Conversation) => {
-        if (!user) return null;
-        const otherId = convo.participantIds.find(id => id !== user.uid);
-        return otherId ? convo.participants[otherId] : null;
-    }
-    
-     const getInitials = (name?: string) => {
-        if (!name) return "..";
-        return name.split(' ').map(n => n[0]).join('');
-    }
-
-    if (isLoading) {
-        return (
-             <div className="space-y-2 p-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="flex-grow space-y-2">
-                            <Skeleton className="h-4 w-24 rounded" />
-                            <Skeleton className="h-3 w-40 rounded" />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        )
-    }
-    
-    if (!conversations || conversations.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center text-center p-8 h-full">
-                <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
-                <h2 className="text-xl font-bold mt-4">Aucune conversation</h2>
-                <p className="text-muted-foreground mt-2 max-w-sm">
-                    Commencez une nouvelle conversation depuis le profil d'un utilisateur.
-                </p>
-            </div>
-        )
-    }
-
+function ConversationListPlaceholder() {
     return (
-        <div className="space-y-1">
-            {conversations
-              .map(convo => {
-                const otherParticipant = getOtherParticipant(convo);
-                if (!otherParticipant) return null;
-                
-                const timeAgo = convo.updatedAt ? formatDistanceToNow(convo.updatedAt.toDate(), { addSuffix: true, locale: fr }) : '';
-                const isUnread = convo.unread && convo.lastMessage?.senderId !== user?.uid;
-
-                return (
-                    <Link href={`/messages/${convo.id}`} key={convo.id}>
-                        <div className={cn("flex items-start gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer", isUnread && "bg-primary/5")}>
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={otherParticipant.profilePicture} />
-                                <AvatarFallback>{getInitials(otherParticipant.username)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow overflow-hidden">
-                                <div className="flex justify-between items-start">
-                                    <p className={cn("font-semibold truncate", isUnread && "font-bold")}>{otherParticipant.username}</p>
-                                    <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo}</span>
-                                </div>
-                                <p className={cn("text-sm text-muted-foreground truncate", isUnread && "text-foreground font-medium")}>
-                                    {convo.lastMessage?.senderId === user?.uid && "Vous: "}
-                                    {convo.lastMessage?.text || "Aucun message"}
-                                </p>
-                            </div>
-                             {isUnread && <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>}
-                        </div>
-                    </Link>
-                );
-            })}
+        <div className="flex flex-col items-center justify-center text-center p-8 h-full">
+            <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
+            <h2 className="text-xl font-bold mt-4">Aucune conversation</h2>
+            <p className="text-muted-foreground mt-2 max-w-sm">
+                Commencez une nouvelle conversation depuis le profil d'un utilisateur.
+            </p>
         </div>
-    );
+    )
 }
 
 
@@ -117,7 +28,7 @@ export default function MessagesPage() {
                          <h1 className="text-2xl font-bold">Messages</h1>
                     </div>
                     <div className="flex-grow overflow-y-auto">
-                        <ConversationList />
+                        <ConversationListPlaceholder />
                     </div>
                 </aside>
                 <main className="hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/50">
