@@ -116,11 +116,13 @@ export default function CarpoolingPage() {
       status: 'confirmed',
       createdAt: serverTimestamp()
     };
+    
+    const carpoolingUpdateData = {
+        seatsAvailable: increment(-1),
+        passengerIds: arrayUnion(user.uid)
+    };
 
-    batch.update(carpoolingRef, {
-      seatsAvailable: increment(-1),
-      passengerIds: arrayUnion(user.uid)
-    });
+    batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
 
     batch.commit().catch((serverError) => {
@@ -128,7 +130,7 @@ export default function CarpoolingPage() {
             path: `carpoolings/${trip.id} and carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
             operation: 'write',
             requestResourceData: { 
-              carpoolingUpdate: { seatsAvailable: increment(-1), passengerIds: arrayUnion(user.uid) },
+              carpoolingUpdate: carpoolingUpdateData,
               bookingCreation: bookingData,
             }
         });
