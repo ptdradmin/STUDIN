@@ -86,7 +86,7 @@ export default function CarpoolingPage() {
     });
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
- const handleReserve = async (trip: Trip) => {
+ const handleReserve = (trip: Trip) => {
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
@@ -123,29 +123,21 @@ export default function CarpoolingPage() {
     });
     batch.set(bookingRef, bookingData);
 
-    batch.commit().then(async () => {
-        await createNotification(firestore, {
-            type: 'carpool_booking',
-            senderId: user.uid,
-            recipientId: trip.driverId,
-            relatedId: trip.id,
-            message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
-        });
-        
-        toast({
-          title: "Réservation confirmée !",
-          description: `Votre place pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est réservée.`,
-        });
-    }).catch((serverError) => {
+    batch.commit().catch((serverError) => {
         const permissionError = new FirestorePermissionError({
-            path: `carpoolings/${trip.id} and carpool_bookings subcollection`,
+            path: `carpoolings/${trip.id} and carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
             operation: 'write',
             requestResourceData: { 
-              carpoolingUpdate: { seatsAvailable: -1, passengerIds: user.uid },
+              carpoolingUpdate: { seatsAvailable: increment(-1), passengerIds: arrayUnion(user.uid) },
               bookingCreation: bookingData,
             }
         });
         errorEmitter.emit('permission-error', permissionError);
+    });
+
+    toast({
+        title: "Réservation en cours...",
+        description: `Nous traitons votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
     });
   };
 
