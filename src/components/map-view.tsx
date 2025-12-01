@@ -1,78 +1,102 @@
-
 'use client';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
-import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
-import 'leaflet-routing-machine';
+import 'leaflet.markercluster';
+
 import type { Housing, Trip, Event, Tutor } from '@/lib/types';
-import { Bed, GraduationCap, PartyPopper, Car, BookOpen } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen, MapPin } from 'lucide-react';
+import { renderToStaticMarkup } from 'react-dom/server';
+
 
 // Fix for default icon paths in Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const getIcon = (type: string) => {
-    let iconUrl: string;
-    switch(type) {
-        case 'housing': iconUrl = 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png'; break;
-        case 'trip': iconUrl = 'https://cdn-icons-png.flaticon.com/512/3448/3448653.png'; break;
-        case 'event': iconUrl = 'https://cdn-icons-png.flaticon.com/512/9483/9483842.png'; break;
-        case 'tutor': iconUrl = 'https://cdn-icons-png.flaticon.com/512/1904/1904425.png'; break;
-        default: iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
-    }
-    return new L.Icon({
-        iconUrl,
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34],
+const createIcon = (icon: React.ReactElement, color: string) => {
+    const iconMarkup = renderToStaticMarkup(
+      <div style={{
+          backgroundColor: color,
+          borderRadius: '50%',
+          padding: '8px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+        }}>
+        {React.cloneElement(icon, { color: 'white', strokeWidth: 2 })}
+      </div>
+    );
+
+    return new L.DivIcon({
+        html: iconMarkup,
+        className: '', // Important to override default leaflet styles
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
     });
-}
+};
+
+const icons = {
+    housing: createIcon(<Bed size={24} />, '#8B5CF6'), // primary
+    trip: createIcon(<Car size={24} />, '#F59E0B'), // amber-500
+    event: createIcon(<PartyPopper size={24} />, '#EC4899'), // pink-500
+    tutor: createIcon(<BookOpen size={24} />, '#10B981'), // emerald-500
+};
 
 
 const getPopupContent = (item: any, type: string) => {
+    const baseStyle = "font-family: 'Inter', sans-serif; max-width: 200px;";
+    const titleStyle = "font-weight: bold; font-size: 1rem; margin-bottom: 4px; color: #111827;";
+    const textStyle = "font-size: 0.875rem; color: #6B7281; margin: 0;";
+    const priceStyle = "font-weight: bold; font-size: 1.125rem; color: #8B5CF6; margin-top: 8px;";
+    
     switch(type) {
         case 'housing':
             const h = item as Housing;
             return `
-                <div class="w-48" data-id="${h.id}" data-type="housing">
-                    <img src="${h.imageUrl}" alt="${h.title}" class="w-full h-20 object-cover rounded-md mb-2" />
-                    <h3 class="font-bold text-base">${h.title}</h3>
-                    <p class="text-sm text-muted-foreground">${h.city}</p>
-                    <p class="text-lg font-bold text-primary">${h.price}€/mois</p>
+                <div style="${baseStyle}" data-id="${h.id}" data-type="housing">
+                    <img src="${h.imageUrl}" alt="${h.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;" />
+                    <h3 style="${titleStyle}">${h.title}</h3>
+                    <p style="${textStyle}">${h.city}</p>
+                    <p style="${priceStyle}">${h.price}€/mois</p>
                 </div>
             `;
         case 'trip':
             const t = item as Trip;
             return `
-                <div class="w-48">
-                    <h3 class="font-bold">${t.departureCity} → ${t.arrivalCity}</h3>
-                    <p class="text-sm">Par ${t.driverUsername}</p>
-                    <p class="text-lg font-bold text-primary">${t.pricePerSeat}€</p>
+                <div style="${baseStyle}">
+                    <h3 style="${titleStyle}">${t.departureCity} → ${t.arrivalCity}</h3>
+                    <p style="${textStyle}">Par ${t.username}</p>
+                    <p style="${priceStyle.replace('#8B5CF6', '#F59E0B')}">${t.pricePerSeat}€</p>
                 </div>
             `;
          case 'event':
             const e = item as Event;
             return `
-                <div class="w-48">
-                    <h3 class="font-bold">${e.title}</h3>
-                    <p class="text-sm">${e.city}</p>
+                 <div style="${baseStyle}" data-id="${e.id}" data-type="event">
+                    <img src="${e.imageUrl}" alt="${e.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px; margin-bottom: 8px;" />
+                    <h3 style="${titleStyle}">${e.title}</h3>
+                    <p style="${textStyle}">${e.city}</p>
                 </div>
             `;
         case 'tutor':
             const tu = item as Tutor;
-            return `
-                <div class="w-48">
-                    <h3 class="font-bold">${tu.subject}</h3>
-                    <p class="text-sm">${tu.level}</p>
-                    <p class="text-lg font-bold text-primary">${tu.pricePerHour}€/h</p>
+             return `
+                 <div style="${baseStyle}" data-id="${tu.id}" data-type="tutor">
+                    <h3 style="${titleStyle}">${tu.subject}</h3>
+                    <p style="${textStyle}">par ${tu.username}</p>
+                     <p style="${priceStyle.replace('#8B5CF6', '#10B981')}">${tu.pricePerHour}€/h</p>
                 </div>
             `;
         default:
@@ -89,13 +113,12 @@ interface MapViewProps {
 export default function MapView({ items, itemType, onMarkerClick }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
+  const markersRef = useRef<L.MarkerClusterGroup | null>(null);
 
-  // Initialize map
   useEffect(() => {
     if (mapContainerRef.current && !mapInstanceRef.current) {
       const map = L.map(mapContainerRef.current, {
-        center: [50.8503, 4.3517], // Brussels
+        center: [50.5, 4.75], // Centered on Belgium
         zoom: 8,
         scrollWheelZoom: true,
       });
@@ -108,28 +131,28 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         }
       ).addTo(map);
+
+      markersRef.current = L.markerClusterGroup().addTo(map);
     }
     
-    // Cleanup function to remove map instance on unmount
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, []); // Empty dependency array ensures this runs only once on mount and cleanup on unmount
-
+  }, []);
 
   const handlePopupClick = (e: L.LeafletMouseEvent) => {
     const content = e.target.getPopup().getContent();
-    if (typeof content === 'string') {
+    if (typeof content === 'string' && onMarkerClick) {
         const div = document.createElement('div');
         div.innerHTML = content;
         const itemElement = div.firstChild as HTMLElement;
         const id = itemElement?.dataset.id;
         const type = itemElement?.dataset.type;
 
-        if (id && type && onMarkerClick) {
+        if (id && type) {
             const item = items.find(i => i.id === id);
             if (item) {
                 onMarkerClick(item);
@@ -138,49 +161,50 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
     }
   }
   
-  // Update markers when items data changes
   useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (map) {
-      // Clear existing markers
-      markersRef.current.forEach(marker => map.removeLayer(marker));
-      markersRef.current = [];
-
+    const markers = markersRef.current;
+    if (markers) {
+      markers.clearLayers();
+      
       if (!items || !itemType) return;
-
-      // Add new markers
+      
       items.forEach((item) => {
-        if (!item.coordinates) return;
+        if (!item.coordinates || !Array.isArray(item.coordinates) || item.coordinates.length !== 2) return;
         
         const marker = L.marker(item.coordinates as L.LatLngExpression, {
-          icon: getIcon(itemType),
-        }).addTo(map)
-          .bindPopup(getPopupContent(item, itemType));
+          icon: icons[itemType],
+        }).bindPopup(getPopupContent(item, itemType));
         
         if (onMarkerClick) {
             marker.on('click', handlePopupClick);
         }
         
-        markersRef.current.push(marker);
+        markers.addLayer(marker);
       });
 
-      if (items.length > 0) {
-        const validCoords = items.filter(item => item.coordinates).map(item => item.coordinates);
+      if (items.length > 0 && mapInstanceRef.current) {
+        const validCoords = items
+          .map(item => item.coordinates)
+          .filter(coord => Array.isArray(coord) && coord.length === 2);
+        
         if (validCoords.length > 0) {
           const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
-          map.fitBounds(bounds, { padding: [50, 50] });
+          mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
         }
       }
     }
 
-    // Cleanup listeners
     return () => {
-        markersRef.current.forEach(marker => marker.off('click'));
+       markers?.eachLayer(layer => {
+            if (layer instanceof L.Marker) {
+                layer.off('click');
+            }
+       });
     }
 
   }, [items, itemType, onMarkerClick]);
 
   return (
-    <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
+    <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} className="rounded-lg overflow-hidden" />
   );
 }
