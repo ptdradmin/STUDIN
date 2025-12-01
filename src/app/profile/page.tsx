@@ -141,35 +141,51 @@ const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     const firestore = useFirestore();
     
     const carpoolBookingsQuery = useMemoFirebase(() => 
-        !firestore ? null : query(collection(firestore, 'carpool_bookings'), where('passengerId', '==', user.uid)),
+        !firestore ? null : query(collection(firestore, 'carpoolings'), where('passengerIds', 'array-contains', user.uid)),
         [firestore, user.uid]
     );
-    const { data: carpoolBookings, isLoading: l1 } = useCollection<CarpoolBooking>(carpoolBookingsQuery);
-    
-    const bookedCarpoolIds = useMemo(() => carpoolBookings?.map(b => b.carpoolId) || [], [carpoolBookings]);
-
-    const bookedCarpoolsQuery = useMemoFirebase(() => 
-        !firestore || bookedCarpoolIds.length === 0 ? null : query(collection(firestore, 'carpoolings'), where('id', 'in', bookedCarpoolIds)),
-        [firestore, bookedCarpoolIds]
-    );
-    const { data: bookedCarpools, isLoading: l2 } = useCollection<Trip>(bookedCarpoolsQuery);
+    const { data: bookedCarpools, isLoading: l1 } = useCollection<Trip>(carpoolBookingsQuery);
     
     const attendedEventsQuery = useMemoFirebase(() =>
         !firestore ? null : query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid)),
         [firestore, user.uid]
     );
-    const { data: attendedEvents, isLoading: l3 } = useCollection<Event>(attendedEventsQuery);
+    const { data: attendedEvents, isLoading: l2 } = useCollection<Event>(attendedEventsQuery);
 
 
-    const isLoading = l1 || l2 || l3;
+    const isLoading = l1 || l2;
     
     if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
     if (!isLoading && bookedCarpools?.length === 0 && attendedEvents?.length === 0) return <div className="text-center p-10"><p className="text-muted-foreground">Vous n'avez aucune activité à venir.</p></div>
 
     return (
         <div className="space-y-4 p-4">
-            {bookedCarpools?.map(c => <Card key={c.id}><CardContent className="p-4">Covoiturage réservé: <Link href="/carpooling" className="font-semibold hover:underline">{c.departureCity} à {c.arrivalCity}</Link></CardContent></Card>)}
-            {attendedEvents?.map(e => <Card key={e.id}><CardContent className="p-4">Participation à l'événement: <Link href="/events" className="font-semibold hover:underline">{e.title}</Link></CardContent></Card>)}
+            {bookedCarpools?.map(c => (
+                <Link href="/carpooling" key={c.id}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-4">
+                            <Car className="h-5 w-5 text-secondary-foreground" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Covoiturage réservé</p>
+                                <p className="font-semibold">{c.departureCity} à {c.arrivalCity}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </Link>
+            ))}
+            {attendedEvents?.map(e => (
+                 <Link href="/events" key={e.id}>
+                    <Card className="hover:bg-muted/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-4">
+                           <PartyPopper className="h-5 w-5 text-secondary-foreground" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Événement</p>
+                                <p className="font-semibold">{e.title}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 </Link>
+            ))}
         </div>
     )
 }
@@ -406,3 +422,4 @@ export default function CurrentUserProfilePage() {
     
 
     
+
