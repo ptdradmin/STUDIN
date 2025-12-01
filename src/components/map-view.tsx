@@ -1,18 +1,19 @@
-
 'use client';
 
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet.markercluster';
+import 'leaflet.locatecontrol';
 
 import type { Housing, Trip, Event, Tutor } from '@/lib/types';
-import { Bed, Car, PartyPopper, BookOpen, MapPin } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 
@@ -134,6 +135,30 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
       ).addTo(map);
 
       markersRef.current = L.markerClusterGroup().addTo(map);
+
+      // Add Geocoder search control
+      (L.Control as any).geocoder({
+        defaultMarkGeocode: false,
+      }).on('markgeocode', function(e: any) {
+        var bbox = e.geocode.bbox;
+        var poly = L.polygon([
+          bbox.getSouthEast(),
+          bbox.getNorthEast(),
+          bbox.getNorthWest(),
+          bbox.getSouthWest()
+        ]);
+        map.fitBounds(poly.getBounds());
+      }).addTo(map);
+
+      // Add "My Location" control
+      (L.control as any).locate({
+        position: 'topleft',
+        strings: {
+            title: "Montre-moi où je suis"
+        },
+        flyTo: true,
+        keepCurrentZoomLevel: true,
+      }).addTo(map);
     }
     
     // Cleanup on unmount
