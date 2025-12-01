@@ -127,7 +127,7 @@ export default function CarpoolingPage() {
     
     commitBatchNonBlocking(batch, {
         operation: 'write',
-        path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
+        path: `carpoolings/${trip.id} and bookings subcollection`,
         requestResourceData: { 
             carpoolingUpdate: carpoolingUpdateData,
             bookingCreation: bookingData
