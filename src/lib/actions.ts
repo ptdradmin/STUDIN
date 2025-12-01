@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -49,7 +50,7 @@ export const toggleFollowUser = (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  // Non-blocking commit with proper error handling
+  // Use a non-blocking commit with a .catch() block for error handling
   batch.commit()
     .then(() => {
         if (!isCurrentlyFollowing) {
