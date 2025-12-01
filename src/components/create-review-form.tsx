@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, updateDocumentNonBlocking, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { collection, serverTimestamp, doc, runTransaction } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
 import { Tutor } from '@/lib/types';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const reviewSchema = z.object({
   rating: z.number().min(1, 'La note est requise').max(5),
@@ -86,10 +87,12 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
         onClose();
 
     } catch (error: any) {
+        // Since runTransaction has its own error handling, we'll emit a generic error
+        // for permission issues within the transaction.
         const permissionError = new FirestorePermissionError({
-            path: 'tutoring_reviews',
-            operation: 'create',
-            requestResourceData: data,
+            path: `tutoring_reviews or tutorings/${tutor.id}`,
+            operation: 'write', // 'write' covers set and update in a transaction
+            requestResourceData: { review: data, tutorId: tutor.id },
         });
         errorEmitter.emit('permission-error', permissionError);
     } finally {
@@ -101,7 +104,7 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Laisser un avis pour {tutor.tutorUsername}</DialogTitle>
+          <DialogTitle>Laisser un avis pour {tutor.username}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>

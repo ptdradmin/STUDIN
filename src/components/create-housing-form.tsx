@@ -10,14 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage } from '@/firebase';
-import { setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const housingSchema = z.object({
@@ -116,19 +113,12 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 imageHint: "student room",
                 imageUrl,
             };
-            setDocumentNonBlocking(newDocRef, dataToCreate, {});
+            setDocumentNonBlocking(newDocRef, dataToCreate);
             toast({ title: 'Succès', description: 'Annonce de logement créée !' });
         }
         onClose();
     } catch(error: any) {
-        if (!(error instanceof FirestorePermissionError)) {
-            const contextualError = new FirestorePermissionError({
-                path: isEditing ? `housings/${housingToEdit!.id}` : 'housings',
-                operation: isEditing ? 'update' : 'create',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
+        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de soumettre le formulaire." });
     } finally {
         setLoading(false);
     }

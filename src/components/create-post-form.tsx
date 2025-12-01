@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -97,19 +97,12 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             imageUrl,
         };
 
-        setDocumentNonBlocking(newDocRef, postData, {});
+        setDocumentNonBlocking(newDocRef, postData);
         
         toast({ title: 'Succès', description: 'Publication créée !' });
         onClose();
     } catch(error: any) {
-        if (!(error instanceof FirestorePermissionError)) {
-            const contextualError = new FirestorePermissionError({
-                path: 'posts',
-                operation: 'create',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
+        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
     } finally {
         setLoading(false);
     }

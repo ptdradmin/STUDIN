@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { FirestorePermissionError, errorEmitter } from '@/firebase';
 
 const tripSchema = z.object({
   departureCity: z.string().min(1, 'La ville de départ est requise'),
@@ -51,39 +50,27 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     }
     setLoading(true);
 
-    try {
-        const carpoolingsCollection = collection(firestore, 'carpoolings');
-        const newDocRef = doc(carpoolingsCollection);
+    const carpoolingsCollection = collection(firestore, 'carpoolings');
+    const newDocRef = doc(carpoolingsCollection);
 
-        const tripData = {
-            ...data,
-            id: newDocRef.id,
-            driverId: user.uid,
-            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-            userAvatarUrl: user.photoURL,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            departureAddress: data.departureCity, // simplified
-            arrivalAddress: data.arrivalCity, // simplified
-            coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
-        };
-        
-        setDocumentNonBlocking(newDocRef, tripData, {});
+    const tripData = {
+        ...data,
+        id: newDocRef.id,
+        driverId: user.uid,
+        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+        userAvatarUrl: user.photoURL,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        departureAddress: data.departureCity, // simplified
+        arrivalAddress: data.arrivalCity, // simplified
+        coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
+    };
+    
+    setDocumentNonBlocking(newDocRef, tripData);
 
-        toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
-        onClose();
-    } catch(error: any) {
-        if (!(error instanceof FirestorePermissionError)) {
-            const contextualError = new FirestorePermissionError({
-                path: 'carpoolings',
-                operation: 'create',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
-    } finally {
-        setLoading(false);
-    }
+    toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
+    setLoading(false);
+    onClose();
   };
 
   return (

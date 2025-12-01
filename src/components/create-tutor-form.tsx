@@ -10,8 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
-import { setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -47,39 +46,27 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     }
     setLoading(true);
     
-    try {
-        const tutoringsCollection = collection(firestore, 'tutorings');
-        const newDocRef = doc(tutoringsCollection);
+    const tutoringsCollection = collection(firestore, 'tutorings');
+    const newDocRef = doc(tutoringsCollection);
 
-        const tutorData = {
-            ...data,
-            id: newDocRef.id,
-            tutorId: user.uid,
-            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-            userAvatarUrl: user.photoURL,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            rating: 0,
-            totalReviews: 0,
-            coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
-        };
+    const tutorData = {
+        ...data,
+        id: newDocRef.id,
+        tutorId: user.uid,
+        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+        userAvatarUrl: user.photoURL,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        rating: 0,
+        totalReviews: 0,
+        coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
+    };
 
-        setDocumentNonBlocking(newDocRef, tutorData, {});
-        
-        toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
-        onClose();
-    } catch (error: any) {
-        if (!(error instanceof FirestorePermissionError)) {
-            const contextualError = new FirestorePermissionError({
-                path: 'tutorings',
-                operation: 'create',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
-    } finally {
-        setLoading(false);
-    }
+    setDocumentNonBlocking(newDocRef, tutorData);
+    
+    toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
+    setLoading(false);
+    onClose();
   };
 
   return (

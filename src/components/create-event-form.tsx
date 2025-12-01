@@ -10,11 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { FirestorePermissionError, errorEmitter } from '@/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const eventSchema = z.object({
@@ -85,19 +84,12 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             imageUrl: imageUrl,
         };
 
-        setDocumentNonBlocking(newDocRef, eventData, {});
+        setDocumentNonBlocking(newDocRef, eventData);
 
         toast({ title: 'Succès', description: 'Événement créé !' });
         onClose();
     } catch(error: any) {
-        if (!(error instanceof FirestorePermissionError)) {
-            const contextualError = new FirestorePermissionError({
-                path: 'events',
-                operation: 'create',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
+        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer l'événement." });
     } finally {
         setLoading(false);
     }
