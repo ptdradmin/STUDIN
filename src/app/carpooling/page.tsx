@@ -132,7 +132,7 @@ export default function CarpoolingPage() {
 
     batch.commit().catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
-            path: `carpoolings/${trip.id} and carpool_bookings subcollection`,
+            path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
             operation: 'write',
             requestResourceData: { 
                 carpoolingUpdate: carpoolingUpdateData,
