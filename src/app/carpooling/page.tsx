@@ -12,7 +12,7 @@ import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp, doc, runTransaction } from "firebase/firestore";
+import { collection, serverTimestamp, doc, runTransaction, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +22,7 @@ import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
 import { createNotification } from "@/lib/actions";
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -114,13 +114,13 @@ export default function CarpoolingPage() {
         await runTransaction(firestore, async (transaction) => {
             const carpoolingDoc = await transaction.get(carpoolingRef);
             if (!carpoolingDoc.exists()) {
-                throw "Trajet non trouvé.";
+                throw new Error("Trajet non trouvé.");
             }
 
             const currentData = carpoolingDoc.data() as Trip;
 
             if (currentData.seatsAvailable <= 0) {
-                throw "Ce trajet est complet.";
+                throw new Error("Ce trajet est complet.");
             }
             
             const newSeatsAvailable = currentData.seatsAvailable - 1;
@@ -158,15 +158,17 @@ export default function CarpoolingPage() {
         });
 
     } catch (e: any) {
+        // This will now catch both client-side errors and Firestore permission errors.
         const permissionError = new FirestorePermissionError({
-            path: `carpoolings/${trip.id} (et sa sous-collection)`,
-            operation: 'write', // 'write' is a generic term for transactions
+            path: `Transaction on carpoolings/${trip.id} and its subcollection`,
+            operation: 'write', 
             requestResourceData: { 
                 action: 'reserve_seat',
                 carpoolId: trip.id,
-                passengerId: user.uid
+                passengerId: user.uid,
+                clientError: e.message,
             }
-        });
+        } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
     }
   };
@@ -322,5 +324,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-    

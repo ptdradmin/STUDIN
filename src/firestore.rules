@@ -104,10 +104,11 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isOwner(resource.data.driverId) ||
-                      ( // A passenger can book a seat by only changing these two fields
-                        isSignedIn() &&
-                        request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds'])
+      allow update: if (isOwner(resource.data.driverId)) || 
+                      (
+                        isSignedIn() && 
+                        request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds']) &&
+                        request.resource.data.diff(resource.data).affectedKeys().size() == 2
                       );
       allow delete: if isOwner(resource.data.driverId);
 
@@ -127,7 +128,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
-      allow update: if isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId;
+      allow update: if (isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId) || 
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['rating', 'totalReviews']));
       allow delete: if isOwner(resource.data.tutorId);
     }
     
@@ -148,7 +150,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
-      allow update: if isOwner(resource.data.organizerId);
+      allow update: if isOwner(resource.data.organizerId) || 
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']));
       allow delete: if isOwner(resource.data.organizerId);
     }
 
