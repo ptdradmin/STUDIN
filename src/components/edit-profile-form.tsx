@@ -163,52 +163,45 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         await uploadBytes(fileRef, profilePictureFile);
         newPhotoURL = await getDownloadURL(fileRef);
       }
-    } catch (error) {
-       toast({ variant: 'destructive', title: "Erreur de téléversement", description: "Impossible de changer la photo de profil." });
-       setLoading(false);
-       return;
-    }
       
-    const dataToUpdate = {
-        ...data,
-        profilePicture: newPhotoURL,
-        updatedAt: serverTimestamp()
-    };
-    
-    Object.keys(dataToUpdate).forEach(keyStr => {
-        const key = keyStr as keyof typeof dataToUpdate;
-        if (dataToUpdate[key] === undefined) {
-            delete (dataToUpdate as any)[key];
-        }
-    });
+      const dataToUpdate = {
+          ...data,
+          profilePicture: newPhotoURL,
+          updatedAt: serverTimestamp()
+      };
       
-    try {
-        await updateDoc(userDocRef, dataToUpdate);
+      Object.keys(dataToUpdate).forEach(keyStr => {
+          const key = keyStr as keyof typeof dataToUpdate;
+          if (dataToUpdate[key] === undefined) {
+              delete (dataToUpdate as any)[key];
+          }
+      });
         
-        const displayName = `${data.firstName} ${data.lastName}`;
-        const currentUser = auth.currentUser;
-        if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
-            await updateProfile(currentUser, { 
-                displayName,
-                photoURL: newPhotoURL,
-            });
-        }
+      await updateDoc(userDocRef, dataToUpdate);
+      
+      const displayName = `${data.firstName} ${data.lastName}`;
+      const currentUser = auth.currentUser;
+      if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
+          await updateProfile(currentUser, { 
+              displayName,
+              photoURL: newPhotoURL,
+          });
+      }
 
-        if(firestore && (data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture)) {
-            await updateUserPosts(firestore, user.uid, { username: data.username, profilePicture: newPhotoURL });
-        }
+      if(firestore && (data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture)) {
+          await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL });
+      }
 
-        toast({ title: 'Succès', description: 'Profil mis à jour !' });
-        onClose();
+      toast({ title: 'Succès', description: 'Profil mis à jour !' });
+      onClose();
 
     } catch (error) {
-        // The updateUserPosts function will emit a detailed permission error if it fails.
-        // If the error is not a FirestorePermissionError, we create a new one for the user profile update.
+        // This will catch both the updateDoc error and any error from updateUserPosts
         if (!(error instanceof FirestorePermissionError)) {
              const contextualError = new FirestorePermissionError({
-                path: `users/${user.uid}`,
+                path: userDocRef.path,
                 operation: 'update',
-                requestResourceData: dataToUpdate,
+                requestResourceData: data, // data is the attempted update payload
             });
             errorEmitter.emit('permission-error', contextualError);
         }

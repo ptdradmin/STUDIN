@@ -127,19 +127,20 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
     const batch = writeBatch(firestore);
     
     const postsToUpdate: { path: string; data: any }[] = [];
+    const updatedData: any = {};
+    if(updatedProfile.username) updatedData.username = updatedProfile.username;
+    if(updatedProfile.profilePicture) updatedData.userAvatarUrl = updatedProfile.profilePicture;
+
+    if(Object.keys(updatedData).length === 0) {
+      return; // Nothing to update
+    }
 
     try {
         const querySnapshot = await getDocs(postsQuery);
         querySnapshot.forEach(doc => {
             const postRef = doc.ref;
-            const updatedData: any = {};
-            if(updatedProfile.username) updatedData.userDisplayName = updatedProfile.username;
-            if(updatedProfile.profilePicture) updatedData.userAvatarUrl = updatedProfile.profilePicture;
-            
-            if(Object.keys(updatedData).length > 0) {
-              batch.update(postRef, updatedData);
-              postsToUpdate.push({ path: postRef.path, data: updatedData });
-            }
+            batch.update(postRef, updatedData);
+            postsToUpdate.push({ path: postRef.path, data: updatedData });
         });
         await batch.commit();
     } catch (serverError) {
