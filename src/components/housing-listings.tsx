@@ -5,17 +5,18 @@ import type { Housing } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import HousingCard from './housing-card';
 import { Skeleton } from './ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 interface HousingListingsProps {
     housings: Housing[];
     isLoading: boolean;
     onEdit: (housing: Housing) => void;
-    onCardClick: (housing: Housing) => void;
     favoritedIds: Set<string>;
 }
 
-export default function HousingListings({ housings, isLoading, onEdit, onCardClick, favoritedIds }: HousingListingsProps) {
-  
+export default function HousingListings({ housings, isLoading, onEdit, favoritedIds }: HousingListingsProps) {
+  const router = useRouter();
+
   if (isLoading) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -46,7 +47,7 @@ export default function HousingListings({ housings, isLoading, onEdit, onCardCli
                         key={housing.id} 
                         housing={housing}
                         onEdit={onEdit} 
-                        onClick={onCardClick}
+                        onClick={() => router.push(`/housing/${housing.id}`)}
                         isFavorited={favoritedIds.has(housing.id)}
                     />
                 ))}

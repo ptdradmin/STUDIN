@@ -14,10 +14,10 @@ import { collection, query, where } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import HousingDetailModal from '@/components/housing-detail-modal';
 import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
+import { useRouter } from 'next/navigation';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -28,10 +28,10 @@ export default function HousingPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const router = useRouter();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHousing, setEditingHousing] = useState<Housing | null>(null);
-  const [selectedHousing, setSelectedHousing] = useState<Housing | null>(null);
 
   const [cityFilter, setCityFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -75,17 +75,17 @@ export default function HousingPage() {
     setEditingHousing(null);
     setShowCreateForm(true);
   }
-
-  const handleCardClick = (housing: Housing) => {
-    setSelectedHousing(housing);
+  
+  const handleMarkerClick = (housing: Housing) => {
+    router.push(`/housing/${housing.id}`);
   }
+
 
   return (
      <div className="flex min-h-screen w-full bg-background">
         <SocialSidebar />
         <div className="flex flex-col flex-1">
             {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
-            {selectedHousing && <HousingDetailModal housing={selectedHousing} onClose={() => setSelectedHousing(null)} />}
 
             <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="hidden md:flex flex-1 max-w-md items-center">
@@ -162,7 +162,6 @@ export default function HousingPage() {
                     housings={filteredHousings} 
                     isLoading={isLoading} 
                     onEdit={handleEdit}
-                    onCardClick={handleCardClick}
                     favoritedIds={favoritedIds}
                 />
                 )}
@@ -170,7 +169,7 @@ export default function HousingPage() {
                 <Card>
                     <CardContent className="p-2">
                     <div className="h-[600px] w-full rounded-md overflow-hidden">
-                        <MapView items={filteredHousings} itemType="housing" onMarkerClick={handleCardClick} />
+                        <MapView items={filteredHousings} itemType="housing" onMarkerClick={handleMarkerClick} />
                     </div>
                     </CardContent>
                 </Card>

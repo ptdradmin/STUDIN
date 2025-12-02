@@ -33,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { getOrCreateConversation } from "@/lib/conversations";
 import { toggleFavorite } from "@/lib/actions";
 import { useState, useEffect } from "react";
+import Link from 'next/link';
 
 interface HousingCardProps {
     housing: Housing;
@@ -71,7 +72,6 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
     };
 
     const handleCardClick = (e: React.MouseEvent) => {
-        // Prevent click event from firing when interacting with dropdown or buttons
         const target = e.target as HTMLElement;
         if (target.closest('[data-radix-dropdown-menu-trigger]') || target.closest('button')) {
             return;
@@ -115,13 +115,7 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
         <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer">
             <div className="relative aspect-[3/2] w-full bg-muted">
                 {housing.imageUrl ? (
-                    <Image
-                        src={housing.imageUrl}
-                        alt={housing.title}
-                        fill
-                        className="object-cover"
-                        data-ai-hint={housing.imageHint}
-                    />
+                     <Image src={housing.imageUrl || '/placeholder.svg'} alt={housing.title} fill className="object-cover" data-ai-hint={housing.imageHint} />
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <Bed className="h-12 w-12 text-muted-foreground" />
