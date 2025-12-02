@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage } from "@/firebase";
+import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Conversation, ChatMessage } from "@/lib/types";
 import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
@@ -106,7 +105,14 @@ export default function ConversationPage() {
         if (conversationRef && user && conversation?.lastMessage && conversation.lastMessage.senderId !== user.uid && conversation.unread) {
              updateDoc(conversationRef, {
                 unread: false,
-             });
+             }).catch(err => {
+                const permissionError = new FirestorePermissionError({
+                    path: conversationRef.path,
+                    operation: 'update',
+                    requestResourceData: { unread: false }
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
         }
     }, [conversation, conversationRef, user]);
 
@@ -135,38 +141,56 @@ export default function ConversationPage() {
                 setUploadProgress(null);
                 setFileToSend(null);
             },
-            async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                const messageData: Partial<ChatMessage> = {
-                    senderId: user.uid,
-                    createdAt: serverTimestamp(),
-                    fileType: fileType,
-                };
-                if (fileType === 'image') messageData.imageUrl = downloadURL;
-                if (fileType === 'video') messageData.videoUrl = downloadURL;
-                if (fileType === 'audio') messageData.audioUrl = downloadURL;
-                
-                await addDoc(collection(firestore, 'conversations', conversationId, 'messages'), messageData);
-                 await updateDoc(conversationRef, {
-                    lastMessage: {
-                        text: `A envoyé ${fileType === 'image' ? 'une image' : fileType === 'video' ? 'une vidéo' : 'un audio'}`,
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then(downloadURL => {
+                    const messageData: Partial<ChatMessage> = {
                         senderId: user.uid,
-                        timestamp: serverTimestamp(),
-                    },
-                    updatedAt: serverTimestamp(),
-                    unread: true,
+                        createdAt: serverTimestamp(),
+                        fileType: fileType,
+                    };
+                    if (fileType === 'image') messageData.imageUrl = downloadURL;
+                    if (fileType === 'video') messageData.videoUrl = downloadURL;
+                    if (fileType === 'audio') messageData.audioUrl = downloadURL;
+                    
+                    const lastMessageText = `A envoyé ${fileType === 'image' ? 'une image' : fileType === 'video' ? 'une vidéo' : 'un audio'}`;
+
+                    addDoc(collection(firestore, 'conversations', conversationId, 'messages'), messageData)
+                        .catch(err => {
+                            const permissionError = new FirestorePermissionError({
+                                path: `conversations/${conversationId}/messages`,
+                                operation: 'create',
+                                requestResourceData: messageData
+                            });
+                            errorEmitter.emit('permission-error', permissionError);
+                        });
+
+                    const conversationUpdateData = {
+                        lastMessage: { text: lastMessageText, senderId: user.uid, timestamp: serverTimestamp() },
+                        updatedAt: serverTimestamp(),
+                        unread: true,
+                    };
+
+                    updateDoc(conversationRef, conversationUpdateData)
+                         .catch(err => {
+                            const permissionError = new FirestorePermissionError({
+                                path: conversationRef.path,
+                                operation: 'update',
+                                requestResourceData: conversationUpdateData
+                            });
+                            errorEmitter.emit('permission-error', permissionError);
+                        });
+                    
+                    setFileToSend(null);
+                    setUploadProgress(null);
                 });
-                
-                setFileToSend(null);
-                setUploadProgress(null);
             }
         );
     }
 
-    const handleSendMessage = async (e: FormEvent) => {
+    const handleSendMessage = (e: FormEvent) => {
         e.preventDefault();
         if (fileToSend) {
-            await uploadFileAndSendMessage();
+            uploadFileAndSendMessage();
             return;
         }
 
@@ -182,25 +206,42 @@ export default function ConversationPage() {
         const otherParticipantId = conversation.participantIds.find(id => id !== user.uid);
         if (!otherParticipantId) return;
 
+        const currentMessage = newMessage;
         setNewMessage('');
-        await addDoc(messagesColRef, messageData);
-        await updateDoc(conversationRef, {
-            lastMessage: {
-                senderId: user.uid,
-                text: newMessage,
-                timestamp: serverTimestamp(),
-            },
-            updatedAt: serverTimestamp(),
-            unread: true, // Mark as unread for the other user
-        });
 
-        await createNotification(firestore, {
+        addDoc(messagesColRef, messageData)
+            .catch(err => {
+                const permissionError = new FirestorePermissionError({
+                    path: messagesColRef.path,
+                    operation: 'create',
+                    requestResourceData: messageData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
+            
+        const conversationUpdateData = {
+            lastMessage: { senderId: user.uid, text: currentMessage, timestamp: serverTimestamp() },
+            updatedAt: serverTimestamp(),
+            unread: true,
+        };
+
+        updateDoc(conversationRef, conversationUpdateData)
+            .catch(err => {
+                const permissionError = new FirestorePermissionError({
+                    path: conversationRef.path,
+                    operation: 'update',
+                    requestResourceData: conversationUpdateData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
+
+        createNotification(firestore, {
             type: 'new_message',
             senderId: user.uid,
             recipientId: otherParticipantId,
             relatedId: conversationId,
-            message: `vous a envoyé un message : "${newMessage.substring(0, 30)}${newMessage.length > 30 ? '...' : ''}"`
-        })
+            message: `vous a envoyé un message : "${currentMessage.substring(0, 30)}${currentMessage.length > 30 ? '...' : ''}"`
+        });
     }
     
     const getFileIcon = (file: File | null) => {
@@ -270,4 +311,3 @@ export default function ConversationPage() {
         </div>
     );
 }
-
