@@ -1,4 +1,3 @@
-
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
@@ -9,21 +8,46 @@ import type { Reel } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Film, Plus } from "lucide-react";
 import CreateReelForm from "@/components/create-reel-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function ReelsPage() {
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
-    const [showCreateReel, setShowCreateReel] = useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
 
+    const [showCreateReel, setShowCreateReel] = useState(false);
+    const [allReels, setAllReels] = useState<Reel[] | null>(null);
 
     const reelsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(20));
     }, [firestore]);
 
-    const { data: reels, isLoading } = useCollection<Reel>(reelsQuery);
+    const { data: initialReels, isLoading } = useCollection<Reel>(reelsQuery);
+
+    useEffect(() => {
+        if (initialReels) {
+            setAllReels(initialReels);
+        }
+    }, [initialReels]);
+    
+    // This effect is for deep linking to a specific reel.
+    useEffect(() => {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            const element = document.getElementById(`reel-${hash}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }, [allReels]);
+    
+    const handleDeleteReel = (id: string) => {
+        setAllReels(prevReels => prevReels ? prevReels.filter(r => r.id !== id) : null);
+    }
 
     return (
         <div className="flex h-screen w-full bg-black">
@@ -35,16 +59,16 @@ export default function ReelsPage() {
                         <Plus className="mr-2 h-4 w-4" /> Créer un Reel
                     </Button>
                 </div>
-                <div className="h-full w-full max-w-sm flex-shrink-0 snap-y snap-mandatory overflow-y-scroll scrollbar-hide">
+                <div className="h-full w-full max-w-sm flex-shrink-0 snap-y snap-mandatory overflow-y-scroll scrollbar-hide" id="reels-container">
                     {isLoading && (
                         <div className="h-full w-full flex items-center justify-center snap-start">
                              <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
                         </div>
                     )}
-                    {!isLoading && reels && reels.length > 0 ? (
-                        reels.map((reel, index) => (
-                           <div key={reel.id} className="h-full w-full flex justify-center items-center snap-start py-4">
-                                <ReelCard reel={reel} />
+                    {!isLoading && allReels && allReels.length > 0 ? (
+                        allReels.map((reel) => (
+                           <div key={reel.id} id={`reel-${reel.id}`} className="h-full w-full flex justify-center items-center snap-start py-4">
+                                <ReelCard reel={reel} onDelete={handleDeleteReel} />
                            </div>
                         ))
                     ) : !isLoading && (

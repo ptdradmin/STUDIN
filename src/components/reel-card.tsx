@@ -1,33 +1,41 @@
-
 'use client';
 
 import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause, EyeOff, Link as LinkIcon, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "./ui/progress";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ReelCardProps {
     reel: Reel;
+    onDelete?: (id: string) => void;
 }
 
-export default function ReelCard({ reel }: ReelCardProps) {
+export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     
     const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
     const hasLiked = user && optimisticLikes.includes(user.uid);
+    const isOwner = user?.uid === reel.userId;
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [progress, setProgress] = useState(0);
+    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -103,6 +111,38 @@ export default function ReelCard({ reel }: ReelCardProps) {
             });
     }
 
+    const handleShare = () => {
+        const reelUrl = `${window.location.origin}/reels#${reel.id}`;
+        navigator.clipboard.writeText(reelUrl);
+        toast({
+            title: "Lien copié !",
+            description: "Le lien vers le Reel a été copié.",
+        });
+    }
+    
+    const handleNotInterested = () => {
+        setIsVisible(false);
+        toast({
+            title: "Reel masqué",
+            description: "Nous vous montrerons moins de contenu de ce type."
+        });
+        // Here you could also call a function to update user preferences
+    }
+    
+    const handleDelete = () => {
+        if (!isOwner || !firestore) return;
+        deleteDoc(doc(firestore, "reels", reel.id))
+            .then(() => {
+                toast({ title: "Reel supprimé" });
+                if(onDelete) onDelete(reel.id);
+            })
+            .catch(() => {
+                toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer le Reel."});
+            })
+    }
+
+    if (!isVisible) return null;
+
     return (
         <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-background shadow-lg group">
             <video
@@ -114,6 +154,7 @@ export default function ReelCard({ reel }: ReelCardProps) {
                 className="h-full w-full object-cover"
                 onClick={handleVideoClick}
                 onTimeUpdate={handleTimeUpdate}
+                id={`reel-video-${reel.id}`}
             ></video>
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
@@ -159,12 +200,21 @@ export default function ReelCard({ reel }: ReelCardProps) {
                             <span className="text-xs font-semibold">{reel.comments.length}</span>
                         </div>
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-white h-12 w-12">
+                    <Button variant="ghost" size="icon" className="text-white h-12 w-12" onClick={handleShare}>
                          <Send className="h-7 w-7" />
                     </Button>
-                     <Button variant="ghost" size="icon" className="text-white h-12 w-12">
-                         <MoreHorizontal className="h-7 w-7" />
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-white h-12 w-12">
+                                 <MoreHorizontal className="h-7 w-7" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                         <DropdownMenuContent>
+                            <DropdownMenuItem onSelect={handleShare}><LinkIcon className="mr-2 h-4 w-4" />Copier le lien</DropdownMenuItem>
+                            {!isOwner && <DropdownMenuItem onSelect={handleNotInterested}><EyeOff className="mr-2 h-4 w-4" />Pas intéressé</DropdownMenuItem>}
+                            {isOwner && <DropdownMenuItem onSelect={handleDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
