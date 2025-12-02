@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -18,6 +17,7 @@ import { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -25,7 +25,6 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 });
 
 
-// Simulating the static data fetch
 const staticChallenges: Challenge[] = [
   {
     id: '1',
@@ -34,7 +33,7 @@ const staticChallenges: Challenge[] = [
     category: 'Exploration',
     difficulty: 'facile',
     points: 10,
-    imageUrl: "https://images.unsplash.com/photo-1620202271383-34445b73650c?q=80&w=2070&auto=format&fit=crop",
+    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-1')?.imageUrl || '',
     location: 'Waterloo',
     latitude: 50.678,
     longitude: 4.405,
@@ -47,7 +46,7 @@ const staticChallenges: Challenge[] = [
     category: 'Créatif',
     difficulty: 'moyen',
     points: 25,
-    imageUrl: 'https://images.unsplash.com/photo-1599709835737-27b6b15a7e6b?q=80&w=1974&auto=format&fit=crop',
+    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-2')?.imageUrl || '',
     location: 'Bruxelles',
     latitude: 50.846,
     longitude: 4.352,
@@ -60,7 +59,7 @@ const staticChallenges: Challenge[] = [
     category: 'Exploration',
     difficulty: 'moyen',
     points: 20,
-    imageUrl: 'https://images.unsplash.com/photo-1620766385807-617a943a8b20?q=80&w=2070&auto=format&fit=crop',
+    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-3')?.imageUrl || '',
     location: 'Namur',
     latitude: 50.459,
     longitude: 4.863,
@@ -73,7 +72,7 @@ const staticChallenges: Challenge[] = [
     category: 'Social',
     difficulty: 'facile',
     points: 15,
-    imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop',
+    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-4')?.imageUrl || '',
      createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
   {
@@ -83,7 +82,7 @@ const staticChallenges: Challenge[] = [
     category: 'Créatif',
     difficulty: 'difficile',
     points: 50,
-    imageUrl: 'https://images.unsplash.com/photo-1569097480572-125c1cf682f4?q=80&w=1964&auto=format&fit=crop',
+    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-5')?.imageUrl || '',
     location: 'Bruxelles', // On peut donner la ville sans les coordonnées précises
     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
@@ -103,6 +102,8 @@ export default function ChallengeDetailPage() {
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     const challenge = staticChallenges.find(c => c.id === challengeId);
+    
+    const imageHint = PlaceHolderImages.find(p => p.imageUrl === challenge?.imageUrl)?.imageHint || 'student challenge';
 
     const difficultyMap: {[key: string]: {text: string, color: string}} = {
       facile: { text: "Facile", color: "bg-green-500" },
@@ -192,7 +193,7 @@ export default function ChallengeDetailPage() {
                         <div className="grid md:grid-cols-3 gap-8">
                             <div className="md:col-span-2">
                                  <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
-                                    <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover"/>
+                                    <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover" data-ai-hint={imageHint} />
                                 </div>
                                 <h1 className="text-3xl font-bold tracking-tight">{challenge.title}</h1>
                                 <p className="text-muted-foreground mt-4">{challenge.description}</p>

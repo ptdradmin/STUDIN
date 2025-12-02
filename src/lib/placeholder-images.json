@@ -46,7 +46,57 @@
       "id": "housing-8",
       "description": "Un espace de vie partagé pour les étudiants.",
       "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaXZpbmclMjByb29tfGVufDB8fHx8MTc2MzczMjA4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "salle de séjour"
+      "imageHint": "salle séjour"
+    },
+    {
+      "id": "challenge-1",
+      "imageUrl": "https://images.unsplash.com/photo-1620202271383-34445b73650c?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "monument historique"
+    },
+    {
+      "id": "challenge-2",
+      "imageUrl": "https://images.unsplash.com/photo-1599709835737-27b6b15a7e6b?q=80&w=1974&auto=format&fit=crop",
+      "imageHint": "art rue"
+    },
+    {
+      "id": "challenge-3",
+      "imageUrl": "https://images.unsplash.com/photo-1620766385807-617a943a8b20?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "ville panorama"
+    },
+    {
+      "id": "challenge-4",
+      "imageUrl": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "fête étudiante"
+    },
+    {
+      "id": "challenge-5",
+      "imageUrl": "https://images.unsplash.com/photo-1569097480572-125c1cf682f4?q=80&w=1964&auto=format&fit=crop",
+      "imageHint": "statue bruxelles"
+    },
+    {
+      "id": "event-1",
+      "imageUrl": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "fête étudiante"
+    },
+    {
+      "id": "event-2",
+      "imageUrl": "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "conférence académique"
+    },
+    {
+      "id": "event-3",
+      "imageUrl": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1935&auto=format&fit=crop",
+      "imageHint": "tournoi football"
+    },
+    {
+      "id": "event-4",
+      "imageUrl": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "concert musique"
+    },
+    {
+      "id": "event-5",
+      "imageUrl": "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=1974&auto=format&fit=crop",
+      "imageHint": "bar amis"
     }
   ]
 }
