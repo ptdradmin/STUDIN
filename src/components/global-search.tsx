@@ -20,7 +20,7 @@ type SearchResult =
     | { type: 'tutor', data: Tutor };
 
 const searchCollections = {
-    users: { field: 'username', type: 'user' },
+    // users: { field: 'username', type: 'user' }, // Temporarily disabled due to security rules
     housings: { field: 'title', type: 'housing' },
     events: { field: 'title', type: 'event' },
     tutorings: { field: 'subject', type: 'tutor' },
