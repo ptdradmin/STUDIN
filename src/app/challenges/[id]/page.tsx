@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2, MapPin } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge } from '@/lib/types';
@@ -16,6 +16,13 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const MapView = dynamic(() => import('@/components/map-view'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
 
 
 // Simulating the static data fetch
@@ -68,6 +75,17 @@ const staticChallenges: Challenge[] = [
     points: 15,
     imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop',
      createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+  },
+  {
+    id: '5',
+    title: "L'énigme du Manneken-Pis",
+    description: "Le plus célèbre ket de Bruxelles a un secret. Chaque jeudi, un indice est révélé dans sa garde-robe. Trouvez l'indice de cette semaine et décryptez-le. Soumettez la réponse comme preuve.",
+    category: 'Créatif',
+    difficulty: 'difficile',
+    points: 50,
+    imageUrl: 'https://images.unsplash.com/photo-1569097480572-125c1cf682f4?q=80&w=1964&auto=format&fit=crop',
+    location: 'Bruxelles', // On peut donner la ville sans les coordonnées précises
+    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
 ];
 
@@ -145,6 +163,8 @@ export default function ChallengeDetailPage() {
             </div>
         )
     }
+    
+    const hasLocation = challenge.latitude && challenge.longitude;
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -168,12 +188,12 @@ export default function ChallengeDetailPage() {
 
                  <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     <div className="max-w-4xl mx-auto">
-                        <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
-                            <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover"/>
-                        </div>
                         
                         <div className="grid md:grid-cols-3 gap-8">
                             <div className="md:col-span-2">
+                                 <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
+                                    <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover"/>
+                                </div>
                                 <h1 className="text-3xl font-bold tracking-tight">{challenge.title}</h1>
                                 <p className="text-muted-foreground mt-4">{challenge.description}</p>
                             </div>
@@ -198,9 +218,28 @@ export default function ChallengeDetailPage() {
                                             <span className="text-muted-foreground">Catégorie</span>
                                             <Badge variant="secondary">{challenge.category}</Badge>
                                         </div>
+                                        {challenge.location && (
+                                          <div className="flex justify-between pt-2 border-t">
+                                              <span className="text-muted-foreground">Lieu</span>
+                                              <span className="font-semibold flex items-center gap-1"><MapPin className="h-4 w-4" /> {challenge.location}</span>
+                                          </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                                 
+                                {hasLocation && (
+                                   <Card>
+                                      <CardHeader>
+                                        <CardTitle className="text-base">Emplacement du Défi</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="p-0">
+                                         <div className="h-64 w-full">
+                                            <MapView items={[challenge]} itemType="challenge" selectedItem={challenge} />
+                                         </div>
+                                      </CardContent>
+                                    </Card>
+                                )}
+
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-base">Soumettre votre preuve</CardTitle>

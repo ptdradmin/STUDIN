@@ -7,13 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Target, Trophy, MapPin, Activity } from 'lucide-react';
+import { Search, Target, Trophy, LayoutGrid, Map } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import type { Challenge } from '@/lib/types';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const MapView = dynamic(() => import('@/components/map-view'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[600px] w-full" />,
+});
+
 
 // Données statiques pour la démo
 const staticChallenges: Challenge[] = [
@@ -66,6 +74,17 @@ const staticChallenges: Challenge[] = [
     imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop',
      createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
+  {
+    id: '5',
+    title: "L'énigme du Manneken-Pis",
+    description: "Le plus célèbre ket de Bruxelles a un secret. Chaque jeudi, un indice est révélé dans sa garde-robe. Trouvez l'indice de cette semaine et décryptez-le. Soumettez la réponse comme preuve.",
+    category: 'Créatif',
+    difficulty: 'difficile',
+    points: 50,
+    imageUrl: 'https://images.unsplash.com/photo-1569097480572-125c1cf682f4?q=80&w=1964&auto=format&fit=crop',
+    location: 'Bruxelles', // On peut donner la ville sans les coordonnées précises
+    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+  },
 ];
 
 
@@ -109,9 +128,11 @@ const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
 
 
 export default function ChallengesPage() {
-
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     // For now, we use static data
     const challenges = staticChallenges;
+
+    const challengesWithCoords = challenges.filter(c => c.latitude && c.longitude);
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -129,12 +150,32 @@ export default function ChallengesPage() {
                     </div>
                 </header>
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
-                    <div className="mb-6">
-                        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                    <div className="mb-6 flex justify-between items-center">
+                       <div>
+                         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
                             <Target className="h-8 w-8 text-primary" />
                             UrbanQuest
                         </h1>
                         <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
+                       </div>
+                       <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                          <Button
+                            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('list')}
+                            className="px-3"
+                          >
+                            <LayoutGrid className="h-5 w-5" />
+                          </Button>
+                          <Button
+                            variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('map')}
+                            className="px-3"
+                          >
+                            <Map className="h-5 w-5" />
+                          </Button>
+                        </div>
                     </div>
                     
                     <Card className="mb-6">
@@ -187,11 +228,22 @@ export default function ChallengesPage() {
                         </CardContent>
                     </Card>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {challenges.map(challenge => (
-                            <ChallengeCard key={challenge.id} challenge={challenge} />
-                        ))}
-                    </div>
+                    {viewMode === 'list' ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {challenges.map(challenge => (
+                              <ChallengeCard key={challenge.id} challenge={challenge} />
+                          ))}
+                      </div>
+                    ) : (
+                       <Card>
+                          <CardContent className="p-2">
+                            <div className="h-[600px] w-full rounded-md overflow-hidden">
+                                <MapView items={challengesWithCoords} itemType="challenge" onMarkerClick={(item) => router.push(`/challenges/${item.id}`)} />
+                            </div>
+                          </CardContent>
+                        </Card>
+                    )}
+
 
                     {challenges.length === 0 && (
                          <Card className="text-center py-20 col-span-full">
