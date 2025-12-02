@@ -43,9 +43,9 @@ export default function SearchResultItem({ item, onLinkClick }: SearchResultItem
     return (
         <Link href={link} onClick={onLinkClick}>
             <div className="flex items-center gap-3 p-3 hover:bg-muted/50 rounded-md">
-                <Avatar className="h-10 w-10">
-                    {imageUrl ? <AvatarImage src={imageUrl} className="object-cover" /> : <Icon className="h-5 w-5" />}
-                    <AvatarFallback>{getInitials(title)}</AvatarFallback>
+                <Avatar className="h-10 w-10 rounded-lg">
+                    {imageUrl ? <AvatarImage src={imageUrl} className="object-cover" /> : <div className="h-full w-full flex items-center justify-center bg-muted"><Icon className="h-5 w-5 text-muted-foreground"/></div>}
+                    <AvatarFallback className="rounded-lg">{getInitials(title)}</AvatarFallback>
                 </Avatar>
                 <div>
                     <p className="font-semibold text-sm">{title}</p>

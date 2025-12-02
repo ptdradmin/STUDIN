@@ -22,7 +22,7 @@ type SearchResult =
     | { type: 'tutor', data: Tutor };
 
 const searchCollections = {
-    // users: { field: 'username', type: 'user' }, // Temporarily disabled due to security rules
+    users: { field: 'username', type: 'user' },
     housings: { field: 'title', type: 'housing' },
     events: { field: 'title', type: 'event' },
     tutorings: { field: 'subject', type: 'tutor' },
@@ -86,7 +86,7 @@ function SearchResults() {
                 <div className="space-y-3 mt-4">
                     {Array.from({length: 3}).map((_, i) => (
                         <div key={i} className="flex items-center gap-3">
-                           <Skeleton className="h-10 w-10 rounded-full" />
+                           <Skeleton className="h-10 w-10 rounded-lg" />
                            <div className="space-y-1">
                                <Skeleton className="h-4 w-32" />
                                <Skeleton className="h-3 w-24" />
@@ -119,15 +119,15 @@ function SearchResults() {
             <h1 className="text-2xl font-bold tracking-tight">Résultats pour "{q}"</h1>
 
              <Tabs defaultValue="all" className="mt-4">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="all">Tout</TabsTrigger>
-                    {/* <TabsTrigger value="user">Utilisateurs</TabsTrigger> */}
+                    <TabsTrigger value="user">Utilisateurs</TabsTrigger>
                     <TabsTrigger value="housing">Logements</TabsTrigger>
                     <TabsTrigger value="event">Événements</TabsTrigger>
                     <TabsTrigger value="tutor">Tutorat</TabsTrigger>
                 </TabsList>
                 <TabsContent value="all">{renderTabContent('all')}</TabsContent>
-                {/* <TabsContent value="user">{renderTabContent('user')}</TabsContent> */}
+                <TabsContent value="user">{renderTabContent('user')}</TabsContent>
                 <TabsContent value="housing">{renderTabContent('housing')}</TabsContent>
                 <TabsContent value="event">{renderTabContent('event')}</TabsContent>
                 <TabsContent value="tutor">{renderTabContent('tutor')}</TabsContent>

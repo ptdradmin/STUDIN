@@ -47,7 +47,7 @@ service cloud.firestore {
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if false; // No one can list all users
+      allow list: if isSignedIn() && request.query.keys().hasOnly(['orderBy', 'startAt', 'endAt', 'limit']);
       allow create: if isOwner(userId) && hasRequiredUserFields();
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
@@ -194,5 +194,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
