@@ -22,9 +22,9 @@ import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { createNotification, toggleFavorite } from '@/lib/actions';
 import { recommendEvents } from '@/ai/flows/recommend-events-flow';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { getOrCreateConversation } from '@/lib/conversations';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -34,6 +34,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 function RecommendedEvents({ events, userProfile }: { events: Event[], userProfile: UserProfile | null }) {
     const [recommendations, setRecommendations] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         if (userProfile && events.length > 0) {
@@ -55,52 +56,39 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
     return (
         <div className="mb-8">
             <h2 className="text-2xl font-bold tracking-tight mb-4">Pour vous</h2>
-            {isLoading ? (
-                <Carousel>
-                    <CarouselContent className="-ml-4">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <CarouselItem key={i} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                                <div className="p-1">
-                                    <Card className="overflow-hidden flex flex-col">
-                                       <Skeleton className="aspect-video w-full" />
-                                       <CardContent className="p-4 flex flex-col flex-grow">
-                                           <Skeleton className="h-4 w-24" />
-                                           <Skeleton className="h-6 w-full mt-2" />
-                                       </CardContent>
-                                    </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                        <Card key={i} className="overflow-hidden flex flex-col">
+                           <Skeleton className="aspect-video w-full" />
+                           <CardContent className="p-4 flex flex-col flex-grow">
+                               <Skeleton className="h-4 w-24" />
+                               <Skeleton className="h-6 w-full mt-2" />
+                               <Skeleton className="h-4 w-3/4 mt-2" />
+                           </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    recommendations.map(event => (
+                        <Link href={`#event-${event.id}`} key={event.id} className="block h-full group">
+                            <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
+                                <div className="relative">
+                                    <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint={event.imageHint} />
+                                    <Badge className="absolute top-3 right-3">{event.category}</Badge>
                                 </div>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                </Carousel>
-            ) : (
-                 <Carousel opts={{ align: "start", loop: false }}>
-                    <CarouselContent className="-ml-4">
-                        {recommendations.map(event => (
-                            <CarouselItem key={event.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                                <div className="p-1 h-full">
-                                     <Card className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col h-full">
-                                        <div className="relative">
-                                            <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
-                                            <Badge className="absolute top-2 right-2">{event.category}</Badge>
-                                        </div>
-                                        <CardContent className="p-4 flex flex-col flex-grow">
-                                            <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
-                                            <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
-                                            <p className="text-sm text-muted-foreground flex items-center mt-2">
-                                                <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                                                {event.city}
-                                            </p>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-                </Carousel>
-            )}
+                                <CardContent className="p-4 flex flex-col flex-grow">
+                                    <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
+                                    <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
+                                    <p className="text-sm text-muted-foreground flex items-center mt-2">
+                                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                                        {event.city}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                         </Link>
+                    ))
+                )}
+            </div>
         </div>
     );
 }
@@ -288,7 +276,7 @@ export default function EventsPage() {
               const isFavorited = favoritedIds.has(event.id);
               const isOwner = user?.uid === event.organizerId;
               return (
-                <Card key={event.id} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
+                <Card key={event.id} id={`event-${event.id}`} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
                     <div className="relative">
                         <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
                         <Badge className="absolute top-2 right-2">{event.category}</Badge>
