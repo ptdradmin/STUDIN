@@ -193,5 +193,14 @@ service cloud.firestore {
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
       }
     }
+
+    // =====================================================================
+    // UrbanQuest (Challenges) Rules
+    // =====================================================================
+    match /challenges/{challengeId} {
+      allow get, list: if isSignedIn();
+      // For now, only allow creation/updates/deletes from the server/admin SDK
+      allow create, update, delete: if false; 
+    }
   }
 }

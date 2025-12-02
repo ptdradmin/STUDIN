@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Film, PlusSquare, MessageSquare, User } from 'lucide-react';
+import { Home, Film, PlusSquare, MessageSquare, User, Target } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -28,7 +28,7 @@ export default function BottomNavbar() {
 
   const navItems = [
     { href: "/social", icon: Home },
-    { href: "/reels", icon: Film },
+    { href: "/challenges", icon: Target },
     { isAction: true, icon: PlusSquare, onClick: () => setShowCreatePost(true) },
     { href: "/messages", icon: MessageSquare },
     { href: "/profile", isProfile: true },

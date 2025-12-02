@@ -1,0 +1,204 @@
+
+'use client';
+
+import { useState } from 'react';
+import SocialSidebar from '@/components/social-sidebar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Target, Trophy, MapPin, Activity } from 'lucide-react';
+import GlobalSearch from '@/components/global-search';
+import NotificationsDropdown from '@/components/notifications-dropdown';
+import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
+import type { Challenge } from '@/lib/types';
+import Link from 'next/link';
+
+// Données statiques pour la démo
+const staticChallenges: Challenge[] = [
+  {
+    id: '1',
+    title: "Le Lion de Waterloo",
+    description: "Prenez un selfie au pied de la Butte du Lion. Un classique !",
+    category: 'Exploration',
+    difficulty: 'facile',
+    points: 10,
+    imageUrl: "https://images.unsplash.com/photo-1620202271383-34445b73650c?q=80&w=2070&auto=format&fit=crop",
+    location: 'Waterloo',
+    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+  },
+  {
+    id: '2',
+    title: "Street Art à Bruxelles",
+    description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock.",
+    category: 'Créatif',
+    difficulty: 'moyen',
+    points: 25,
+    imageUrl: 'https://images.unsplash.com/photo-1599709835737-27b6b15a7e6b?q=80&w=1974&auto=format&fit=crop',
+    location: 'Bruxelles',
+     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+  },
+  {
+    id: '3',
+    title: "Vue panoramique de Namur",
+    description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre.",
+    category: 'Exploration',
+    difficulty: 'moyen',
+    points: 20,
+    imageUrl: 'https://images.unsplash.com/photo-1620766385807-617a943a8b20?q=80&w=2070&auto=format&fit=crop',
+    location: 'Namur',
+     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+  },
+  {
+    id: '4',
+    title: "Participer à une Cantus",
+    description: "Immortialisez l'ambiance d'une cantus étudiante (avec respect et consentement !).",
+    category: 'Social',
+    difficulty: 'facile',
+    points: 15,
+    imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop',
+     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+  },
+];
+
+
+const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
+  const difficultyColors = {
+    facile: 'bg-green-500',
+    moyen: 'bg-yellow-500',
+    difficile: 'bg-red-500',
+  };
+
+  return (
+    <Link href={`/challenges/${challenge.id}`}>
+        <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl group">
+            <div className="relative aspect-video">
+                <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10"></div>
+                <div className="absolute top-2 right-2 flex items-center gap-2">
+                    <Badge variant="secondary" className="capitalize">{challenge.category}</Badge>
+                </div>
+                 <div className="absolute bottom-2 left-4 text-white">
+                    <h3 className="text-xl font-bold drop-shadow-md">{challenge.title}</h3>
+                </div>
+            </div>
+            <CardContent className="p-4">
+                 <p className="text-sm text-muted-foreground mb-4 h-10">{challenge.description}</p>
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${difficultyColors[challenge.difficulty]}`}></div>
+                        <span className="text-sm capitalize font-medium">{challenge.difficulty}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Trophy className="h-5 w-5 text-yellow-500" />
+                        <span className="font-bold text-lg">{challenge.points}</span>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    </Link>
+  );
+};
+
+
+export default function ChallengesPage() {
+
+    // For now, we use static data
+    const challenges = staticChallenges;
+
+    return (
+        <div className="flex min-h-screen w-full bg-background">
+            <SocialSidebar />
+            <div className="flex flex-col flex-1">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <div className="hidden md:flex flex-1 max-w-md items-center">
+                        <GlobalSearch />
+                    </div>
+                    <div className="flex-1 md:hidden">
+                        <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <NotificationsDropdown />
+                    </div>
+                </header>
+                <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                            <Target className="h-8 w-8 text-primary" />
+                            UrbanQuest
+                        </h1>
+                        <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
+                    </div>
+                    
+                    <Card className="mb-6">
+                        <CardHeader>
+                            <CardTitle>Filtrer les défis</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                                <div>
+                                    <Label htmlFor="category">Catégorie</Label>
+                                    <Select>
+                                        <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Toutes</SelectItem>
+                                            <SelectItem value="Exploration">Exploration</SelectItem>
+                                            <SelectItem value="Créatif">Créatif</SelectItem>
+                                            <SelectItem value="Social">Social</SelectItem>
+                                            <SelectItem value="Académique">Académique</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div>
+                                    <Label htmlFor="difficulty">Difficulté</Label>
+                                    <Select>
+                                        <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Toutes</SelectItem>
+                                            <SelectItem value="facile">Facile</SelectItem>
+                                            <SelectItem value="moyen">Moyen</SelectItem>
+                                            <SelectItem value="difficile">Difficile</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="location">Localité</Label>
+                                    <Input id="location" placeholder="Ex: Bruxelles" />
+                                </div>
+                                 <div>
+                                    <Label htmlFor="sort">Trier par</Label>
+                                    <Select>
+                                        <SelectTrigger><SelectValue placeholder="Les plus récents" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="recent">Les plus récents</SelectItem>
+                                            <SelectItem value="points">Points</SelectItem>
+                                            <SelectItem value="nearby">Proximité</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </form>
+                        </CardContent>
+                    </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {challenges.map(challenge => (
+                            <ChallengeCard key={challenge.id} challenge={challenge} />
+                        ))}
+                    </div>
+
+                    {challenges.length === 0 && (
+                         <Card className="text-center py-20 col-span-full">
+                            <CardContent>
+                                <h3 className="text-xl font-semibold">Aucun défi pour le moment</h3>
+                                <p className="text-muted-foreground mt-2">Revenez bientôt pour de nouvelles aventures !</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                </main>
+            </div>
+        </div>
+    );
+}

@@ -211,3 +211,17 @@ export interface Favorite {
     itemType: 'post' | 'housing' | 'event' | 'tutor';
     createdAt: Timestamp;
 }
+
+export interface Challenge {
+    id: string;
+    title: string;
+    description: string;
+    category: 'Exploration' | 'Social' | 'Créatif' | 'Académique';
+    difficulty: 'facile' | 'moyen' | 'difficile';
+    points: number;
+    imageUrl: string;
+    location?: string;
+    latitude?: number;
+    longitude?: number;
+    createdAt: Timestamp;
+}

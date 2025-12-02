@@ -343,6 +343,26 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "type", "senderId", "recipientId", "createdAt"]
+    },
+    "Challenge": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Challenge",
+      "type": "object",
+      "description": "Represents a gamified challenge in UrbanQuest.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "difficulty": { "type": "string", "enum": ["facile", "moyen", "difficile"] },
+        "points": { "type": "number" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "location": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "category", "difficulty", "points"]
     }
   },
   "auth": {
@@ -408,8 +428,10 @@
     "/conversations/{conversationId}/messages/{messageId}": {
       "schema": { "$ref": "#/entities/ChatMessage" },
       "description": "Stores the individual messages for a specific conversation."
+    },
+    "/challenges/{challengeId}": {
+      "schema": { "$ref": "#/entities/Challenge" },
+      "description": "Stores UrbanQuest challenges. Publicly readable."
     }
   }
 }
-
-    
