@@ -18,6 +18,12 @@ import Image from 'next/image';
 import { Image as ImageIcon, ArrowLeft, Crop } from 'lucide-react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -236,4 +242,3 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     </Dialog>
   );
 }
-
