@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -140,6 +141,7 @@ export default function RegisterForm() {
           profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
           followerIds: [],
           followingIds: [],
+          isVerified: false,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
       };

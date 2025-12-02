@@ -67,6 +67,10 @@
           "description": "URL of the user's profile picture.",
           "format": "uri"
         },
+        "isVerified": {
+            "type": "boolean",
+            "description": "Indicates if the user has a verified badge."
+        },
         "followerIds": {
           "type": "array",
           "description": "List of user IDs who are following this user.",
@@ -101,7 +105,8 @@
         "postalCode",
         "city",
         "university",
-        "fieldOfStudy"
+        "fieldOfStudy",
+        "isVerified"
       ]
     },
      "Post": {

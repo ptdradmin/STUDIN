@@ -38,6 +38,7 @@ service cloud.firestore {
           && data.city is string && data.city.size() > 0
           && data.university is string && data.university.size() > 0
           && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0
+          && data.isVerified == false
           && data.followerIds is list
           && data.followingIds is list;
     }

@@ -1,4 +1,5 @@
 
+
 import type { Timestamp } from 'firebase/firestore';
 
 export interface Housing {
@@ -156,6 +157,7 @@ export interface UserProfile {
     website?: string;
     gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
     profilePicture: string;
+    isVerified?: boolean;
     followerIds: string[];
     followingIds: string[];
     createdAt: Timestamp;
