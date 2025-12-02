@@ -21,7 +21,6 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import HousingCard from '@/components/housing-card';
-import HousingDetailModal from '@/components/housing-detail-modal';
 import { toggleFavorite } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import ProfileListingsTab from '@/components/profile-listings-tab';
@@ -197,7 +196,6 @@ export default function CurrentUserProfilePage() {
 
   const [showEditForm, setShowEditForm] = useState(false);
   const [modalContent, setModalContent] = useState<{title: string, userIds: string[]} | null>(null);
-  const [selectedHousing, setSelectedHousing] = useState<Housing | null>(null);
 
   const userRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -310,8 +308,6 @@ export default function CurrentUserProfilePage() {
                 </div>
             </header>
             <main className="flex-1 overflow-y-auto">
-                {selectedHousing && <HousingDetailModal housing={selectedHousing} onClose={() => setSelectedHousing(null)} />}
-
                 <div className="container mx-auto px-4 py-8">
                     {loading || !user || !userProfile ? <ProfilePageSkeleton /> : (
                         <div className="mx-auto max-w-4xl">
@@ -413,7 +409,7 @@ export default function CurrentUserProfilePage() {
                                               <div>
                                                   <h3 className="font-semibold mb-2">Logements</h3>
                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={setSelectedHousing} isFavorited={favoritedIds.housing?.has(h.id)} />)}
+                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={() => router.push(`/housing/${h.id}`)} isFavorited={favoritedIds.housing?.has(h.id)} />)}
                                                   </div>
                                               </div>
                                           )}
@@ -476,3 +472,4 @@ export default function CurrentUserProfilePage() {
     </div>
   );
 }
+
