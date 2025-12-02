@@ -130,13 +130,13 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
                 <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                     {housing.type}
                 </Badge>
-                <div className="absolute top-1 right-12">
-                   {user && !isOwner && (
-                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={handleFavoriteClick}>
-                            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
-                        </Button>
-                    )}
-                </div>
+                
+                 {user && !isOwner && (
+                    <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 left-2" onClick={handleFavoriteClick}>
+                        <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+                    </Button>
+                )}
+
                  {isOwner && (
                     <div className="absolute top-1 left-1">
                         <DropdownMenu>

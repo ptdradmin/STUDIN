@@ -135,7 +135,7 @@ const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
                             </div>
                         </CardContent>
                     </Card>
-                </Link>
+                 </Link>
             ))}
         </div>
     )
@@ -261,40 +261,40 @@ export default function CurrentUserProfilePage() {
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
-  const savedItemIds = useMemo(() => {
-    const ids = { post: [], housing: [], event: [], tutor: [] };
-    if (favoriteItems) {
-      favoriteItems.forEach(fav => {
-        if (ids[fav.itemType]) {
-          ids[fav.itemType].push(fav.itemId);
-        }
+  const favoritedIds = useMemo(() => {
+      const ids = { housing: new Set<string>(), event: new Set<string>(), tutor: new Set<string>() };
+      favoriteItems?.forEach(fav => {
+          if (fav.itemType === 'housing') ids.housing.add(fav.itemId);
+          if (fav.itemType === 'event') ids.event.add(fav.itemId);
+          if (fav.itemType === 'tutor') ids.tutor.add(fav.itemId);
       });
-    }
-    return ids;
+      return ids;
   }, [favoriteItems]);
 
   const savedPostsQuery = useMemoFirebase(() => {
-    if (!firestore || savedItemIds.post.length === 0) return null;
-    return query(collection(firestore, 'posts'), where(documentId(), 'in', savedItemIds.post.slice(0, 30)));
-  }, [firestore, savedItemIds.post]);
+    if (!firestore || !favoriteItems) return null;
+    const postIds = favoriteItems.filter(f => f.itemType === 'post').map(f => f.itemId);
+    if(postIds.length === 0) return null;
+    return query(collection(firestore, 'posts'), where(documentId(), 'in', postIds.slice(0, 30)));
+  }, [firestore, favoriteItems]);
   const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
   const savedHousingsQuery = useMemoFirebase(() => {
-    if (!firestore || savedItemIds.housing.length === 0) return null;
-    return query(collection(firestore, 'housings'), where(documentId(), 'in', savedItemIds.housing.slice(0, 30)));
-  }, [firestore, savedItemIds.housing]);
+    if (!firestore || favoritedIds.housing.size === 0) return null;
+    return query(collection(firestore, 'housings'), where(documentId(), 'in', Array.from(favoritedIds.housing).slice(0, 30)));
+  }, [firestore, favoritedIds.housing]);
   const { data: savedHousings, isLoading: savedHousingsLoading } = useCollection<Housing>(savedHousingsQuery);
   
   const savedEventsQuery = useMemoFirebase(() => {
-    if (!firestore || savedItemIds.event.length === 0) return null;
-    return query(collection(firestore, 'events'), where(documentId(), 'in', savedItemIds.event.slice(0, 30)));
-  }, [firestore, savedItemIds.event]);
+    if (!firestore || favoritedIds.event.size === 0) return null;
+    return query(collection(firestore, 'events'), where(documentId(), 'in', Array.from(favoritedIds.event).slice(0, 30)));
+  }, [firestore, favoritedIds.event]);
   const { data: savedEvents, isLoading: savedEventsLoading } = useCollection<Event>(savedEventsQuery);
 
   const savedTutorsQuery = useMemoFirebase(() => {
-    if (!firestore || savedItemIds.tutor.length === 0) return null;
-    return query(collection(firestore, 'tutorings'), where(documentId(), 'in', savedItemIds.tutor.slice(0, 30)));
-  }, [firestore, savedItemIds.tutor]);
+    if (!firestore || favoritedIds.tutor.size === 0) return null;
+    return query(collection(firestore, 'tutorings'), where(documentId(), 'in', Array.from(favoritedIds.tutor).slice(0, 30)));
+  }, [firestore, favoritedIds.tutor]);
   const { data: savedTutors, isLoading: savedTutorsLoading } = useCollection<Tutor>(savedTutorsQuery);
 
   useEffect(() => {
@@ -459,7 +459,7 @@ export default function CurrentUserProfilePage() {
                                               <div>
                                                   <h3 className="font-semibold mb-2">Logements</h3>
                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={setSelectedHousing} />)}
+                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={setSelectedHousing} isFavorited={true} />)}
                                                   </div>
                                               </div>
                                           )}
