@@ -15,7 +15,7 @@ import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, Crop } from 'lucide-react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +41,8 @@ const filters = [
     { name: 'Invert', className: 'filter-invert' },
 ];
 
+type AspectRatio = "1:1" | "4:5" | "16:9";
+
 export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<PostFormInputs>({
     resolver: zodResolver(postSchema),
@@ -55,9 +57,12 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const storage = useStorage();
+  
+  const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState('filter-none');
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
 
   const getInitials = (name?: string | null) => {
     if (!name) return "..";
@@ -75,6 +80,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
+        setStep(2);
       };
       reader.readAsDataURL(file);
     }
@@ -122,55 +128,83 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
   };
 
+  const aspectClasses: Record<AspectRatio, string> = {
+    "1:1": "aspect-square",
+    "4:5": "aspect-[4/5]",
+    "16:9": "aspect-video",
+  }
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl p-0">
-        <DialogHeader className="p-4 pb-0 border-b text-center">
-           <DialogTitle className="text-base font-semibold">Créer une nouvelle publication</DialogTitle>
+      <DialogContent className="sm:max-w-4xl p-0" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader className="p-3 pb-0 border-b text-center relative flex justify-between items-center flex-row">
+            {step === 2 && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" /></Button>
+            )}
+           <DialogTitle className="text-base font-semibold absolute left-1/2 -translate-x-1/2">
+             {step === 1 ? "Créer une nouvelle publication" : "Filtres et légende"}
+           </DialogTitle>
+            {step === 2 && (
+              <Button variant="link" onClick={handleSubmit(onSubmit)} className="ml-auto p-0 h-auto font-bold" disabled={loading}>
+                 {loading ? 'Publication...' : 'Partager'}
+              </Button>
+            )}
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] min-h-[60vh]">
-                <div className="flex flex-col items-center justify-center aspect-square border-r bg-muted relative">
-                    {previewUrl ? (
-                         <div className="relative w-full h-full">
-                            <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" className={selectedFilter} />
-                        </div>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center text-center">
-                            <ImageIcon className="h-16 w-16 text-muted-foreground" strokeWidth={1} />
-                            <p className="mt-4 text-muted-foreground">Téléchargez une photo ici</p>
-                             <Button type="button" variant="link" asChild className="mt-2">
-                                <Label htmlFor="image-upload" className="cursor-pointer">
-                                    Sélectionner depuis l'ordinateur
-                                </Label>
-                            </Button>
-                            <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
-                        </div>
-                    )}
-                </div>
+        <form>
+          {step === 1 && (
+             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+                  <ImageIcon className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
+                  <p className="mt-4 text-xl">Faites glisser les photos ici</p>
+                  <Button type="button" variant="link" asChild className="mt-2">
+                      <Label htmlFor="image-upload" className="cursor-pointer text-base">
+                          Sélectionner depuis l'ordinateur
+                      </Label>
+                  </Button>
+                  <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
+              </div>
+          )}
 
-                <div className="p-4 flex flex-col">
-                    {user && (
-                        <div className="flex items-center gap-3 mb-4">
-                            <Avatar className="h-7 w-7">
-                                <AvatarImage src={user.photoURL ?? undefined} />
-                                <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                            </Avatar>
-                            <p className="font-semibold text-sm">{user.displayName?.split(' ')[0]}</p>
-                        </div>
-                    )}
-                    <div>
-                        <Textarea
-                            id="caption"
-                            {...register('caption')}
-                            placeholder="Écrivez une légende..."
-                            className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[150px]"
-                        />
-                        {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+          {step === 2 && previewUrl && (
+             <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] min-h-[60vh]">
+                  <div className={cn("flex flex-col items-center justify-center border-r bg-black relative", aspectClasses[aspectRatio])}>
+                    <div className="absolute top-2 left-2 z-10">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="secondary" size="icon" className="rounded-full h-8 w-8 bg-black/50 hover:bg-black/70 text-white">
+                            <Crop className="h-4 w-4"/>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => setAspectRatio("1:1")}>1:1</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAspectRatio("4:5")}>4:5</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAspectRatio("16:9")}>16:9</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
+                    <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
+                  </div>
 
-                    {previewUrl && (
-                        <div className="mt-4">
+                  <div className="p-4 flex flex-col">
+                      {user && (
+                          <div className="flex items-center gap-3 mb-4">
+                              <Avatar className="h-7 w-7">
+                                  <AvatarImage src={user.photoURL ?? undefined} />
+                                  <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                              </Avatar>
+                              <p className="font-semibold text-sm">{user.displayName?.split(' ')[0]}</p>
+                          </div>
+                      )}
+                      <div>
+                          <Textarea
+                              id="caption"
+                              {...register('caption')}
+                              placeholder="Écrivez une légende..."
+                              className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[100px]"
+                          />
+                          {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+                      </div>
+
+                      <div className="mt-4">
                             <p className="text-sm font-medium mb-2">Filtres</p>
                             <div className="grid grid-cols-4 gap-2">
                                 {filters.map(filter => (
@@ -183,27 +217,23 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                                 ))}
                             </div>
                         </div>
-                    )}
 
-                    <div className="border-t mt-auto pt-4">
-                        <div className="relative">
-                             <Input 
-                                id="location" 
-                                placeholder="Ajouter un lieu" 
-                                {...register('location')}
-                                className="border-none p-0 focus-visible:ring-0"
-                            />
-                        </div>
-                    </div>
-                </div>
-           </div>
-          <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
-            <Button type="submit" disabled={loading || isUserLoading || !previewUrl} variant="link" className="font-bold">
-              {loading ? 'Publication...' : 'Partager'}
-            </Button>
-          </DialogFooter>
+                      <div className="border-t mt-auto pt-4">
+                          <div className="relative">
+                              <Input 
+                                  id="location" 
+                                  placeholder="Ajouter un lieu" 
+                                  {...register('location')}
+                                  className="border-none p-0 focus-visible:ring-0"
+                              />
+                          </div>
+                      </div>
+                  </div>
+            </div>
+          )}
         </form>
       </DialogContent>
     </Dialog>
   );
 }
+
