@@ -8,15 +8,17 @@ import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Paperclip, X, File, Image as ImageIcon, Video, Mic } from "lucide-react";
+import { ArrowLeft, Send, Paperclip, X, File, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect } from "react";
+import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createNotification } from "@/lib/actions";
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 function MessagesHeader({ conversation }: { conversation: Conversation | null }) {
     const { user } = useUser();
@@ -78,12 +80,19 @@ export default function ConversationPage() {
     const firestore = useFirestore();
     const storage = useStorage();
     const params = useParams();
+    const { toast } = useToast();
     const conversationId = params.id as string;
     const [newMessage, setNewMessage] = useState('');
     const [fileToSend, setFileToSend] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const conversationRef = useMemoFirebase(() => {
         if (!firestore || !conversationId) return null;
@@ -244,6 +253,44 @@ export default function ConversationPage() {
             message: `vous a envoyé un message : "${currentMessage.substring(0, 30)}${currentMessage.length > 30 ? '...' : ''}"`
         });
     }
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            audioChunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = event => {
+                audioChunksRef.current.push(event.data);
+            };
+
+            mediaRecorderRef.current.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+                setFileToSend(audioFile);
+                stream.getTracks().forEach(track => track.stop()); // Stop microphone
+            };
+
+            mediaRecorderRef.current.start();
+            setIsRecording(true);
+            setRecordingTime(0);
+            recordingIntervalRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erreur de micro", description: "Impossible d'accéder au microphone." });
+            console.error("Microphone access error:", error);
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+        }
+    };
     
     const getFileIcon = (file: File | null) => {
         if (!file) return <File />;
@@ -251,6 +298,17 @@ export default function ConversationPage() {
         if (file.type.startsWith('video/')) return <Video />;
         if (file.type.startsWith('audio/')) return <Mic />;
         return <File />;
+    }
+
+    const formatRecordingTime = (time: number) => {
+        const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+        const seconds = (time % 60).toString().padStart(2, '0');
+        return `${minutes}:${seconds}`;
+    };
+
+    const cancelUpload = () => {
+        setFileToSend(null);
+        setNewMessage('');
     }
 
     return (
@@ -278,35 +336,62 @@ export default function ConversationPage() {
                     {fileToSend && (
                          <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
                              <div className="flex items-center gap-2 overflow-hidden">
-                                {getFileIcon(fileToSend)}
-                                <span className="text-sm truncate">{fileToSend.name}</span>
+                                {fileToSend.type.startsWith('audio/') ? (
+                                    <audio src={URL.createObjectURL(fileToSend)} controls className="h-10" />
+                                ) : (
+                                    <>
+                                        {getFileIcon(fileToSend)}
+                                        <span className="text-sm truncate">{fileToSend.name}</span>
+                                    </>
+                                )}
                             </div>
-                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setFileToSend(null)}><X className="h-4 w-4" /></Button>
+                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelUpload}><X className="h-4 w-4" /></Button>
                          </div>
                     )}
                     {uploadProgress !== null && <Progress value={uploadProgress} className="mb-2 h-1" />}
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                         <input 
-                            type="file" 
-                            ref={fileInputRef} 
-                            className="hidden" 
-                            onChange={handleFileChange}
-                            accept="image/*,video/*,audio/*"
-                        />
-                        <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
-                            <Paperclip className="h-5 w-5" />
-                        </Button>
-                        <Input 
-                            placeholder="Écrivez votre message..." 
-                            className="flex-grow" 
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            disabled={isConversationLoading || !!fileToSend}
-                        />
-                        <Button type="submit" size="icon" disabled={(!newMessage.trim() && !fileToSend) || uploadProgress !== null}>
-                            <Send className="h-5 w-5"/>
-                        </Button>
-                    </form>
+                    
+                    {isRecording ? (
+                         <div className="flex items-center gap-2">
+                             <Button type="button" variant="destructive" size="icon" onClick={stopRecording}>
+                                 <StopCircle className="h-5 w-5" />
+                             </Button>
+                             <div className="flex-grow text-center">
+                                 <span className="text-red-500 font-mono animate-pulse">{formatRecordingTime(recordingTime)}</span>
+                             </div>
+                              <Button type="button" variant="ghost" size="icon" onClick={() => { stopRecording(); setFileToSend(null); }}>
+                                 <Trash2 className="h-5 w-5 text-muted-foreground" />
+                             </Button>
+                         </div>
+                    ) : (
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                className="hidden" 
+                                onChange={handleFileChange}
+                                accept="image/*,video/*,audio/*"
+                            />
+                            <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
+                                <Paperclip className="h-5 w-5" />
+                            </Button>
+                            <Input 
+                                placeholder="Écrivez votre message..." 
+                                className="flex-grow" 
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                disabled={isConversationLoading || !!fileToSend}
+                            />
+                             {newMessage.trim() === '' && !fileToSend ? (
+                                 <Button type="button" variant="ghost" size="icon" onClick={startRecording}>
+                                     <Mic className="h-5 w-5"/>
+                                 </Button>
+                             ) : (
+                                 <Button type="submit" size="icon" disabled={(!newMessage.trim() && !fileToSend) || uploadProgress !== null}>
+                                     <Send className="h-5 w-5"/>
+                                 </Button>
+                             )}
+                        </form>
+                    )}
                 </div>
             </div>
         </div>
