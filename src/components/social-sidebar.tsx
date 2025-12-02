@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { generateAvatar } from '@/lib/avatars';
 
 const mainNavItems = [
   { href: "/reels", label: "Reels", icon: Film },
@@ -97,7 +99,7 @@ export default function SocialSidebar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
                         <Avatar className="h-9 w-9">
-                            <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
+                            <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user.uid)} />
                             <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start overflow-hidden">

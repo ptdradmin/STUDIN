@@ -21,6 +21,7 @@ import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { getOrCreateConversation } from '@/lib/conversations';
 import ProfileListingsTab from '@/components/profile-listings-tab';
+import { generateAvatar } from '@/lib/avatars';
 
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
@@ -224,7 +225,7 @@ export default function UserProfilePage() {
                             <div className="p-4 md:p-6">
                                 <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
                                     <Avatar className="h-24 w-24 md:h-36 md:w-36 flex-shrink-0">
-                                        <AvatarImage src={userProfile.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${userProfile.email}`} />
+                                        <AvatarImage src={userProfile.profilePicture || generateAvatar(userProfile.email || userProfile.id)} />
                                         <AvatarFallback>{getInitials(userProfile.firstName)}</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-4 text-center sm:text-left">

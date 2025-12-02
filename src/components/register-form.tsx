@@ -18,6 +18,7 @@ import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleA
 import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { generateAvatar } from '@/lib/avatars';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -138,7 +139,7 @@ export default function RegisterForm() {
           fieldOfStudy: additionalData.fieldOfStudy || '',
           bio: '',
           website: '',
-          profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+          profilePicture: photoURL || generateAvatar(user.email || user.uid),
           followerIds: [],
           followingIds: [],
           isVerified: false,

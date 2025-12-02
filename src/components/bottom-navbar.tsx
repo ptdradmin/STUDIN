@@ -9,6 +9,7 @@ import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useState } from 'react';
 import CreatePostForm from './create-post-form';
+import { generateAvatar } from '@/lib/avatars';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
@@ -53,7 +54,7 @@ export default function BottomNavbar() {
               return (
                 <Link href={item.href || '#'} key={index}>
                   <Avatar className={`h-7 w-7 transition-all ${isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}>
-                    <AvatarImage src={user?.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user?.email}`} />
+                    <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user.uid)} />
                     <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                   </Avatar>
                 </Link>

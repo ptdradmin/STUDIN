@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { generateAvatar } from '@/lib/avatars';
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -79,7 +81,7 @@ export default function LoginForm() {
         city: '',
         bio: '',
         website: '',
-        profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
+        profilePicture: photoURL || generateAvatar(user.email || user.uid),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         followerIds: [],

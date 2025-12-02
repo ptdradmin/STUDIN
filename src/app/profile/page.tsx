@@ -25,6 +25,7 @@ import HousingCard from '@/components/housing-card';
 import { toggleFavorite } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import ProfileListingsTab from '@/components/profile-listings-tab';
+import { generateAvatar } from '@/lib/avatars';
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
     if (isLoading) {
@@ -315,7 +316,7 @@ export default function CurrentUserProfilePage() {
                             <div className="p-4 md:p-6">
                                 <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
                                     <Avatar className="h-24 w-24 md:h-36 md:w-36 flex-shrink-0">
-                                        <AvatarImage src={userProfile.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} />
+                                        <AvatarImage src={userProfile.profilePicture || generateAvatar(user.email || user.uid)} />
                                         <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-4 text-center sm:text-left">

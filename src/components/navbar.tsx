@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -18,6 +19,7 @@ import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { generateAvatar } from "@/lib/avatars";
 
 const navLinks = [
   { href: "/housing", label: "Logement", icon: <Home className="mr-2 h-4 w-4" /> },
@@ -129,7 +131,7 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`} alt={user.displayName || user.email || ''} />
+                        <AvatarImage src={user.photoURL || generateAvatar(user.email || user.uid)} alt={user.displayName || user.email || ''} />
                         <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                       </Avatar>
                     </Button>

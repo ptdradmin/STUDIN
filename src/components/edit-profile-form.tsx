@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -20,6 +21,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
 import { updateUserPosts } from '@/lib/actions';
+import { generateAvatar } from '@/lib/avatars';
 
 
 const profileSchema = z.object({
@@ -223,7 +225,7 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
              <FormSection title="Profil Public" description="Ces informations seront visibles par les autres utilisateurs.">
                  <div className="flex items-center gap-4">
                     <Avatar className="h-16 w-16">
-                        <AvatarImage src={previewUrl || undefined} />
+                        <AvatarImage src={previewUrl || generateAvatar(user.email || user.uid)} />
                         <AvatarFallback>{getInitials(userProfile?.firstName)}</AvatarFallback>
                     </Avatar>
                      <Label htmlFor="photo-upload" className="cursor-pointer">
