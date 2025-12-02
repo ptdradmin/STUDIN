@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare } from "lucide-react";
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
@@ -23,6 +23,7 @@ import NotificationsDropdown from "@/components/notifications-dropdown";
 import { createNotification } from "@/lib/actions";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { getOrCreateConversation } from "@/lib/conversations";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -87,6 +88,24 @@ export default function CarpoolingPage() {
       return departureMatch && arrivalMatch && dateMatch;
     });
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
+
+  const handleContact = async (trip: Trip) => {
+    if (!user || !firestore) {
+        router.push('/login?from=/carpooling');
+        return;
+    }
+    if (trip.driverId === user.uid) {
+        toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas vous contacter vous-même." });
+        return;
+    }
+
+    const conversationId = await getOrCreateConversation(firestore, user.uid, trip.driverId);
+    if (conversationId) {
+        router.push(`/messages/${conversationId}`);
+    } else {
+        toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
+    }
+  };
 
  const handleReserve = async (trip: Trip) => {
     if (!user || !firestore) {
@@ -292,9 +311,14 @@ export default function CarpoolingPage() {
                               <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                   <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
                                   {user && (
-                                    <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0 || isPassenger}>
-                                      {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
-                                    </Button>
+                                    <>
+                                        <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0 || isPassenger}>
+                                            {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
+                                        </Button>
+                                        <Button size="sm" variant="outline" onClick={() => handleContact(trip)} disabled={trip.driverId === user.uid}>
+                                            <MessageSquare className="h-4 w-4" />
+                                        </Button>
+                                    </>
                                   )}
                               </div>
 
@@ -325,5 +349,7 @@ export default function CarpoolingPage() {
     </div>
   );
 
+
+    
 
     

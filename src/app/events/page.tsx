@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, LayoutGrid, Map, Plus, Search, User, Bookmark } from "lucide-react";
+import { MapPin, LayoutGrid, Map, Plus, Search, User, Bookmark, MessageSquare } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,8 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import { createNotification, toggleFavorite } from '@/lib/actions';
 import { recommendEvents } from '@/ai/flows/recommend-events-flow';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { getOrCreateConversation } from '@/lib/conversations';
+import { useRouter } from 'next/navigation';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -107,6 +109,7 @@ export default function EventsPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -216,6 +219,24 @@ export default function EventsPage() {
     }
   };
 
+  const handleContact = async (event: Event) => {
+    if (!user || !firestore) {
+        router.push('/login?from=/events');
+        return;
+    }
+    if (event.organizerId === user.uid) {
+        toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas vous contacter vous-même." });
+        return;
+    }
+
+    const conversationId = await getOrCreateConversation(firestore, user.uid, event.organizerId);
+    if (conversationId) {
+        router.push(`/messages/${conversationId}`);
+    } else {
+        toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
+    }
+  };
+
     const handleFavoriteClick = async (event: Event, isFavorited: boolean) => {
         if (!user || !firestore) {
             toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
@@ -284,9 +305,14 @@ export default function EventsPage() {
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                             {event.city}
                         </p>
-                        <Button className="w-full mt-4" onClick={() => handleAttend(event)} disabled={isAttending || isOwner}>
-                          {isAttending ? 'Vous participez' : 'Participer'}
-                        </Button>
+                         <div className="flex gap-2 w-full mt-4">
+                            <Button className="flex-1" onClick={() => handleAttend(event)} disabled={isAttending || isOwner}>
+                              {isAttending ? 'Vous participez' : 'Participer'}
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => handleContact(event)} disabled={isOwner}>
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             )})}
@@ -410,3 +436,5 @@ export default function EventsPage() {
     </div>
   );
 }
+
+    
