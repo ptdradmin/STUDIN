@@ -12,12 +12,13 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
-import { Image as ImageIcon } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
+import { Separator } from './ui/separator';
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -138,86 +139,110 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Modifier' : 'Créer'} une annonce de logement</DialogTitle>
+          <DialogDescription>Remplissez les détails ci-dessous pour publier votre annonce.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
-            {previewUrl ? (
-              <div className="relative w-full h-full">
-                <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                <ImageIcon className="h-16 w-16 mx-auto" strokeWidth={1} />
-                <p className="mt-2 text-sm">Téléchargez une image</p>
-              </div>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="imageUrl" className="sr-only">Image</Label>
-            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
-
-          <div>
-            <Label htmlFor="title">Titre</Label>
-            <Input id="title" {...register('title')} />
-            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} />
-            {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
-          </div>
-           <div>
-                <Label htmlFor="type">Type</Label>
-                <Controller
-                    name="type"
-                    control={control}
-                    render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner le type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="kot">Kot</SelectItem>
-                                <SelectItem value="studio">Studio</SelectItem>
-                                <SelectItem value="colocation">Colocation</SelectItem>
-                            </SelectContent>
-                        </Select>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">
+            {/* --- Section Image --- */}
+            <div className="space-y-2">
+                <Label>Image de l'annonce</Label>
+                <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
+                    {previewUrl ? (
+                    <div className="relative w-full h-full">
+                        <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" className="rounded-md" />
+                    </div>
+                    ) : (
+                    <div className="text-center text-muted-foreground p-4">
+                        <ImageIcon className="h-12 w-12 mx-auto" strokeWidth={1} />
+                        <p className="mt-2 text-sm">Téléchargez une image</p>
+                    </div>
                     )}
-                />
-                {errors.type && <p className="text-xs text-destructive">{errors.type.message}</p>}
+                </div>
+                 <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
             </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="price">Prix (€/mois)</Label>
-              <Input id="price" type="number" {...register('price')} />
-              {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+            
+            <Separator />
+            
+            {/* --- Informations Générales --- */}
+            <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Informations Générales</h3>
+                 <div>
+                    <Label htmlFor="title">Titre</Label>
+                    <Input id="title" {...register('title')} placeholder="Ex: Kot lumineux près de l'UNamur"/>
+                    {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+                </div>
+                <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" {...register('description')} placeholder="Décrivez le logement, ses atouts, etc."/>
+                    {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+                </div>
+                 <div>
+                    <Label htmlFor="type">Type de logement</Label>
+                    <Controller
+                        name="type"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionner le type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="kot">Kot</SelectItem>
+                                    <SelectItem value="studio">Studio</SelectItem>
+                                    <SelectItem value="colocation">Colocation</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.type && <p className="text-xs text-destructive">{errors.type.message}</p>}
+                </div>
             </div>
-             <div>
-              <Label htmlFor="surface_area">Surface (m²)</Label>
-              <Input id="surface_area" type="number" {...register('surface_area')} />
-              {errors.surface_area && <p className="text-xs text-destructive">{errors.surface_area.message}</p>}
+            
+            <Separator />
+
+             {/* --- Caractéristiques --- */}
+            <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Caractéristiques</h3>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                    <Label htmlFor="price">Prix (€/mois)</Label>
+                    <Input id="price" type="number" {...register('price')} />
+                    {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                    </div>
+                    <div>
+                    <Label htmlFor="surface_area">Surface (m²)</Label>
+                    <Input id="surface_area" type="number" {...register('surface_area')} />
+                    {errors.surface_area && <p className="text-xs text-destructive">{errors.surface_area.message}</p>}
+                    </div>
+                </div>
+                <div>
+                    <Label htmlFor="bedrooms">Nombre de chambres</Label>
+                    <Input id="bedrooms" type="number" {...register('bedrooms')} />
+                    {errors.bedrooms && <p className="text-xs text-destructive">{errors.bedrooms.message}</p>}
+                </div>
             </div>
-          </div>
-           <div>
-              <Label htmlFor="bedrooms">Chambres</Label>
-              <Input id="bedrooms" type="number" {...register('bedrooms')} />
-              {errors.bedrooms && <p className="text-xs text-destructive">{errors.bedrooms.message}</p>}
+
+            <Separator />
+            
+             {/* --- Localisation --- */}
+            <div className="space-y-4">
+                <h3 className="text-sm font-medium text-muted-foreground">Localisation</h3>
+                 <div>
+                    <Label htmlFor="address">Adresse</Label>
+                    <Input id="address" {...register('address')} placeholder="Ex: Rue de Bruxelles 53" />
+                    {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
+                </div>
+                <div>
+                    <Label htmlFor="city">Ville</Label>
+                    <Input id="city" {...register('city')} placeholder="Ex: Namur" />
+                    {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
+                </div>
             </div>
-            <div>
-              <Label htmlFor="address">Adresse</Label>
-              <Input id="address" {...register('address')} />
-              {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
-            </div>
-            <div>
-              <Label htmlFor="city">Ville</Label>
-              <Input id="city" {...register('city')} />
-              {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
-            </div>
-          <DialogFooter className="sticky bottom-0 bg-background pt-4">
+
+
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -mb-4 -mx-1 p-6 border-t">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
@@ -230,5 +255,3 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     </Dialog>
   );
 }
-
-    
