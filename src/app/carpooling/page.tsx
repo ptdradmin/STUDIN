@@ -144,14 +144,14 @@ export default function CarpoolingPage() {
       });
     }).catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
-          path: `Opération par lot : carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
+          path: `carpoolings/${trip.id} (et sous-collection carpool_bookings)`,
           operation: 'write',
-          requestResourceData: { 
-              carpoolingUpdate: {
-                  seatsAvailable: 'increment(-1)',
-                  passengerIds: `arrayUnion(${user.uid})`
-              },
-              bookingCreation: bookingData
+          requestResourceData: {
+            carpoolingUpdate: {
+              seatsAvailable: 'increment(-1)',
+              passengerIds: `arrayUnion(${user.uid})`
+            },
+            bookingCreation: bookingData
           }
       });
       errorEmitter.emit('permission-error', permissionError);
