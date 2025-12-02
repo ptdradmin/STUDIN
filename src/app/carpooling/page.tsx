@@ -21,7 +21,8 @@ import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
 import { createNotification } from "@/lib/actions";
-import { errorEmitter, FirestorePermissionError } from "@/firebase";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -116,12 +117,14 @@ export default function CarpoolingPage() {
                 throw "Trajet non trouvé.";
             }
 
-            const currentSeats = carpoolingDoc.data().seatsAvailable;
-            if (currentSeats <= 0) {
+            const currentData = carpoolingDoc.data() as Trip;
+
+            if (currentData.seatsAvailable <= 0) {
                 throw "Ce trajet est complet.";
             }
             
-            const newSeatsAvailable = currentSeats - 1;
+            const newSeatsAvailable = currentData.seatsAvailable - 1;
+            const newPassengerIds = [...(currentData.passengerIds || []), user.uid];
 
             const bookingData = {
               id: bookingRef.id,
@@ -134,7 +137,7 @@ export default function CarpoolingPage() {
 
             const carpoolingUpdateData = {
                 seatsAvailable: newSeatsAvailable,
-                passengerIds: arrayUnion(user.uid)
+                passengerIds: newPassengerIds
             };
 
             transaction.update(carpoolingRef, carpoolingUpdateData);
@@ -155,24 +158,24 @@ export default function CarpoolingPage() {
         });
 
     } catch (e: any) {
-        if (e.name === 'FirebaseError') {
-             const permissionError = new FirestorePermissionError({
-                path: `Transaction sur carpoolings/${trip.id} et carpool_bookings`,
-                operation: 'write',
-                requestResourceData: { 
-                    action: 'reserve_seat',
-                    carpoolId: trip.id,
-                    passengerId: user.uid
-                }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            toast({
-                variant: "destructive",
-                title: "Erreur de réservation",
-                description: e.toString(),
-            });
-        }
+       if (e.name === 'FirebaseError') {
+         const permissionError = new FirestorePermissionError({
+            path: `Transaction sur carpoolings/${trip.id} et carpool_bookings`,
+            operation: 'write', // 'write' is a generic term for transactions
+            requestResourceData: { 
+                action: 'reserve_seat',
+                carpoolId: trip.id,
+                passengerId: user.uid
+            }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+       } else {
+         toast({
+            variant: "destructive",
+            title: "Erreur de réservation",
+            description: e.toString(),
+        });
+       }
     }
   };
 
@@ -327,5 +330,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-    

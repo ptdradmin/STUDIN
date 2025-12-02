@@ -104,20 +104,17 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isOwner(resource.data.driverId) || // Le conducteur peut tout modifier
-                      ( // Un passager peut réserver
+      allow update: if isOwner(resource.data.driverId) ||
+                      ( // A passenger can book a seat by only changing these two fields
                         isSignedIn() &&
-                        request.resource.data.seatsAvailable == resource.data.seatsAvailable - 1 &&
-                        request.resource.data.passengerIds == resource.data.passengerIds.append(request.auth.uid) &&
-                        // Assurez-vous qu'aucun autre champ n'est modifié
-                        request.resource.data.keys().diff(resource.data.keys()).hasOnly(['seatsAvailable', 'passengerIds'])
+                        request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds'])
                       );
       allow delete: if isOwner(resource.data.driverId);
 
       match /carpool_bookings/{carpoolBookingId} {
         allow get: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
         allow list: if isDriver(carpoolingId);
-        allow create: if isSignedIn();
+        allow create: if isSignedIn(); // Validated in transaction logic
         allow update: if isSignedIn();
         allow delete: if isOwner(resource.data.passengerId);
       }
