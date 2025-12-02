@@ -217,7 +217,11 @@ export default function LoginForm() {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
-              {loading === 'email' ? 'Connexion...' : 'Se connecter'}
+              {!servicesReady
+                ? 'Chargement...'
+                : loading === 'email'
+                ? 'Connexion...'
+                : 'Se connecter'}
             </Button>
           </form>
         </div>
