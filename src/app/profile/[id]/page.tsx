@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Search } from 'lucide-react';
+import { Grid3x3, Search, Package, PartyPopper } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Post, UserProfile } from '@/lib/types';
+import type { Post, UserProfile, Housing, Trip, Tutor, Event } from '@/lib/types';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where } from 'firebase/firestore';
 import { toggleFollowUser } from '@/lib/actions';
@@ -19,6 +19,7 @@ import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { getOrCreateConversation } from '@/lib/conversations';
+import ProfileListingsTab from '@/components/profile-listings-tab';
 
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
@@ -120,6 +121,17 @@ export default function UserProfilePage() {
     return query(collection(firestore, 'posts'), where('userId', '==', profileId));
   }, [firestore, profileId]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
+  
+  // Queries for the new tabs
+    const housingQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'housings'), where('userId', '==', profileId)), [firestore, profileId]);
+    const carpoolQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'carpoolings'), where('driverId', '==', profileId)), [firestore, profileId]);
+    const tutorQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'tutorings'), where('tutorId', '==', profileId)), [firestore, profileId]);
+    const eventQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'events'), where('organizerId', '==', profileId)), [firestore, profileId]);
+
+    const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
+    const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
+    const { data: tutorings, isLoading: l3 } = useCollection<Tutor>(tutorQuery);
+    const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
 
   const { data: currentUserProfile } = useDoc<UserProfile>(
     useMemoFirebase(() => user && firestore ? doc(firestore, 'users', user.uid) : null, [user, firestore])
@@ -166,7 +178,7 @@ export default function UserProfilePage() {
     return firstName.substring(0, 2).toUpperCase();
   }
 
-  const loading = isUserLoading || postsLoading || profileLoading;
+  const loading = isUserLoading || profileLoading || postsLoading || l1 || l2 || l3 || l4;
   const isCurrentUserProfile = user && user.uid === profileId;
 
   if (isCurrentUserProfile && !isUserLoading) {
@@ -185,7 +197,10 @@ export default function UserProfilePage() {
   const followingCount = userProfile?.followingIds?.length || 0;
   const isFollowing = !!(currentUserProfile && currentUserProfile.followingIds?.includes(profileId));
 
-
+  const allListings = [...(housings || []), ...(carpools || []), ...(tutorings || [])];
+  const hasListings = allListings.length > 0;
+  const hasEvents = (events || []).length > 0;
+  
   return (
     <div className="flex min-h-screen w-full bg-background">
         <SocialSidebar />
@@ -255,16 +270,46 @@ export default function UserProfilePage() {
                             )}
 
 
-                            <Tabs defaultValue="posts" className="w-full">
-                                <TabsList className="grid w-full grid-cols-1 rounded-none border-y">
+                             <Tabs defaultValue="posts" className="w-full">
+                                <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 rounded-none border-y">
                                     <TabsTrigger value="posts" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                                         <Grid3x3 className="h-5 w-5" />
                                         <span className="hidden md:inline ml-2">Publications</span>
                                     </TabsTrigger>
+                                     {hasListings && (
+                                         <TabsTrigger value="listings" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                            <Package className="h-5 w-5" />
+                                            <span className="hidden md:inline ml-2">Annonces</span>
+                                        </TabsTrigger>
+                                     )}
+                                     {hasEvents && (
+                                         <TabsTrigger value="events" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                            <PartyPopper className="h-5 w-5" />
+                                            <span className="hidden md:inline ml-2">Événements</span>
+                                        </TabsTrigger>
+                                     )}
                                 </TabsList>
                                 <TabsContent value="posts">
                                     <ProfileGrid posts={userPosts || []} isLoading={postsLoading} />
                                 </TabsContent>
+                                {hasListings && (
+                                    <TabsContent value="listings">
+                                        <ProfileListingsTab
+                                            housings={housings}
+                                            carpools={carpools}
+                                            tutorings={tutorings}
+                                            isLoading={l1 || l2 || l3}
+                                        />
+                                    </TabsContent>
+                                )}
+                                {hasEvents && (
+                                    <TabsContent value="events">
+                                        <ProfileListingsTab
+                                            events={events}
+                                            isLoading={l4}
+                                        />
+                                    </TabsContent>
+                                )}
                             </Tabs>
                         </div>
                     )}
