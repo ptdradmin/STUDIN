@@ -130,8 +130,7 @@ export default function CarpoolingPage() {
     batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
 
-    batch.commit()
-    .then(() => {
+    batch.commit().then(() => {
         createNotification(firestore, {
             type: 'carpool_booking',
             senderId: user.uid,
@@ -143,10 +142,9 @@ export default function CarpoolingPage() {
             title: "Réservation confirmée !",
             description: "Votre place a été réservée avec succès.",
         });
-    })
-    .catch((serverError) => {
+    }).catch((serverError) => {
         const permissionError = new FirestorePermissionError({
-            path: `Transaction on carpoolings/${trip.id} and carpool_bookings subcollection`,
+            path: `Transaction on carpoolings/${trip.id} and its carpool_bookings subcollection`,
             operation: 'write',
             requestResourceData: { 
                 carpoolingUpdate: carpoolingUpdateData,
@@ -308,5 +306,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-    
