@@ -23,45 +23,46 @@ import { Calendar as CalendarIcon, Car, Users } from 'lucide-react';
 
 
 const CarIllustration = ({ availableSeats }: { availableSeats: number }) => {
-    const seats = [
-        { id: 'front_passenger', x: 55, y: 55 },
-        { id: 'rear_left', x: 20, y: 95 },
-        { id: 'rear_middle', x: 40, y: 95 },
-        { id: 'rear_right', x: 60, y: 95 },
-    ];
+  const seats = [
+    { id: 'front_passenger', path: "M 65,55 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
+    { id: 'rear_left', path: "M 35,90 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
+    { id: 'rear_middle', path: "M 55,90 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
+    { id: 'rear_right', path: "M 75,90 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
+  ];
 
-    return (
-        <div className="relative w-48 h-64 mx-auto">
-            <svg viewBox="0 0 100 150" className="w-full h-full">
-                {/* Car body */}
-                <path d="M10 50 C0 60, 0 130, 10 140 L90 140 C100 130, 100 60, 90 50 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
-                <path d="M15 48 C5 58, 5 80, 15 85 L85 85 C95 80, 95 58, 85 48 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
-                {/* Windshield */}
-                <path d="M20 48 L80 48 L85 40 L15 40 Z" fill="hsl(var(--accent))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+  return (
+    <div className="relative w-48 h-64 mx-auto">
+      <svg viewBox="0 0 100 150" className="w-full h-full">
+        {/* Car body */}
+        <path d="M 8,40 C -2,50 -2,125 8,140 L 92,140 C 102,125 102,50 92,40 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
+        
+        {/* Windows */}
+        <path d="M 15,40 C 10,30 90,30 85,40 L 80,85 C 95,85 95,100 80,100 L 20,100 C 5,100 5,85 20,85 Z" fill="hsl(var(--accent))" stroke="hsl(var(--border))" strokeWidth="1.5" />
 
-                {/* Driver seat (always unavailable) */}
-                <rect x="25" y="55" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
+        {/* Details */}
+        <path d="M 10,60 L 5,65" stroke="hsl(var(--border))" strokeWidth="2" strokeLinecap="round" />
+        <path d="M 90,60 L 95,65" stroke="hsl(var(--border))" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="32" cy="45" r="8" stroke="hsl(var(--border))" strokeWidth="1.5" fill="none"/>
 
-                {/* Passenger seats */}
-                {seats.map((seat, index) => (
-                    <rect 
-                        key={seat.id}
-                        x={seat.x}
-                        y={seat.y}
-                        width="20"
-                        height="30"
-                        rx="3"
-                        className={cn(
-                            "transition-colors duration-300",
-                            index < availableSeats ? "fill-primary" : "fill-card"
-                        )}
-                        stroke="hsl(var(--border))" 
-                        strokeWidth="1"
-                    />
-                ))}
-            </svg>
-        </div>
-    );
+        {/* Driver seat (always unavailable) */}
+        <path d="M 45,55 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
+
+        {/* Passenger seats */}
+        {seats.map((seat, index) => (
+          <path
+            key={seat.id}
+            d={seat.path}
+            className={cn(
+                "transition-colors duration-300",
+                index < availableSeats ? "fill-primary" : "fill-card"
+            )}
+            stroke="hsl(var(--border))" 
+            strokeWidth="1"
+          />
+        ))}
+      </svg>
+    </div>
+  );
 };
 
 
