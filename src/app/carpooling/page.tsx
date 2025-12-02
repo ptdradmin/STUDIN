@@ -10,9 +10,9 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search } from "lucide-react
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, increment } from "firebase/firestore";
+import { collection, serverTimestamp, doc, writeBatch, arrayUnion, getDoc, runTransaction } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
 import { createNotification } from "@/lib/actions";
+import { errorEmitter, FirestorePermissionError } from "@/firebase";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -86,7 +87,7 @@ export default function CarpoolingPage() {
     });
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
- const handleReserve = (trip: Trip) => {
+ const handleReserve = async (trip: Trip) => {
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
@@ -99,60 +100,80 @@ export default function CarpoolingPage() {
         toast({ title: "Déjà réservé", description: "Vous avez déjà une place pour ce trajet." });
         return;
     }
-    if (trip.seatsAvailable <= 0) {
-        toast({ variant: "destructive", title: "Complet", description: "Ce trajet n'a plus de places disponibles." });
-        return;
-    }
 
     toast({
         title: "Réservation en cours...",
         description: `Nous traitons votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
     });
     
-    const batch = writeBatch(firestore);
     const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
     const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
     
-    const bookingData = {
-      id: bookingRef.id,
-      carpoolId: trip.id,
-      passengerId: user.uid,
-      seatsBooked: 1,
-      status: 'confirmed',
-      createdAt: serverTimestamp()
-    };
-    
-    const carpoolingUpdateData = {
-        seatsAvailable: increment(-1),
-        passengerIds: arrayUnion(user.uid)
-    };
+    try {
+        await runTransaction(firestore, async (transaction) => {
+            const carpoolingDoc = await transaction.get(carpoolingRef);
+            if (!carpoolingDoc.exists()) {
+                throw "Trajet non trouvé.";
+            }
 
-    batch.update(carpoolingRef, carpoolingUpdateData);
-    batch.set(bookingRef, bookingData);
+            const currentSeats = carpoolingDoc.data().seatsAvailable;
+            if (currentSeats <= 0) {
+                throw "Ce trajet est complet.";
+            }
+            
+            const newSeatsAvailable = currentSeats - 1;
 
-    batch.commit().then(() => {
-        createNotification(firestore, {
+            const bookingData = {
+              id: bookingRef.id,
+              carpoolId: trip.id,
+              passengerId: user.uid,
+              seatsBooked: 1,
+              status: 'confirmed',
+              createdAt: serverTimestamp()
+            };
+
+            const carpoolingUpdateData = {
+                seatsAvailable: newSeatsAvailable,
+                passengerIds: arrayUnion(user.uid)
+            };
+
+            transaction.update(carpoolingRef, carpoolingUpdateData);
+            transaction.set(bookingRef, bookingData);
+        });
+
+        await createNotification(firestore, {
             type: 'carpool_booking',
             senderId: user.uid,
             recipientId: trip.driverId,
             relatedId: trip.id,
             message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
         });
+
         toast({
             title: "Réservation confirmée !",
             description: "Votre place a été réservée avec succès.",
         });
-    }).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: `Transaction on carpoolings/${trip.id} and its carpool_bookings subcollection`,
-            operation: 'write',
-            requestResourceData: { 
-                carpoolingUpdate: carpoolingUpdateData,
-                bookingCreation: bookingData,
-            }
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
+
+    } catch (e: any) {
+        if (e.name === 'FirebaseError') {
+             const permissionError = new FirestorePermissionError({
+                path: `Transaction sur carpoolings/${trip.id} et carpool_bookings`,
+                operation: 'write',
+                requestResourceData: { 
+                    action: 'reserve_seat',
+                    carpoolId: trip.id,
+                    passengerId: user.uid
+                }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Erreur de réservation",
+                description: e.toString(),
+            });
+        }
+    }
   };
 
   return (
@@ -306,3 +327,5 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
+
+    
