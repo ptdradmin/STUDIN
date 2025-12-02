@@ -14,18 +14,23 @@ import { useAuth, useFirestore, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format, setHours, setMinutes } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
   description: z.string().min(1, 'La description est requise'),
   category: z.enum(['soirée', 'conférence', 'sport', 'culture'], { required_error: 'La catégorie est requise' }),
-  startDate: z.string().min(1, 'La date de début est requise'),
-  city: z.string().min(1, 'La ville est requise'),
-  address: z.string().min(1, 'L\'adresse est requise'),
+  startDate: z.date({ required_error: 'La date est requise.' }),
   price: z.preprocess((val) => Number(val), z.number().min(0, 'Le prix est requis')),
+  city: z.string().min(1, 'La ville est requise'),
+  address: z.string().min(1, "L'adresse est requise"),
 });
 
 type EventFormInputs = z.infer<typeof eventSchema>;
@@ -35,7 +40,7 @@ interface CreateEventFormProps {
 }
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
-  const { register, handleSubmit, control, formState: { errors } } = useForm<EventFormInputs>({
+  const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
   });
 
@@ -47,6 +52,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const selectedDate = watch('startDate');
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -57,6 +63,16 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         setPreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTimeChange = (type: 'hours' | 'minutes', value: string) => {
+    const newDate = selectedDate || new Date();
+    const numberValue = parseInt(value, 10);
+    if (type === 'hours') {
+        setValue('startDate', setHours(newDate, numberValue), { shouldValidate: true });
+    } else {
+        setValue('startDate', setMinutes(newDate, numberValue), { shouldValidate: true });
     }
   };
 
@@ -78,9 +94,12 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
         const snapshot = await uploadBytes(imageRef, imageFile);
         const imageUrl = await getDownloadURL(snapshot.ref);
+        
+        const finalStartDate = data.startDate.toISOString();
 
         const eventData = {
             ...data,
+            startDate: finalStartDate,
             id: newDocRef.id,
             organizerId: user.uid,
             username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
@@ -88,7 +107,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
             attendeeIds: [],
-            endDate: data.startDate, // simplified
+            endDate: finalStartDate, // simplified
             locationName: data.address, // simplified
             coordinates: [50.8503, 4.3517], 
             imageHint: "student event",
@@ -107,12 +126,12 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Créer un événement</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2">
+          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
             {previewUrl ? (
               <div className="relative w-full h-full">
                 <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
@@ -158,34 +177,74 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             />
             {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="startDate">Date et heure</Label>
-              <Input id="startDate" type="datetime-local" {...register('startDate')} />
-              {errors.startDate && <p className="text-xs text-destructive">{errors.startDate.message}</p>}
+          <div className="space-y-2">
+            <Label>Date et heure</Label>
+            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                <Controller
+                    name="startDate"
+                    control={control}
+                    render={({ field }) => (
+                         <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(date) => date && field.onChange(date)}
+                                initialFocus
+                                locale={fr}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                />
+
+                <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : undefined}>
+                    <SelectTrigger className="w-[80px]"><SelectValue placeholder="HH" /></SelectTrigger>
+                    <SelectContent>{Array.from({ length: 24 }).map((_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : undefined}>
+                    <SelectTrigger className="w-[80px]"><SelectValue placeholder="MM" /></SelectTrigger>
+                    <SelectContent>{Array.from({ length: 12 }).map((_, i) => <SelectItem key={i} value={String(i * 5).padStart(2, '0')}>{String(i * 5).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                </Select>
             </div>
-            <div>
-              <Label htmlFor="price">Prix (€)</Label>
-              <Input id="price" type="number" {...register('price')} defaultValue={0} />
-              {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
-            </div>
+            {errors.startDate && <p className="text-xs text-destructive">{errors.startDate.message}</p>}
           </div>
+
            <div>
               <Label htmlFor="address">Adresse</Label>
               <Input id="address" {...register('address')} placeholder="Ex: Rue de l'université 10" />
               {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
             </div>
-             <div>
-              <Label htmlFor="city">Ville</Label>
-              <Input id="city" {...register('city')} placeholder="Ex: Namur" />
-              {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
-            </div>
+             <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <Label htmlFor="city">Ville</Label>
+                    <Input id="city" {...register('city')} placeholder="Ex: Namur" />
+                    {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
+                </div>
+                 <div>
+                    <Label htmlFor="price">Prix (€)</Label>
+                    <Input id="price" type="number" {...register('price')} defaultValue={0} />
+                    {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                </div>
+             </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
             <Button type="submit" disabled={loading || isUserLoading}>
-              {loading ? 'Création...' : 'Créer l\'événement'}
+              {loading ? 'Création...' : "Créer l'événement"}
             </Button>
           </DialogFooter>
         </form>
