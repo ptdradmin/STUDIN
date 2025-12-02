@@ -131,29 +131,28 @@ export default function CarpoolingPage() {
     batch.set(bookingRef, bookingData);
 
     batch.commit()
-    .then(async () => {
-      await createNotification(firestore, {
-          type: 'carpool_booking',
-          senderId: user.uid,
-          recipientId: trip.driverId,
-          relatedId: trip.id,
-          message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
-      });
-      toast({
-          title: "Réservation confirmée !",
-          description: "Votre place a été réservée avec succès.",
-      });
+    .then(() => {
+        // Create notification on successful reservation
+        createNotification(firestore, {
+            type: 'carpool_booking',
+            senderId: user.uid,
+            recipientId: trip.driverId,
+            relatedId: trip.id,
+            message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
+        });
+        toast({
+            title: "Réservation confirmée !",
+            description: "Votre place a été réservée avec succès.",
+        });
     })
-    .catch(async (serverError) => {
+    .catch((serverError) => {
+        // Create a contextual permission error for debugging
         const permissionError = new FirestorePermissionError({
-            path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
+            path: `Transaction on carpoolings/${trip.id} and carpool_bookings subcollection`,
             operation: 'write',
-            requestResourceData: {
-              carpoolingUpdate: {
-                seatsAvailable: 'increment(-1)',
-                passengerIds: `arrayUnion(${user.uid})`
-              },
-              bookingCreation: bookingData
+            requestResourceData: { 
+                carpoolingUpdate: carpoolingUpdateData,
+                bookingCreation: bookingData,
             }
         });
         errorEmitter.emit('permission-error', permissionError);
