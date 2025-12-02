@@ -9,6 +9,7 @@ import { Auth, onAuthStateChanged, User } from 'firebase/auth';
 import { Firestore } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -32,6 +33,12 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
         const { firebaseApp, auth, firestore, storage } = initializeFirebase();
         setFirebaseServices({ app: firebaseApp, auth, firestore, storage });
         
+        // Initialize App Check with reCAPTCHA v3
+        initializeAppCheck(firebaseApp, {
+          provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!),
+          isTokenAutoRefreshEnabled: true
+        });
+
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
           setUser(firebaseUser);
           setIsAuthLoading(false);
@@ -43,7 +50,7 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
 
         return () => unsubscribe();
     }
-  }, []);
+  }, [firebaseServices]);
 
   return (
     <FirebaseProvider
