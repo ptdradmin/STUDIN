@@ -113,15 +113,20 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
 
     return (
         <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer">
-            <div className="relative">
-                <Image
-                    src={housing.imageUrl}
-                    alt={housing.title}
-                    width={600}
-                    height={400}
-                    className="aspect-[3/2] w-full object-cover"
-                    data-ai-hint={housing.imageHint}
-                />
+            <div className="relative aspect-[3/2] w-full bg-muted">
+                {housing.imageUrl ? (
+                    <Image
+                        src={housing.imageUrl}
+                        alt={housing.title}
+                        fill
+                        className="object-cover"
+                        data-ai-hint={housing.imageHint}
+                    />
+                ) : (
+                    <div className="flex items-center justify-center h-full">
+                        <Bed className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                )}
                 <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                     {housing.type}
                 </Badge>
