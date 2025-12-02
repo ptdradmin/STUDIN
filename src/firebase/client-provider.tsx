@@ -22,42 +22,58 @@ interface FirebaseServices {
   storage: FirebaseStorage;
 }
 
+// Store services in a module-level variable to ensure they are initialized only once.
+let firebaseServices: FirebaseServices | null = null;
+
+function getFirebaseServices() {
+    if (!firebaseServices) {
+        const { firebaseApp, auth, firestore, storage } = initializeFirebase();
+        firebaseServices = { app: firebaseApp, auth, firestore, storage };
+
+        // Initialize App Check with reCAPTCHA v3
+        if (typeof window !== 'undefined') {
+            try {
+                initializeAppCheck(firebaseApp, {
+                    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY!),
+                    isTokenAutoRefreshEnabled: true
+                });
+            } catch(e) {
+                console.error("Failed to initialize App Check", e);
+            }
+        }
+    }
+    return firebaseServices;
+}
+
+
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const [firebaseServices, setFirebaseServices] = useState<FirebaseServices | null>(null);
+  // Get services. This will initialize them on the first render on the client.
+  const services = getFirebaseServices();
+
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs only once on the client to initialize Firebase services
-    if (typeof window !== 'undefined' && !firebaseServices) {
-        const { firebaseApp, auth, firestore, storage } = initializeFirebase();
-        setFirebaseServices({ app: firebaseApp, auth, firestore, storage });
-        
-        // Initialize App Check with reCAPTCHA v3
-        initializeAppCheck(firebaseApp, {
-          provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!),
-          isTokenAutoRefreshEnabled: true
-        });
+    // This effect runs only once on the client to set up the auth listener.
+    const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setIsAuthLoading(false);
+    }, (error) => {
+      console.error("Firebase auth state error:", error);
+      setUser(null);
+      setIsAuthLoading(false);
+    });
 
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-          setUser(firebaseUser);
-          setIsAuthLoading(false);
-        }, (error) => {
-          console.error("Firebase auth state error:", error);
-          setUser(null);
-          setIsAuthLoading(false);
-        });
-
-        return () => unsubscribe();
-    }
-  }, [firebaseServices]);
+    return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array ensures this runs only once.
 
   return (
     <FirebaseProvider
-      firebaseApp={firebaseServices?.app ?? null}
-      auth={firebaseServices?.auth ?? null}
-      firestore={firebaseServices?.firestore ?? null}
-      storage={firebaseServices?.storage ?? null}
+      firebaseApp={services.app}
+      auth={services.auth}
+      firestore={services.firestore}
+      storage={services.storage}
       user={user}
       isUserLoading={isAuthLoading}
     >
