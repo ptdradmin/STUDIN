@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Camera, Check, Search, Trophy } from 'lucide-react';
+import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2 } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge } from '@/lib/types';
@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { Progress } from '@/components/ui/progress';
 
 
 // Simulating the static data fetch
@@ -76,7 +78,12 @@ export default function ChallengeDetailPage() {
     const { toast } = useToast();
     const challengeId = params.id as string;
     
-    // For now, we find the challenge in the static list.
+    const [proofFile, setProofFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
     const challenge = staticChallenges.find(c => c.id === challengeId);
 
     const difficultyMap: {[key: string]: {text: string, color: string}} = {
@@ -85,12 +92,46 @@ export default function ChallengeDetailPage() {
       difficile: { text: "Difficile", color: "bg-red-500" },
     };
     
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setProofFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleProofSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        toast({
-            title: "Preuve soumise !",
-            description: "Votre participation a été enregistrée et sera examinée.",
-        });
+        if (!proofFile) {
+            toast({ title: "Aucune preuve sélectionnée", description: "Veuillez choisir une photo.", variant: "destructive"});
+            return;
+        }
+        setIsSubmitting(true);
+        toast({ title: "Envoi en cours...", description: "Votre participation est en cours de validation."});
+
+        // Simulate upload
+        const interval = setInterval(() => {
+            setUploadProgress(prev => {
+                if (prev >= 95) {
+                    return prev;
+                }
+                return prev + 10;
+            });
+        }, 200);
+
+        setTimeout(() => {
+            clearInterval(interval);
+            setUploadProgress(100);
+            setTimeout(() => {
+                setIsSubmitting(false);
+                setIsSubmitted(true);
+                toast({ title: "Participation envoyée !", description: "Votre preuve a été soumise pour examen."});
+            }, 500);
+        }, 2500);
     }
 
     if (!challenge) {
@@ -166,16 +207,41 @@ export default function ChallengeDetailPage() {
                                         <CardDescription>Téléchargez une photo pour valider le défi.</CardDescription>
                                     </CardHeader>
                                     <CardContent>
+                                      {isSubmitted ? (
+                                        <div className="text-center p-4 bg-green-50 rounded-md border border-green-200">
+                                            <Check className="h-10 w-10 text-green-600 mx-auto mb-2" />
+                                            <h4 className="font-semibold text-green-800">Participation envoyée !</h4>
+                                            <p className="text-sm text-green-700">Votre preuve est en cours de validation.</p>
+                                        </div>
+                                      ) : (
                                         <form onSubmit={handleProofSubmit} className="space-y-4">
+                                            {previewUrl && (
+                                                <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                                                    <Image src={previewUrl} alt="Aperçu de la preuve" layout="fill" objectFit="cover" />
+                                                </div>
+                                            )}
                                             <div>
                                                 <Label htmlFor="proof-file" className="sr-only">Fichier de preuve</Label>
-                                                <Input id="proof-file" type="file" accept="image/*" />
+                                                <Input id="proof-file" type="file" accept="image/*" onChange={handleFileChange} disabled={isSubmitting} />
                                             </div>
-                                            <Button className="w-full">
-                                                <Check className="mr-2 h-4 w-4" />
-                                                Valider ma participation
+
+                                            {isSubmitting && <Progress value={uploadProgress} className="w-full h-2" />}
+
+                                            <Button className="w-full" type="submit" disabled={isSubmitting || !proofFile}>
+                                                {isSubmitting ? (
+                                                  <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Envoi...
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <UploadCloud className="mr-2 h-4 w-4" />
+                                                    Valider ma participation
+                                                  </>
+                                                )}
                                             </Button>
                                         </form>
+                                      )}
                                     </CardContent>
                                 </Card>
 
