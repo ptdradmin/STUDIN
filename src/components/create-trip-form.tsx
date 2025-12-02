@@ -21,34 +21,55 @@ import { format, setHours, setMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Car, Users } from 'lucide-react';
 
-const CarIllustration = () => (
-    <div className="relative w-48 h-64 mx-auto">
-        <svg viewBox="0 0 100 150" className="w-full h-full">
-            {/* Car body */}
-            <path d="M10 50 C0 60, 0 130, 10 140 L90 140 C100 130, 100 60, 90 50 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
-            <path d="M15 48 C5 58, 5 80, 15 85 L85 85 C95 80, 95 58, 85 48 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
-            {/* Windshield */}
-            <path d="M20 48 L80 48 L85 40 L15 40 Z" fill="hsl(var(--accent))" stroke="hsl(var(--border))" strokeWidth="1.5" />
 
-            {/* Seats */}
-            {/* Front seats */}
-            <rect x="25" y="55" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
-            <rect x="55" y="55" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
-            
-            {/* Back seats */}
-            <rect x="20" y="95" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
-            <rect x="40" y="95" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
-            <rect x="60" y="95" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
-        </svg>
-    </div>
-);
+const CarIllustration = ({ availableSeats }: { availableSeats: number }) => {
+    const seats = [
+        { id: 'front_passenger', x: 55, y: 55 },
+        { id: 'rear_left', x: 20, y: 95 },
+        { id: 'rear_middle', x: 40, y: 95 },
+        { id: 'rear_right', x: 60, y: 95 },
+    ];
+
+    return (
+        <div className="relative w-48 h-64 mx-auto">
+            <svg viewBox="0 0 100 150" className="w-full h-full">
+                {/* Car body */}
+                <path d="M10 50 C0 60, 0 130, 10 140 L90 140 C100 130, 100 60, 90 50 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
+                <path d="M15 48 C5 58, 5 80, 15 85 L85 85 C95 80, 95 58, 85 48 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
+                {/* Windshield */}
+                <path d="M20 48 L80 48 L85 40 L15 40 Z" fill="hsl(var(--accent))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+
+                {/* Driver seat (always unavailable) */}
+                <rect x="25" y="55" width="20" height="30" rx="3" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
+
+                {/* Passenger seats */}
+                {seats.map((seat, index) => (
+                    <rect 
+                        key={seat.id}
+                        x={seat.x}
+                        y={seat.y}
+                        width="20"
+                        height="30"
+                        rx="3"
+                        className={cn(
+                            "transition-colors duration-300",
+                            index < availableSeats ? "fill-primary" : "fill-card"
+                        )}
+                        stroke="hsl(var(--border))" 
+                        strokeWidth="1"
+                    />
+                ))}
+            </svg>
+        </div>
+    );
+};
 
 
 const tripSchema = z.object({
   departureCity: z.string().min(1, 'La ville de départ est requise'),
   arrivalCity: z.string().min(1, "La ville d'arrivée est requise"),
   departureTime: z.date({ required_error: "L'heure de départ est requise"}),
-  seatsAvailable: z.preprocess((val) => Number(val), z.number().min(1, 'Le nombre de sièges est requis')),
+  seatsAvailable: z.preprocess((val) => Number(val), z.number().min(1, 'Le nombre de sièges est requis').max(4, 'Le maximum est de 4 places.')),
   pricePerSeat: z.preprocess((val) => Number(val), z.number().min(0, 'Le prix est requis')),
   description: z.string().optional(),
 });
@@ -74,6 +95,8 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
   const firestore = useFirestore();
   
   const selectedDate = watch('departureTime');
+  const availableSeats = watch('seatsAvailable');
+
 
   const handleTimeChange = (type: 'hours' | 'minutes', value: string) => {
     const newDate = selectedDate || new Date();
@@ -183,10 +206,10 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-8 items-center">
-             <CarIllustration />
+             <CarIllustration availableSeats={availableSeats || 0} />
              <div className="space-y-4">
                  <div>
-                    <Label htmlFor="seatsAvailable">Places disponibles</Label>
+                    <Label htmlFor="seatsAvailable">Places disponibles (1-4)</Label>
                     <Input id="seatsAvailable" type="number" {...register('seatsAvailable')} className="mt-1" />
                     {errors.seatsAvailable && <p className="text-xs text-destructive">{errors.seatsAvailable.message}</p>}
                 </div>
