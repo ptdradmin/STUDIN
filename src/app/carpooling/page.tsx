@@ -12,7 +12,7 @@ import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp, doc, writeBatch, arrayUnion, getDoc, runTransaction } from "firebase/firestore";
+import { collection, serverTimestamp, doc, runTransaction } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -158,9 +158,8 @@ export default function CarpoolingPage() {
         });
 
     } catch (e: any) {
-       if (e.name === 'FirebaseError') {
-         const permissionError = new FirestorePermissionError({
-            path: `Transaction sur carpoolings/${trip.id} et carpool_bookings`,
+        const permissionError = new FirestorePermissionError({
+            path: `carpoolings/${trip.id} (et sa sous-collection)`,
             operation: 'write', // 'write' is a generic term for transactions
             requestResourceData: { 
                 action: 'reserve_seat',
@@ -169,13 +168,6 @@ export default function CarpoolingPage() {
             }
         });
         errorEmitter.emit('permission-error', permissionError);
-       } else {
-         toast({
-            variant: "destructive",
-            title: "Erreur de réservation",
-            description: e.toString(),
-        });
-       }
     }
   };
 
@@ -330,3 +322,5 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
+
+    

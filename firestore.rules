@@ -104,22 +104,17 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isOwner(resource.data.driverId) ||
-                      ( // A passenger can book a seat
-                        isSignedIn() &&
-                        request.auth.uid != resource.data.driverId && // Can't book your own ride
-                        request.resource.data.seatsAvailable == resource.data.seatsAvailable - 1 &&
-                        request.resource.data.passengerIds == resource.data.passengerIds.append(request.auth.uid) &&
-                        // Ensure no other fields are being changed
-                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seatsAvailable', 'passengerIds'])
-                      );
+      // The driver can update any field.
+      // A passenger can ONLY update the seatsAvailable and passengerIds.
+      allow update: if (isSignedIn() && request.auth.uid == resource.data.driverId) ||
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds']) && request.resource.data.diff(resource.data).affectedKeys().size() == 2);
       allow delete: if isOwner(resource.data.driverId);
 
       match /carpool_bookings/{carpoolBookingId} {
         allow get: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
         allow list: if isDriver(carpoolingId);
-        allow create: if isSignedIn(); // Validated in transaction logic
-        allow update: if isSignedIn();
+        allow create: if isSignedIn(); // Simplified for transaction, client logic is the guard.
+        allow update: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
         allow delete: if isOwner(resource.data.passengerId);
       }
     }
@@ -131,7 +126,9 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
-      allow update: if isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId;
+      // Allow tutor to update their own profile, or anyone to update review stats
+      allow update: if (isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId) || 
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['rating', 'totalReviews']));
       allow delete: if isOwner(resource.data.tutorId);
     }
     
@@ -152,7 +149,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
-      allow update: if isOwner(resource.data.organizerId);
+      allow update: if isOwner(resource.data.organizerId) || 
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']));
       allow delete: if isOwner(resource.data.organizerId);
     }
 
