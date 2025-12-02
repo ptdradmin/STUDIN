@@ -25,11 +25,11 @@ function ConversationList() {
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        // The query is simplified to only include the 'where' clause
-        // to comply with Firestore security rules. Sorting will be done client-side.
+        // The query MUST include the 'where' clause to comply with Firestore security rules.
         return query(
             collection(firestore, 'conversations'),
-            where('participantIds', 'array-contains', user.uid)
+            where('participantIds', 'array-contains', user.uid),
+            orderBy('updatedAt', 'desc')
         );
     }, [firestore, user]);
 
@@ -37,11 +37,8 @@ function ConversationList() {
 
     const sortedConversations = useMemo(() => {
         if (!conversations) return [];
-        return [...conversations].sort((a, b) => {
-            const dateA = a.updatedAt?.toDate() || new Date(0);
-            const dateB = b.updatedAt?.toDate() || new Date(0);
-            return dateB.getTime() - dateA.getTime();
-        });
+        // Data is now pre-sorted by the query, but we can keep this for safety or future client-side adjustments.
+        return conversations;
     }, [conversations]);
 
     if (isLoading) {
