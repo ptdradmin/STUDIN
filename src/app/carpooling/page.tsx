@@ -144,7 +144,7 @@ export default function CarpoolingPage() {
       });
     }).catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
-          path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
+          path: `Opération par lot: carpoolings/${trip.id} (update) et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id} (set)`,
           operation: 'write',
           requestResourceData: { 
               carpoolingUpdate: carpoolingUpdateData,
@@ -306,5 +306,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-    
