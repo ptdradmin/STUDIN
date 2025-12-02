@@ -38,6 +38,10 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
             setIsLoading(true);
             recommendEvents({ userProfile, allEvents: events })
                 .then(setRecommendations)
+                .catch(err => {
+                    console.error("Failed to get event recommendations:", err);
+                    setRecommendations([]);
+                })
                 .finally(() => setIsLoading(false));
         } else {
             setIsLoading(false);
@@ -50,36 +54,44 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
         <div className="mb-8">
             <h2 className="text-2xl font-bold tracking-tight mb-4">Pour vous</h2>
             {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <Card key={i} className="overflow-hidden flex flex-col">
-                           <Skeleton className="aspect-video w-full" />
-                           <CardContent className="p-4 flex flex-col flex-grow">
-                               <Skeleton className="h-4 w-24" />
-                               <Skeleton className="h-6 w-full mt-2" />
-                           </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                <Carousel>
+                    <CarouselContent className="-ml-4">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <CarouselItem key={i} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                                <div className="p-1">
+                                    <Card className="overflow-hidden flex flex-col">
+                                       <Skeleton className="aspect-video w-full" />
+                                       <CardContent className="p-4 flex flex-col flex-grow">
+                                           <Skeleton className="h-4 w-24" />
+                                           <Skeleton className="h-6 w-full mt-2" />
+                                       </CardContent>
+                                    </Card>
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                </Carousel>
             ) : (
                  <Carousel opts={{ align: "start", loop: false }}>
                     <CarouselContent className="-ml-4">
                         {recommendations.map(event => (
                             <CarouselItem key={event.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                                 <Card className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col h-full">
-                                    <div className="relative">
-                                        <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
-                                        <Badge className="absolute top-2 right-2">{event.category}</Badge>
-                                    </div>
-                                    <CardContent className="p-4 flex flex-col flex-grow">
-                                        <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
-                                        <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
-                                        <p className="text-sm text-muted-foreground flex items-center mt-2">
-                                            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                                            {event.city}
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                                <div className="p-1 h-full">
+                                     <Card className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col h-full">
+                                        <div className="relative">
+                                            <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
+                                            <Badge className="absolute top-2 right-2">{event.category}</Badge>
+                                        </div>
+                                        <CardContent className="p-4 flex flex-col flex-grow">
+                                            <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
+                                            <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
+                                            <p className="text-sm text-muted-foreground flex items-center mt-2">
+                                                <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                                                {event.city}
+                                            </p>
+                                        </CardContent>
+                                    </Card>
+                                </div>
                             </CarouselItem>
                         ))}
                     </CarouselContent>
