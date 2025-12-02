@@ -24,6 +24,7 @@ import HousingCard from '@/components/housing-card';
 import HousingDetailModal from '@/components/housing-detail-modal';
 import { toggleFavorite } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import ProfileListingsTab from '@/components/profile-listings-tab';
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
     if (isLoading) {
@@ -76,67 +77,22 @@ const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
     const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
     const { data: tutorings, isLoading: l3 } = useCollection<Tutor>(tutorQuery);
     const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
-
+    
     const isLoading = l1 || l2 || l3 || l4;
     const allListings = [...(housings || []), ...(carpools || []), ...(tutorings || []), ...(events || [])];
 
-    if(isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
+    if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
     if (allListings.length === 0) return <div className="text-center p-10"><p className="text-muted-foreground">Vous n'avez aucune annonce active.</p></div>
 
     return (
-        <div className="space-y-4 p-4">
-            {housings?.map(h => (
-                <Link href="/housing" key={h.id}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <Bed className="h-5 w-5 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Logement</p>
-                                <p className="font-semibold">{h.title}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-            ))}
-            {carpools?.map(c => (
-                 <Link href="/carpooling" key={c.id}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <Car className="h-5 w-5 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Covoiturage</p>
-                                <p className="font-semibold">{c.departureCity} à {c.arrivalCity}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                 </Link>
-            ))}
-            {tutorings?.map(t => (
-                <Link href="/tutoring" key={t.id}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <BookOpen className="h-5 w-5 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Tutorat</p>
-                                <p className="font-semibold">{t.subject}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-            ))}
-            {events?.map(e => (
-                 <Link href="/events" key={e.id}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <PartyPopper className="h-5 w-5 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Événement</p>
-                                <p className="font-semibold">{e.title}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                 </Link>
-            ))}
+        <div className="p-4">
+             <ProfileListingsTab 
+                housings={housings}
+                carpools={carpools}
+                tutorings={tutorings}
+                events={events}
+                isLoading={isLoading}
+             />
         </div>
     )
 }
@@ -262,21 +218,17 @@ export default function CurrentUserProfilePage() {
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
   const favoritedIds = useMemo(() => {
-      const ids = { housing: new Set<string>(), event: new Set<string>(), tutor: new Set<string>() };
+      const ids = { housing: new Set<string>(), event: new Set<string>(), tutor: new Set<string>(), post: new Set<string>() };
       favoriteItems?.forEach(fav => {
-          if (fav.itemType === 'housing') ids.housing.add(fav.itemId);
-          if (fav.itemType === 'event') ids.event.add(fav.itemId);
-          if (fav.itemType === 'tutor') ids.tutor.add(fav.itemId);
+          ids[fav.itemType]?.add(fav.itemId);
       });
       return ids;
   }, [favoriteItems]);
 
   const savedPostsQuery = useMemoFirebase(() => {
-    if (!firestore || !favoriteItems) return null;
-    const postIds = favoriteItems.filter(f => f.itemType === 'post').map(f => f.itemId);
-    if(postIds.length === 0) return null;
-    return query(collection(firestore, 'posts'), where(documentId(), 'in', postIds.slice(0, 30)));
-  }, [firestore, favoriteItems]);
+    if (!firestore || favoritedIds.post.size === 0) return null;
+    return query(collection(firestore, 'posts'), where(documentId(), 'in', Array.from(favoritedIds.post).slice(0, 30)));
+  }, [firestore, favoritedIds.post]);
   const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
   const savedHousingsQuery = useMemoFirebase(() => {
@@ -459,7 +411,7 @@ export default function CurrentUserProfilePage() {
                                               <div>
                                                   <h3 className="font-semibold mb-2">Logements</h3>
                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={setSelectedHousing} isFavorited={true} />)}
+                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={setSelectedHousing} isFavorited={favoritedIds.housing.has(h.id)} />)}
                                                   </div>
                                               </div>
                                           )}

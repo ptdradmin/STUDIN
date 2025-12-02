@@ -6,7 +6,7 @@ import type { Housing, Favorite } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon, Bookmark } from "lucide-react";
+import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon, Bookmark, MessageSquare } from "lucide-react";
 import { useUser, useFirestore } from "@/firebase";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc } from "firebase/firestore";
@@ -195,9 +195,10 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
                         <p className="text-2xl font-bold text-primary">{housing.price}€</p>
                         <p className="text-xs text-muted-foreground -mt-1">/mois</p>
                     </div>
-                    {user && (
-                         <Button onClick={handleContact} disabled={isOwner}>
-                            {isOwner ? "Votre annonce" : "Contacter"}
+                    {user && !isOwner && (
+                         <Button onClick={handleContact}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Contacter
                         </Button>
                     )}
                 </div>
