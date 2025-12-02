@@ -35,7 +35,7 @@ export default function LoginForm() {
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
-  const isUsernameUnique = async (username: string) => {
+  const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
     const usersRef = collection(firestore, 'users');
     const q = query(usersRef, where('username', '==', username));
@@ -71,12 +71,14 @@ export default function LoginForm() {
         id: user.uid,
         email,
         username,
-        firstName,
-        lastName,
+        firstName: firstName || '',
+        lastName: lastName || '',
         university: '',
         fieldOfStudy: '',
         postalCode: '',
         city: '',
+        bio: '',
+        website: '',
         profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -139,7 +141,8 @@ export default function LoginForm() {
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await createUserDocument(userCredential.user);
       handleSuccess();
     } catch (error: any) {
       handleError(error);
@@ -230,5 +233,3 @@ export default function LoginForm() {
     </Card>
   );
 }
-
-    

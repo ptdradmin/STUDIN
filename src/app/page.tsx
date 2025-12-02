@@ -5,7 +5,7 @@ import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bed, Car, GraduationCap, PartyPopper, BookOpen } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 
 const services = [

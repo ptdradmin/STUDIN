@@ -85,7 +85,7 @@ export default function RegisterForm() {
     },
   });
 
-  const isUsernameUnique = async (username: string) => {
+  const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
     const usersRef = collection(firestore, 'users');
     const q = query(usersRef, where('username', '==', username));
@@ -96,6 +96,12 @@ export default function RegisterForm() {
   const createUserDocument = async (user: User, additionalData: Partial<RegisterFormValues> = {}) => {
       if (!firestore) return;
       const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      // Only create a new document if one doesn't already exist
+      if (userDoc.exists()) {
+          return;
+      }
 
       const { email, displayName, photoURL } = user;
       const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
@@ -129,6 +135,8 @@ export default function RegisterForm() {
           city: additionalData.city || '',
           university: additionalData.university || '',
           fieldOfStudy: additionalData.fieldOfStudy || '',
+          bio: '',
+          website: '',
           profilePicture: photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${email}`,
           followerIds: [],
           followingIds: [],
@@ -221,7 +229,7 @@ export default function RegisterForm() {
            <div className="grid grid-cols-1 gap-4">
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
                 <GoogleIcon className="mr-2 h-4 w-4" />
-                Google
+                S'inscrire avec Google
               </Button>
            </div>
           <div className="relative">
@@ -408,5 +416,3 @@ export default function RegisterForm() {
     </Card>
   );
 }
-
-    
