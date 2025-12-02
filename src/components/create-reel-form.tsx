@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Film } from 'lucide-react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { Progress } from './ui/progress';
 
 const reelSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -36,7 +35,6 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   });
 
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();

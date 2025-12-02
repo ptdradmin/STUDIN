@@ -1,3 +1,4 @@
+
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
@@ -73,8 +74,8 @@ export default function ReelsPage() {
     // This effect is for deep linking to a specific reel.
     useEffect(() => {
         const hash = window.location.hash.substring(1);
-        if (hash) {
-            const element = document.getElementById(`reel-${hash}`);
+        if (hash && allReels.length > 0) {
+            const element = document.getElementById(hash);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth' });
             }
