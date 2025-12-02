@@ -9,6 +9,18 @@ import { useUser } from '@/firebase';
 import { PageSkeleton } from '@/components/page-skeleton';
 import BottomNavbar from '@/components/bottom-navbar';
 import { usePathname } from 'next/navigation';
+import { Inter, Poppins, Source_Code_Pro } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['700', '800'],
+  variable: '--font-poppins',
+});
+const sourceCodePro = Source_Code_Pro({
+  subsets: ['latin'],
+  variable: '--font-source-code-pro',
+});
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { isUserLoading } = useUser();
@@ -50,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={`${inter.variable} ${poppins.variable} ${sourceCodePro.variable}`}>
       <body className="font-body antialiased">
         <LanguageProvider>
           <FirebaseClientProvider>
