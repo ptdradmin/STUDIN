@@ -9,7 +9,6 @@ import { Auth, onAuthStateChanged, User } from 'firebase/auth';
 import { Firestore } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -29,18 +28,6 @@ function getFirebaseServices() {
     if (!firebaseServices) {
         const { firebaseApp, auth, firestore, storage } = initializeFirebase();
         firebaseServices = { app: firebaseApp, auth, firestore, storage };
-
-        // Initialize App Check with reCAPTCHA v3, only if the key is present
-        if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY) {
-            try {
-                initializeAppCheck(firebaseApp, {
-                    provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY),
-                    isTokenAutoRefreshEnabled: true
-                });
-            } catch(e) {
-                console.error("Failed to initialize App Check", e);
-            }
-        }
     }
     return firebaseServices;
 }
