@@ -10,13 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon, ArrowLeft, Crop } from 'lucide-react';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -94,7 +94,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<PostFormInputs> = (data) => {
     if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
@@ -104,36 +104,50 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         return;
     }
     setLoading(true);
-    toast({ title: 'Publication...', description: 'Votre publication est en cours de création.' });
 
-    try {
-        const newDocRef = doc(collection(firestore, 'posts'));
-        
-        const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(snapshot.ref);
+    const newDocRef = doc(collection(firestore, 'posts'));
+    const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
+    const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
-        const postData = {
-            ...data,
-            id: newDocRef.id,
-            userId: user.uid,
-            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-            userAvatarUrl: user.photoURL,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            likes: [],
-            comments: [],
-            imageUrl: imageUrl,
-        };
-        
-        await setDoc(newDocRef, postData);
-        
-        toast({ title: 'Succès', description: 'Publication créée !' });
-        onClose();
-    } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
-        setLoading(false);
-    }
+    // Close the modal immediately
+    onClose();
+    toast({ title: 'Publication en cours...', description: 'Votre publication apparaîtra dans le fil.' });
+
+    uploadTask.on('state_changed',
+        (snapshot) => {
+            // Optional: handle progress
+        },
+        (error) => {
+            console.error("Upload error:", error);
+            toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "Impossible de téléverser l'image." });
+        },
+        () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((imageUrl) => {
+                const postData = {
+                    ...data,
+                    id: newDocRef.id,
+                    userId: user.uid,
+                    username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+                    userAvatarUrl: user.photoURL,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    likes: [],
+                    comments: [],
+                    imageUrl: imageUrl,
+                };
+                
+                // Use the non-blocking function to set the document
+                setDocumentNonBlocking(newDocRef, postData);
+                
+                // Update toast on success
+                toast({ title: 'Succès', description: 'Publication créée !' });
+
+            }).catch((error) => {
+                console.error("Error getting download URL:", error);
+                toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
+            });
+        }
+    );
   };
 
   const aspectClasses: Record<AspectRatio, string> = {
@@ -248,5 +262,3 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     </Dialog>
   );
 }
-
-    
