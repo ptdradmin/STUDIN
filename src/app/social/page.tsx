@@ -144,7 +144,7 @@ export default function SocialPage() {
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', idsToQuery)
+          where('userId', 'in', idsToQuery.slice(0, 30))
         );
       }, [firestore, user, followingIds, isProfileLoading]);
 
@@ -222,10 +222,17 @@ export default function SocialPage() {
           
           <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
              <div className="w-full">
-                <div className="container mx-auto max-w-4xl px-0 md:px-4 py-6">
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr,290px] gap-8 items-start">
-                        <div className="space-y-4 w-full max-w-[470px] mx-auto">
-                             {isLoading && !showSuggestionMessage ? (
+                <div className="container mx-auto max-w-xl px-0 md:px-4 py-6">
+                    <div className="space-y-6">
+                        
+                         {showSuggestionMessage && (
+                            <div className="md:hidden">
+                                <Suggestions />
+                            </div>
+                         )}
+
+                         <div className="w-full max-w-[470px] mx-auto space-y-4">
+                             {isLoading ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                              ) : sortedPosts.length > 0 ? (
                                 sortedPosts.map(post => (
@@ -236,22 +243,12 @@ export default function SocialPage() {
                                         initialFavoriteId={savedPostMap.get(post.id)}
                                     />
                                 ))
-                             ) : showSuggestionMessage ? (
-                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                    <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
-                                    <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
-                                </div>
                              ) : (
                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                    <p className="text-lg font-semibold">C'est un peu vide par ici...</p>
-                                    <p className="text-sm">Les personnes que vous suivez n'ont rien publié récemment. Découvrez de nouveaux contenus !</p>
+                                    <p className="text-lg font-semibold">Votre fil est vide</p>
+                                    <p className="text-sm">Suivez des personnes pour voir leurs publications ici. Commencez avec les suggestions ci-dessus !</p>
                                 </div>
                             )}
-                        </div>
-                        <div className="hidden md:block">
-                             <div className="sticky top-20">
-                                <Suggestions />
-                             </div>
                         </div>
                     </div>
                 </div>
