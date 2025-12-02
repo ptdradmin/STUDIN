@@ -139,7 +139,6 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
       return;
     }
     setLoading(true);
-    onClose();
     toast({ title: 'Création...', description: 'Votre trajet est en cours de publication.' });
 
     const carpoolingsCollection = collection(firestore, 'carpoolings');
@@ -164,7 +163,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     
     setDocumentNonBlocking(newDocRef, tripData);
     toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
-    setLoading(false); // Not strictly necessary as modal closes, but good practice.
+    onClose();
   };
 
   return (
@@ -192,8 +191,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
             </div>
           </div>
           
-          <div className="space-y-4 border-b pb-4">
-            <div className="space-y-2">
+          <div className="space-y-2 border-b pb-4">
               <Label>Date et heure de départ</Label>
               <div className="grid grid-cols-[1fr_auto_auto] gap-2">
                   <Controller
@@ -235,7 +233,6 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
                   </Select>
               </div>
               {errors.departureTime && <p className="text-xs text-destructive">{errors.departureTime.message}</p>}
-            </div>
           </div>
 
 
@@ -261,7 +258,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
           </div>
 
-          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 px-0">
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 px-0 -mb-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
@@ -274,5 +271,3 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     </Dialog>
   );
 }
-
-    

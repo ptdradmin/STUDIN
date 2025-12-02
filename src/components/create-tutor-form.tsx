@@ -58,7 +58,6 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
       return;
     }
     setLoading(true);
-    onClose();
     toast({ title: 'Création...', description: 'Votre profil de tuteur est en cours de création.' });
     
     const tutoringsCollection = collection(firestore, 'tutorings');
@@ -80,6 +79,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     setDocumentNonBlocking(newDocRef, tutorData);
     
     toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
+    onClose();
     setLoading(false);
   };
 
@@ -145,7 +145,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
             </div>
           </FormSection>
 
-          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 p-6 border-t">
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 -mb-4 p-6 border-t">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>

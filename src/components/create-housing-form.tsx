@@ -246,7 +246,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
             <Button type="submit" disabled={loading || isUserLoading}>
-              {loading ? (isEditing ? 'Mise à jour...' : 'Création...') : (isEditing ? 'Mettre à jour' : 'Créer')}
+              {isEditing ? 'Mettre à jour' : 'Créer l\'annonce'}
             </Button>
           </DialogFooter>
         </form>
@@ -254,5 +254,3 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     </Dialog>
   );
 }
-
-    

@@ -297,7 +297,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
            </FormSection>
 
 
-          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 p-6 border-t">
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 -mb-4 p-6 border-t">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
