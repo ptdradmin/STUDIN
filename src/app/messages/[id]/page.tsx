@@ -284,11 +284,14 @@ export default function ConversationPage() {
         }
     };
 
-    const stopRecording = () => {
+    const stopRecording = (cancel = false) => {
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+            if (cancel) {
+                setFileToSend(null);
+            }
         }
     };
     
@@ -338,12 +341,12 @@ export default function ConversationPage() {
                              <div className="flex items-center gap-2 overflow-hidden">
                                 {fileToSend.type.startsWith('audio/') ? (
                                     <audio src={URL.createObjectURL(fileToSend)} controls className="h-10" />
+                                ) : fileToSend.type.startsWith('image/') ? (
+                                    <Image src={URL.createObjectURL(fileToSend)} alt="Preview" width={40} height={40} className="rounded-md object-cover" />
                                 ) : (
-                                    <>
-                                        {getFileIcon(fileToSend)}
-                                        <span className="text-sm truncate">{fileToSend.name}</span>
-                                    </>
+                                    getFileIcon(fileToSend)
                                 )}
+                                <span className="text-sm truncate">{fileToSend.name}</span>
                             </div>
                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelUpload}><X className="h-4 w-4" /></Button>
                          </div>
@@ -351,14 +354,15 @@ export default function ConversationPage() {
                     {uploadProgress !== null && <Progress value={uploadProgress} className="mb-2 h-1" />}
                     
                     {isRecording ? (
-                         <div className="flex items-center gap-2">
-                             <Button type="button" variant="destructive" size="icon" onClick={stopRecording}>
+                         <div className="flex items-center gap-2 h-10">
+                             <Button type="button" variant="destructive" size="icon" onClick={() => stopRecording()}>
                                  <StopCircle className="h-5 w-5" />
                              </Button>
-                             <div className="flex-grow text-center">
-                                 <span className="text-red-500 font-mono animate-pulse">{formatRecordingTime(recordingTime)}</span>
+                             <div className="flex-grow text-center flex items-center justify-center gap-2">
+                                <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                 <span className="font-mono text-sm">{formatRecordingTime(recordingTime)}</span>
                              </div>
-                              <Button type="button" variant="ghost" size="icon" onClick={() => { stopRecording(); setFileToSend(null); }}>
+                              <Button type="button" variant="ghost" size="icon" onClick={() => stopRecording(true)}>
                                  <Trash2 className="h-5 w-5 text-muted-foreground" />
                              </Button>
                          </div>
