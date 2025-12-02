@@ -10,12 +10,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import Image from 'next/image';
+import { Image as ImageIcon } from 'lucide-react';
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -50,14 +52,6 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     } : undefined
   });
   
-  useEffect(() => {
-    if (housingToEdit) {
-      reset({
-          ...housingToEdit,
-      });
-    }
-  }, [housingToEdit, reset]);
-
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user, isUserLoading } = useAuth();
@@ -65,11 +59,28 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
   const storage = useStorage();
   const isEditing = !!housingToEdit;
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(housingToEdit?.imageUrl || null);
+
+
+  useEffect(() => {
+    if (housingToEdit) {
+      reset({
+          ...housingToEdit,
+      });
+      setPreviewUrl(housingToEdit.imageUrl);
+    }
+  }, [housingToEdit, reset]);
+
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setImageFile(file);
+       const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -79,31 +90,28 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
     }
-    if (!imageFile && !isEditing) {
+    if (!previewUrl) {
       toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
       return;
     }
 
     setLoading(true);
-    onClose();
     toast({ title: isEditing ? 'Mise à jour...' : 'Création...', description: 'Votre annonce est en cours de traitement.' });
 
     try {
         const housingId = housingToEdit?.id || doc(collection(firestore, 'housings')).id;
         const housingRef = doc(firestore, 'housings', housingId);
+        let imageUrl = housingToEdit?.imageUrl || '';
+
+        if (imageFile) {
+            const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
+            const snapshot = await uploadBytes(imageRef, imageFile);
+            imageUrl = await getDownloadURL(snapshot.ref);
+        }
 
         if (isEditing && housingToEdit) {
-            const dataToUpdate = { ...data, updatedAt: serverTimestamp() };
-            updateDocumentNonBlocking(housingRef, dataToUpdate);
-
-            if (imageFile) {
-                const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
-                uploadBytes(imageRef, imageFile).then(snapshot => {
-                    getDownloadURL(snapshot.ref).then(imageUrl => {
-                        updateDocumentNonBlocking(housingRef, { imageUrl });
-                    });
-                });
-            }
+            const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl };
+            await updateDoc(housingRef, dataToUpdate);
             toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
             const dataToCreate = {
@@ -116,23 +124,15 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 updatedAt: serverTimestamp(),
                 coordinates: [50.8503, 4.3517], // TODO: Geocode address
                 imageHint: "student room",
-                imageUrl: '', // Initially empty
+                imageUrl: imageUrl,
             };
-            setDocumentNonBlocking(housingRef, dataToCreate);
-
-            if (imageFile) {
-                const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
-                uploadBytes(imageRef, imageFile).then(snapshot => {
-                    getDownloadURL(snapshot.ref).then(imageUrl => {
-                        updateDocumentNonBlocking(housingRef, { imageUrl });
-                    });
-                });
-            }
+            await setDoc(housingRef, dataToCreate);
             toast({ title: 'Succès', description: 'Annonce de logement créée !' });
         }
+        onClose();
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de soumettre le formulaire." });
-        setLoading(false); // Only set loading false on error as success closes modal
+        setLoading(false);
     }
   };
 
@@ -143,6 +143,23 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           <DialogTitle>{isEditing ? 'Modifier' : 'Créer'} une annonce de logement</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
+          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2">
+            {previewUrl ? (
+              <div className="relative w-full h-full">
+                <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <ImageIcon className="h-16 w-16 mx-auto" strokeWidth={1} />
+                <p className="mt-2 text-sm">Téléchargez une image</p>
+              </div>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="imageUrl" className="sr-only">Image</Label>
+            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
+          </div>
+
           <div>
             <Label htmlFor="title">Titre</Label>
             <Input id="title" {...register('title')} />
@@ -200,10 +217,6 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
               <Input id="city" {...register('city')} />
               {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
             </div>
-           <div>
-            <Label htmlFor="imageUrl">Image</Label>
-            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>

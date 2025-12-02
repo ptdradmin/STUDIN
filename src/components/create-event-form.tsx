@@ -10,11 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import Image from 'next/image';
+import { ImageIcon } from 'lucide-react';
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -33,7 +35,7 @@ interface CreateEventFormProps {
 }
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
-  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<EventFormInputs>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
   });
 
@@ -43,11 +45,18 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const firestore = useFirestore();
   const storage = useStorage();
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -61,11 +70,14 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         return;
     }
     setLoading(true);
-    onClose();
     toast({ title: 'Création...', description: 'Votre événement est en cours de publication.' });
 
     try {
         const newDocRef = doc(collection(firestore, 'events'));
+        
+        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
+        const snapshot = await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(snapshot.ref);
 
         const eventData = {
             ...data,
@@ -80,21 +92,13 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             locationName: data.address, // simplified
             coordinates: [50.8503, 4.3517], 
             imageHint: "student event",
-            imageUrl: '', // Initially empty
+            imageUrl: imageUrl,
         };
 
-        // Create document immediately without image URL
-        setDocumentNonBlocking(newDocRef, eventData);
-
-        // Upload image and update document in the background
-        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
-        uploadBytes(imageRef, imageFile).then(snapshot => {
-            getDownloadURL(snapshot.ref).then(imageUrl => {
-                updateDocumentNonBlocking(newDocRef, { imageUrl });
-            });
-        });
+        await setDoc(newDocRef, eventData);
 
         toast({ title: 'Succès', description: 'Événement créé !' });
+        onClose();
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer l'événement." });
         setLoading(false);
@@ -108,6 +112,23 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
           <DialogTitle>Créer un événement</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
+          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2">
+            {previewUrl ? (
+              <div className="relative w-full h-full">
+                <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <ImageIcon className="h-16 w-16 mx-auto" strokeWidth={1} />
+                <p className="mt-2 text-sm">Téléchargez une image</p>
+              </div>
+            )}
+          </div>
+           <div>
+            <Label htmlFor="imageUrl" className="sr-only">Image</Label>
+            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
+          </div>
+
           <div>
             <Label htmlFor="title">Titre de l'événement</Label>
             <Input id="title" {...register('title')} />
@@ -159,10 +180,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
               <Input id="city" {...register('city')} placeholder="Ex: Namur" />
               {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
             </div>
-          <div>
-            <Label htmlFor="imageUrl">Image</Label>
-            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>

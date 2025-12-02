@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
@@ -30,7 +30,7 @@ interface CreatePostFormProps {
 }
 
 export default function CreatePostForm({ onClose }: CreatePostFormProps) {
-  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<PostFormInputs>({
+  const { register, handleSubmit, formState: { errors } } = useForm<PostFormInputs>({
     resolver: zodResolver(postSchema),
     defaultValues: {
       caption: '',
@@ -77,12 +77,15 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         return;
     }
     setLoading(true);
-    onClose();
     toast({ title: 'Publication...', description: 'Votre publication est en cours de création.' });
 
     try {
         const newDocRef = doc(collection(firestore, 'posts'));
         
+        const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
+        const snapshot = await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(snapshot.ref);
+
         const postData = {
             ...data,
             id: newDocRef.id,
@@ -93,21 +96,13 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             updatedAt: serverTimestamp(),
             likes: [],
             comments: [],
-            imageUrl: '', // Initially empty
+            imageUrl: imageUrl,
         };
         
-        // Create document immediately
-        setDocumentNonBlocking(newDocRef, postData);
-        
-        // Upload image and update in background
-        const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
-        uploadBytes(imageRef, imageFile).then(snapshot => {
-            getDownloadURL(snapshot.ref).then(imageUrl => {
-                updateDocumentNonBlocking(newDocRef, { imageUrl });
-            });
-        });
+        await setDoc(newDocRef, postData);
         
         toast({ title: 'Succès', description: 'Publication créée !' });
+        onClose();
     } catch(error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
         setLoading(false);
@@ -122,10 +117,10 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
            <div className="grid grid-cols-[1fr_40%] max-h-[70vh]">
-                <div className="flex flex-col items-center justify-center aspect-square border-r">
+                <div className="flex flex-col items-center justify-center aspect-square border-r bg-muted">
                     {previewUrl ? (
                          <div className="relative w-full h-full">
-                            <Image src={previewUrl} alt="Aperçu de l'image" fill objectFit="cover" />
+                            <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
                         </div>
                     ) : (
                         <>
