@@ -28,6 +28,8 @@ interface CreateReelFormProps {
   onClose: () => void;
 }
 
+const MAX_DURATION_SECONDS = 60;
+
 export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<ReelFormInputs>({
     resolver: zodResolver(reelSchema),
@@ -54,8 +56,29 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         toast({ variant: "destructive", title: "Fichier trop volumineux", description: "La vidéo ne doit pas dépasser 25 Mo."});
         return;
       }
-      setVideoFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(video.src);
+        if (video.duration > MAX_DURATION_SECONDS) {
+          toast({
+            variant: "destructive",
+            title: "Vidéo trop longue",
+            description: `Le Reel ne doit pas dépasser ${MAX_DURATION_SECONDS} secondes.`
+          });
+          // Reset the input
+          if(event.target) {
+            event.target.value = "";
+          }
+          setVideoFile(null);
+          setPreviewUrl(null);
+        } else {
+            setVideoFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+      }
+      video.src = URL.createObjectURL(file);
     }
   };
 
@@ -119,7 +142,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                         <div className="text-center text-muted-foreground">
                             <Film className="h-16 w-16 mx-auto" strokeWidth={1} />
                             <p className="mt-2 text-sm">Téléchargez une vidéo</p>
-                            <p className="text-xs text-muted-foreground">(Max 25 Mo)</p>
+                            <p className="text-xs text-muted-foreground">(Max 25 Mo, {MAX_DURATION_SECONDS}s)</p>
                              <Button type="button" variant="link" asChild className="mt-1">
                                 <Label htmlFor="video-upload" className="cursor-pointer">
                                     Sélectionner depuis l'ordinateur
