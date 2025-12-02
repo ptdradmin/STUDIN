@@ -31,6 +31,7 @@ const eventSchema = z.object({
   price: z.preprocess((val) => Number(val), z.number().min(0, 'Le prix est requis')),
   city: z.string().min(1, 'La ville est requise'),
   address: z.string().min(1, "L'adresse est requise"),
+  university: z.string().optional(),
 });
 
 type EventFormInputs = z.infer<typeof eventSchema>;
@@ -38,6 +39,18 @@ type EventFormInputs = z.infer<typeof eventSchema>;
 interface CreateEventFormProps {
   onClose: () => void;
 }
+
+const schoolsList = [
+    'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
+    'HEC Liège', 'HEPL - Haute École de la Province de Liège', 'HELMo - Haute École Libre Mosane',
+    'Haute École de la Province de Namur (HEPN)', 'Haute École Louvain en Hainaut (HELHa)', 'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+    'Haute École Galilée (HEG)', 'Haute École ICHEC - ECAM - ISFSC', 'Haute École de Bruxelles-Brabant (HE2B)',
+    'Haute École Francisco Ferrer', 'Haute École Léonard de Vinci', 'Haute École Robert Schuman',
+    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)', 'La Cambre', 'Institut national supérieur des arts du spectacle (INSAS)',
+    'École supérieure des Arts Saint-Luc de Bruxelles', "École supérieure des Arts de l'Image 'Le 75'",
+    'Autre'
+];
+
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<EventFormInputs>({
@@ -239,6 +252,23 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
                     {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                 </div>
              </div>
+             <div>
+                <Label htmlFor="university">Université (optionnel)</Label>
+                <Controller
+                    name="university"
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Sélectionnez une université" /></SelectTrigger>
+                            <SelectContent>
+                                {schoolsList.map(uni => (
+                                    <SelectItem key={uni} value={uni}>{uni}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+            </div>
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
