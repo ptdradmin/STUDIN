@@ -104,13 +104,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isOwner(resource.data.driverId) || // Le conducteur peut tout modifier
-                      ( // Le passager ne peut que réserver
-                        isSignedIn() &&
-                        request.resource.data.driverId == resource.data.driverId && // le conducteur ne peut pas être changé
-                        request.resource.data.seatsAvailable == resource.data.seatsAvailable - 1 && // on ne peut que décrémenter de 1
-                        request.resource.data.passengerIds == resource.data.passengerIds.append(request.auth.uid) // on ne peut que s'ajouter
-                      );
+      allow update: if isOwner(resource.data.driverId) ||
+                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds']));
       allow delete: if isExistingOwner(resource.data.driverId);
 
       match /carpool_bookings/{carpoolBookingId} {
