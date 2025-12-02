@@ -164,13 +164,17 @@ export interface UserProfile {
 
 export interface ChatMessage {
     id: string;
-    text: string;
+    text?: string;
     senderId: string;
     createdAt: Timestamp;
+    imageUrl?: string;
+    videoUrl?: string;
+    audioUrl?: string;
+    fileType?: 'image' | 'video' | 'audio';
 }
 
 export interface Conversation {
-    id: string;
+    id:string;
     participantIds: string[];
     participants: { [key: string]: { username: string; profilePicture?: string } };
     lastMessage?: {

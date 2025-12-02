@@ -1,19 +1,22 @@
 
 'use client';
 
-import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc } from "@/firebase";
-import type { Conversation, ChatMessage, UserProfile } from "@/lib/types";
-import { collection, query, where, doc, orderBy, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage } from "@/firebase";
+import type { Conversation, ChatMessage } from "@/lib/types";
+import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, Paperclip, X, File, Image as ImageIcon, Video, Mic } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createNotification } from "@/lib/actions";
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Progress } from "@/components/ui/progress";
+import Image from "next/image";
 
 function MessagesHeader({ conversation }: { conversation: Conversation | null }) {
     const { user } = useUser();
@@ -48,10 +51,23 @@ function MessagesHeader({ conversation }: { conversation: Conversation | null })
 }
 
 function MessageBubble({ message, isOwnMessage }: { message: ChatMessage, isOwnMessage: boolean}) {
+    const content = () => {
+        if (message.imageUrl) {
+            return <Image src={message.imageUrl} alt="Image sent in chat" width={300} height={300} className="rounded-lg object-cover" />;
+        }
+        if (message.videoUrl) {
+            return <video src={message.videoUrl} controls className="rounded-lg w-full max-w-xs"></video>;
+        }
+        if (message.audioUrl) {
+            return <audio src={message.audioUrl} controls className="w-full"></audio>;
+        }
+        return <p className="text-sm">{message.text}</p>;
+    }
+    
     return (
         <div className={`flex items-end gap-2 ${isOwnMessage ? 'justify-end' : ''}`}>
              <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                <p className="text-sm">{message.text}</p>
+                {content()}
              </div>
         </div>
     )
@@ -60,10 +76,14 @@ function MessageBubble({ message, isOwnMessage }: { message: ChatMessage, isOwnM
 export default function ConversationPage() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const storage = useStorage();
     const params = useParams();
     const conversationId = params.id as string;
     const [newMessage, setNewMessage] = useState('');
+    const [fileToSend, setFileToSend] = useState<File | null>(null);
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const conversationRef = useMemoFirebase(() => {
         if (!firestore || !conversationId) return null;
@@ -90,8 +110,66 @@ export default function ConversationPage() {
         }
     }, [conversation, conversationRef, user]);
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFileToSend(e.target.files[0]);
+        }
+    }
+
+    const uploadFileAndSendMessage = async () => {
+        if (!fileToSend || !user || !storage || !firestore || !conversationRef || !conversation) return;
+
+        setUploadProgress(0);
+        
+        const fileType = fileToSend.type.split('/')[0] as 'image' | 'video' | 'audio';
+        const sRef = storageRef(storage, `chat/${conversationId}/${user.uid}/${Date.now()}_${fileToSend.name}`);
+        const uploadTask = uploadBytesResumable(sRef, fileToSend);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+            },
+            (error) => {
+                console.error("Upload error:", error);
+                setUploadProgress(null);
+                setFileToSend(null);
+            },
+            async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                const messageData: Partial<ChatMessage> = {
+                    senderId: user.uid,
+                    createdAt: serverTimestamp(),
+                    fileType: fileType,
+                };
+                if (fileType === 'image') messageData.imageUrl = downloadURL;
+                if (fileType === 'video') messageData.videoUrl = downloadURL;
+                if (fileType === 'audio') messageData.audioUrl = downloadURL;
+                
+                await addDoc(collection(firestore, 'conversations', conversationId, 'messages'), messageData);
+                 await updateDoc(conversationRef, {
+                    lastMessage: {
+                        text: `A envoyé ${fileType === 'image' ? 'une image' : fileType === 'video' ? 'une vidéo' : 'un audio'}`,
+                        senderId: user.uid,
+                        timestamp: serverTimestamp(),
+                    },
+                    updatedAt: serverTimestamp(),
+                    unread: true,
+                });
+                
+                setFileToSend(null);
+                setUploadProgress(null);
+            }
+        );
+    }
+
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
+        if (fileToSend) {
+            await uploadFileAndSendMessage();
+            return;
+        }
+
         if (!user || !firestore || !conversationRef || !newMessage.trim() || !conversation) return;
 
         const messagesColRef = collection(firestore, 'conversations', conversationId, 'messages');
@@ -124,6 +202,14 @@ export default function ConversationPage() {
             message: `vous a envoyé un message : "${newMessage.substring(0, 30)}${newMessage.length > 30 ? '...' : ''}"`
         })
     }
+    
+    const getFileIcon = (file: File | null) => {
+        if (!file) return <File />;
+        if (file.type.startsWith('image/')) return <ImageIcon />;
+        if (file.type.startsWith('video/')) return <Video />;
+        if (file.type.startsWith('audio/')) return <Mic />;
+        return <File />;
+    }
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -147,15 +233,35 @@ export default function ConversationPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
+                    {fileToSend && (
+                         <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
+                             <div className="flex items-center gap-2 overflow-hidden">
+                                {getFileIcon(fileToSend)}
+                                <span className="text-sm truncate">{fileToSend.name}</span>
+                            </div>
+                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setFileToSend(null)}><X className="h-4 w-4" /></Button>
+                         </div>
+                    )}
+                    {uploadProgress !== null && <Progress value={uploadProgress} className="mb-2 h-1" />}
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                         <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            className="hidden" 
+                            onChange={handleFileChange}
+                            accept="image/*,video/*,audio/*"
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
+                            <Paperclip className="h-5 w-5" />
+                        </Button>
                         <Input 
                             placeholder="Écrivez votre message..." 
                             className="flex-grow" 
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
-                            disabled={isConversationLoading}
+                            disabled={isConversationLoading || !!fileToSend}
                         />
-                        <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+                        <Button type="submit" size="icon" disabled={(!newMessage.trim() && !fileToSend) || uploadProgress !== null}>
                             <Send className="h-5 w-5"/>
                         </Button>
                     </form>
@@ -164,3 +270,4 @@ export default function ConversationPage() {
         </div>
     );
 }
+
