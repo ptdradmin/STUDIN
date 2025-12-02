@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,16 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Target, Trophy, LayoutGrid, Map } from 'lucide-react';
+import { Search, Target, LayoutGrid, Map } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
 import type { Challenge } from '@/lib/types';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import ChallengeCard from '@/components/challenge-card';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -27,7 +27,7 @@ const staticChallenges: Challenge[] = [
   {
     id: '1',
     title: "Le Lion de Waterloo",
-    description: "Prenez un selfie au pied de la Butte du Lion. Un classique ! Assurez-vous que le monument soit bien visible derrière vous. Bonus si vous imitez la posture du lion !",
+    description: "Prenez un selfie au pied de la Butte du Lion. Un classique ! Assurez-vous que le monument soit bien visible derrière vous.",
     category: 'Exploration',
     difficulty: 'facile',
     points: 10,
@@ -40,7 +40,7 @@ const staticChallenges: Challenge[] = [
   {
     id: '2',
     title: "Street Art à Bruxelles",
-    description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock dans le centre-ville. La photo doit inclure un objet jaune pour prouver que vous y étiez récemment.",
+    description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock dans le centre-ville de Bruxelles.",
     category: 'Créatif',
     difficulty: 'moyen',
     points: 25,
@@ -53,7 +53,7 @@ const staticChallenges: Challenge[] = [
   {
     id: '3',
     title: "Vue panoramique de Namur",
-    description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre. Le défi doit être réalisé au coucher du soleil pour un maximum de points.",
+    description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre au coucher du soleil.",
     category: 'Exploration',
     difficulty: 'moyen',
     points: 20,
@@ -66,70 +66,29 @@ const staticChallenges: Challenge[] = [
   {
     id: '4',
     title: "Participer à une Cantus",
-    description: "Immortialisez l'ambiance d'une cantus étudiante (avec respect et consentement !). Votre photo doit montrer votre codex ou votre verre.",
+    description: "Immortalisez l'ambiance d'une cantus étudiante. Votre photo doit montrer votre codex ou votre verre.",
     category: 'Social',
     difficulty: 'facile',
     points: 15,
     imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-4')?.imageUrl || '',
-     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
   {
     id: '5',
     title: "L'énigme du Manneken-Pis",
-    description: "Le plus célèbre ket de Bruxelles a un secret. Chaque jeudi, un indice est révélé dans sa garde-robe. Trouvez l'indice de cette semaine et décryptez-le. Soumettez la réponse comme preuve.",
+    description: "Trouvez l'indice de la semaine sur le costume du Manneken-Pis et décryptez l'énigme pour gagner des points.",
     category: 'Créatif',
     difficulty: 'difficile',
     points: 50,
     imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-5')?.imageUrl || '',
-    location: 'Bruxelles', // On peut donner la ville sans les coordonnées précises
+    location: 'Bruxelles',
     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
 ];
 
-
-const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
-  const difficultyColors = {
-    facile: 'bg-green-500',
-    moyen: 'bg-yellow-500',
-    difficile: 'bg-red-500',
-  };
-  
-  const imageHint = PlaceHolderImages.find(p => p.imageUrl === challenge.imageUrl)?.imageHint || 'student challenge';
-
-  return (
-    <Link href={`/challenges/${challenge.id}`} className="block h-full">
-        <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl group h-full flex flex-col">
-            <div className="relative aspect-video">
-                <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint={imageHint} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10"></div>
-                <div className="absolute top-2 right-2 flex items-center gap-2">
-                    <Badge variant="secondary" className="capitalize">{challenge.category}</Badge>
-                </div>
-                 <div className="absolute bottom-2 left-4 text-white">
-                    <h3 className="text-xl font-bold drop-shadow-md">{challenge.title}</h3>
-                </div>
-            </div>
-            <CardContent className="p-4 flex flex-col flex-grow">
-                 <p className="text-sm text-muted-foreground mb-4 h-10 flex-grow">{challenge.description}</p>
-                <div className="flex justify-between items-center mt-auto">
-                    <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${difficultyColors[challenge.difficulty]}`}></div>
-                        <span className="text-sm capitalize font-medium">{challenge.difficulty}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Trophy className="h-5 w-5 text-yellow-500" />
-                        <span className="font-bold text-lg">{challenge.points}</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    </Link>
-  );
-};
-
-
 export default function ChallengesPage() {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+    const router = useRouter();
     // For now, we use static data
     const challenges = staticChallenges;
 
