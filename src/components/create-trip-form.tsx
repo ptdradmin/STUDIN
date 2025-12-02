@@ -24,41 +24,65 @@ import { Calendar as CalendarIcon, Car, Users } from 'lucide-react';
 
 const CarIllustration = ({ availableSeats }: { availableSeats: number }) => {
   const seats = [
-    { id: 'front_passenger', path: "M 65,55 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
-    { id: 'rear_left', path: "M 35,90 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
-    { id: 'rear_middle', path: "M 55,90 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
-    { id: 'rear_right', path: "M 75,90 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" },
+    { id: 'front_passenger', path: "M 66 52.5 C 76 52.5 76 82.5 66 82.5 L 56 82.5 C 46 82.5 46 52.5 56 52.5 Z" },
+    { id: 'rear_left', path: "M 38 88.5 C 48 88.5 48 118.5 38 118.5 L 28 118.5 C 18 118.5 18 88.5 28 88.5 Z" },
+    { id: 'rear_middle', path: "M 60 88.5 C 70 88.5 70 118.5 60 118.5 L 50 118.5 C 40 118.5 40 88.5 50 88.5 Z" },
+    { id: 'rear_right', path: "M 82 88.5 C 92 88.5 92 118.5 82 118.5 L 72 118.5 C 62 118.5 62 88.5 72 88.5 Z" },
   ];
 
   return (
     <div className="relative w-48 h-64 mx-auto">
-      <svg viewBox="0 0 100 150" className="w-full h-full">
-        {/* Car body */}
-        <path d="M 8,40 C -2,50 -2,125 8,140 L 92,140 C 102,125 102,50 92,40 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2"/>
+      <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-lg">
+        <defs>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
+                <feOffset dx="1" dy="2" result="offsetblur"/>
+                <feFlood floodColor="rgba(0,0,0,0.1)"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <linearGradient id="windshield" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity="0.8"/>
+                <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity="0.4"/>
+            </linearGradient>
+             <linearGradient id="seat-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="white" stopOpacity="0.1"/>
+                <stop offset="100%" stopColor="black" stopOpacity="0.1"/>
+            </linearGradient>
+        </defs>
+
+        {/* Car body with shadow */}
+        <path d="M 8,40 C -2,50 -2,125 8,140 L 92,140 C 102,125 102,50 92,40 Z" fill="hsl(var(--muted))" stroke="hsl(var(--border))" strokeWidth="2" filter="url(#shadow)"/>
         
         {/* Windows */}
-        <path d="M 15,40 C 10,30 90,30 85,40 L 80,85 C 95,85 95,100 80,100 L 20,100 C 5,100 5,85 20,85 Z" fill="hsl(var(--accent))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+        <path d="M 15,40 C 10,30 90,30 85,40 L 80,85 C 95,85 95,100 80,100 L 20,100 C 5,100 5,85 20,85 Z" fill="url(#windshield)" stroke="hsl(var(--border))" strokeWidth="1.5" />
 
-        {/* Details */}
-        <path d="M 10,60 L 5,65" stroke="hsl(var(--border))" strokeWidth="2" strokeLinecap="round" />
-        <path d="M 90,60 L 95,65" stroke="hsl(var(--border))" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="32" cy="45" r="8" stroke="hsl(var(--border))" strokeWidth="1.5" fill="none"/>
+        {/* Dashboard */}
+        <path d="M 20 45 A 20 20 0 0 1 80 45" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+        
+        {/* Steering wheel */}
+        <circle cx="32" cy="40" r="8" stroke="hsl(var(--border))" strokeWidth="2" fill="hsl(var(--card))"/>
+        <line x1="32" y1="32" x2="32" y2="48" stroke="hsl(var(--border))" strokeWidth="1.5"/>
 
         {/* Driver seat (always unavailable) */}
-        <path d="M 45,55 a 10,15 0 0 1 0,30 h -10 a 10,15 0 0 1 0,-30 z" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
+        <path d="M 44 52.5 C 54 52.5 54 82.5 44 82.5 L 34 82.5 C 24 82.5 24 52.5 34 52.5 Z" fill="hsl(var(--card))" stroke="hsl(var(--border))" strokeWidth="1"/>
+        <path d="M 44 52.5 C 54 52.5 54 82.5 44 82.5 L 34 82.5 C 24 82.5 24 52.5 34 52.5 Z" fill="url(#seat-gradient)"/>
 
         {/* Passenger seats */}
         {seats.map((seat, index) => (
-          <path
-            key={seat.id}
-            d={seat.path}
-            className={cn(
-                "transition-colors duration-300",
-                index < availableSeats ? "fill-primary" : "fill-card"
-            )}
-            stroke="hsl(var(--border))" 
-            strokeWidth="1"
-          />
+          <g key={seat.id}>
+             <path
+                d={seat.path}
+                className="transition-colors duration-300"
+                fill={index < availableSeats ? "hsl(var(--primary))" : "hsl(var(--card))"}
+                stroke="hsl(var(--border))" 
+                strokeWidth="1"
+            />
+            <path d={seat.path} fill="url(#seat-gradient)" />
+          </g>
         ))}
       </svg>
     </div>
