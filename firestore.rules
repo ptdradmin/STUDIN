@@ -15,8 +15,8 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+    function isResourceOwner(doc) {
+      return isSignedIn() && request.auth.uid == doc.userId;
     }
     
     function isDriver(carpoolingId) {
@@ -79,8 +79,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow update: if isResourceOwner(resource.data) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isResourceOwner(resource.data);
     }
     
     // =====================================================================
@@ -94,7 +94,7 @@ service cloud.firestore {
                       (isOwner(resource.data.userId)) ||
                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
                     );
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow delete: if isResourceOwner(resource.data);
     }
 
     // =====================================================================
@@ -104,16 +104,16 @@ service cloud.firestore {
       allow get: if true;
       allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if isOwner(resource.data.driverId) ||
+      allow update: if (isOwner(resource.data.driverId)) ||
                       (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds']));
-      allow delete: if isExistingOwner(resource.data.driverId);
+      allow delete: if isOwner(resource.data.driverId);
 
       match /carpool_bookings/{carpoolBookingId} {
         allow get: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
         allow list: if isDriver(carpoolingId);
         allow create: if isSignedIn();
         allow update: if isSignedIn();
-        allow delete: if isExistingOwner(resource.data.passengerId);
+        allow delete: if isOwner(resource.data.passengerId);
       }
     }
 
@@ -124,8 +124,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId;
-      allow delete: if isExistingOwner(resource.data.tutorId);
+      allow update: if isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId;
+      allow delete: if isOwner(resource.data.tutorId);
     }
     
     // =====================================================================
@@ -135,7 +135,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if request.query.keys().hasOnly(['tutoringId', 'orderBy', 'limit']);
       allow create: if isSignedIn();
-      allow update, delete: if isExistingOwner(resource.data.studentId);
+      allow update, delete: if isOwner(resource.data.studentId);
     }
 
     // =====================================================================
@@ -145,16 +145,16 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.organizerId);
-      allow delete: if isExistingOwner(resource.data.organizerId);
+      allow update: if isOwner(resource.data.organizerId);
+      allow delete: if isOwner(resource.data.organizerId);
     }
 
     match /event_attendees/{eventAttendeeId} {
       allow get: if isOwner(resource.data.userId) || isEventOrganizer(resource.data.eventId);
       allow list: if false;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(resource.data.userId);
     }
     
     // =====================================================================
@@ -171,7 +171,7 @@ service cloud.firestore {
                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
                     );
 
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow delete: if isResourceOwner(resource.data);
     }
     
     // =====================================================================
@@ -189,3 +189,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
