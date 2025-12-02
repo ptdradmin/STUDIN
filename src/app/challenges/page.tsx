@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -21,40 +20,46 @@ const staticChallenges: Challenge[] = [
   {
     id: '1',
     title: "Le Lion de Waterloo",
-    description: "Prenez un selfie au pied de la Butte du Lion. Un classique !",
+    description: "Prenez un selfie au pied de la Butte du Lion. Un classique ! Assurez-vous que le monument soit bien visible derrière vous. Bonus si vous imitez la posture du lion !",
     category: 'Exploration',
     difficulty: 'facile',
     points: 10,
     imageUrl: "https://images.unsplash.com/photo-1620202271383-34445b73650c?q=80&w=2070&auto=format&fit=crop",
     location: 'Waterloo',
+    latitude: 50.678,
+    longitude: 4.405,
     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
   {
     id: '2',
     title: "Street Art à Bruxelles",
-    description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock.",
+    description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock dans le centre-ville. La photo doit inclure un objet jaune pour prouver que vous y étiez récemment.",
     category: 'Créatif',
     difficulty: 'moyen',
     points: 25,
     imageUrl: 'https://images.unsplash.com/photo-1599709835737-27b6b15a7e6b?q=80&w=1974&auto=format&fit=crop',
     location: 'Bruxelles',
+    latitude: 50.846,
+    longitude: 4.352,
      createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
   {
     id: '3',
     title: "Vue panoramique de Namur",
-    description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre.",
+    description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre. Le défi doit être réalisé au coucher du soleil pour un maximum de points.",
     category: 'Exploration',
     difficulty: 'moyen',
     points: 20,
     imageUrl: 'https://images.unsplash.com/photo-1620766385807-617a943a8b20?q=80&w=2070&auto=format&fit=crop',
     location: 'Namur',
+    latitude: 50.459,
+    longitude: 4.863,
      createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
   {
     id: '4',
     title: "Participer à une Cantus",
-    description: "Immortialisez l'ambiance d'une cantus étudiante (avec respect et consentement !).",
+    description: "Immortialisez l'ambiance d'une cantus étudiante (avec respect et consentement !). Votre photo doit montrer votre codex ou votre verre.",
     category: 'Social',
     difficulty: 'facile',
     points: 15,
@@ -72,8 +77,8 @@ const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
   };
 
   return (
-    <Link href={`/challenges/${challenge.id}`}>
-        <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl group">
+    <Link href={`/challenges/${challenge.id}`} className="block h-full">
+        <Card className="overflow-hidden transition-all duration-300 hover:shadow-xl group h-full flex flex-col">
             <div className="relative aspect-video">
                 <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10"></div>
@@ -84,9 +89,9 @@ const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
                     <h3 className="text-xl font-bold drop-shadow-md">{challenge.title}</h3>
                 </div>
             </div>
-            <CardContent className="p-4">
-                 <p className="text-sm text-muted-foreground mb-4 h-10">{challenge.description}</p>
-                <div className="flex justify-between items-center">
+            <CardContent className="p-4 flex flex-col flex-grow">
+                 <p className="text-sm text-muted-foreground mb-4 h-10 flex-grow">{challenge.description}</p>
+                <div className="flex justify-between items-center mt-auto">
                     <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${difficultyColors[challenge.difficulty]}`}></div>
                         <span className="text-sm capitalize font-medium">{challenge.difficulty}</span>
