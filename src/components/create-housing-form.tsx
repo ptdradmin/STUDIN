@@ -38,6 +38,19 @@ interface CreateHousingFormProps {
   housingToEdit?: Housing | null;
 }
 
+const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
+        <div className="md:col-span-1">
+            <h3 className="font-semibold text-base">{title}</h3>
+            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+        </div>
+        <div className="md:col-span-2 space-y-4">
+            {children}
+        </div>
+    </div>
+);
+
+
 export default function CreateHousingForm({ onClose, housingToEdit }: CreateHousingFormProps) {
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<HousingFormInputs>({
     resolver: zodResolver(housingSchema),
@@ -139,15 +152,13 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Modifier' : 'Créer'} une annonce de logement</DialogTitle>
           <DialogDescription>Remplissez les détails ci-dessous pour publier votre annonce.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">
-            {/* --- Section Image --- */}
-            <div className="space-y-2">
-                <Label>Image de l'annonce</Label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-h-[80vh] overflow-y-auto p-1 pr-4">
+             <FormSection title="Image de l'annonce" description="Une belle photo attire plus de locataires.">
                 <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
                     {previewUrl ? (
                     <div className="relative w-full h-full">
@@ -161,13 +172,9 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                     )}
                 </div>
                  <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
-            </div>
+            </FormSection>
             
-            <Separator />
-            
-            {/* --- Informations Générales --- */}
-            <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Informations Générales</h3>
+            <FormSection title="Informations Générales" description="Décrivez le logement que vous proposez.">
                  <div>
                     <Label htmlFor="title">Titre</Label>
                     <Input id="title" {...register('title')} placeholder="Ex: Kot lumineux près de l'UNamur"/>
@@ -198,13 +205,9 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                     />
                     {errors.type && <p className="text-xs text-destructive">{errors.type.message}</p>}
                 </div>
-            </div>
-            
-            <Separator />
+            </FormSection>
 
-             {/* --- Caractéristiques --- */}
-            <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Caractéristiques</h3>
+             <FormSection title="Caractéristiques" description="Détails sur le prix, la surface et les chambres.">
                  <div className="grid grid-cols-2 gap-4">
                     <div>
                     <Label htmlFor="price">Prix (€/mois)</Label>
@@ -222,13 +225,9 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                     <Input id="bedrooms" type="number" {...register('bedrooms')} />
                     {errors.bedrooms && <p className="text-xs text-destructive">{errors.bedrooms.message}</p>}
                 </div>
-            </div>
-
-            <Separator />
+            </FormSection>
             
-             {/* --- Localisation --- */}
-            <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground">Localisation</h3>
+             <FormSection title="Localisation" description="Où se situe le logement ?">
                  <div>
                     <Label htmlFor="address">Adresse</Label>
                     <Input id="address" {...register('address')} placeholder="Ex: Rue de Bruxelles 53" />
@@ -239,7 +238,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                     <Input id="city" {...register('city')} placeholder="Ex: Namur" />
                     {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
                 </div>
-            </div>
+            </FormSection>
 
 
           <DialogFooter className="sticky bottom-0 bg-background pt-4 -mb-4 -mx-1 p-6 border-t">
@@ -255,3 +254,5 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     </Dialog>
   );
 }
+
+    
