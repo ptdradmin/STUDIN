@@ -16,8 +16,8 @@ import 'leaflet.markercluster';
 import 'leaflet.locatecontrol';
 import 'leaflet-routing-machine';
 
-import type { Housing, Trip, Event, Tutor } from '@/lib/types';
-import { Bed, Car, PartyPopper, BookOpen } from 'lucide-react';
+import type { Housing, Trip, Event, Tutor, Challenge } from '@/lib/types';
+import { Bed, Car, PartyPopper, BookOpen, Target } from 'lucide-react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 
@@ -58,6 +58,7 @@ const icons = {
     trip: createIcon(<Car size={24} />, '#F59E0B'), // amber-500
     event: createIcon(<PartyPopper size={24} />, '#EC4899'), // pink-500
     tutor: createIcon(<BookOpen size={24} />, '#10B981'), // emerald-500
+    challenge: createIcon(<Target size={24} />, '#EF4444'), // red-500
 };
 
 
@@ -105,6 +106,14 @@ const getPopupContent = (item: any, type: string) => {
                      <p style="${priceStyle.replace('#8B5CF6', '#10B981')}">${tu.pricePerHour}€/h</p>
                 </div>
             `;
+        case 'challenge':
+            const c = item as Challenge;
+             return `
+                 <div style="${baseStyle}" data-id="${c.id}" data-type="challenge">
+                    <h3 style="${titleStyle}">${c.title}</h3>
+                    <p style="${textStyle}">${c.points} points</p>
+                </div>
+            `;
         default:
             return '';
     }
@@ -112,7 +121,7 @@ const getPopupContent = (item: any, type: string) => {
 
 interface MapViewProps {
   items: any[];
-  itemType: 'housing' | 'trip' | 'event' | 'tutor';
+  itemType: 'housing' | 'trip' | 'event' | 'tutor' | 'challenge';
   onMarkerClick?: (item: any) => void;
   selectedItem?: any | null;
 }
@@ -243,13 +252,18 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
 
     if (!items || items.length === 0) return;
 
-    items.forEach((item) => {
-        if (!item.coordinates || !Array.isArray(item.coordinates) || item.coordinates.length !== 2) {
+    const validItems = items.filter(item => {
+        const coords = item.coordinates || (itemType === 'challenge' && [item.latitude, item.longitude]);
+        if (!coords || !Array.isArray(coords) || coords.length !== 2 || coords[0] == null || coords[1] == null) {
             console.warn("Item skipped due to invalid coordinates:", item);
-            return;
+            return false;
         }
-        
-        const marker = L.marker(item.coordinates as L.LatLngExpression, {
+        return true;
+    });
+
+    validItems.forEach((item) => {
+        const coords = item.coordinates || [item.latitude, item.longitude];
+        const marker = L.marker(coords as L.LatLngExpression, {
             icon: icons[itemType],
         }).bindPopup(getPopupContent(item, itemType));
         
@@ -261,9 +275,7 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
     }
     
      if (!selectedItem) {
-        const validCoords = items
-            .map(item => item.coordinates)
-            .filter(coord => Array.isArray(coord) && coord.length === 2 && coord[0] != null && coord[1] != null);
+        const validCoords = validItems.map(item => item.coordinates || [item.latitude, item.longitude]);
           
         if (validCoords.length > 0) {
             const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
@@ -284,7 +296,14 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
         routeControlRef.current = null;
     }
 
-    if (selectedItem && itemType === 'trip' && selectedItem.coordinates && selectedItem.arrivalCoordinates) {
+    // Only draw a route for items of type 'trip' that have valid start and end coordinates.
+    const shouldDrawRoute = 
+        selectedItem && 
+        itemType === 'trip' && 
+        Array.isArray(selectedItem.coordinates) && selectedItem.coordinates.length === 2 &&
+        Array.isArray(selectedItem.arrivalCoordinates) && selectedItem.arrivalCoordinates.length === 2;
+
+    if (shouldDrawRoute) {
         const route = L.Routing.control({
             waypoints: [
                 L.latLng(selectedItem.coordinates[0], selectedItem.coordinates[1]),
