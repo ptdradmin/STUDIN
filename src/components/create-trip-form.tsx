@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -169,68 +169,77 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Proposer un trajet</DialogTitle>
+          <DialogDescription>
+            Remplissez les informations ci-dessous pour partager votre trajet avec d'autres étudiants.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div>
-              <Label htmlFor="departureCity">Départ</Label>
-              <Input id="departureCity" {...register('departureCity')} placeholder="Ex: Bruxelles" />
-              {errors.departureCity && <p className="text-xs text-destructive">{errors.departureCity.message}</p>}
-            </div>
-            <div>
-              <Label htmlFor="arrivalCity">Arrivée</Label>
-              <Input id="arrivalCity" {...register('arrivalCity')} placeholder="Ex: Namur" />
-              {errors.arrivalCity && <p className="text-xs text-destructive">{errors.arrivalCity.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1 pr-4">
+          <div className="space-y-4 border-b pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="departureCity">Départ</Label>
+                <Input id="departureCity" {...register('departureCity')} placeholder="Ex: Bruxelles" />
+                {errors.departureCity && <p className="text-xs text-destructive">{errors.departureCity.message}</p>}
+              </div>
+              <div>
+                <Label htmlFor="arrivalCity">Arrivée</Label>
+                <Input id="arrivalCity" {...register('arrivalCity')} placeholder="Ex: Namur" />
+                {errors.arrivalCity && <p className="text-xs text-destructive">{errors.arrivalCity.message}</p>}
+              </div>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Date et heure de départ</Label>
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
-                 <Controller
-                    name="departureTime"
-                    control={control}
-                    render={({ field }) => (
-                         <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "justify-start text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(date) => date && field.onChange(date)}
-                                initialFocus
-                                locale={fr}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    )}
-                />
-                 <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : undefined}>
-                    <SelectTrigger className="w-[80px]"><SelectValue placeholder="HH" /></SelectTrigger>
-                    <SelectContent>{Array.from({ length: 24 }).map((_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : undefined}>
-                    <SelectTrigger className="w-[80px]"><SelectValue placeholder="MM" /></SelectTrigger>
-                    <SelectContent>{Array.from({ length: 12 }).map((_, i) => <SelectItem key={i} value={String(i * 5).padStart(2, '0')}>{String(i * 5).padStart(2, '0')}</SelectItem>)}</SelectContent>
-                </Select>
+          
+          <div className="space-y-4 border-b pb-4">
+            <div className="space-y-2">
+              <Label>Date et heure de départ</Label>
+              <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                  <Controller
+                      name="departureTime"
+                      control={control}
+                      render={({ field }) => (
+                          <Popover>
+                              <PopoverTrigger asChild>
+                                  <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                      "justify-start text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                  )}
+                                  >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
+                                  </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={(date) => date && field.onChange(date)}
+                                  initialFocus
+                                  locale={fr}
+                                  />
+                              </PopoverContent>
+                          </Popover>
+                      )}
+                  />
+                  <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : undefined}>
+                      <SelectTrigger className="w-[80px]"><SelectValue placeholder="HH" /></SelectTrigger>
+                      <SelectContent>{Array.from({ length: 24 }).map((_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : undefined}>
+                      <SelectTrigger className="w-[80px]"><SelectValue placeholder="MM" /></SelectTrigger>
+                      <SelectContent>{Array.from({ length: 12 }).map((_, i) => <SelectItem key={i} value={String(i * 5).padStart(2, '0')}>{String(i * 5).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                  </Select>
+              </div>
+              {errors.departureTime && <p className="text-xs text-destructive">{errors.departureTime.message}</p>}
             </div>
-            {errors.departureTime && <p className="text-xs text-destructive">{errors.departureTime.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-8 items-center">
+
+          <div className="grid grid-cols-2 gap-8 items-center border-b pb-4">
              <CarIllustration availableSeats={availableSeats || 0} />
              <div className="space-y-4">
                  <div>
@@ -251,7 +260,8 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
             <Textarea id="description" {...register('description')} placeholder="Ex: Voyage tranquille, musique bienvenue..." className="mt-1"/>
             {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
           </div>
-          <DialogFooter className="sticky bottom-0 bg-background pt-4">
+
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 px-0">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
@@ -264,3 +274,5 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     </Dialog>
   );
 }
+
+    
