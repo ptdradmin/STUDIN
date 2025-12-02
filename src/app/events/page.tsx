@@ -10,10 +10,10 @@ import { MapPin, LayoutGrid, Map, Plus, Search, User, Bookmark } from "lucide-re
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Event, Favorite } from "@/lib/types";
+import type { Event, Favorite, UserProfile } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, arrayUnion, serverTimestamp, query, where } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
@@ -21,12 +21,75 @@ import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { createNotification, toggleFavorite } from '@/lib/actions';
+import { recommendEvents } from '@/ai/flows/recommend-events-flow';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
 });
 
+function RecommendedEvents({ events, userProfile }: { events: Event[], userProfile: UserProfile | null }) {
+    const [recommendations, setRecommendations] = useState<Event[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (userProfile && events.length > 0) {
+            setIsLoading(true);
+            recommendEvents({ userProfile, allEvents: events })
+                .then(setRecommendations)
+                .finally(() => setIsLoading(false));
+        } else {
+            setIsLoading(false);
+        }
+    }, [events, userProfile]);
+
+    if (!userProfile || (recommendations.length === 0 && !isLoading)) return null;
+
+    return (
+        <div className="mb-8">
+            <h2 className="text-2xl font-bold tracking-tight mb-4">Pour vous</h2>
+            {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <Card key={i} className="overflow-hidden flex flex-col">
+                           <Skeleton className="aspect-video w-full" />
+                           <CardContent className="p-4 flex flex-col flex-grow">
+                               <Skeleton className="h-4 w-24" />
+                               <Skeleton className="h-6 w-full mt-2" />
+                           </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                 <Carousel opts={{ align: "start", loop: false }}>
+                    <CarouselContent className="-ml-4">
+                        {recommendations.map(event => (
+                            <CarouselItem key={event.id} className="pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                                 <Card className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col h-full">
+                                    <div className="relative">
+                                        <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
+                                        <Badge className="absolute top-2 right-2">{event.category}</Badge>
+                                    </div>
+                                    <CardContent className="p-4 flex flex-col flex-grow">
+                                        <p className="font-semibold text-primary">{new Date(event.startDate).toLocaleDateString()}</p>
+                                        <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
+                                        <p className="text-sm text-muted-foreground flex items-center mt-2">
+                                            <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                                            {event.city}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                </Carousel>
+            )}
+        </div>
+    );
+}
 
 export default function EventsPage() {
   const firestore = useFirestore();
@@ -47,6 +110,12 @@ export default function EventsPage() {
   }, [firestore]);
 
   const { data: events, isLoading } = useCollection<Event>(eventsCollection);
+
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const favoritesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -254,6 +323,8 @@ export default function EventsPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <RecommendedEvents events={events || []} userProfile={userProfile || null} />
+
           <Card className="mb-6">
               <CardHeader>
                   <CardTitle>Filtrer les événements</CardTitle>
