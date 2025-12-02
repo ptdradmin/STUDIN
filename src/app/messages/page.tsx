@@ -14,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
+import { useMemo } from "react";
 
 
 function ConversationList() {
@@ -24,14 +25,24 @@ function ConversationList() {
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
+        // The query is simplified to only include the 'where' clause
+        // to comply with Firestore security rules. Sorting will be done client-side.
         return query(
             collection(firestore, 'conversations'),
-            where('participantIds', 'array-contains', user.uid),
-            orderBy('updatedAt', 'desc')
+            where('participantIds', 'array-contains', user.uid)
         );
     }, [firestore, user]);
 
     const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
+
+    const sortedConversations = useMemo(() => {
+        if (!conversations) return [];
+        return [...conversations].sort((a, b) => {
+            const dateA = a.updatedAt?.toDate() || new Date(0);
+            const dateB = b.updatedAt?.toDate() || new Date(0);
+            return dateB.getTime() - dateA.getTime();
+        });
+    }, [conversations]);
 
     if (isLoading) {
         return (
@@ -49,7 +60,7 @@ function ConversationList() {
         )
     }
 
-    if (!conversations || conversations.length === 0) {
+    if (!sortedConversations || sortedConversations.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center p-8 h-full">
                 <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
@@ -68,7 +79,7 @@ function ConversationList() {
     
     return (
         <div className="flex-grow overflow-y-auto">
-            {conversations.map(conv => {
+            {sortedConversations.map(conv => {
                 const otherParticipantId = conv.participantIds.find(id => id !== user?.uid);
                 const otherParticipant = otherParticipantId ? conv.participants[otherParticipantId] : null;
                 const lastMessage = conv.lastMessage;
