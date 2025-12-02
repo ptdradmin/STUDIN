@@ -130,7 +130,8 @@ export default function CarpoolingPage() {
     batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
 
-    batch.commit().then(() => {
+    batch.commit()
+    .then(() => {
       createNotification(firestore, {
           type: 'carpool_booking',
           senderId: user.uid,
@@ -306,5 +307,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-    
