@@ -12,8 +12,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+
+const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
+        <div className="md:col-span-1">
+            <h3 className="font-semibold text-base">{title}</h3>
+            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+        </div>
+        <div className="md:col-span-2 space-y-4">
+            {children}
+        </div>
+    </div>
+);
+
 
 const tutorSchema = z.object({
   subject: z.string().min(1, 'La matière est requise'),
@@ -72,52 +85,67 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Devenir Tuteur</DialogTitle>
+           <DialogDescription>
+            Partagez vos connaissances et aidez d'autres étudiants à réussir.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-          <div>
-            <Label htmlFor="subject">Matière enseignée</Label>
-            <Input id="subject" {...register('subject')} placeholder="Ex: Mathématiques, Droit constitutionnel..." />
-            {errors.subject && <p className="text-xs text-destructive">{errors.subject.message}</p>}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">
+          <FormSection title="Matière" description="Quelle matière souhaitez-vous enseigner ?">
              <div>
-              <Label htmlFor="level">Niveau</Label>
-               <Input id="level" {...register('level')} placeholder="Ex: Bachelier 1" />
+                <Label htmlFor="subject" className="sr-only">Matière enseignée</Label>
+                <Input id="subject" {...register('subject')} placeholder="Ex: Mathématiques, Droit constitutionnel..." />
+                {errors.subject && <p className="text-xs text-destructive">{errors.subject.message}</p>}
+            </div>
+          </FormSection>
+
+          <FormSection title="Niveau" description="À quel niveau d'études vous adressez-vous ?">
+            <div>
+              <Label htmlFor="level" className="sr-only">Niveau</Label>
+               <Input id="level" {...register('level')} placeholder="Ex: Bachelier 1, Secondaire, Master..." />
               {errors.level && <p className="text-xs text-destructive">{errors.level.message}</p>}
             </div>
+          </FormSection>
+
+           <FormSection title="Tarif et Lieu" description="Fixez votre prix et où vous donnez cours.">
+             <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="pricePerHour">Tarif horaire (€)</Label>
+                  <Input id="pricePerHour" type="number" {...register('pricePerHour')} />
+                  {errors.pricePerHour && <p className="text-xs text-destructive">{errors.pricePerHour.message}</p>}
+                </div>
+                 <div>
+                    <Label htmlFor="locationType">Lieu des cours</Label>
+                    <Controller
+                        name="locationType"
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="online">En ligne</SelectItem>
+                                    <SelectItem value="in-person">En personne</SelectItem>
+                                    <SelectItem value="both">Les deux</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.locationType && <p className="text-xs text-destructive">{errors.locationType.message}</p>}
+                </div>
+              </div>
+          </FormSection>
+
+          <FormSection title="Description" description="Présentez-vous et décrivez votre méthode de travail.">
             <div>
-              <Label htmlFor="pricePerHour">Tarif horaire (€)</Label>
-              <Input id="pricePerHour" type="number" {...register('pricePerHour')} />
-              {errors.pricePerHour && <p className="text-xs text-destructive">{errors.pricePerHour.message}</p>}
+                <Label htmlFor="description" className="sr-only">Description</Label>
+                <Textarea id="description" {...register('description')} placeholder="Décrivez votre méthode d'enseignement, votre expérience..." className="min-h-[100px]" />
+                {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
             </div>
-          </div>
-           <div>
-            <Label htmlFor="locationType">Lieu des cours</Label>
-            <Controller
-                name="locationType"
-                control={control}
-                render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger><SelectValue placeholder="Sélectionner le lieu" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="online">En ligne</SelectItem>
-                            <SelectItem value="in-person">En personne</SelectItem>
-                            <SelectItem value="both">Les deux</SelectItem>
-                        </SelectContent>
-                    </Select>
-                )}
-            />
-            {errors.locationType && <p className="text-xs text-destructive">{errors.locationType.message}</p>}
-          </div>
-           <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} placeholder="Décrivez votre méthode d'enseignement, votre expérience..." />
-            {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
-          </div>
-          <DialogFooter className="sticky bottom-0 bg-background pt-4">
+          </FormSection>
+
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 p-6 border-t">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>

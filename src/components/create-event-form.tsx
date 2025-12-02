@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -22,6 +22,19 @@ import { fr } from 'date-fns/locale';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
+
+const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
+        <div className="md:col-span-1">
+            <h3 className="font-semibold text-base">{title}</h3>
+            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+        </div>
+        <div className="md:col-span-2 space-y-4">
+            {children}
+        </div>
+    </div>
+);
+
 
 const eventSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -139,122 +152,134 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Créer un événement</DialogTitle>
+           <DialogDescription>Remplissez les détails pour promouvoir votre événement.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
-            {previewUrl ? (
-              <div className="relative w-full h-full">
-                <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                <ImageIcon className="h-16 w-16 mx-auto" strokeWidth={1} />
-                <p className="mt-2 text-sm">Téléchargez une image</p>
-              </div>
-            )}
-          </div>
-           <div>
-            <Label htmlFor="imageUrl" className="sr-only">Image</Label>
-            <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
-          </div>
-
-          <div>
-            <Label htmlFor="title">Titre de l'événement</Label>
-            <Input id="title" {...register('title')} />
-            {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} />
-            {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
-          </div>
-           <div>
-            <Label htmlFor="category">Catégorie</Label>
-            <Controller
-                name="category"
-                control={control}
-                render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger><SelectValue placeholder="Sélectionner la catégorie" /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="soirée">Soirée</SelectItem>
-                            <SelectItem value="conférence">Conférence</SelectItem>
-                            <SelectItem value="sport">Sport</SelectItem>
-                            <SelectItem value="culture">Culture</SelectItem>
-                        </SelectContent>
-                    </Select>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">
+          <FormSection title="Image de l'événement" description="Une image attrayante pour votre événement.">
+            <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
+                {previewUrl ? (
+                <div className="relative w-full h-full">
+                    <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
+                </div>
+                ) : (
+                <div className="text-center text-muted-foreground">
+                    <ImageIcon className="h-16 w-16 mx-auto" strokeWidth={1} />
+                    <p className="mt-2 text-sm">Téléchargez une image</p>
+                </div>
                 )}
-            />
-            {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>Date et heure</Label>
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+            </div>
+            <div>
+                <Label htmlFor="imageUrl" className="sr-only">Image</Label>
+                <Input id="imageUrl" type="file" accept="image/*" onChange={handleImageUpload} />
+            </div>
+          </FormSection>
+
+          <FormSection title="Informations principales" description="Les détails essentiels de votre événement.">
+              <div>
+                <Label htmlFor="title">Titre de l'événement</Label>
+                <Input id="title" {...register('title')} />
+                {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+            </div>
+            <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" {...register('description')} />
+                {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+            </div>
+            <div>
+                <Label htmlFor="category">Catégorie</Label>
                 <Controller
-                    name="startDate"
+                    name="category"
                     control={control}
                     render={({ field }) => (
-                         <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "justify-start text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(date) => date && field.onChange(date)}
-                                initialFocus
-                                locale={fr}
-                                />
-                            </PopoverContent>
-                        </Popover>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Sélectionner la catégorie" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="soirée">Soirée</SelectItem>
+                                <SelectItem value="conférence">Conférence</SelectItem>
+                                <SelectItem value="sport">Sport</SelectItem>
+                                <SelectItem value="culture">Culture</SelectItem>
+                            </SelectContent>
+                        </Select>
                     )}
                 />
-
-                <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : undefined}>
-                    <SelectTrigger className="w-[80px]"><SelectValue placeholder="HH" /></SelectTrigger>
-                    <SelectContent>{Array.from({ length: 24 }).map((_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
-                </Select>
-                <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : undefined}>
-                    <SelectTrigger className="w-[80px]"><SelectValue placeholder="MM" /></SelectTrigger>
-                    <SelectContent>{Array.from({ length: 12 }).map((_, i) => <SelectItem key={i} value={String(i * 5).padStart(2, '0')}>{String(i * 5).padStart(2, '0')}</SelectItem>)}</SelectContent>
-                </Select>
+                {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
             </div>
-            {errors.startDate && <p className="text-xs text-destructive">{errors.startDate.message}</p>}
-          </div>
+          </FormSection>
 
-           <div>
-              <Label htmlFor="address">Adresse</Label>
-              <Input id="address" {...register('address')} placeholder="Ex: Rue de l'université 10" />
-              {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
+          <FormSection title="Date et Heure" description="Quand l'événement aura-t-il lieu ?">
+            <div className="space-y-2">
+                <Label>Date et heure de début</Label>
+                <div className="grid grid-cols-[1fr_auto_auto] gap-2">
+                    <Controller
+                        name="startDate"
+                        control={control}
+                        render={({ field }) => (
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "justify-start text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                    )}
+                                    >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Choisissez une date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={(date) => date && field.onChange(date)}
+                                    initialFocus
+                                    locale={fr}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        )}
+                    />
+
+                    <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : undefined}>
+                        <SelectTrigger className="w-[80px]"><SelectValue placeholder="HH" /></SelectTrigger>
+                        <SelectContent>{Array.from({ length: 24 }).map((_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : undefined}>
+                        <SelectTrigger className="w-[80px]"><SelectValue placeholder="MM" /></SelectTrigger>
+                        <SelectContent>{Array.from({ length: 12 }).map((_, i) => <SelectItem key={i} value={String(i * 5).padStart(2, '0')}>{String(i * 5).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                    </Select>
+                </div>
+                {errors.startDate && <p className="text-xs text-destructive">{errors.startDate.message}</p>}
             </div>
-             <div className="grid grid-cols-2 gap-4">
-                 <div>
-                    <Label htmlFor="city">Ville</Label>
-                    <Input id="city" {...register('city')} placeholder="Ex: Namur" />
-                    {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
-                </div>
-                 <div>
-                    <Label htmlFor="price">Prix (€)</Label>
-                    <Input id="price" type="number" {...register('price')} defaultValue={0} />
-                    {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
-                </div>
-             </div>
+          </FormSection>
+
+          <FormSection title="Lieu et Prix" description="Où se déroule l'événement et quel est le coût ?">
              <div>
-                <Label htmlFor="university">Université (optionnel)</Label>
-                <Controller
+                <Label htmlFor="address">Adresse</Label>
+                <Input id="address" {...register('address')} placeholder="Ex: Rue de l'université 10" />
+                {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="city">Ville</Label>
+                        <Input id="city" {...register('city')} placeholder="Ex: Namur" />
+                        {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
+                    </div>
+                    <div>
+                        <Label htmlFor="price">Prix (€)</Label>
+                        <Input id="price" type="number" {...register('price')} defaultValue={0} />
+                        {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                    </div>
+                </div>
+          </FormSection>
+          
+           <FormSection title="Informations Additionnelles" description="(Optionnel)">
+             <div>
+                <Label htmlFor="university">Université</Label>
+                 <Controller
                     name="university"
                     control={control}
                     render={({ field }) => (
@@ -269,7 +294,10 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
                     )}
                 />
             </div>
-          <DialogFooter className="sticky bottom-0 bg-background pt-4">
+           </FormSection>
+
+
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 -m-1 p-6 border-t">
             <DialogClose asChild>
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
