@@ -127,6 +127,7 @@ export interface Trip {
     seatsAvailable: number;
     passengerIds: string[];
     coordinates: [number, number];
+    arrivalCoordinates?: [number, number];
     departureAddress: string;
     arrivalAddress: string;
     description: string;

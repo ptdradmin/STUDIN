@@ -24,6 +24,7 @@ import { createNotification } from "@/lib/actions";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { getOrCreateConversation } from "@/lib/conversations";
+import { cn } from "@/lib/utils";
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -67,6 +68,7 @@ export default function CarpoolingPage() {
   
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
 
   const [departureFilter, setDepartureFilter] = useState('');
   const [arrivalFilter, setArrivalFilter] = useState('');
@@ -81,7 +83,18 @@ export default function CarpoolingPage() {
 
   const filteredTrips = useMemo(() => {
     if (!trips) return [];
-    return trips.filter(trip => {
+    
+    // Simulate arrival coordinates for demo
+    const tripsWithArrivalCoords = trips.map(trip => ({
+        ...trip,
+        // For demonstration, let's create slightly different arrival coordinates
+        arrivalCoordinates: [
+          (trip.coordinates[0] || 50.46) + (Math.random() - 0.5) * 0.5,
+          (trip.coordinates[1] || 4.87) + (Math.random() - 0.5) * 0.5,
+        ]
+    }));
+
+    return tripsWithArrivalCoords.filter(trip => {
       const departureMatch = departureFilter ? trip.departureCity.toLowerCase().includes(departureFilter.toLowerCase()) : true;
       const arrivalMatch = arrivalFilter ? trip.arrivalCity.toLowerCase().includes(arrivalFilter.toLowerCase()) : true;
       const dateMatch = dateFilter ? new Date(trip.departureTime).toLocaleDateString() === new Date(dateFilter).toLocaleDateString() : true;
@@ -191,6 +204,11 @@ export default function CarpoolingPage() {
         errorEmitter.emit('permission-error', permissionError);
     }
   };
+  
+  const handleSelectTrip = (trip: Trip) => {
+      setSelectedTrip(trip);
+      setViewMode('map');
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -245,7 +263,7 @@ export default function CarpoolingPage() {
                   <Button
                     variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                     size="sm"
-                    onClick={() => setViewMode('list')}
+                    onClick={() => { setViewMode('list'); setSelectedTrip(null); }}
                     className="px-3"
                   >
                     <LayoutGrid className="h-5 w-5" />
@@ -268,7 +286,7 @@ export default function CarpoolingPage() {
                   {!isLoading && filteredTrips.map(trip => {
                     const isPassenger = user && (trip.passengerIds || []).includes(user.uid);
                     return (
-                      <Card key={trip.id} className="transition-shadow hover:shadow-md">
+                      <Card key={trip.id} className={cn("transition-shadow hover:shadow-md cursor-pointer", selectedTrip?.id === trip.id && "ring-2 ring-primary")} onClick={() => handleSelectTrip(trip)}>
                           <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                               <div className="flex items-center gap-3">
                                   <Image src={trip.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.username || "conducteur"} width={48} height={48} className="rounded-full" />
@@ -312,10 +330,10 @@ export default function CarpoolingPage() {
                                   <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
                                   {user && (
                                     <>
-                                        <Button size="sm" onClick={() => handleReserve(trip)} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0 || isPassenger}>
+                                        <Button size="sm" onClick={(e) => {e.stopPropagation(); handleReserve(trip);}} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0 || isPassenger}>
                                             {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
                                         </Button>
-                                        <Button size="sm" variant="outline" onClick={() => handleContact(trip)} disabled={trip.driverId === user.uid}>
+                                        <Button size="sm" variant="outline" onClick={(e) => {e.stopPropagation(); handleContact(trip);}} disabled={trip.driverId === user.uid}>
                                             <MessageSquare className="h-4 w-4" />
                                         </Button>
                                     </>
@@ -338,7 +356,7 @@ export default function CarpoolingPage() {
               <Card>
                 <CardContent className="p-2">
                   <div className="h-[600px] w-full rounded-md overflow-hidden">
-                      <MapView items={filteredTrips} itemType="trip" />
+                      <MapView items={filteredTrips} itemType="trip" selectedItem={selectedTrip} onMarkerClick={setSelectedTrip} />
                   </div>
                 </CardContent>
               </Card>
@@ -348,8 +366,3 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
-
-
-    
-
-    

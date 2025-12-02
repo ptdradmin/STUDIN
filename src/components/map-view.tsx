@@ -6,12 +6,15 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+
 
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet.markercluster';
 import 'leaflet.locatecontrol';
+import 'leaflet-routing-machine';
 
 import type { Housing, Trip, Event, Tutor } from '@/lib/types';
 import { Bed, Car, PartyPopper, BookOpen } from 'lucide-react';
@@ -78,7 +81,7 @@ const getPopupContent = (item: any, type: string) => {
         case 'trip':
             const t = item as Trip;
             return `
-                <div style="${baseStyle}">
+                <div style="${baseStyle}" data-id="${t.id}" data-type="trip">
                     <h3 style="${titleStyle}">${t.departureCity} → ${t.arrivalCity}</h3>
                     <p style="${textStyle}">Par ${t.username}</p>
                     <p style="${priceStyle.replace('#8B5CF6', '#F59E0B')}">${t.pricePerSeat}€</p>
@@ -111,12 +114,14 @@ interface MapViewProps {
   items: any[];
   itemType: 'housing' | 'trip' | 'event' | 'tutor';
   onMarkerClick?: (item: any) => void;
+  selectedItem?: any | null;
 }
 
-export default function MapView({ items, itemType, onMarkerClick }: MapViewProps) {
+export default function MapView({ items, itemType, onMarkerClick, selectedItem }: MapViewProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.MarkerClusterGroup | null>(null);
+  const routeControlRef = useRef<L.Routing.Control | null>(null);
 
   useEffect(() => {
     if (mapContainerRef.current && !mapInstanceRef.current) {
@@ -233,10 +238,7 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
 
     if (!markers || !map) return;
 
-    // Clear existing layers
     markers.clearLayers();
-
-    // Remove old listeners before adding new ones
     map.off('popupopen', handlePopupClick);
 
     if (!items || items.length === 0) return;
@@ -254,21 +256,49 @@ export default function MapView({ items, itemType, onMarkerClick }: MapViewProps
         markers.addLayer(marker);
     });
 
-    // Add new listener
     if (onMarkerClick) {
         map.on('popupopen', handlePopupClick);
     }
-
-    const validCoords = items
-        .map(item => item.coordinates)
-        .filter(coord => Array.isArray(coord) && coord.length === 2 && coord[0] != null && coord[1] != null);
-      
-    if (validCoords.length > 0) {
-        const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    
+     if (!selectedItem) {
+        const validCoords = items
+            .map(item => item.coordinates)
+            .filter(coord => Array.isArray(coord) && coord.length === 2 && coord[0] != null && coord[1] != null);
+          
+        if (validCoords.length > 0) {
+            const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }
     }
 
-  }, [items, itemType, onMarkerClick]);
+  }, [items, itemType, onMarkerClick, selectedItem]);
+  
+  
+   useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // Remove existing route before adding a new one
+    if (routeControlRef.current) {
+        map.removeControl(routeControlRef.current);
+        routeControlRef.current = null;
+    }
+
+    if (selectedItem && itemType === 'trip' && selectedItem.coordinates && selectedItem.arrivalCoordinates) {
+        const route = L.Routing.control({
+            waypoints: [
+                L.latLng(selectedItem.coordinates[0], selectedItem.coordinates[1]),
+                L.latLng(selectedItem.arrivalCoordinates[0], selectedItem.arrivalCoordinates[1])
+            ],
+            routeWhileDragging: false,
+            show: false, // Hides the itinerary text panel
+            addWaypoints: false, // Prevents users from adding more waypoints
+            createMarker: function() { return null; } // Prevent default markers
+        }).addTo(map);
+
+        routeControlRef.current = route;
+    }
+  }, [selectedItem, itemType]);
 
   return (
     <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} className="rounded-lg overflow-hidden" />
