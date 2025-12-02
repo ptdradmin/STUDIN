@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useUser, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon, ArrowLeft, Crop } from 'lucide-react';
@@ -24,6 +24,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -148,7 +150,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" /></Button>
             )}
            <DialogTitle className="text-base font-semibold absolute left-1/2 -translate-x-1/2">
-             {step === 1 ? "Créer une nouvelle publication" : "Filtres et légende"}
+             {step === 1 ? "Créer une nouvelle publication" : "Édition"}
            </DialogTitle>
             {step === 2 && (
               <Button variant="link" onClick={handleSubmit(onSubmit)} className="ml-auto p-0 h-auto font-bold" disabled={loading}>
@@ -181,60 +183,64 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setAspectRatio("1:1")}>1:1</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setAspectRatio("4:5")}>4:5</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setAspectRatio("16:9")}>16:9</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAspectRatio("1:1")}>Carré (1:1)</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAspectRatio("4:5")}>Portrait (4:5)</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAspectRatio("16:9")}>Paysage (16:9)</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                     <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
                   </div>
-
-                  <div className="p-4 flex flex-col">
-                      {user && (
-                          <div className="flex items-center gap-3 mb-4">
-                              <Avatar className="h-7 w-7">
-                                  <AvatarImage src={user.photoURL ?? undefined} />
-                                  <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                              </Avatar>
-                              <p className="font-semibold text-sm">{user.displayName?.split(' ')[0]}</p>
-                          </div>
-                      )}
-                      <div>
-                          <Textarea
-                              id="caption"
-                              {...register('caption')}
-                              placeholder="Écrivez une légende..."
-                              className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[100px]"
-                          />
-                          {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
-                      </div>
-
-                      <div className="mt-4">
-                            <p className="text-sm font-medium mb-2">Filtres</p>
-                            <div className="grid grid-cols-4 gap-2">
-                                {filters.map(filter => (
-                                    <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
-                                        <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
-                                            <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="cover" className={filter.className} />
-                                        </div>
-                                        <p className="text-xs text-center mt-1">{filter.name}</p>
+                  
+                  <Tabs defaultValue="filters" className="flex flex-col">
+                    <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
+                        <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
+                        <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="filters" className="flex-grow p-4">
+                        <div className="grid grid-cols-3 gap-2">
+                            {filters.map(filter => (
+                                <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
+                                    <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
+                                        <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="cover" className={filter.className} />
                                     </div>
-                                ))}
+                                    <p className="text-xs text-center mt-1">{filter.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="caption" className="flex-grow flex flex-col p-4">
+                        {user && (
+                            <div className="flex items-center gap-3 mb-4">
+                                <Avatar className="h-7 w-7">
+                                    <AvatarImage src={user.photoURL ?? undefined} />
+                                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                                </Avatar>
+                                <p className="font-semibold text-sm">{user.displayName?.split(' ')[0]}</p>
                             </div>
+                        )}
+                        <div className="flex-grow">
+                            <Textarea
+                                id="caption"
+                                {...register('caption')}
+                                placeholder="Écrivez une légende..."
+                                className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[100px]"
+                            />
+                            {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
                         </div>
 
-                      <div className="border-t mt-auto pt-4">
-                          <div className="relative">
-                              <Input 
-                                  id="location" 
-                                  placeholder="Ajouter un lieu" 
-                                  {...register('location')}
-                                  className="border-none p-0 focus-visible:ring-0"
-                              />
-                          </div>
-                      </div>
-                  </div>
+                        <div className="border-t mt-auto pt-4">
+                            <div className="relative">
+                                <Input 
+                                    id="location" 
+                                    placeholder="Ajouter un lieu" 
+                                    {...register('location')}
+                                    className="border-none p-0 focus-visible:ring-0"
+                                />
+                            </div>
+                        </div>
+                    </TabsContent>
+                  </Tabs>
             </div>
           )}
         </form>
@@ -242,3 +248,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     </Dialog>
   );
 }
+
+    
+
+    
