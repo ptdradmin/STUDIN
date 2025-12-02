@@ -3,14 +3,20 @@
 
 import SocialSidebar from "@/components/social-sidebar";
 import ReelCard from "@/components/reel-card";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 import type { Reel } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Film } from "lucide-react";
+import { Film, Plus } from "lucide-react";
+import CreateReelForm from "@/components/create-reel-form";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function ReelsPage() {
     const firestore = useFirestore();
+    const { user, isUserLoading } = useUser();
+    const [showCreateReel, setShowCreateReel] = useState(false);
+
 
     const reelsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -22,7 +28,13 @@ export default function ReelsPage() {
     return (
         <div className="flex h-screen w-full bg-black">
             <SocialSidebar />
-            <div className="flex-1 flex justify-center items-center overflow-hidden">
+             {showCreateReel && <CreateReelForm onClose={() => setShowCreateReel(false)} />}
+            <div className="flex-1 flex flex-col justify-center items-center overflow-hidden">
+                <div className="absolute top-4 right-4 z-10">
+                     <Button onClick={() => setShowCreateReel(true)} disabled={isUserLoading || !user}>
+                        <Plus className="mr-2 h-4 w-4" /> Créer un Reel
+                    </Button>
+                </div>
                 <div className="h-full w-full max-w-sm flex-shrink-0 snap-y snap-mandatory overflow-y-scroll scrollbar-hide">
                     {isLoading && (
                         <div className="h-full w-full flex items-center justify-center snap-start">
