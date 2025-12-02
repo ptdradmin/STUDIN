@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper, CheckBadge } from 'lucide-react';
+import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -322,7 +322,7 @@ export default function CurrentUserProfilePage() {
                                         <div className="flex flex-col sm:flex-row items-center gap-4">
                                             <div className="flex items-center gap-2">
                                                 <h2 className="text-2xl font-light">{userProfile?.username || user.email?.split('@')[0]}</h2>
-                                                {userProfile.isVerified && <CheckBadge className="h-6 w-6 text-primary" />}
+                                                {userProfile.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Button variant="secondary" size="sm" onClick={() => setShowEditForm(true)}>Modifier le profil</Button>

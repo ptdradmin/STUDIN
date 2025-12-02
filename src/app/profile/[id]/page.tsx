@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Search, Package, PartyPopper, CheckBadge } from 'lucide-react';
+import { Grid3x3, Search, Package, PartyPopper, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Post, UserProfile, Housing, Trip, Tutor, Event } from '@/lib/types';
@@ -231,7 +231,7 @@ export default function UserProfilePage() {
                                         <div className="flex flex-col sm:flex-row items-center gap-4">
                                             <div className="flex items-center gap-2">
                                                 <h2 className="text-2xl font-light">{userProfile.username}</h2>
-                                                {userProfile.isVerified && <CheckBadge className="h-6 w-6 text-primary" />}
+                                                {userProfile.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />}
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {user && !isCurrentUserProfile && (
