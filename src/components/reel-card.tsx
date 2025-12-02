@@ -4,13 +4,13 @@
 import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Heart, MessageCircle, Send, MoreHorizontal } from "lucide-react";
-import Image from "next/image";
-import { useState } from "react";
+import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
 import { doc, updateDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "./ui/progress";
 
 interface ReelCardProps {
     reel: Reel;
@@ -24,6 +24,53 @@ export default function ReelCard({ reel }: ReelCardProps) {
     const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
     const hasLiked = user && optimisticLikes.includes(user.uid);
 
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    videoRef.current?.play();
+                    setIsPlaying(true);
+                } else {
+                    videoRef.current?.pause();
+                    setIsPlaying(false);
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        if (videoRef.current) {
+            observer.observe(videoRef.current);
+        }
+
+        return () => {
+            if (videoRef.current) {
+                observer.unobserve(videoRef.current);
+            }
+        };
+    }, []);
+
+    const handleVideoClick = () => {
+        if (videoRef.current) {
+            if (isPlaying) {
+                videoRef.current.pause();
+            } else {
+                videoRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    const handleTimeUpdate = () => {
+        if (videoRef.current) {
+            const currentProgress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+            setProgress(currentProgress);
+        }
+    };
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
@@ -57,20 +104,32 @@ export default function ReelCard({ reel }: ReelCardProps) {
     }
 
     return (
-        <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-background shadow-lg">
-            {/* For now, we use an Image component as a placeholder for the video */}
-            <Image
+        <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-background shadow-lg group">
+            <video
+                ref={videoRef}
                 src={reel.videoUrl}
-                alt={reel.caption}
-                fill
-                className="object-cover"
-                unoptimized // Since it's a placeholder
-            />
+                loop
+                muted={isMuted}
+                playsInline
+                className="h-full w-full object-cover"
+                onClick={handleVideoClick}
+                onTimeUpdate={handleTimeUpdate}
+            ></video>
 
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
 
-            {/* Content */}
+            <div className="absolute top-4 right-4">
+                <Button variant="ghost" size="icon" className="text-white bg-black/30 h-8 w-8" onClick={() => setIsMuted(!isMuted)}>
+                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                </Button>
+            </div>
+            
+            {!isPlaying && (
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                    <Play className="h-16 w-16 text-white/50" />
+                </div>
+            )}
+
             <div className="absolute bottom-0 left-0 right-0 p-4 text-white flex justify-between items-end">
                 <div className="space-y-2 flex-grow">
                     <div className="flex items-center gap-2">
@@ -107,6 +166,10 @@ export default function ReelCard({ reel }: ReelCardProps) {
                          <MoreHorizontal className="h-7 w-7" />
                     </Button>
                 </div>
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 h-1">
+                <Progress value={progress} className="h-1 bg-white/20 [&>div]:bg-white" />
             </div>
         </div>
     );
