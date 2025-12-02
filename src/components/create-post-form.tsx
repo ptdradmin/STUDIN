@@ -17,6 +17,7 @@ import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon } from 'lucide-react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { cn } from '@/lib/utils';
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -28,6 +29,17 @@ type PostFormInputs = z.infer<typeof postSchema>;
 interface CreatePostFormProps {
   onClose: () => void;
 }
+
+const filters = [
+    { name: 'Normal', className: 'filter-none' },
+    { name: 'Grayscale', className: 'filter-grayscale' },
+    { name: 'Sepia', className: 'filter-sepia' },
+    { name: 'Saturate', className: 'filter-saturate' },
+    { name: 'Contrast', className: 'filter-contrast' },
+    { name: 'Brightness', className: 'filter-brightness' },
+    { name: 'Hue-Rotate', className: 'filter-hue-rotate' },
+    { name: 'Invert', className: 'filter-invert' },
+];
 
 export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<PostFormInputs>({
@@ -45,11 +57,12 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const storage = useStorage();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState('filter-none');
 
   const getInitials = (name?: string | null) => {
     if (!name) return "..";
     const parts = name.split(' ');
-    if (parts.length > 1) {
+    if (parts.length > 1 && parts[0] && parts[1]) {
         return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
@@ -111,19 +124,19 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg p-0">
+      <DialogContent className="sm:max-w-4xl p-0">
         <DialogHeader className="p-4 pb-0 border-b text-center">
            <DialogTitle className="text-base font-semibold">Créer une nouvelle publication</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-           <div className="grid grid-cols-[1fr_40%] max-h-[70vh]">
-                <div className="flex flex-col items-center justify-center aspect-square border-r bg-muted">
+           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] min-h-[60vh]">
+                <div className="flex flex-col items-center justify-center aspect-square border-r bg-muted relative">
                     {previewUrl ? (
                          <div className="relative w-full h-full">
-                            <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" />
+                            <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="cover" className={selectedFilter} />
                         </div>
                     ) : (
-                        <>
+                        <div className="flex flex-col items-center justify-center text-center">
                             <ImageIcon className="h-16 w-16 text-muted-foreground" strokeWidth={1} />
                             <p className="mt-4 text-muted-foreground">Téléchargez une photo ici</p>
                              <Button type="button" variant="link" asChild className="mt-2">
@@ -132,7 +145,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                                 </Label>
                             </Button>
                             <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
-                        </>
+                        </div>
                     )}
                 </div>
 
@@ -151,10 +164,26 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                             id="caption"
                             {...register('caption')}
                             placeholder="Écrivez une légende..."
-                            className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[150px] h-full"
+                            className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[150px]"
                         />
                         {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
                     </div>
+
+                    {previewUrl && (
+                        <div className="mt-4">
+                            <p className="text-sm font-medium mb-2">Filtres</p>
+                            <div className="grid grid-cols-4 gap-2">
+                                {filters.map(filter => (
+                                    <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
+                                        <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
+                                            <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="cover" className={filter.className} />
+                                        </div>
+                                        <p className="text-xs text-center mt-1">{filter.name}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="border-t mt-auto pt-4">
                         <div className="relative">
@@ -169,7 +198,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                 </div>
            </div>
           <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
-            <Button type="submit" disabled={loading || isUserLoading} variant="link" className="font-bold">
+            <Button type="submit" disabled={loading || isUserLoading || !previewUrl} variant="link" className="font-bold">
               {loading ? 'Publication...' : 'Partager'}
             </Button>
           </DialogFooter>

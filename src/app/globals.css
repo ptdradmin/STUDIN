@@ -101,3 +101,13 @@
 html {
     -webkit-tap-highlight-color: transparent;
 }
+
+/* Image Filters */
+.filter-none { filter: none; }
+.filter-grayscale { filter: grayscale(100%); }
+.filter-sepia { filter: sepia(100%); }
+.filter-saturate { filter: saturate(200%); }
+.filter-contrast { filter: contrast(150%); }
+.filter-brightness { filter: brightness(120%); }
+.filter-hue-rotate { filter: hue-rotate(90deg); }
+.filter-invert { filter: invert(100%); }
