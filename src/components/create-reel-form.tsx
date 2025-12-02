@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Film } from 'lucide-react';
@@ -72,10 +72,9 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
     setLoading(true);
     toast({ title: 'Téléversement...', description: 'Votre Reel est en cours de téléversement.' });
 
-    const newDocRef = doc(collection(firestore, 'reels'));
-    const imageRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
-
     try {
+        const newDocRef = doc(collection(firestore, 'reels'));
+        const imageRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
         const uploadTask = await uploadBytes(imageRef, videoFile);
         const videoUrl = await getDownloadURL(uploadTask.ref);
 
@@ -91,7 +90,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
             videoUrl: videoUrl,
         };
         
-        await setDocumentNonBlocking(newDocRef, reelData);
+        await setDoc(newDocRef, reelData);
         
         toast({ title: 'Succès', description: 'Reel publié !' });
         onClose();
@@ -120,6 +119,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                         <div className="text-center text-muted-foreground">
                             <Film className="h-16 w-16 mx-auto" strokeWidth={1} />
                             <p className="mt-2 text-sm">Téléchargez une vidéo</p>
+                            <p className="text-xs text-muted-foreground">(Max 25 Mo)</p>
                              <Button type="button" variant="link" asChild className="mt-1">
                                 <Label htmlFor="video-upload" className="cursor-pointer">
                                     Sélectionner depuis l'ordinateur

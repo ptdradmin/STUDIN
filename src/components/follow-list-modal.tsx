@@ -2,7 +2,7 @@
 'use client';
 
 import { useFirestore, useMemoFirebase, useCollection, useUser } from '@/firebase';
-import { collection, query, where, doc } from 'firebase/firestore';
+import { collection, query, where, doc, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -74,29 +74,48 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
     const { user: authUser } = useUser();
     const { toast } = useToast();
     
-    // Local state to manage following status optimistically
     const [localFollowingIds, setLocalFollowingIds] = useState<string[]>([]);
     const [updatingFollow, setUpdatingFollow] = useState<string | null>(null);
-    
-    const usersQuery = useMemoFirebase(() => {
-        if (!firestore || !userIds || userIds.length === 0) return null;
-        const safeUserIds = userIds.length > 30 ? userIds.slice(0, 30) : userIds;
-        return query(collection(firestore, 'users'), where('id', 'in', safeUserIds));
-    }, [firestore, userIds]);
+    const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const currentUserRef = useMemoFirebase(() => {
-        if (!firestore || !authUser) return null;
-        return doc(firestore, 'users', authUser.uid);
-    }, [firestore, authUser]);
-
-    const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
-    const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<UserProfile>(currentUserRef);
+    const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<UserProfile>(
+        useMemoFirebase(() => authUser && firestore ? doc(firestore, 'users', authUser.uid) : null, [firestore, authUser])
+    );
     
     useEffect(() => {
         if (currentUser?.followingIds) {
             setLocalFollowingIds(currentUser.followingIds);
         }
     }, [currentUser]);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            if (!firestore || !userIds || userIds.length === 0) {
+                setIsLoading(false);
+                return;
+            }
+            
+            setIsLoading(true);
+            const profiles: UserProfile[] = [];
+            
+            // Firestore 'in' query is limited to 30 items. We need to batch requests.
+            const batchSize = 30;
+            for (let i = 0; i < userIds.length; i += batchSize) {
+                const batchIds = userIds.slice(i, i + batchSize);
+                const q = query(collection(firestore, 'users'), where('id', 'in', batchIds));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach(doc => {
+                    profiles.push(doc.data() as UserProfile);
+                });
+            }
+            
+            setUserProfiles(profiles);
+            setIsLoading(false);
+        }
+        
+        fetchUsers();
+    }, [firestore, userIds]);
 
     const handleFollowToggle = async (targetUserId: string, wasFollowing: boolean) => {
         if (!authUser || !firestore) {
@@ -151,8 +170,8 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
             <div className="space-y-1">
                 {(isLoading || isCurrentUserLoading) && Array.from({length: Math.min(userIds.length, 3)}).map((_, i) => <UserRowSkeleton key={i} />)}
                 
-                {!isLoading && !isCurrentUserLoading && users && authUser && (
-                   users.map(u => (
+                {!isLoading && !isCurrentUserLoading && userProfiles && authUser && (
+                   userProfiles.map(u => (
                      <UserRow 
                         key={u.id}
                         userProfile={u}
@@ -164,7 +183,7 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
                    ))
                 )}
                  
-                 {!isLoading && (!users || users.length === 0) && (
+                 {!isLoading && (!userProfiles || userProfiles.length === 0) && (
                     <p className="text-center text-muted-foreground py-8">
                         {title === 'Abonnés' ? "Aucun abonné pour le moment." : "Ne suit personne pour le moment."}
                     </p>

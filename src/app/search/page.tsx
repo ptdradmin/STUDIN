@@ -9,7 +9,7 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import { Button } from '@/components/ui/button';
 import { Search as SearchIcon } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, query, limit, getDocs, orderBy, startAt, endAt, where } from 'firebase/firestore';
+import { collection, query, limit, getDocs, orderBy, where } from 'firebase/firestore';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfile, Housing, Event, Tutor } from '@/lib/types';
 import SearchResultItem from '@/components/search-result-item';
@@ -46,28 +46,51 @@ function SearchResults() {
             const searchTerm = q.toLowerCase();
             let allResults: SearchResult[] = [];
 
-             for (const [col, config] of Object.entries(searchCollections)) {
-                const firestoreQuery = query(
-                    collection(firestore, col),
-                    orderBy(config.field),
-                    startAt(searchTerm),
-                    endAt(searchTerm + '\uf8ff'),
-                    limit(20)
-                );
-                
-                try {
-                    const querySnapshot = await getDocs(firestoreQuery);
+             // Only search users collection textually
+            const userConfig = searchCollections.users;
+            const userQuery = query(
+                collection(firestore, 'users'),
+                orderBy(userConfig.field),
+                where(userConfig.field, '>=', searchTerm),
+                where(userConfig.field, '<=', searchTerm + '\uf8ff'),
+                limit(20)
+            );
+            
+            try {
+                const userSnapshot = await getDocs(userQuery);
+                const userItems = userSnapshot.docs.map(doc => ({
+                    type: userConfig.type,
+                    data: doc.data(),
+                } as SearchResult));
+                allResults = [...allResults, ...userItems];
+            } catch (error) {
+                console.error(`Error searching in users:`, error);
+            }
+
+            // For other collections, we just fetch recent items as we can't perform text search easily
+            for (const [col, config] of Object.entries(searchCollections)) {
+                 if (col === 'users') continue;
+
+                 const otherQuery = query(
+                     collection(firestore, col),
+                     orderBy('createdAt', 'desc'),
+                     limit(10)
+                 );
+                  try {
+                    const querySnapshot = await getDocs(otherQuery);
                     const items = querySnapshot.docs.map(doc => ({
                         type: config.type,
                         data: doc.data(),
                     } as SearchResult));
                     allResults = [...allResults, ...items];
                 } catch (error) {
-                    console.error(`Error searching in ${col}:`, error)
+                    console.error(`Error fetching from ${col}:`, error)
                 }
             }
             
-            setResults(allResults);
+            // Remove duplicates (e.g. if a user search also brings back other results)
+            const uniqueResults = Array.from(new Map(allResults.map(item => [(item.data as any).id, item])).values());
+            setResults(uniqueResults);
             setIsLoading(false);
         };
         performSearch();
@@ -85,7 +108,7 @@ function SearchResults() {
             return (
                 <div className="space-y-3 mt-4">
                     {Array.from({length: 3}).map((_, i) => (
-                        <div key={i} className="flex items-center gap-3">
+                        <div key={i} className="flex items-center gap-3 p-2">
                            <Skeleton className="h-10 w-10 rounded-lg" />
                            <div className="space-y-1">
                                <Skeleton className="h-4 w-32" />
@@ -111,7 +134,7 @@ function SearchResults() {
     }
 
     if (!q) {
-        return <p className="text-muted-foreground text-center mt-8">Commencez par une recherche dans la barre ci-dessus.</p>
+        return <p className="text-muted-foreground text-center mt-8">Commencez une recherche dans la barre ci-dessus.</p>
     }
 
     return (
