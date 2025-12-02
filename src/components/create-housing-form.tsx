@@ -138,12 +138,12 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Modifier' : 'Créer'} une annonce de logement</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-h-[80vh] overflow-y-auto p-1">
-          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2">
+          <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-2 bg-muted/50">
             {previewUrl ? (
               <div className="relative w-full h-full">
                 <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
@@ -230,3 +230,5 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     </Dialog>
   );
 }
+
+    
