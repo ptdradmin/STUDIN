@@ -130,7 +130,8 @@ export default function CarpoolingPage() {
     batch.update(carpoolingRef, carpoolingUpdateData);
     batch.set(bookingRef, bookingData);
 
-    batch.commit().then(async () => {
+    batch.commit()
+    .then(async () => {
       await createNotification(firestore, {
           type: 'carpool_booking',
           senderId: user.uid,
@@ -142,9 +143,10 @@ export default function CarpoolingPage() {
           title: "Réservation confirmée !",
           description: "Votre place a été réservée avec succès.",
       });
-    }).catch(async (serverError) => {
+    })
+    .catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
-          path: `carpoolings/${trip.id} (et sous-collection carpool_bookings)`,
+          path: `carpoolings/${trip.id} et carpoolings/${trip.id}/carpool_bookings/${bookingRef.id}`,
           operation: 'write',
           requestResourceData: {
             carpoolingUpdate: {
@@ -310,5 +312,3 @@ export default function CarpoolingPage() {
     </div>
   );
 }
-
-    
