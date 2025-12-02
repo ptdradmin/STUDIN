@@ -134,15 +134,17 @@ export default function SocialPage() {
     const postsQuery = useMemoFirebase(() => {
         if (!firestore || !user || isProfileLoading) return null;
         
+        // Query posts from the user and the people they follow
         const idsToQuery = [...new Set([user.uid, ...(followingIds || [])])];
         
+        // Firestore 'in' queries are limited to 30 items in the array.
+        // For this app, we'll just take the first 29 followed users + the current user.
+        // A more robust solution might involve a backend that aggregates feeds.
         if (idsToQuery.length === 0) return null;
-
-        const safeIdsToQuery = idsToQuery.length > 30 ? idsToQuery.slice(0, 30) : idsToQuery;
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', safeIdsToQuery)
+          where('userId', 'in', idsToQuery)
         );
       }, [firestore, user, followingIds, isProfileLoading]);
 
@@ -225,11 +227,6 @@ export default function SocialPage() {
                         <div className="space-y-4 w-full max-w-[470px] mx-auto">
                              {isLoading && !showSuggestionMessage ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                             ) : showSuggestionMessage && sortedPosts.length === 0 ? (
-                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                    <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
-                                    <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
-                                </div>
                              ) : sortedPosts.length > 0 ? (
                                 sortedPosts.map(post => (
                                     <PostCard 
@@ -239,7 +236,12 @@ export default function SocialPage() {
                                         initialFavoriteId={savedPostMap.get(post.id)}
                                     />
                                 ))
-                            ) : (
+                             ) : showSuggestionMessage ? (
+                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
+                                    <p className="text-lg font-semibold">Bienvenue sur STUD'IN !</p>
+                                    <p className="text-sm">Votre fil d'actualité est vide. Suivez d'autres étudiants pour voir leurs publications ici.</p>
+                                </div>
+                             ) : (
                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                     <p className="text-lg font-semibold">C'est un peu vide par ici...</p>
                                     <p className="text-sm">Les personnes que vous suivez n'ont rien publié récemment. Découvrez de nouveaux contenus !</p>

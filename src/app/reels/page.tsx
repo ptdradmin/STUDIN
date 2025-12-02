@@ -3,36 +3,72 @@
 import SocialSidebar from "@/components/social-sidebar";
 import ReelCard from "@/components/reel-card";
 import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { collection, query, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import type { Reel } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Film, Plus } from "lucide-react";
 import CreateReelForm from "@/components/create-reel-form";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { usePathname, useRouter } from "next/navigation";
 
 export default function ReelsPage() {
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
-    const router = useRouter();
-    const pathname = usePathname();
-
+    
     const [showCreateReel, setShowCreateReel] = useState(false);
-    const [allReels, setAllReels] = useState<Reel[] | null>(null);
+    const [allReels, setAllReels] = useState<Reel[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMore, setHasMore] = useState(true);
 
-    const reelsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(20));
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const fetchInitialReels = useCallback(async () => {
+        if (!firestore) return;
+        setIsLoading(true);
+        const first = query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(5));
+        const documentSnapshots = await getDocs(first);
+
+        const initialReels = documentSnapshots.docs.map(doc => doc.data() as Reel);
+        setAllReels(initialReels);
+        setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
+        setHasMore(documentSnapshots.docs.length > 0);
+        setIsLoading(false);
     }, [firestore]);
-
-    const { data: initialReels, isLoading } = useCollection<Reel>(reelsQuery);
-
+    
     useEffect(() => {
-        if (initialReels) {
-            setAllReels(initialReels);
-        }
-    }, [initialReels]);
+        fetchInitialReels();
+    }, [fetchInitialReels]);
+
+    const fetchMoreReels = useCallback(async () => {
+        if (!firestore || !lastVisible || !hasMore || isLoading) return;
+        setIsLoading(true);
+        
+        const next = query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), startAfter(lastVisible), limit(5));
+        const documentSnapshots = await getDocs(next);
+
+        const newReels = documentSnapshots.docs.map(doc => doc.data() as Reel);
+        setAllReels(prevReels => [...prevReels, ...newReels]);
+        
+        const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+        setLastVisible(newLastVisible);
+        setHasMore(documentSnapshots.docs.length > 0);
+        setIsLoading(false);
+
+    }, [firestore, lastVisible, hasMore, isLoading]);
+    
+    useEffect(() => {
+        const container = containerRef.current;
+        const handleScroll = () => {
+            if (container && container.scrollTop + container.clientHeight >= container.scrollHeight - 100) {
+                 fetchMoreReels();
+            }
+        };
+
+        container?.addEventListener('scroll', handleScroll);
+        return () => container?.removeEventListener('scroll', handleScroll);
+    }, [fetchMoreReels]);
+    
     
     // This effect is for deep linking to a specific reel.
     useEffect(() => {
@@ -46,7 +82,7 @@ export default function ReelsPage() {
     }, [allReels]);
     
     const handleDeleteReel = (id: string) => {
-        setAllReels(prevReels => prevReels ? prevReels.filter(r => r.id !== id) : null);
+        setAllReels(prevReels => prevReels ? prevReels.filter(r => r.id !== id) : []);
     }
 
     return (
@@ -59,13 +95,13 @@ export default function ReelsPage() {
                         <Plus className="mr-2 h-4 w-4" /> Créer un Reel
                     </Button>
                 </div>
-                <div className="h-full w-full max-w-sm flex-shrink-0 snap-y snap-mandatory overflow-y-scroll scrollbar-hide" id="reels-container">
-                    {isLoading && (
+                <div ref={containerRef} className="h-full w-full max-w-sm flex-shrink-0 snap-y snap-mandatory overflow-y-scroll scrollbar-hide" id="reels-container">
+                    {(isLoading && allReels.length === 0) && (
                         <div className="h-full w-full flex items-center justify-center snap-start">
                              <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
                         </div>
                     )}
-                    {!isLoading && allReels && allReels.length > 0 ? (
+                    {allReels.length > 0 ? (
                         allReels.map((reel) => (
                            <div key={reel.id} id={`reel-${reel.id}`} className="h-full w-full flex justify-center items-center snap-start py-4">
                                 <ReelCard reel={reel} onDelete={handleDeleteReel} />
@@ -78,6 +114,11 @@ export default function ReelsPage() {
                             <p className="text-muted-foreground mt-2 max-w-sm">
                                 Soyez le premier à partager une vidéo !
                             </p>
+                        </div>
+                    )}
+                     {isLoading && allReels.length > 0 && (
+                        <div className="h-full w-full flex items-center justify-center snap-start">
+                            <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
                         </div>
                     )}
                 </div>
