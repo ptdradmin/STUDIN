@@ -10,7 +10,7 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search } from "lucide-react
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter } from "@/firebase";
+import { useCollection, useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, doc, writeBatch, arrayUnion, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -132,7 +132,6 @@ export default function CarpoolingPage() {
 
     batch.commit()
     .then(() => {
-        // Create notification on successful reservation
         createNotification(firestore, {
             type: 'carpool_booking',
             senderId: user.uid,
@@ -146,7 +145,6 @@ export default function CarpoolingPage() {
         });
     })
     .catch((serverError) => {
-        // Create a contextual permission error for debugging
         const permissionError = new FirestorePermissionError({
             path: `Transaction on carpoolings/${trip.id} and carpool_bookings subcollection`,
             operation: 'write',
