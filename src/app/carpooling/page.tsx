@@ -148,8 +148,8 @@ export default function CarpoolingPage() {
             type: 'carpool_booking',
             senderId: user.uid,
             recipientId: trip.driverId,
+            message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
             relatedId: trip.id,
-            message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`
         });
 
         toast({
@@ -168,7 +168,7 @@ export default function CarpoolingPage() {
                 passengerId: user.uid,
                 clientError: e.message,
             }
-        } satisfies SecurityRuleContext);
+        });
         errorEmitter.emit('permission-error', permissionError);
     }
   };
@@ -324,3 +324,6 @@ export default function CarpoolingPage() {
       </div>
     </div>
   );
+
+
+    
