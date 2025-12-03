@@ -191,7 +191,7 @@ service cloud.firestore {
     // Conversation & Message Rules
     // =====================================================================
     match /conversations/{conversationId} {
-      allow list: if isSignedIn(); // relies on client-side query constraint
+      allow list: if isSignedIn();
       allow read, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
       
