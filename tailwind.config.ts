@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 function scrollbarHidePlugin({ addUtilities }: { addUtilities: (utilities: any) => void }) {

@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Film } from 'lucide-react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useRouter } from 'next/navigation';
 
 const reelSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -33,7 +34,8 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<ReelFormInputs>({
     resolver: zodResolver(reelSchema),
   });
-
+  
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
@@ -121,6 +123,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         
         toast({ title: 'Succès', description: 'Reel publié !' });
         onClose();
+        router.refresh();
 
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de publier le Reel." });
