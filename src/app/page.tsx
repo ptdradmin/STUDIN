@@ -1,49 +1,46 @@
 
 'use client';
 
-import { useState } from 'react';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
 
 const services = [
     {
         name: "Logements",
-        description: "Trouvez le kot ou studio parfait près de votre campus, dans un environnement sûr et vérifié.",
+        description: "Trouvez le kot ou studio parfait près de votre campus.",
         icon: <Bed className="h-6 w-6"/>,
         href: "/housing",
         image: PlaceHolderImages.find(p => p.id === 'service-housing')?.imageUrl || ''
     },
     {
         name: "Covoiturage",
-        description: "Partagez vos trajets quotidiens ou occasionnels pour économiser, réduire votre empreinte carbone et faire des rencontres.",
+        description: "Partagez vos trajets pour économiser et faire des rencontres.",
         icon: <Car className="h-6 w-6"/>,
         href: "/carpooling",
         image: PlaceHolderImages.find(p => p.id === 'service-carpooling')?.imageUrl || ''
     },
      {
         name: "Tutorat",
-        description: "Obtenez de l'aide pour réussir vos examens ou proposez vos compétences pour aider d'autres étudiants.",
+        description: "Obtenez de l'aide pour réussir ou proposez vos compétences.",
         icon: <BookOpen className="h-6 w-6"/>,
         href: "/tutoring",
         image: PlaceHolderImages.find(p => p.id === 'service-tutoring')?.imageUrl || ''
     },
      {
         name: "Événements",
-        description: "Découvrez et participez aux meilleures soirées, conférences et activités étudiantes de votre ville.",
+        description: "Découvrez les meilleures soirées et activités étudiantes.",
         icon: <PartyPopper className="h-6 w-6"/>,
         href: "/events",
         image: PlaceHolderImages.find(p => p.id === 'service-events')?.imageUrl || ''
     },
     {
         name: "Défis",
-        description: "Relevez des défis dans votre ville, gagnez des points et grimpez dans le classement UrbanQuest.",
+        description: "Relevez des défis, gagnez des points et explorez votre ville.",
         icon: <Target className="h-6 w-6" />,
         href: "/challenges",
         image: PlaceHolderImages.find(p => p.id === 'service-challenges')?.imageUrl || ''
@@ -51,7 +48,6 @@ const services = [
 ]
 
 export default function HomePage() {
-    const [activeService, setActiveService] = useState(services[0]);
 
     return (
         <div className="flex flex-col min-h-screen dark:bg-background">
@@ -86,61 +82,28 @@ export default function HomePage() {
                             Tout ce dont vous avez besoin pour une vie étudiante épanouie, centralisé et simplifié.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                           <div className="flex flex-col gap-4">
-                               {services.map(service => (
-                                   <div
-                                     key={service.name}
-                                     onMouseEnter={() => setActiveService(service)}
-                                     className={cn(
-                                        "p-6 rounded-lg cursor-pointer border-2 transition-all duration-300",
-                                        activeService.name === service.name ? "border-primary bg-primary/5" : "border-transparent hover:bg-muted/50"
-                                     )}
-                                   >
-                                       <div className="flex items-center gap-4">
-                                            <div className={cn(
-                                                "p-3 rounded-full transition-colors",
-                                                activeService.name === service.name ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                                            )}>
-                                                {service.icon}
-                                            </div>
-                                           <h3 className="font-bold text-lg">{service.name}</h3>
-                                       </div>
-                                   </div>
-                               ))}
-                           </div>
-                           <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
-                               <AnimatePresence mode="wait">
-                                    <motion.div
-                                        key={activeService.name}
-                                        initial={{ opacity: 0, scale: 1.05 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        transition={{ duration: 0.3, ease: 'easeInOut' }}
-                                        className="absolute inset-0 h-full w-full"
-                                    >
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                            {services.map(service => (
+                                <Link href={service.href} key={service.name} className="block group">
+                                    <div className="relative aspect-[9/12] rounded-xl overflow-hidden shadow-lg h-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
                                         <Image
-                                          src={activeService.image}
-                                          alt={activeService.name}
+                                          src={service.image}
+                                          alt={service.name}
                                           fill
                                           className="object-cover"
+                                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                                        <div className="absolute bottom-0 left-0 p-6 text-white">
-                                            <div className="flex items-center gap-4 mb-2">
-                                                 <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
-                                                    {activeService.icon}
-                                                 </div>
-                                                 <h3 className="text-2xl font-bold">{activeService.name}</h3>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                                        <div className="absolute bottom-0 left-0 p-4 text-white">
+                                            <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm w-fit mb-2">
+                                                {service.icon}
                                             </div>
-                                            <p className="max-w-md text-white/90">{activeService.description}</p>
-                                            <Button asChild variant="secondary" className="mt-4">
-                                                <Link href={activeService.href}>Explorer <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                                            </Button>
+                                            <h3 className="text-xl font-bold">{service.name}</h3>
+                                            <p className="text-xs text-white/80 mt-1">{service.description}</p>
                                         </div>
-                                    </motion.div>
-                                </AnimatePresence>
-                           </div>
+                                    </div>
+                                </Link>
+                            ))}
                         </div>
                     </div>
                 </section>
