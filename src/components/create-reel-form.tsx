@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Film, Music, Play, Pause, Search } from 'lucide-react';
@@ -80,27 +80,26 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
     const togglePlay = async (song: { title: string, url: string }) => {
         if (!audioRef.current) return;
-        
-        // If the clicked song is currently playing, pause it.
+
         if (currentlyPlaying === song.url) {
             audioRef.current.pause();
             setCurrentlyPlaying(null);
-            return;
-        }
-
-        // If another song is playing, pause it first.
-        if (currentlyPlaying) {
-            audioRef.current.pause();
-        }
-
-        // Set the new source and play it.
-        audioRef.current.src = song.url;
-        setCurrentlyPlaying(song.url);
-        try {
-            await audioRef.current.play();
-        } catch (error) {
-            console.error("Audio play error:", error);
-            setCurrentlyPlaying(null); // Reset if play fails
+        } else {
+            if (currentlyPlaying) {
+                audioRef.current.pause();
+            }
+            audioRef.current.src = song.url;
+            try {
+                await audioRef.current.play();
+                setCurrentlyPlaying(song.url);
+            } catch (error) {
+                console.error("Audio play error:", error);
+                 if (error instanceof DOMException && error.name === 'AbortError') {
+                    // This can happen on rapid clicks, safely ignore.
+                } else {
+                    setCurrentlyPlaying(null);
+                }
+            }
         }
     };
     
@@ -109,7 +108,6 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         const handleEnded = () => setCurrentlyPlaying(null);
         audioRef.current.addEventListener('ended', handleEnded);
         
-        // Cleanup function: pause audio and remove listener when the component unmounts.
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -232,40 +230,44 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
     }
     
     setLoading(true);
+    toast({ title: 'Publication...', description: 'Votre Reel est en cours de téléversement.' });
+    onClose();
 
     const newDocRef = doc(collection(firestore, 'reels'));
+    
+    // Non-blocking UI update
+    setDocumentNonBlocking(newDocRef, {
+        ...data,
+        id: newDocRef.id,
+        userId: user.uid,
+        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+        userAvatarUrl: user.photoURL,
+        createdAt: serverTimestamp(),
+        likes: [],
+        comments: [],
+        videoUrl: previewUrl, // temporary local URL for optimistic UI
+    });
+    
     const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
     const uploadTask = uploadBytesResumable(videoRef, videoFile);
 
     uploadTask.on('state_changed',
         (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
+            // You can use this progress to show a more detailed loader if needed
         },
         (error) => {
             setLoading(false);
+            updateDoc(newDocRef, { uploadError: true });
             toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée."});
         },
         async () => {
-            const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            const reelData = {
-                ...data,
-                id: newDocRef.id,
-                userId: user.uid,
-                username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-                userAvatarUrl: user.photoURL,
-                createdAt: serverTimestamp(),
-                likes: [],
-                comments: [],
-                videoUrl: videoUrl,
-            };
-            
-            await setDoc(newDocRef, reelData);
-            
-            setLoading(false);
-            toast({ title: 'Succès', description: 'Reel publié !' });
-            onClose();
-            router.refresh();
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            // Finalize the document with the real URL
+            await updateDoc(newDocRef, {
+                videoUrl: downloadURL
+            });
+            // setLoading(false); // No need as we close the dialog instantly
         }
     );
   };
@@ -321,12 +323,6 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                     </Button>
                 </div>
 
-                {loading && (
-                    <div className="space-y-1">
-                        <p className="text-sm text-muted-foreground">Téléversement en cours...</p>
-                        <Progress value={uploadProgress} />
-                    </div>
-                )}
            </div>
           <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
             <Button type="submit" disabled={loading || isUserLoading || !videoFile} className="w-full">

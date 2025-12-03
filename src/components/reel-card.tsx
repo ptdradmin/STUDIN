@@ -35,49 +35,52 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const cardRef = useRef<HTMLDivElement>(null);
 
     const hasLiked = user && optimisticLikes.includes(user.uid);
     const isOwner = user?.uid === reel.userId;
-
-    useEffect(() => {
-        const video = videoRef.current;
-        const audio = audioRef.current;
-        if (!video) return;
-
-        const handlePlay = () => {
-            if (audio) {
-                audio.currentTime = video.currentTime;
-                audio.play().catch(e => console.error("Audio play error:", e));
-            }
-        };
-
-        const handlePause = () => audio?.pause();
-        const handleSeeking = () => {
-             if (audio) audio.currentTime = video.currentTime;
-        }
-
-        video.addEventListener('play', handlePlay);
-        video.addEventListener('pause', handlePause);
-        video.addEventListener('seeking', handleSeeking);
-
-        return () => {
-            video.removeEventListener('play', handlePlay);
-            video.removeEventListener('pause', handlePause);
-            video.removeEventListener('seeking', handleSeeking);
-        }
-    }, [reel.audioUrl]);
-
-    useEffect(() => {
-        if(audioRef.current) {
-            audioRef.current.muted = isMuted;
-        }
-    }, [isMuted]);
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
         return name.split(' ').map(n => n[0]).join('');
     };
+
+    const handlePlayPause = async () => {
+        const video = videoRef.current;
+        const audio = audioRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+            try {
+                await video.play();
+                setIsPlaying(true);
+                if (audio) await audio.play();
+            } catch (error) {
+                console.error("Play failed:", error);
+                setIsPlaying(false);
+            }
+        } else {
+            video.pause();
+            setIsPlaying(false);
+            if (audio) audio.pause();
+        }
+    };
+    
+    const toggleMute = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsMuted(prev => !prev);
+    };
+
+    useEffect(() => {
+        if(audioRef.current) {
+            audioRef.current.muted = isMuted;
+        }
+        if (videoRef.current && reel.audioUrl) {
+            videoRef.current.muted = true;
+        } else if (videoRef.current) {
+            videoRef.current.muted = isMuted;
+        }
+    }, [isMuted, reel.audioUrl]);
+
     
     const handleLike = () => {
         if (!user || !firestore) {
@@ -134,34 +137,20 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             })
     }
     
-    const togglePlay = () => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        if (video.paused) {
-            video.play().catch(e => console.log(e));
-            setIsPlaying(true);
-        } else {
-            video.pause();
-            setIsPlaying(false);
-        }
-    }
-
 
     if (!isVisible) return null;
 
     return (
-        <div ref={cardRef} className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-lg group">
-             <video
+        <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-lg group" onClick={handlePlayPause}>
+            <video
                 ref={videoRef}
                 src={reel.videoUrl}
                 playsInline
                 loop
-                muted={!reel.audioUrl} // Mute video only if there IS background music
-                onClick={togglePlay}
+                muted={!!reel.audioUrl || isMuted}
                 className="h-full w-full object-cover"
             />
-            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
+            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop muted={isMuted} />}
 
              {!isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
@@ -170,7 +159,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             )}
             
             <div className="absolute top-4 right-4 z-10">
-                <Button variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev);}}>
+                <Button variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50" onClick={toggleMute}>
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
                 </Button>
             </div>

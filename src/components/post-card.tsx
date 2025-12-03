@@ -308,12 +308,12 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                     </Link>
                     <span className="ml-2">{post.caption}</span>
                 </div>
-                 {post.songTitle && post.audioUrl && (
+                 {post.songTitle && (
                     <div className="px-2 mt-1">
-                        <a href={post.audioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-muted-foreground hover:underline">
+                        <span className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Music className="h-3 w-3" />
                             <p className="truncate">{post.songTitle}</p>
-                        </a>
+                        </span>
                     </div>
                 )}
                 

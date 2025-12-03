@@ -80,33 +80,30 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
     const togglePlay = async (song: { title: string, url: string }) => {
         if (!audioRef.current) return;
-        
+
         if (currentlyPlaying === song.url) {
             audioRef.current.pause();
             setCurrentlyPlaying(null);
-            return;
-        }
-
-        if (currentlyPlaying) {
-            audioRef.current.pause();
-            audioRef.current.src = ''; 
-        }
-        
-        audioRef.current.src = song.url;
-        setCurrentlyPlaying(song.url);
-        
-        try {
-            await audioRef.current.play();
-        } catch (error) {
-            if (error instanceof DOMException && error.name === 'AbortError') {
-                 // Ignore abort errors, they are expected on rapid interaction.
-            } else {
+        } else {
+            // Stop currently playing song if there is one
+            if (currentlyPlaying) {
+                audioRef.current.pause();
+            }
+            audioRef.current.src = song.url;
+            try {
+                await audioRef.current.play();
+                setCurrentlyPlaying(song.url);
+            } catch (error) {
                 console.error("Audio play error:", error);
-                setCurrentlyPlaying(null);
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    // This can happen on rapid clicks, safely ignore.
+                } else {
+                    setCurrentlyPlaying(null);
+                }
             }
         }
     };
-
+    
     useEffect(() => {
         audioRef.current = new Audio();
         const handleEnded = () => setCurrentlyPlaying(null);
@@ -254,9 +251,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     onClose();
 
     const newDocRef = doc(collection(firestore, 'posts'));
-    const mediaRef = storageRef(storage, `posts/${newDocRef.id}/${mediaFile.name}`);
-
-    const postData: Partial<Post> = {
+    
+    // Optimistic UI: create the document immediately with local data
+    const postData: any = {
         ...data,
         id: newDocRef.id,
         userId: user!.uid,
@@ -266,39 +263,44 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         updatedAt: serverTimestamp(),
         likes: [],
         comments: [],
-        fileType: fileType as 'image' | 'video',
-        isUploading: true,
+        fileType: fileType,
+        isUploading: true, // Flag for UI to show loading state
     };
-    
+
     if (fileType === 'image') {
-        postData.imageUrl = previewUrl as string;
+        postData.imageUrl = previewUrl;
     } else {
-        postData.videoUrl = previewUrl as string;
+        postData.videoUrl = previewUrl;
     }
-    
+
+    // Non-blocking write to Firestore for immediate UI feedback
     setDocumentNonBlocking(newDocRef, postData);
     
+    // Start upload in the background
+    const mediaRef = storageRef(storage, `posts/${newDocRef.id}/${mediaFile.name}`);
     const uploadTask = uploadBytesResumable(mediaRef, mediaFile);
 
     uploadTask.on('state_changed',
-        () => {},
+        () => {}, // We can track progress here if needed
         (error) => {
             console.error("Upload error:", error);
+            // Update the post to show an error state
             updateDoc(newDocRef, { uploadError: true, isUploading: false });
             toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "Le média n'a pas pu être envoyé."});
         },
         () => {
+            // On completion, get the download URL and finalize the post
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                const updateData: Partial<Post> = {
+                const finalUpdate: any = {
                     isUploading: false,
                     updatedAt: serverTimestamp()
                 };
                  if (fileType === 'image') {
-                    updateData.imageUrl = downloadURL;
+                    finalUpdate.imageUrl = downloadURL;
                 } else {
-                    updateData.videoUrl = downloadURL;
+                    finalUpdate.videoUrl = downloadURL;
                 }
-                updateDoc(newDocRef, updateData);
+                updateDoc(newDocRef, finalUpdate);
             });
         }
     );
