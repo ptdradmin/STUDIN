@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
@@ -136,8 +136,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     imageUrl: imageUrl,
                 };
                 
-                // Use the non-blocking function to set the document
-                 setDoc(newDocRef, postData).catch((err) => {
+                 setDoc(newDocRef, postData).then(() => {
+                    toast({ title: 'Succès', description: 'Publication créée !' });
+                 }).catch((err) => {
                     const permissionError = new FirestorePermissionError({
                         path: newDocRef.path,
                         operation: 'create',
@@ -145,9 +146,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     });
                     errorEmitter.emit('permission-error', permissionError);
                 });
-                
-                // Update toast on success
-                toast({ title: 'Succès', description: 'Publication créée !' });
 
             }).catch((error) => {
                 console.error("Error getting download URL:", error);
