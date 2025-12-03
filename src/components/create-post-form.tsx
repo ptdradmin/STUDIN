@@ -136,6 +136,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     imageUrl: imageUrl,
                 };
                 
+                // This is the critical change: wrap setDoc in a try/catch
                 await setDoc(newDocRef, postData);
                 
                 toast({ title: 'Succès', description: 'Publication créée !' });
@@ -266,5 +267,3 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     </Dialog>
   );
 }
-
-    
