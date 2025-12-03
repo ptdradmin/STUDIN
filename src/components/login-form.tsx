@@ -73,6 +73,7 @@ export default function LoginForm() {
         id: user.uid,
         email,
         username,
+        role: 'student',
         firstName: firstName || '',
         lastName: lastName || '',
         university: '',
