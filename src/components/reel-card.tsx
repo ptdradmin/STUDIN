@@ -19,9 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Global state to track if user has interacted to enable audio
-let hasEnabledAudio = false;
-
 interface ReelCardProps {
     reel: Reel;
     onDelete?: (id: string) => void;
@@ -39,53 +36,67 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(!hasEnabledAudio);
+    const [isMuted, setIsMuted] = useState(true);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
-    const playMedia = async () => {
-        if (!videoRef.current) return;
-        
-        try {
-            // Unmute the video if no custom audio is present and user wants sound
-            videoRef.current.muted = reel.audioUrl ? true : isMuted;
-            await videoRef.current.play();
-            setIsPlaying(true);
-            
-            // If there's an audio track, play it and sync it.
-            if (audioRef.current && reel.audioUrl) {
-                audioRef.current.muted = isMuted;
-                audioRef.current.currentTime = videoRef.current.currentTime;
-                await audioRef.current.play();
+    // This effect ensures that whenever a new reel comes into view, its audio track is loaded.
+    useEffect(() => {
+        if (reel.audioUrl && audioRef.current) {
+            if (audioRef.current.src !== reel.audioUrl) {
+                audioRef.current.src = reel.audioUrl;
+                audioRef.current.load();
             }
-        } catch (error) {
-             if ((error as DOMException).name !== 'AbortError') {
-                console.error("Media play failed:", error);
-                setIsPlaying(false);
-             }
         }
+    }, [reel.audioUrl]);
+
+    const playMedia = () => {
+        if (!videoRef.current) return;
+
+        const videoPromise = videoRef.current.play();
+        let audioPromise: Promise<void> | null = null;
+
+        if (audioRef.current) {
+            audioRef.current.currentTime = videoRef.current.currentTime;
+            audioRef.current.muted = isMuted;
+            audioPromise = audioRef.current.play();
+        }
+
+        Promise.all([videoPromise, audioPromise].filter(p => p !== null))
+            .then(() => setIsPlaying(true))
+            .catch(error => {
+                // Ignore AbortError, which is common on fast interactions
+                if ((error as DOMException).name !== 'AbortError') {
+                    console.error("Media play failed:", error);
+                    setIsPlaying(false);
+                }
+            });
     };
 
     const pauseMedia = () => {
-        if (videoRef.current) {
-            videoRef.current.pause();
-        }
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
+        if (videoRef.current) videoRef.current.pause();
+        if (audioRef.current) audioRef.current.pause();
         setIsPlaying(false);
     };
+
+    const togglePlayPause = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent card-level events
+        if (isPlaying) {
+            pauseMedia();
+        } else {
+            playMedia();
+        }
+    };
     
+    // Auto-pause when scrolling away
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
-                    playMedia();
-                } else {
+                if (!entry.isIntersecting) {
                     pauseMedia();
                 }
             },
-            { threshold: 0.5 }
+            { threshold: 0.5 } // Trigger when 50% of the video is out of view
         );
 
         const currentVideoRef = videoRef.current;
@@ -100,51 +111,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             pauseMedia();
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reel.id, isMuted]); // Re-run effect if isMuted changes
-
-    const handleVideoClick = () => {
-        if (!hasEnabledAudio) {
-            hasEnabledAudio = true;
-            setIsMuted(false); // Unmute on first interaction for the whole session
-        }
-        
-        if (isPlaying) {
-            pauseMedia();
-        } else {
-            playMedia();
-        }
-    };
-    
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        
-        const handleVideoEnd = () => {
-            // Loop video and audio
-            video.currentTime = 0;
-            if (audioRef.current) {
-                audioRef.current.currentTime = 0;
-            }
-            playMedia();
-        };
-
-        video.addEventListener('ended', handleVideoEnd);
-        return () => {
-            video.removeEventListener('ended', handleVideoEnd);
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (video) {
-            video.muted = reel.audioUrl ? true : isMuted;
-        }
-        const audio = audioRef.current;
-        if(audio) {
-             audio.muted = isMuted;
-        }
-    }, [isMuted, reel.audioUrl]);
+    }, [reel.id]);
 
 
     const handleTimeUpdate = () => {
@@ -152,6 +119,12 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             const currentProgress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
             setProgress(currentProgress);
         }
+    };
+
+    const handleVideoEnd = () => {
+        if (videoRef.current) videoRef.current.currentTime = 0;
+        if (audioRef.current) audioRef.current.currentTime = 0;
+        playMedia();
     };
 
     const getInitials = (name?: string) => {
@@ -223,9 +196,11 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 ref={videoRef}
                 src={reel.videoUrl}
                 playsInline
+                loop
+                muted={!!reel.audioUrl} // Mute video if there's custom audio
                 className="h-full w-full object-cover"
-                onClick={handleVideoClick}
                 onTimeUpdate={handleTimeUpdate}
+                onEnded={handleVideoEnd}
                 id={`reel-video-${reel.id}`}
             ></video>
 
@@ -233,17 +208,20 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 <audio
                     ref={audioRef}
                     src={reel.audioUrl}
+                    loop
                 ></audio>
             )}
 
-            {!hasEnabledAudio && isMuted && (
-                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white pointer-events-none text-center p-4">
-                    <VolumeX className="h-12 w-12 mb-2" />
-                    <p className="font-semibold">Appuyez pour activer le son</p>
+            <div className="absolute inset-0" onClick={togglePlayPause}></div>
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+            
+            {!isPlaying && (
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" onClick={togglePlayPause}>
+                    <Play className="h-20 w-20 text-white/70" />
                 </div>
             )}
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
 
             <div className="absolute top-4 right-4 z-10">
                 <Button variant="ghost" size="icon" className="text-white bg-black/30 h-8 w-8" onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}>
@@ -251,12 +229,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 </Button>
             </div>
             
-            {!isPlaying && (
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                    <Play className="h-16 w-16 text-white/50" />
-                </div>
-            )}
-
             <div className="absolute bottom-0 left-0 right-0 p-4 text-white flex justify-between items-end z-10">
                 <div className="space-y-2 flex-grow overflow-hidden">
                     <div className="flex items-center gap-2">
