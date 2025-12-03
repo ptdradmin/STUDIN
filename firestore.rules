@@ -14,6 +14,18 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+    
+    function isRole(userId, role) {
+      return getUserRole(userId) == role;
+    }
+    
+    function isChallengeCreator() {
+        return request.auth.uid == resource.data.creatorId;
+    }
 
     function isResourceOwner(doc) {
       return isSignedIn() && request.auth.uid == doc.userId;
@@ -223,8 +235,8 @@ service cloud.firestore {
     // =====================================================================
     match /challenges/{challengeId} {
       allow get, list: if isSignedIn();
-      // For now, only allow creation/updates/deletes from the server/admin SDK
-      allow create, update, delete: if false; 
+      allow create: if isSignedIn() && (isRole(request.auth.uid, 'admin') || isRole(request.auth.uid, 'institution'));
+      allow update, delete: if isSignedIn() && (isRole(request.auth.uid, 'admin') || (isRole(request.auth.uid, 'institution') && isChallengeCreator()));
     }
   }
 }

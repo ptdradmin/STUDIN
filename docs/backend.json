@@ -366,6 +366,7 @@
       "description": "Represents a gamified challenge in UrbanQuest.",
       "properties": {
         "id": { "type": "string" },
+        "creatorId": { "type": "string", "description": "The ID of the admin or institution who created the challenge." },
         "title": { "type": "string" },
         "description": { "type": "string" },
         "category": { "type": "string" },
@@ -377,7 +378,7 @@
         "longitude": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "title", "category", "difficulty", "points"]
+      "required": ["id", "creatorId", "title", "category", "difficulty", "points"]
     }
   },
   "auth": {
