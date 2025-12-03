@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Film, PlusSquare, MessageSquare, User, Target } from 'lucide-react';
+import { Home, Film, PlusSquare, MessageSquare, User, Target, BookOpen } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';

@@ -137,6 +137,22 @@ export interface Trip {
     updatedAt: Timestamp;
 }
 
+export interface Book {
+    id: string;
+    title: string;
+    author: string;
+    description?: string;
+    condition: 'Neuf' | 'Très bon' | 'Bon' | 'Acceptable';
+    price: number;
+    imageUrl: string;
+    sellerId: string;
+    sellerName: string;
+    sellerAvatarUrl?: string;
+    course?: string;
+    university?: string;
+    createdAt: Timestamp;
+}
+
 export interface CarpoolBooking {
   id: string;
   carpoolId: string;
@@ -213,7 +229,7 @@ export interface Favorite {
     id: string;
     userId: string;
     itemId: string;
-    itemType: 'post' | 'housing' | 'event' | 'tutor';
+    itemType: 'post' | 'housing' | 'event' | 'tutor' | 'book';
     createdAt: Timestamp;
 }
 

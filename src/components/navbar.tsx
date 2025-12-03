@@ -25,6 +25,7 @@ const navLinks = [
   { href: "/housing", label: "Logement", icon: <Home className="mr-2 h-4 w-4" /> },
   { href: "/carpooling", label: "Covoiturage", icon: <Car className="mr-2 h-4 w-4" /> },
   { href: "/tutoring", label: "Tutorat", icon: <BookOpen className="mr-2 h-4 w-4" /> },
+  { href: "/books", label: "Marché aux livres", icon: <BookOpen className="mr-2 h-4 w-4" /> },
   { href: "/events", label: "Événements", icon: <PartyPopper className="mr-2 h-4 w-4" /> },
   { href: "/challenges", label: "Défis", icon: <Target className="mr-2 h-4 w-4" /> },
 ];

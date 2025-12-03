@@ -31,6 +31,7 @@ const mainNavItems = [
   { href: "/housing", label: "Logements", icon: Bed, roles: ['student'] },
   { href: "/carpooling", label: "Covoiturage", icon: Car, roles: ['student'] },
   { href: "/tutoring", label: "Tutorat", icon: BookOpen, roles: ['student'] },
+  { href: "/books", label: "Marché aux livres", icon: BookOpen, roles: ['student'] },
   { href: "/events", label: "Événements", icon: PartyPopper, roles: ['student', 'institution', 'admin'] },
 ];
 

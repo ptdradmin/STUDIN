@@ -196,10 +196,11 @@ service cloud.firestore {
     }
 
     // =====================================================================
-    // UrbanQuest (Challenges) Rules
+    // Défi Rules
     // =====================================================================
     match /challenges/{challengeId} {
-      allow read: if isSignedIn();
+      allow get: if true;
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && (isRole(request.auth.uid, 'admin') || isRole(request.auth.uid, 'institution'));
       allow update, delete: if isSignedIn() && (isRole(request.auth.uid, 'admin') || (isRole(request.auth.uid, 'institution') && isChallengeCreator(challengeId)));
 
