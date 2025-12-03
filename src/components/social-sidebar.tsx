@@ -85,13 +85,15 @@ export default function SocialSidebar() {
         }
         return email.substring(0, 2).toUpperCase();
     }
-
-    if (!user) {
-      const publicPages = ['/social', '/reels', '/messages', '/challenges', '/leaderboard', '/housing', '/carpooling', '/tutoring', '/events', '/profile', '/dashboard', '/search'];
-      if (!publicPages.some(p => pathname.startsWith(p))) {
-        return null;
-      }
+    
+    // Hide sidebar on public pages if no user is logged in
+    if (!user && !isUserLoading) {
+        const publicPages = ['/', '/login', '/register', '/about', '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact', '/faq', '/community-rules'];
+        if (publicPages.includes(pathname)) {
+            return null;
+        }
     }
+
 
     const userRole = userProfile?.role || 'student';
     const visibleNavItems = mainNavItems.filter(item => item.roles.includes(userRole));

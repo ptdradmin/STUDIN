@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -33,7 +33,6 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'email'
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
@@ -106,7 +105,7 @@ export default function LoginForm() {
             switch (userProfile.role) {
                 case 'institution':
                 case 'admin':
-                    router.push('/leaderboard');
+                    router.push('/dashboard');
                     break;
                 case 'student':
                 default:
@@ -118,8 +117,7 @@ export default function LoginForm() {
              router.push('/social');
         }
       } else {
-        const from = searchParams.get('from') || '/social';
-        router.push(from);
+        router.push('/social');
       }
       router.refresh();
   }

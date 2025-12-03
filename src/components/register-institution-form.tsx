@@ -17,7 +17,6 @@ import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, get
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
-import Link from 'next/link';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -113,6 +112,7 @@ export default function RegisterInstitutionForm() {
         postalCode: data.postalCode,
         city: data.city,
         email: data.email,
+        role: 'institution',
         createdAt: serverTimestamp(),
     };
     batch.set(institutionDocRef, institutionData);
@@ -130,7 +130,7 @@ export default function RegisterInstitutionForm() {
         title: "Inscription réussie !",
         description: "Votre compte partenaire a été créé.",
       });
-      router.push('/leaderboard');
+      router.push('/dashboard');
       router.refresh();
   };
 
@@ -279,9 +279,9 @@ export default function RegisterInstitutionForm() {
        <CardFooter className="flex justify-center">
          <p className="text-sm text-muted-foreground">
             Vous êtes étudiant ?{' '}
-            <Link href="/register" className="font-semibold text-primary hover:underline" scroll={false}>
-              Inscrivez-vous ici
-            </Link>
+            <button type="button" onClick={() => (form.reset(), router.push('/register'))} className="font-semibold text-primary hover:underline">
+                Inscrivez-vous ici
+            </button>
           </p>
       </CardFooter>
     </>
