@@ -21,81 +21,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { staticChallenges } from '@/lib/static-data';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full" />,
 });
-
-
-const staticChallenges: Challenge[] = [
-  {
-    id: '1',
-    creatorId: 'partner-account-id', // Make this a predictable ID for demo purposes
-    title: "Le Lion de Waterloo",
-    description: "Prenez un selfie au pied de la Butte du Lion. Assurez-vous que le monument soit bien visible derrière vous. Bonus si vous imitez la posture du lion !",
-    category: 'Exploration',
-    difficulty: 'facile',
-    points: 10,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-1')?.imageUrl || '',
-    location: 'Waterloo',
-    latitude: 50.678,
-    longitude: 4.405,
-    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
-  },
-  {
-    id: '2',
-    creatorId: 'admin-user',
-    title: "Street Art à Bruxelles",
-    description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock dans le centre-ville. La photo doit inclure un objet jaune pour prouver que vous y étiez récemment.",
-    category: 'Créatif',
-    difficulty: 'moyen',
-    points: 25,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-2')?.imageUrl || '',
-    location: 'Bruxelles',
-    latitude: 50.846,
-    longitude: 4.352,
-     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
-  },
-  {
-    id: '3',
-    creatorId: 'admin-user',
-    title: "Vue panoramique de Namur",
-    description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre. Le défi doit être réalisé au coucher du soleil pour un maximum de points.",
-    category: 'Exploration',
-    difficulty: 'moyen',
-    points: 20,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-3')?.imageUrl || '',
-    location: 'Namur',
-    latitude: 50.459,
-    longitude: 4.863,
-     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
-  },
-  {
-    id: '4',
-    creatorId: 'admin-user',
-    title: "Participer à une Cantus",
-    description: "Immortialisez l'ambiance d'une cantus étudiante (avec respect et consentement !). Votre photo doit montrer votre codex ou votre verre.",
-    category: 'Social',
-    difficulty: 'facile',
-    points: 15,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-4')?.imageUrl || '',
-     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
-  },
-  {
-    id: '5',
-    creatorId: 'partner-account-id',
-    title: "L'énigme du Manneken-Pis",
-    description: "Le plus célèbre ket de Bruxelles a un secret. Chaque jeudi, un indice est révélé dans sa garde-robe. Trouvez l'indice de cette semaine et décryptez-le. Soumettez la réponse comme preuve.",
-    category: 'Créatif',
-    difficulty: 'difficile',
-    points: 50,
-    imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-5')?.imageUrl || '',
-    location: 'Bruxelles', // On peut donner la ville sans les coordonnées précises
-    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
-  },
-];
-
 
 const staticSubmissions: (ChallengeSubmission & { id: string })[] = [
     { id: 'sub1', challengeId: '1', userId: 'user1', proofUrl: 'https://images.unsplash.com/photo-1549488344-cbb6c34cf08b?q=80&w=1974&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672620000, nanoseconds: 0 } as any, userProfile: { username: 'Alice', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=alice' } },
