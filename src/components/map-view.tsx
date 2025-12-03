@@ -292,7 +292,10 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
 
     // Remove existing route before adding a new one
     if (routeControlRef.current) {
-        map.removeControl(routeControlRef.current);
+        // Check if the control is actually on the map before trying to remove it
+        if (map.hasLayer(routeControlRef.current)) {
+            map.removeControl(routeControlRef.current);
+        }
         routeControlRef.current = null;
     }
 
