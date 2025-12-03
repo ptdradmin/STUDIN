@@ -31,7 +31,7 @@ export default function PrivacyPage() {
                         <li><strong>Données de profil académique :</strong> Université, domaine d'études.</li>
                         <li><strong>Contenu généré par l'utilisateur (CGU) :</strong> Annonces (logement, covoiturage, tutorat), publications, photos, biographie, commentaires, soumissions aux défis (photos, textes) et messages que vous publiez ou échangez sur la plateforme.</li>
                         <li><strong>Données techniques :</strong> Adresse IP, type de navigateur, système d'exploitation, informations sur les appareils, et données de navigation sur notre service.</li>
-                        <li><strong>Données de localisation :</strong> Nous pouvons collecter des données de localisation approximatives (ville) pour personnaliser les services comme le logement ou les événements. La localisation précise n'est utilisée qu'avec votre consentement explicite, par exemple pour afficher votre position sur une carte.</li>
+                        <li><strong>Données de localisation :</strong> Nous pouvons collecter des données de localisation approximatives (ville) pour personnaliser les services comme le logement ou les événements. La localisation précise n'est utilisée qu'avec votre consentement explicite, par exemple pour afficher votre position sur une carte dans le cadre d'un défi.</li>
                     </ul>
 
                     <h2 className="mt-6 text-2xl font-semibold">3. Comment nous utilisons vos données</h2>
