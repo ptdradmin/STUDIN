@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy } from 'lucide-react';
+import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 
@@ -27,6 +27,7 @@ const mainNavItems = [
   { href: "/messages", label: "Messages", icon: MessageSquare, roles: ['student', 'institution', 'admin'] },
   { href: "/challenges", label: "Défis", icon: Target, roles: ['student', 'institution', 'admin'] },
   { href: "/leaderboard", label: "Classement", icon: Trophy, roles: ['student', 'institution', 'admin'] },
+  { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ['institution', 'admin'] },
   { href: "/housing", label: "Logements", icon: Bed, roles: ['student'] },
   { href: "/carpooling", label: "Covoiturage", icon: Car, roles: ['student'] },
   { href: "/tutoring", label: "Tutorat", icon: BookOpen, roles: ['student'] },
@@ -88,7 +89,7 @@ export default function SocialSidebar() {
     if (!user) {
       // Don't show sidebar if not logged in.
       // This case is for pages that conditionally show the sidebar.
-      const publicPages = ['/social', '/reels', '/messages', '/challenges', '/leaderboard', '/housing', '/carpooling', '/tutoring', '/events', '/profile'];
+      const publicPages = ['/social', '/reels', '/messages', '/challenges', '/leaderboard', '/housing', '/carpooling', '/tutoring', '/events', '/profile', '/dashboard'];
       if (!publicPages.some(p => pathname.startsWith(p))) {
         return null;
       }
