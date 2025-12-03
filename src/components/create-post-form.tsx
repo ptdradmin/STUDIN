@@ -81,22 +81,17 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
     const [searchQuery, setSearchQuery] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const togglePlay = async (song: { title: string, url: string }) => {
+    const togglePlay = (song: { title: string, url: string }) => {
+        if (!audioRef.current) return;
+
         if (currentlyPlaying === song.url) {
-            audioRef.current?.pause();
+            audioRef.current.pause();
             setCurrentlyPlaying(null);
         } else {
-            if (audioRef.current) {
-                audioRef.current.src = song.url;
-                try {
-                    await audioRef.current.play();
-                    setCurrentlyPlaying(song.url);
-                } catch (error) {
-                    if ((error as DOMException).name !== 'AbortError') {
-                        console.error("Audio play failed:", error);
-                    }
-                }
-            }
+            audioRef.current.src = song.url;
+            audioRef.current.play().then(() => {
+                setCurrentlyPlaying(song.url);
+            }).catch(e => console.error("Audio play error", e));
         }
     };
 
@@ -106,9 +101,8 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         audioRef.current.addEventListener('ended', handleEnded);
         
         return () => {
-            const currentAudio = audioRef.current;
-            currentAudio?.pause();
-            currentAudio?.removeEventListener('ended', handleEnded);
+            audioRef.current?.pause();
+            audioRef.current?.removeEventListener('ended', handleEnded);
         }
     }, []);
     

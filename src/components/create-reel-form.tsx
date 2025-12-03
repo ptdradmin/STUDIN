@@ -78,22 +78,17 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
     const [searchQuery, setSearchQuery] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const togglePlay = async (song: { title: string, url: string }) => {
+    const togglePlay = (song: { title: string, url: string }) => {
+        if (!audioRef.current) return;
+
         if (currentlyPlaying === song.url) {
-            audioRef.current?.pause();
+            audioRef.current.pause();
             setCurrentlyPlaying(null);
         } else {
-            if (audioRef.current) {
-                audioRef.current.src = song.url;
-                try {
-                    await audioRef.current.play();
-                    setCurrentlyPlaying(song.url);
-                } catch (error) {
-                     if ((error as DOMException).name !== 'AbortError') {
-                        console.error("Audio play failed:", error);
-                    }
-                }
-            }
+            audioRef.current.src = song.url;
+            audioRef.current.play().then(() => {
+                setCurrentlyPlaying(song.url);
+            }).catch(e => console.error("Audio play error", e));
         }
     };
     
@@ -103,9 +98,8 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         audioRef.current.addEventListener('ended', handleEnded);
         
         return () => {
-            const currentAudio = audioRef.current;
-            currentAudio?.pause();
-            currentAudio?.removeEventListener('ended', handleEnded);
+            audioRef.current?.pause();
+            audioRef.current?.removeEventListener('ended', handleEnded);
         }
     }, []);
 
@@ -224,48 +218,41 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
     
     setLoading(true);
 
-    try {
-        const newDocRef = doc(collection(firestore, 'reels'));
-        const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
-        
-        const uploadTask = uploadBytesResumable(videoRef, videoFile);
+    const newDocRef = doc(collection(firestore, 'reels'));
+    const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
+    const uploadTask = uploadBytesResumable(videoRef, videoFile);
 
-        uploadTask.on('state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-            },
-            (error) => {
-                setLoading(false);
-                toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée."});
-            },
-            async () => {
-                const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-                const reelData = {
-                    ...data,
-                    id: newDocRef.id,
-                    userId: user.uid,
-                    username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-                    userAvatarUrl: user.photoURL,
-                    createdAt: serverTimestamp(),
-                    likes: [],
-                    comments: [],
-                    videoUrl: videoUrl,
-                };
-                
-                await setDoc(newDocRef, reelData);
-                
-                setLoading(false);
-                toast({ title: 'Succès', description: 'Reel publié !' });
-                onClose();
-                router.refresh();
-            }
-        );
-
-    } catch (error: any) {
-        setLoading(false);
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de publier le Reel." });
-    }
+    uploadTask.on('state_changed',
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        },
+        (error) => {
+            setLoading(false);
+            toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée."});
+        },
+        async () => {
+            const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            const reelData = {
+                ...data,
+                id: newDocRef.id,
+                userId: user.uid,
+                username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+                userAvatarUrl: user.photoURL,
+                createdAt: serverTimestamp(),
+                likes: [],
+                comments: [],
+                videoUrl: videoUrl,
+            };
+            
+            await setDoc(newDocRef, reelData);
+            
+            setLoading(false);
+            toast({ title: 'Succès', description: 'Reel publié !' });
+            onClose();
+            router.refresh();
+        }
+    );
   };
 
   return (

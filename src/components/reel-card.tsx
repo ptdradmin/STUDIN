@@ -30,73 +30,49 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     
     const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(false); // Start with sound on, but playback requires interaction
+    const [isMuted, setIsMuted] = useState(true);
     const [isVisible, setIsVisible] = useState(true);
 
     const videoRef = useRef<HTMLVideoElement>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const cardRef = useRef<HTMLDivElement>(null);
 
     const hasLiked = user && optimisticLikes.includes(user.uid);
     const isOwner = user?.uid === reel.userId;
 
-    // This effect synchronizes the external audio with the video playback state
     useEffect(() => {
         const video = videoRef.current;
         const audio = audioRef.current;
-        if (!video || !audio) return;
+        if (!video) return;
 
-        if (isPlaying) {
-            video.play().catch(e => {
-                if (e.name !== 'AbortError') console.error("Video play error:", e)
-            });
-            if (reel.audioUrl) {
-                audio.play().catch(e => {
-                    if (e.name !== 'AbortError') console.error("Audio play error:", e)
-                });
-            }
-        } else {
-            video.pause();
-            if (reel.audioUrl) {
-                audio.pause();
-            }
-        }
-    }, [isPlaying, reel.audioUrl]);
-
-    // This effect handles audio muting
-    useEffect(() => {
-        const audio = audioRef.current;
-        const video = videoRef.current;
-        if (reel.audioUrl && audio) {
-            audio.muted = isMuted;
-        } else if (video) {
-            video.muted = isMuted;
-        }
-    }, [isMuted, reel.audioUrl]);
-
-    // Intersection Observer to pause video when it goes out of view
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (!entry.isIntersecting) {
-                    setIsPlaying(false);
-                }
-            },
-            { threshold: 0.5 } // Trigger when 50% of the video is visible
-        );
-
-        const currentCardRef = cardRef.current;
-        if (currentCardRef) {
-            observer.observe(currentCardRef);
-        }
-
-        return () => {
-            if (currentCardRef) {
-                observer.unobserve(currentCardRef);
+        const handlePlay = () => {
+            if (audio) {
+                audio.currentTime = video.currentTime;
+                audio.play().catch(e => console.error("Audio play error:", e));
             }
         };
-    }, []);
 
+        const handlePause = () => audio?.pause();
+        const handleSeeking = () => {
+             if (audio) audio.currentTime = video.currentTime;
+        }
+
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
+        video.addEventListener('seeking', handleSeeking);
+
+        return () => {
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
+            video.removeEventListener('seeking', handleSeeking);
+        }
+    }, [reel.audioUrl]);
+
+    useEffect(() => {
+        if(audioRef.current) {
+            audioRef.current.muted = isMuted;
+        }
+    }, [isMuted]);
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
@@ -157,46 +133,49 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer le Reel."});
             })
     }
-
+    
     const togglePlay = () => {
-        setIsPlaying(prev => !prev);
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+            video.play().catch(e => console.log(e));
+            setIsPlaying(true);
+        } else {
+            video.pause();
+            setIsPlaying(false);
+        }
     }
+
 
     if (!isVisible) return null;
 
     return (
         <div ref={cardRef} className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-lg group">
-            <video
+             <video
                 ref={videoRef}
                 src={reel.videoUrl}
                 playsInline
                 loop
-                muted={!!reel.audioUrl} // Mute video if there is background music
-                className="h-full w-full object-cover"
-                id={`reel-video-${reel.id}`}
+                muted={!reel.audioUrl} // Mute video only if there IS background music
                 onClick={togglePlay}
+                className="h-full w-full object-cover"
             />
+            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
 
-            {reel.audioUrl && (
-                <audio ref={audioRef} src={reel.audioUrl} loop />
+             {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+                    <Play className="h-20 w-20 text-white/70 drop-shadow-lg" />
+                </div>
             )}
             
-            {/* Play/Pause Overlay */}
-            <div 
-                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 transition-opacity duration-300 pointer-events-none"
-                style={{ opacity: isPlaying ? 0 : 1 }}
-            >
-                <Play className="h-20 w-20 text-white/70 drop-shadow-lg" />
-            </div>
-            
-            {/* Sound Control */}
             <div className="absolute top-4 right-4 z-10">
-                <Button variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50" onClick={() => setIsMuted(prev => !prev)}>
+                <Button variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50" onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev);}}>
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
                 </Button>
             </div>
             
-            <div className="absolute bottom-0 left-0 right-0 p-4 pb-16 md:pb-4 text-white bg-gradient-to-t from-black/50 to-transparent flex justify-between items-end z-10 pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 p-4 pb-16 md:pb-4 text-white bg-gradient-to-t from-black/60 to-transparent flex justify-between items-end z-10 pointer-events-none">
                 <div className="space-y-2 flex-grow overflow-hidden">
                     <div className="flex items-center gap-2 pointer-events-auto">
                         <Link href={`/profile/${reel.userId}`}>

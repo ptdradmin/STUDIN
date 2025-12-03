@@ -7,7 +7,7 @@ import type { Post, Favorite } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
@@ -39,41 +39,20 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
     const [optimisticLikes, setOptimisticLikes] = useState(post.likes || []);
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(true); // Start muted
-
-    const postRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (post.audioUrl && audioRef.current) {
-                    if (entry.isIntersecting) {
-                        // Do not autoplay audio on posts
-                    } else {
-                        audioRef.current.pause();
-                        setIsPlaying(false);
-                    }
-                }
-            },
-            { threshold: 0.5 }
-        );
-
-        const currentPostRef = postRef.current;
-        if (currentPostRef) {
-            observer.observe(currentPostRef);
+    
+     useEffect(() => {
+        if (post.audioUrl) {
+            audioRef.current = new Audio(post.audioUrl);
+            audioRef.current.loop = true;
         }
-
         return () => {
-            if (currentPostRef) {
-                observer.unobserve(currentPostRef);
-            }
             audioRef.current?.pause();
         };
     }, [post.audioUrl]);
@@ -124,6 +103,17 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
             description: "Vous ne verrez plus les publications de cet utilisateur.",
         });
     };
+    
+    const togglePlay = () => {
+        if (!audioRef.current) return;
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    }
+
 
     const handleLike = async () => {
         if (!user || !firestore) {
@@ -247,7 +237,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
 
 
     return (
-        <div ref={postRef} className="w-full bg-card text-card-foreground border-b">
+        <div className="w-full bg-card text-card-foreground border-b">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -300,25 +290,32 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
             
             {post.imageUrl && (
                 <div className="relative aspect-square bg-muted">
-                    <Image
-                        src={post.imageUrl}
-                        alt={`Post by ${post.username}`}
-                        fill
-                        className="object-cover"
-                        data-ai-hint="social media post"
-                    />
+                    {post.isUploading ? (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+                        </div>
+                    ) : (
+                        <Image
+                            src={post.imageUrl}
+                            alt={`Post by ${post.username}`}
+                            fill
+                            className="object-cover"
+                            data-ai-hint="social media post"
+                        />
+                    )}
                 </div>
             )}
              
             {post.audioUrl && (
                 <div className="flex items-center gap-2 p-3 bg-muted/50 border-y overflow-hidden group">
-                    <Music className="h-4 w-4 flex-shrink-0" />
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={togglePlay}>
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                    </Button>
                     <div className="w-full relative h-4 overflow-hidden">
                         <p className="text-sm font-semibold whitespace-nowrap absolute animate-marquee group-hover:pause">
                             {post.songTitle}
                         </p>
                     </div>
-                    {/* The audio element is not needed here as it's for Reels */}
                 </div>
             )}
 

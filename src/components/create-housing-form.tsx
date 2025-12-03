@@ -10,12 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage } from '@/firebase';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
 import { Separator } from './ui/separator';
@@ -100,7 +100,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
   };
 
 
-  const onSubmit: SubmitHandler<HousingFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<HousingFormInputs> = (data) => {
     if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
@@ -112,48 +112,54 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
 
     setLoading(true);
     toast({ title: isEditing ? 'Mise à jour...' : 'Création...', description: 'Votre annonce est en cours de traitement.' });
+    onClose();
 
-    try {
-        const housingId = housingToEdit?.id || doc(collection(firestore, 'housings')).id;
-        const housingRef = doc(firestore, 'housings', housingId);
-        let imageUrl = housingToEdit?.imageUrl || '';
+    const housingId = housingToEdit?.id || doc(collection(firestore, 'housings')).id;
+    const housingRef = doc(firestore, 'housings', housingId);
+    
+    const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
+    const newCoords: [number, number] = [
+        (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
+        (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
+    ];
 
-        if (imageFile) {
-            const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
-            const snapshot = await uploadBytes(imageRef, imageFile);
-            imageUrl = await getDownloadURL(snapshot.ref);
-        }
+    if (isEditing && housingToEdit) {
+      const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl: previewUrl, coordinates: newCoords };
+      
+      setDocumentNonBlocking(housingRef, dataToUpdate, { merge: true });
 
-        const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
-        const newCoords: [number, number] = [
-            (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
-            (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
-        ];
+      if (imageFile) {
+        const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
+        const uploadTask = uploadBytesResumable(imageRef, imageFile);
+        uploadTask.on('state_changed', null, null, async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          updateDoc(housingRef, { imageUrl: downloadURL });
+        });
+      }
 
-        if (isEditing && housingToEdit) {
-            const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
-            await updateDoc(housingRef, dataToUpdate);
-            toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
-        } else {
-            const dataToCreate = {
-                ...data,
-                id: housingId,
-                userId: user.uid,
-                username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-                userAvatarUrl: user.photoURL,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                coordinates: newCoords,
-                imageHint: "student room",
-                imageUrl: imageUrl,
-            };
-            await setDoc(housingRef, dataToCreate);
-            toast({ title: 'Succès', description: 'Annonce de logement créée !' });
-        }
-        onClose();
-    } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de soumettre le formulaire." });
-        setLoading(false);
+    } else {
+      const dataToCreate = {
+          ...data,
+          id: housingId,
+          userId: user.uid,
+          username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+          userAvatarUrl: user.photoURL,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          coordinates: newCoords,
+          imageHint: "student room",
+          imageUrl: previewUrl,
+      };
+      setDocumentNonBlocking(housingRef, dataToCreate);
+
+      if (imageFile) {
+        const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
+        const uploadTask = uploadBytesResumable(imageRef, imageFile);
+        uploadTask.on('state_changed', null, null, async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          updateDoc(housingRef, { imageUrl: downloadURL });
+        });
+      }
     }
   };
 

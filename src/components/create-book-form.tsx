@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -72,12 +73,12 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<BookFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<BookFormInputs> = (data) => {
     if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
-    if (!imageFile) {
+    if (!imageFile || !previewUrl) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
         return;
     }

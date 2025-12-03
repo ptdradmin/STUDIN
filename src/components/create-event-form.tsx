@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -108,7 +109,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
-    if (!imageFile) {
+    if (!imageFile || !previewUrl) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
         return;
     }
