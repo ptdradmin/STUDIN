@@ -129,21 +129,21 @@ export default function SocialPage() {
     }, [user, firestore]);
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
-    const followingIds = userProfile?.followingIds;
-
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !user || isProfileLoading) return null;
+        if (!firestore || !user) return null;
+
+        const followingIds = userProfile?.followingIds || [];
+        const idsToQuery = [...new Set([user.uid, ...followingIds])];
         
-        const idsToQuery = [...new Set([user.uid, ...(followingIds || [])])];
-        
+        // Ensure the array is not empty before querying, though it will always have at least the current user.
         if (idsToQuery.length === 0) return null;
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', idsToQuery.slice(0, 30)),
+          where('userId', 'in', idsToQuery.slice(0, 30)), // Firestore 'in' query limit is 30
           orderBy('createdAt', 'desc')
         );
-      }, [firestore, user, followingIds, isProfileLoading]);
+      }, [firestore, user, userProfile]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -177,7 +177,7 @@ export default function SocialPage() {
     }
 
     const isLoading = postsLoading || favoritesLoading;
-    const showSuggestionMessage = !followingIds || followingIds.length === 0;
+    const showSuggestionMessage = !userProfile?.followingIds || userProfile.followingIds.length === 0;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
