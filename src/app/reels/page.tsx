@@ -1,3 +1,4 @@
+
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
@@ -96,7 +97,7 @@ export default function ReelsPage() {
     }
     
     const handleCreateClick = () => {
-        if (!user) {
+        if (!isUserLoading && !user) {
             router.push('/login?from=/reels');
             return;
         }
