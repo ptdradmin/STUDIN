@@ -31,6 +31,13 @@ const services = [
         href: "/tutoring",
         image: PlaceHolderImages.find(p => p.id === 'service-tutoring')?.imageUrl || ''
     },
+    {
+        name: "Marché aux Livres",
+        description: "Achetez ou vendez vos livres de cours d'occasion.",
+        icon: <BookOpen className="h-6 w-6"/>,
+        href: "/books",
+        image: PlaceHolderImages.find(p => p.id === 'service-events')?.imageUrl || '' // Re-using image for now
+    },
      {
         name: "Événements",
         description: "Découvrez les meilleures soirées et activités étudiantes.",
@@ -82,7 +89,7 @@ export default function HomePage() {
                             Tout ce dont vous avez besoin pour une vie étudiante épanouie, centralisé et simplifié.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                             {services.map(service => (
                                 <Link href={service.href} key={service.name} className="block group">
                                     <div className="relative aspect-[9/12] rounded-xl overflow-hidden shadow-lg h-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">

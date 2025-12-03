@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -19,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import CreateBookForm from '@/components/create-book-form';
 import { getOrCreateConversation } from '@/lib/conversations';
+import Navbar from '@/components/navbar';
 
 function BookCard({ book, onContact }: { book: Book, onContact: (sellerId: string) => void }) {
     const { user } = useUser();
@@ -128,18 +130,23 @@ export default function BookMarketPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <SocialSidebar />
+      {user && <SocialSidebar />}
       <div className="flex flex-col flex-1">
         {showCreateForm && <CreateBookForm onClose={() => setShowCreateForm(false)} />}
         
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex-1 max-w-md">
-                <GlobalSearch />
-            </div>
-            <div className="flex items-center gap-2">
-                {user && <NotificationsDropdown />}
-            </div>
-        </header>
+        {user ? (
+            <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="flex-1 max-w-md">
+                    <GlobalSearch />
+                </div>
+                <div className="flex items-center gap-2">
+                    <NotificationsDropdown />
+                </div>
+            </header>
+        ) : (
+            <Navbar />
+        )}
+
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
            <div className="mb-8">
@@ -181,9 +188,13 @@ export default function BookMarketPage() {
             </div>
 
             {isLoading && <BookListSkeleton />}
-            {!isLoading && filteredBooks.map(book => (
-                <BookCard key={book.id} book={book} onContact={handleContactSeller} />
-            ))}
+             {!isLoading && filteredBooks.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                 {filteredBooks.map(book => (
+                    <BookCard key={book.id} book={book} onContact={handleContactSeller} />
+                 ))}
+                </div>
+            )}
              {!isLoading && filteredBooks.length === 0 && (
                 <Card className="text-center py-20 col-span-full">
                     <CardContent>

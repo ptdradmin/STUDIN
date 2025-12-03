@@ -20,6 +20,7 @@ import { useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@
 import CreateChallengeForm from '@/components/create-challenge-form';
 import { doc, collection, query } from 'firebase/firestore';
 import { staticChallenges } from '@/lib/static-data';
+import Navbar from '@/components/navbar';
 
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -49,17 +50,21 @@ export default function ChallengesPage() {
 
     return (
         <div className="flex min-h-screen w-full bg-background">
-            <SocialSidebar />
+            {user && <SocialSidebar />}
              {showCreateForm && <CreateChallengeForm onClose={() => setShowCreateForm(false)} />}
             <div className="flex flex-col flex-1">
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                    <div className="flex-1 max-w-md">
-                        <GlobalSearch />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {user && <NotificationsDropdown />}
-                    </div>
-                </header>
+                 {user ? (
+                    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                        <div className="flex-1 max-w-md">
+                            <GlobalSearch />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <NotificationsDropdown />
+                        </div>
+                    </header>
+                ) : (
+                    <Navbar />
+                )}
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     <div className="mb-8">
                        <div className="flex items-center justify-between">
