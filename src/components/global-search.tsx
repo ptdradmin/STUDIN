@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useClickAway } from 'react-use';
 import { useRouter } from 'next/navigation';
 import SearchResultItem from './search-result-item';
+import { Button } from './ui/button';
 
 
 type SearchResult = 
