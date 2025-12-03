@@ -26,20 +26,35 @@ service cloud.firestore {
     function isEventOrganizer(eventId) {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
+    
+    function hasRequiredStudentFields() {
+        let data = request.resource.data;
+        return data.role == 'student'
+            && data.firstName is string && data.firstName.size() > 0
+            && data.lastName is string && data.lastName.size() > 0
+            && data.postalCode is string && data.postalCode.size() > 0
+            && data.city is string && data.city.size() > 0
+            && data.university is string && data.university.size() > 0
+            && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0;
+    }
+    
+    function hasRequiredInstitutionFields() {
+         let data = request.resource.data;
+         return data.role == 'institution'
+            && data.firstName is string // Corresponds to institution name
+            && data.postalCode is string
+            && data.city is string;
+    }
 
     function hasRequiredUserFields() {
       let data = request.resource.data;
       return data.id == request.auth.uid
           && data.username is string && data.username.size() > 0
           && data.email is string && data.email.size() > 0
-          && data.firstName is string && data.firstName.size() > 0
-          && data.lastName is string && data.lastName.size() > 0
-          && data.postalCode is string && data.postalCode.size() > 0
-          && data.city is string && data.city.size() > 0
-          && data.university is string && data.university.size() > 0
-          && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0
+          && data.isVerified == false
           && data.followerIds is list
-          && data.followingIds is list;
+          && data.followingIds is list
+          && (hasRequiredStudentFields() || hasRequiredInstitutionFields());
     }
     
     // =====================================================================
@@ -70,6 +85,16 @@ service cloud.firestore {
         allow create: if isOwner(userId) && request.resource.data.userId == userId;
         allow update: if false;
       }
+    }
+    
+    // =====================================================================
+    // Institutions Rules
+    // =====================================================================
+    match /institutions/{institutionId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isResourceOwner(resource.data);
     }
 
     // =====================================================================

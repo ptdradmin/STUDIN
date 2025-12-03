@@ -17,7 +17,6 @@ import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
-import Link from 'next/link';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -64,12 +63,12 @@ export default function RegisterInstitutionForm() {
     const userData = {
         id: user.uid,
         role: 'institution',
-        username: data.name.toLowerCase().replace(/\s+/g, '_'),
+        username: data.name.toLowerCase().replace(/\s+/g, '_').substring(0, 20),
         email: data.email,
         firstName: data.name, // Use institution name as firstName for consistency
-        lastName: '',
-        university: '',
-        fieldOfStudy: '',
+        lastName: '', // No last name for institution
+        university: '', // Not applicable
+        fieldOfStudy: '', // Not applicable
         postalCode: data.postalCode,
         city: data.city,
         bio: `Compte officiel de ${data.name}.`,
@@ -101,7 +100,7 @@ export default function RegisterInstitutionForm() {
     // 3. Update Auth Profile
     const currentUser = auth?.currentUser;
     if (currentUser) {
-        await updateProfile(currentUser, { displayName: data.name });
+        await updateProfile(currentUser, { displayName: data.name, photoURL: userData.profilePicture });
     }
   };
 
@@ -259,3 +258,4 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+
