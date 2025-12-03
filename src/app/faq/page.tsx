@@ -94,6 +94,23 @@ const faqs = [
             }
         ]
     },
+    {
+        category: "UrbanQuest (Défis)",
+        questions: [
+            {
+                q: "Qu'est-ce que UrbanQuest ?",
+                a: "UrbanQuest est la section de gamification de STUD'IN. Elle vous permet de participer à des défis (challenges) dans votre ville pour gagner des points, découvrir de nouveaux lieux et vous mesurer aux autres étudiants dans le classement."
+            },
+            {
+                q: "Comment participer à un défi ?",
+                a: "Rendez-vous sur la page du défi qui vous intéresse et cliquez sur le bouton 'Participer'. Une fois que vous participez, vous pourrez soumettre votre preuve (généralement une photo) pour valider le défi."
+            },
+            {
+                q: "Qui crée les défis ?",
+                a: "Les défis sont créés par l'équipe de STUD'IN ainsi que par nos institutions partenaires (cercles étudiants, associations, BDE, etc.)."
+            }
+        ]
+    },
      {
         category: "Compte et Sécurité",
         questions: [
