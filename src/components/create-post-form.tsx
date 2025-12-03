@@ -37,14 +37,20 @@ interface CreatePostFormProps {
   onClose: () => void;
 }
 
-const trendingSongs = [
-    { title: "Street Vibe", artist: "Rap/Hip-Hop Beat", url: "https://archive.org/download/22-rap-beat-instrumental-hip-hop-type-beat-2022-insane/22.%20Rap%20Beat%20Instrumental%20Hip%20Hop%20Type%20Beat%202022%20-%20%27Insane%27.mp3" },
-    { title: "Chill Reggae", artist: "Reggae Instrumental", url: "https://archive.org/download/reggae-instrumental_202302/Reggae%20Instrumental.mp3" },
-    { title: "808 Flow", artist: "Trap Beat", url: "https://archive.org/download/free-trap-beat-savage/Free%20Trap%20Beat%20-%20Savage.mp3" },
-    { title: "Ibiza Sunrise", artist: "Electro House Mix", url: "https://archive.org/download/powerful-stylish-stomp-groove-electro-house-version-60s-14022/powerful-stylish-stomp-groove-electro-house-version-60s-14022.mp3" },
-    { title: "Warehouse Rave", artist: "Techno Groove", url: "https://archive.org/download/techno-power-191242/techno-power-191242.mp3" },
-    { title: "Industrial Core", artist: "Hardcore Rhythm", url: "https://archive.org/download/gabber-kick-drum-samples/Hardcore%20Kick%202.mp3" },
-    { title: "Lofi Chill", artist: "Lofi Beat", url: "https://archive.org/download/lofi-beat-chill-instrumental/Lofi%20Beat%20Chill%20Instrumental.mp3" },
+const pixabayMusic = [
+    { title: "Lofi Chill", artist: "FASSounds", url: "https://cdn.pixabay.com/download/audio/2022/05/19/audio_d893f48a1c.mp3" },
+    { title: "The Beat of Nature", artist: "Olexy", url: "https://cdn.pixabay.com/download/audio/2023/04/23/audio_85244d6a8d.mp3" },
+    { title: "In the Forest", artist: "Lesfm", url: "https://cdn.pixabay.com/download/audio/2022/01/21/audio_18c5e63e52.mp3" },
+    { title: "Powerful Trap", artist: "AlexiAction", url: "https://cdn.pixabay.com/download/audio/2023/05/20/audio_53b692a73c.mp3" },
+    { title: "Modern Vlo-fi", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2022/06/10/audio_27f1b4c73d.mp3"},
+];
+
+const pixabaySoundEffects = [
+    { title: "Whoosh", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_e728d8b675.mp3" },
+    { title: "Applaudissements", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_23b378839d.mp3" },
+    { title: "Goutte d'eau", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/03/17/audio_43b02f8be0.mp3" },
+    { title: "Notification", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/11/17/audio_8b24886f4a.mp3" },
+    { title: "Rire", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2021/10/08/audio_2c25c84d23.mp3" }
 ];
 
 
@@ -77,25 +83,40 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         }
     }, []);
 
+    const renderSongList = (songs: {title: string, artist: string, url: string}[]) => (
+        <div className="space-y-2">
+            {songs.map(song => (
+                <div key={song.url} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                    <div className="cursor-pointer flex-grow" onClick={() => onSelectSong(song)}>
+                        <p className="font-semibold">{song.title}</p>
+                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => togglePlay(song)}>
+                        {currentlyPlaying === song.url ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                    </Button>
+                </div>
+            ))}
+        </div>
+    );
+
     return (
         <Dialog open onOpenChange={onClose}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Sons populaires</DialogTitle>
+                    <DialogTitle>Choisir un son</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                    {trendingSongs.map(song => (
-                        <div key={song.title} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                            <div className="cursor-pointer flex-grow" onClick={() => onSelectSong(song)}>
-                                <p className="font-semibold">{song.title}</p>
-                                <p className="text-sm text-muted-foreground">{song.artist}</p>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => togglePlay(song)}>
-                                {currentlyPlaying === song.url ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                            </Button>
-                        </div>
-                    ))}
-                </div>
+                <Tabs defaultValue="music" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="music">Musique</TabsTrigger>
+                        <TabsTrigger value="sfx">Effets Sonores</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="music" className="max-h-[60vh] overflow-y-auto">
+                        {renderSongList(pixabayMusic)}
+                    </TabsContent>
+                    <TabsContent value="sfx" className="max-h-[60vh] overflow-y-auto">
+                        {renderSongList(pixabaySoundEffects)}
+                    </TabsContent>
+                </Tabs>
                 <DialogFooter>
                     <Button variant="secondary" onClick={onClose}>Fermer</Button>
                 </DialogFooter>
