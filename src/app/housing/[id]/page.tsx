@@ -66,7 +66,7 @@ export default function HousingDetailPage() {
 
     const handleContact = async () => {
         if (!user || !firestore || !housing) {
-            router.push('/login?from=/housing');
+            router.push(`/login?from=/housing/${housingId}`);
             return;
         }
         if (user.uid === housing.userId) {
@@ -133,12 +133,11 @@ export default function HousingDetailPage() {
                                                 <p className="text-4xl font-bold text-primary">{housing.price}€</p>
                                                 <p className="text-sm text-muted-foreground -mt-1">/mois</p>
                                             </div>
-                                            {user?.uid !== housing.userId && (
-                                                <Button size="lg" className="w-full mt-6" onClick={handleContact}>
-                                                    <MessageSquare className="mr-2 h-5 w-5" />
-                                                    Contacter
-                                                </Button>
-                                            )}
+                                            
+                                            <Button size="lg" className="w-full mt-6" onClick={handleContact}>
+                                                <MessageSquare className="mr-2 h-5 w-5" />
+                                                {user?.uid === housing.userId ? "Vos messages" : "Contacter"}
+                                            </Button>
                                         </div>
                                          <Link href={`/profile/${housing.userId}`}>
                                             <div className="border rounded-lg p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors">
@@ -168,5 +167,7 @@ export default function HousingDetailPage() {
         </div>
     );
 }
+
+    
 
     

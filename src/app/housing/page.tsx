@@ -72,6 +72,10 @@ export default function HousingPage() {
   };
 
   const handleCreateClick = () => {
+    if (!user) {
+        router.push('/login?from=/housing');
+        return;
+    }
     setEditingHousing(null);
     setShowCreateForm(true);
   }
@@ -133,7 +137,7 @@ export default function HousingPage() {
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold tracking-tight">Logements disponibles</h2>
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleCreateClick} disabled={isUserLoading || !user}>
+                    <Button onClick={handleCreateClick} disabled={isUserLoading}>
                         <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
                     </Button>
                     <div className="flex items-center gap-1 rounded-md bg-muted p-1 ml-auto">
@@ -179,3 +183,5 @@ export default function HousingPage() {
     </div>
   );
 }
+
+    

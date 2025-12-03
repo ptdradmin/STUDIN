@@ -69,7 +69,7 @@ export default function TutoringPage() {
     e.preventDefault();
     e.stopPropagation();
     if (!user || !firestore) {
-      toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
+      router.push('/login?from=/tutoring');
       return;
     }
     try {
@@ -80,6 +80,13 @@ export default function TutoringPage() {
     }
   };
 
+  const handleCreateClick = () => {
+    if (!user) {
+        router.push('/login?from=/tutoring');
+        return;
+    }
+    setShowCreateForm(true);
+  }
 
   const renderList = () => {
      if (isLoading) {
@@ -223,7 +230,7 @@ export default function TutoringPage() {
             <div className="flex justify-between items-center mb-4 gap-4">
               <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
               <div className="flex items-center gap-2">
-                <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
+                <Button onClick={handleCreateClick} disabled={isUserLoading}>
                   <Plus className="mr-2 h-4 w-4" /> Devenir tuteur
                 </Button>
                 <div className="flex items-center gap-1 rounded-md bg-muted p-1">

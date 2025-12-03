@@ -82,7 +82,7 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
     const handleContact = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!user || !firestore) {
-            router.push('/login?from=/housing');
+            router.push(`/login?from=/housing/${housing.id}`);
             return;
         }
         const conversationId = await getOrCreateConversation(firestore, user.uid, housing.userId);
@@ -96,7 +96,7 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
     const handleFavoriteClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!user || !firestore) {
-            toast({ variant: 'destructive', title: 'Vous devez être connecté.' });
+            router.push('/login?from=/housing');
             return;
         }
         const wasSaved = isSaved;
@@ -189,16 +189,23 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
                         <p className="text-2xl font-bold text-primary">{housing.price}€</p>
                         <p className="text-xs text-muted-foreground -mt-1">/mois</p>
                     </div>
-                    {user && !isOwner && (
+                    {user && !isOwner ? (
                          <Button onClick={handleContact}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Contacter
                         </Button>
-                    )}
+                    ) : !user ? (
+                        <Button onClick={(e) => { e.stopPropagation(); router.push(`/login?from=/housing/${housing.id}`)}}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Contacter
+                        </Button>
+                    ) : null}
                 </div>
             </CardContent>
         </Card>
     );
 }
+
+    
 
     

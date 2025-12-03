@@ -1,3 +1,4 @@
+
 import LoginForm from '@/components/login-form';
 import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';
@@ -17,3 +18,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

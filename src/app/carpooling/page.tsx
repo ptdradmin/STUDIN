@@ -197,7 +197,7 @@ export default function CarpoolingPage() {
             requestResourceData: { 
                 action: 'reserve_seat',
                 carpoolId: trip.id,
-                passengerId: user.uid,
+                passengerId: user?.uid,
                 clientError: e.message,
             }
         });
@@ -256,7 +256,7 @@ export default function CarpoolingPage() {
             <div className="flex justify-between items-center mb-4 gap-4">
               <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
               <div className="flex items-center gap-2">
-                <Button onClick={() => setShowCreateForm(true)} disabled={isUserLoading || !user}>
+                <Button onClick={() => user ? setShowCreateForm(true) : router.push('/login?from=/carpooling')} disabled={isUserLoading}>
                   <Plus className="mr-2 h-4 w-4" /> Proposer un trajet
                 </Button>
                 <div className="flex items-center gap-1 rounded-md bg-muted p-1">
@@ -328,7 +328,7 @@ export default function CarpoolingPage() {
 
                               <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
                                   <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                  {user && (
+                                  {user ? (
                                     <>
                                         <Button size="sm" onClick={(e) => {e.stopPropagation(); handleReserve(trip);}} disabled={trip.driverId === user.uid || trip.seatsAvailable === 0 || isPassenger}>
                                             {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
@@ -337,6 +337,10 @@ export default function CarpoolingPage() {
                                             <MessageSquare className="h-4 w-4" />
                                         </Button>
                                     </>
+                                  ) : (
+                                    <Button size="sm" onClick={(e) => {e.stopPropagation(); router.push('/login?from=/carpooling');}}>
+                                        Réserver
+                                    </Button>
                                   )}
                               </div>
 
@@ -367,5 +371,7 @@ export default function CarpoolingPage() {
     </div>
   );
 }
+
+    
 
     

@@ -116,9 +116,14 @@ export default function TutorProfilePage() {
 
   const handleContact = async () => {
     if (!user || !firestore || !tutor) {
-        router.push('/login');
+        router.push(`/login?from=/tutoring/${tutorId}`);
         return;
     }
+    if (user.uid === tutor.tutorId) {
+        toast({ variant: 'destructive', title: 'Action impossible', description: 'Vous ne pouvez pas vous contacter vous-même.' });
+        return;
+    }
+
     const conversationId = await getOrCreateConversation(firestore, user.uid, tutor.tutorId);
     if (conversationId) {
         router.push(`/messages/${conversationId}`);
@@ -194,12 +199,12 @@ export default function TutorProfilePage() {
                                             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{tutor.description}</p>
                                         </div>
 
-                                        {!isOwnProfile && user && (
+                                        {!isOwnProfile && (
                                             <div className="flex gap-2 pt-4">
                                                 <Button onClick={handleContact} className="w-full">
                                                     <MessageSquare className="mr-2 h-4 w-4" /> Contacter
                                                 </Button>
-                                                <Button onClick={() => setShowReviewForm(true)} variant="outline" className="w-full">
+                                                <Button onClick={() => user ? setShowReviewForm(true) : router.push(`/login?from=/tutoring/${tutor.id}`)} variant="outline" className="w-full">
                                                     <Star className="mr-2 h-4 w-4" /> Laisser un avis
                                                 </Button>
                                             </div>
