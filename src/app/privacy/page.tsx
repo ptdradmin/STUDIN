@@ -1,7 +1,5 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
-import { GraduationCap } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -10,14 +8,14 @@ export default function PrivacyPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-            <div className="container mx-auto px-4 py-12 text-center">
-                <h1 className="text-4xl font-bold">Politique de Confidentialité</h1>
-                <p className="mt-2 text-lg opacity-90">Dernière mise à jour le 28 Juillet 2024</p>
+        <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
+            <div className="container mx-auto px-4 py-16 text-center">
+                <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Politique de Confidentialité</h1>
+                <p className="mt-2 text-lg text-muted-foreground">Dernière mise à jour le 28 Juillet 2024</p>
             </div>
         </div>
-        <div className="container mx-auto px-4 py-8">
-            <Card className="py-10 px-6">
+        <div className="container mx-auto px-4 py-8 md:py-16">
+            <Card className="py-10 px-6 max-w-4xl mx-auto shadow-lg">
                 <CardContent className="prose max-w-none">
                     <p className="lead">Bienvenue sur STUD'IN. Nous nous engageons à protéger votre vie privée et vos données personnelles. Cette politique de confidentialité a pour but de vous informer sur la manière dont nous collectons, utilisons, partageons et protégeons vos informations lorsque vous utilisez notre plateforme.</p>
                     

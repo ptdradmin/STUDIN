@@ -118,13 +118,13 @@ export default function FaqPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-          <div className="container mx-auto px-4 py-12 text-center">
-            <h1 className="text-4xl font-bold">Questions Fréquemment Posées</h1>
-            <p className="mt-2 text-lg opacity-90">Trouvez les réponses à vos questions.</p>
+        <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
+          <div className="container mx-auto px-4 py-16 text-center">
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Questions Fréquemment Posées</h1>
+            <p className="mt-2 text-lg text-muted-foreground">Trouvez les réponses à vos questions.</p>
           </div>
         </div>
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 md:py-16">
             <div className="max-w-3xl mx-auto">
                 {faqs.map((category) => (
                     <div key={category.category} className="mb-8">

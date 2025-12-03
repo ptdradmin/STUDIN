@@ -1,32 +1,41 @@
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { Mail, MapPin } from "lucide-react";
 
 export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-            <div className="container mx-auto px-4 py-12 text-center">
-                <h1 className="text-4xl font-bold">Contacter le support</h1>
-                <p className="mt-2 text-lg opacity-90">Un problème, une question ? Nous sommes là pour vous aider.</p>
+        <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
+            <div className="container mx-auto px-4 py-16 text-center">
+                <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Contactez-nous</h1>
+                <p className="mt-2 text-lg text-muted-foreground">Un problème, une question ? Nous sommes là pour vous aider.</p>
             </div>
         </div>
-        <div className="container mx-auto px-4 py-8">
-             <Card className="max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 py-8 md:py-16">
+             <Card className="max-w-4xl mx-auto shadow-lg">
                 <CardContent className="p-8">
                   <div className="grid md:grid-cols-2 gap-12">
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-bold">Contact</h2>
+                    <div className="space-y-8">
+                        <CardHeader className="p-0">
+                            <CardTitle className="text-2xl">Nos Coordonnées</CardTitle>
+                        </CardHeader>
                         <div className="space-y-4 text-muted-foreground">
-                            <p><strong>Email:</strong> contact@studin.online</p>
-                            <p><strong>Siège social:</strong> Namur, Belgique</p>
+                            <div className="flex items-center gap-3">
+                                <Mail className="h-5 w-5 text-primary" />
+                                <span>contact@studin.online</span>
+                            </div>
+                             <div className="flex items-center gap-3">
+                                <MapPin className="h-5 w-5 text-primary" />
+                                <span>Namur, Belgique</span>
+                            </div>
                         </div>
                         <div className="pt-4 border-t">
                             <p className="text-sm text-muted-foreground">

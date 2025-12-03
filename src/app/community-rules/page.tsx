@@ -1,7 +1,5 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
-import { GraduationCap } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -10,14 +8,14 @@ export default function CommunityRulesPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-            <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-                <div className="container mx-auto px-4 py-12 text-center">
-                    <h1 className="text-4xl font-bold">Règles de la Communauté</h1>
-                    <p className="mt-2 text-lg opacity-90">Ensemble, créons un environnement sûr et respectueux.</p>
+            <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
+                <div className="container mx-auto px-4 py-16 text-center">
+                    <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Règles de la Communauté</h1>
+                    <p className="mt-2 text-lg text-muted-foreground">Ensemble, créons un environnement sûr et respectueux.</p>
                 </div>
             </div>
-            <div className="container mx-auto px-4 py-8">
-                 <Card className="py-10 px-6">
+            <div className="container mx-auto px-4 py-8 md:py-16">
+                 <Card className="py-10 px-6 max-w-4xl mx-auto shadow-lg">
                     <CardContent className="prose max-w-none">
                         <p className="lead">Bienvenue dans la communauté STUD'IN ! Pour que cette plateforme reste un lieu d'échange positif et constructif pour tous, nous vous demandons de respecter les règles suivantes. Tout manquement pourra entraîner la suppression de contenu, voire la suspension de votre compte.</p>
                         

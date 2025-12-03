@@ -39,12 +39,12 @@ export default function AboutPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        <section className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+        <section className="bg-gradient-to-br from-primary/10 to-secondary/10">
           <div className="container mx-auto px-4 py-16 text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">
               À Propos de STUD'IN
             </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg opacity-90 md:text-xl">
+            <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground md:text-xl">
               Notre mission : simplifier la vie des étudiants de la Fédération Wallonie-Bruxelles.
             </p>
           </div>

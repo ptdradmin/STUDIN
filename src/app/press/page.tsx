@@ -1,7 +1,5 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
-import { GraduationCap } from "lucide-react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
@@ -10,15 +8,15 @@ export default function PressPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        <div className="bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-            <div className="container mx-auto px-4 py-12 text-center">
-                <h1 className="text-4xl font-bold">Espace Presse</h1>
-                <p className="text-lg mt-2 opacity-90">Informations sur les nouveautés et futures mises à jour.</p>
+        <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
+            <div className="container mx-auto px-4 py-16 text-center">
+                <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Espace Presse</h1>
+                <p className="text-lg mt-2 text-muted-foreground">Informations sur les nouveautés et futures mises à jour.</p>
             </div>
         </div>
-        <div className="container mx-auto px-4 py-8">
-            <Card className="py-10">
-                <CardContent className="prose max-w-3xl mx-auto text-center">
+        <div className="container mx-auto px-4 py-8 md:py-16">
+            <Card className="py-10 max-w-3xl mx-auto shadow-lg">
+                <CardContent className="prose max-w-none text-center">
                     <h2 className="text-3xl font-bold">STUD'IN : L'Avenir de la Vie Étudiante</h2>
                     <p className="text-lg text-muted-foreground">
                         STUD'IN est une application mobile et web en cours de développement visant à centraliser tous les services essentiels à la vie des étudiants de la Fédération Wallonie-Bruxelles.
