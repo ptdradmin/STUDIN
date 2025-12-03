@@ -93,10 +93,10 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
                 await audioRef.current.play();
                 setCurrentlyPlaying(song.url);
             } catch (error) {
-                console.error("Audio play error:", error);
                  if (error instanceof DOMException && error.name === 'AbortError') {
                     // This can happen on rapid clicks, safely ignore.
                 } else {
+                    console.error("Audio play error:", error);
                     setCurrentlyPlaying(null);
                 }
             }
