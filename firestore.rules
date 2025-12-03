@@ -199,13 +199,14 @@ service cloud.firestore {
     // Défi Rules
     // =====================================================================
     match /challenges/{challengeId} {
-      allow read: if isSignedIn();
+      allow get: if true;
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && (isRole(request.auth.uid, 'admin') || isRole(request.auth.uid, 'institution'));
       allow update, delete: if isSignedIn() && (isRole(request.auth.uid, 'admin') || (isRole(request.auth.uid, 'institution') && isChallengeCreator(challengeId)));
 
       match /submissions/{submissionId} {
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow update: if isSignedIn() && (isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
         allow delete: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
       }
