@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,7 +15,7 @@ import { useFirestore, useUser, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Film, Music } from 'lucide-react';
+import { Film, Music, Play, Pause } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
 import { Progress } from './ui/progress';
@@ -42,6 +42,60 @@ const trendingSongs = [
     { title: "Espresso", artist: "Sabrina Carpenter", url: "/music/espresso.mp3" },
     { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
 ];
+
+function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: { title: string, url: string }) => void, onClose: () => void }) {
+    const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const togglePlay = (song: { title: string, url: string }) => {
+        if (currentlyPlaying === song.url) {
+            audioRef.current?.pause();
+            setCurrentlyPlaying(null);
+        } else {
+            if (audioRef.current) {
+                audioRef.current.src = song.url;
+                audioRef.current.play();
+            }
+            setCurrentlyPlaying(song.url);
+        }
+    };
+    
+    useEffect(() => {
+        audioRef.current = new Audio();
+        audioRef.current.addEventListener('ended', () => setCurrentlyPlaying(null));
+        return () => {
+            audioRef.current?.pause();
+            audioRef.current = null;
+        }
+    }, []);
+
+    return (
+        <Dialog open onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Sons populaires</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                    {trendingSongs.map(song => (
+                        <div key={song.title} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                            <div className="cursor-pointer flex-grow" onClick={() => onSelectSong(song)}>
+                                <p className="font-semibold">{song.title}</p>
+                                <p className="text-sm text-muted-foreground">{song.artist}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => togglePlay(song)}>
+                                {currentlyPlaying === song.url ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+                <DialogFooter>
+                     <Button variant="secondary" onClick={onClose}>Fermer</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 
 export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReelFormInputs>({
@@ -187,7 +241,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                 {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
                 
                 <div className="border-t pt-4">
-                    <Button variant="ghost" className="w-full justify-start p-0" onClick={() => setShowMusicSelection(true)}>
+                    <Button variant="ghost" className="w-full justify-start p-0" type="button" onClick={() => setShowMusicSelection(true)}>
                         <Music className="h-4 w-4 mr-2" />
                         {selectedSong ? selectedSong.title : 'Ajouter de la musique'}
                     </Button>
@@ -208,29 +262,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         </form>
       </DialogContent>
     </Dialog>
-    {showMusicSelection && (
-            <Dialog open onOpenChange={() => setShowMusicSelection(false)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Sons populaires</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-2">
-                        {trendingSongs.map(song => (
-                            <div key={song.title} onClick={() => handleSelectSong(song)} className="flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer">
-                                <div>
-                                    <p className="font-semibold">{song.title}</p>
-                                    <p className="text-sm text-muted-foreground">{song.artist}</p>
-                                </div>
-                                <audio src={song.url} controls className="h-8" />
-                            </div>
-                        ))}
-                    </div>
-                    <DialogFooter>
-                         <Button variant="secondary" onClick={() => setShowMusicSelection(false)}>Fermer</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        )}
+    {showMusicSelection && <MusicSelectionDialog onSelectSong={handleSelectSong} onClose={() => setShowMusicSelection(false)} />}
     </>
   );
 }

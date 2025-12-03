@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -6,7 +7,7 @@ import type { Post, Favorite } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
@@ -40,10 +41,45 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
     const [showAllComments, setShowAllComments] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+
+    const postRef = useRef<HTMLDivElement>(null);
     
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    if (audioRef.current) {
+                        audioRef.current.play().catch(e => console.error("Audio play failed", e));
+                        setIsPlaying(true);
+                    }
+                } else {
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        setIsPlaying(false);
+                    }
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        const currentPostRef = postRef.current;
+        if (currentPostRef) {
+            observer.observe(currentPostRef);
+        }
+
+        return () => {
+            if (currentPostRef) {
+                observer.unobserve(currentPostRef);
+            }
+            audioRef.current?.pause();
+        };
+    }, [post.audioUrl]);
 
 
     const getInitials = (name: string) => {
@@ -214,7 +250,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
 
 
     return (
-        <div className="w-full bg-card text-card-foreground border-b">
+        <div ref={postRef} className="w-full bg-card text-card-foreground border-b">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -278,12 +314,17 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
             )}
              
             {post.audioUrl && (
-                <div className="p-3 border-t">
-                    <div className="flex items-center gap-3">
-                         <Music className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-semibold">{post.songTitle}</span>
+                 <div className="flex items-center gap-2 p-3 bg-muted/50 border-y overflow-hidden">
+                    <Music className="h-4 w-4 flex-shrink-0" />
+                    <div className="w-full relative h-4 overflow-hidden">
+                        <p className="text-sm font-semibold whitespace-nowrap absolute animate-marquee group-hover:pause">
+                            {post.songTitle}
+                        </p>
                     </div>
-                    <audio ref={audioRef} src={post.audioUrl} controls className="w-full h-8 mt-2" />
+                    <audio ref={audioRef} src={post.audioUrl} loop muted={isMuted} />
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMuted(!isMuted)}>
+                       {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    </Button>
                 </div>
             )}
 

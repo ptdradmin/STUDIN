@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,7 +16,7 @@ import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/fi
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, ArrowLeft, AspectRatio, Music } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, AspectRatio, Music, Play, Pause } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +48,59 @@ const trendingSongs = [
     { title: "Espresso", artist: "Sabrina Carpenter", url: "/music/espresso.mp3" },
     { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
 ];
+
+function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: { title: string, url: string }) => void, onClose: () => void }) {
+    const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const togglePlay = (song: { title: string, url: string }) => {
+        if (currentlyPlaying === song.url) {
+            audioRef.current?.pause();
+            setCurrentlyPlaying(null);
+        } else {
+            if (audioRef.current) {
+                audioRef.current.src = song.url;
+                audioRef.current.play();
+            }
+            setCurrentlyPlaying(song.url);
+        }
+    };
+
+    useEffect(() => {
+        audioRef.current = new Audio();
+        audioRef.current.addEventListener('ended', () => setCurrentlyPlaying(null));
+        return () => {
+            audioRef.current?.pause();
+            audioRef.current = null;
+        }
+    }, []);
+
+    return (
+        <Dialog open onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Sons populaires</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                    {trendingSongs.map(song => (
+                        <div key={song.title} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                            <div className="cursor-pointer flex-grow" onClick={() => onSelectSong(song)}>
+                                <p className="font-semibold">{song.title}</p>
+                                <p className="text-sm text-muted-foreground">{song.artist}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => togglePlay(song)}>
+                                {currentlyPlaying === song.url ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+                <DialogFooter>
+                    <Button variant="secondary" onClick={onClose}>Fermer</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<PostFormInputs>({
@@ -163,6 +216,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   };
 
   return (
+    <>
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl p-0 h-[80vh] flex flex-col" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="p-3 pb-0 border-b text-center relative flex justify-between items-center flex-row flex-shrink-0">
@@ -240,30 +294,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             </div>
           )}
         </div>
-        {showMusicSelection && (
-            <Dialog open onOpenChange={() => setShowMusicSelection(false)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Sons populaires</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-2">
-                        {trendingSongs.map(song => (
-                            <div key={song.title} onClick={() => handleSelectSong(song)} className="flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer">
-                                <div>
-                                    <p className="font-semibold">{song.title}</p>
-                                    <p className="text-sm text-muted-foreground">{song.artist}</p>
-                                </div>
-                                <audio src={song.url} controls className="h-8" />
-                            </div>
-                        ))}
-                    </div>
-                    <DialogFooter>
-                         <Button variant="secondary" onClick={() => setShowMusicSelection(false)}>Fermer</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        )}
       </DialogContent>
     </Dialog>
+    {showMusicSelection && <MusicSelectionDialog onSelectSong={handleSelectSong} onClose={() => setShowMusicSelection(false)} />}
+    </>
   );
 }
