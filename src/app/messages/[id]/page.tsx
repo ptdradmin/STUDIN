@@ -4,7 +4,7 @@
 
 import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Conversation, ChatMessage } from "@/lib/types";
-import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
+import { collection, query, doc, orderBy, serverTimestamp, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -242,7 +242,7 @@ export default function ConversationPage() {
         const messagesColRef = collection(firestore, 'conversations', conversationId, 'messages');
         const messageDocRef = doc(messagesColRef);
         
-        const messageData: Partial<ChatMessage> = {
+        const messageData: ChatMessage = {
             id: messageDocRef.id,
             senderId: user.uid,
             text: newMessage,
@@ -322,10 +322,10 @@ export default function ConversationPage() {
 
     const stopRecording = (cancel = false) => {
         if (mediaRecorderRef.current && isRecording) {
-            if (!cancel) {
-                mediaRecorderRef.current.stop();
-            } else {
-                mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+            mediaRecorderRef.current.stop();
+            if(cancel) {
+                audioChunksRef.current = [];
+                setFileToSend(null);
             }
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
@@ -350,6 +350,8 @@ export default function ConversationPage() {
         setFileToSend(null);
         setNewMessage('');
     }
+    
+    const canSend = (!!newMessage.trim() || !!fileToSend) && uploadProgress === null;
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -392,31 +394,24 @@ export default function ConversationPage() {
                     
                     {isRecording ? (
                          <div className="flex items-center gap-2 h-10">
-                             <Button type="button" variant="destructive" size="icon" onClick={() => stopRecording()}>
-                                 <StopCircle className="h-5 w-5" />
-                             </Button>
-                             <div className="flex-grow text-center flex items-center justify-center gap-2">
-                                <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                                 <span className="font-mono text-sm">{formatRecordingTime(recordingTime)}</span>
-                             </div>
-                              <Button type="button" variant="ghost" size="icon" onClick={() => stopRecording(true)}>
-                                 <Trash2 className="h-5 w-5 text-muted-foreground" />
-                             </Button>
-                         </div>
+                            <Button type="button" variant="destructive" size="icon" onClick={() => stopRecording()}>
+                                <StopCircle className="h-5 w-5" />
+                            </Button>
+                            <div className="flex-grow text-center flex items-center justify-center gap-2">
+                               <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                <span className="font-mono text-sm">{formatRecordingTime(recordingTime)}</span>
+                            </div>
+                             <Button type="button" variant="ghost" size="icon" onClick={() => stopRecording(true)}>
+                                <Trash2 className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                        </div>
                     ) : (
                         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                            <input 
-                                type="file" 
-                                ref={fileInputRef} 
-                                className="hidden" 
-                                onChange={handleFileChange}
-                                accept="image/*,video/*,audio/*"
-                            />
-                            <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
+                            <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} disabled={!!fileToSend}>
                                 <Paperclip className="h-5 w-5" />
                             </Button>
                             <Input 
-                                placeholder="Écrivez votre message..." 
+                                placeholder={fileToSend ? "Prêt à envoyer l'audio..." : "Écrivez votre message..."}
                                 className="flex-grow" 
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
@@ -427,7 +422,7 @@ export default function ConversationPage() {
                                      <Mic className="h-5 w-5"/>
                                  </Button>
                              ) : (
-                                 <Button type="submit" size="icon" disabled={(!newMessage.trim() && !fileToSend) || uploadProgress !== null}>
+                                 <Button type="submit" size="icon" disabled={!canSend} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                                      <Send className="h-5 w-5"/>
                                  </Button>
                              )}
@@ -438,5 +433,3 @@ export default function ConversationPage() {
         </div>
     );
 }
-
-    
