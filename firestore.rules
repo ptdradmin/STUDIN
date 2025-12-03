@@ -42,12 +42,12 @@ service cloud.firestore {
     function hasRequiredStudentFields() {
         let data = request.resource.data;
         return data.role == 'student'
-            && data.firstName is string && data.firstName.size() > 0
-            && data.lastName is string && data.lastName.size() > 0
-            && data.postalCode is string && data.postalCode.size() > 0
-            && data.city is string && data.city.size() > 0
-            && data.university is string && data.university.size() > 0
-            && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0;
+            && data.firstName is string
+            && data.lastName is string
+            && data.postalCode is string
+            && data.city is string
+            && data.university is string
+            && data.fieldOfStudy is string;
     }
     
     function hasRequiredInstitutionFields() {
@@ -58,15 +58,11 @@ service cloud.firestore {
             && data.city is string;
     }
 
-    function hasRequiredUserFields() {
+    function hasRequiredUserFieldsOnCreate() {
       let data = request.resource.data;
       return data.id == request.auth.uid
           && data.username is string && data.username.size() > 0
-          && data.email is string && data.email.size() > 0
-          && data.isVerified == false
-          && data.followerIds is list
-          && data.followingIds is list
-          && (hasRequiredStudentFields() || hasRequiredInstitutionFields());
+          && data.email is string && data.email.size() > 0;
     }
     
     // =====================================================================
@@ -75,7 +71,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn() && request.query.keys().hasOnly(['orderBy', 'startAt', 'endAt', 'limit']);
-      allow create: if isOwner(userId) && hasRequiredUserFields();
+      // Allow creation with minimal fields, full validation on update
+      allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']) ||
