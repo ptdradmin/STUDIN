@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon, ArrowLeft, Crop } from 'lucide-react';
-import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -102,7 +102,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<PostFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
     if (!user || !firestore || !storage || !userProfile) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
@@ -112,56 +112,53 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         return;
     }
     setLoading(true);
+    toast({ title: 'Publication en cours...', description: 'Votre publication apparaîtra dans le fil.' });
 
     const newDocRef = doc(collection(firestore, 'posts'));
     const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
-    toast({ title: 'Publication en cours...', description: 'Votre publication apparaîtra dans le fil.' });
+    try {
+        // 1. Upload image
+        const snapshot = await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(snapshot.ref);
 
-    uploadTask.on('state_changed',
-        (snapshot) => {
-            // Optional: handle progress
-        },
-        (error) => {
-            console.error("Upload error:", error);
-            setLoading(false);
-            toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "Impossible de téléverser l'image." });
-        },
-        async () => {
-            try {
-                const imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-                const postData = {
-                    ...data,
-                    id: newDocRef.id,
-                    userId: user.uid,
-                    username: userProfile.username, // Use username from profile
-                    userAvatarUrl: userProfile.profilePicture, // Use avatar from profile
-                    createdAt: serverTimestamp(),
-                    updatedAt: serverTimestamp(),
-                    likes: [],
-                    comments: [],
-                    imageUrl: imageUrl,
-                };
-                
-                await setDoc(newDocRef, postData);
-                
-                toast({ title: 'Succès', description: 'Publication créée !' });
-                onClose();
-                router.refresh();
+        // 2. Prepare post data
+        const postData = {
+            ...data,
+            id: newDocRef.id,
+            userId: user.uid,
+            username: userProfile.username,
+            userAvatarUrl: userProfile.profilePicture,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            likes: [],
+            comments: [],
+            imageUrl: imageUrl,
+        };
 
-            } catch (err) {
-                 const permissionError = new FirestorePermissionError({
-                    path: newDocRef.path,
-                    operation: 'create',
-                    requestResourceData: data,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            } finally {
-                setLoading(false);
-            }
-        }
-    );
+        // 3. Write post data to Firestore
+        await setDoc(newDocRef, postData);
+        
+        toast({ title: 'Succès', description: 'Publication créée !' });
+        onClose();
+        router.refresh();
+
+    } catch (error: any) {
+        // This will now catch both upload and firestore errors
+        console.error("Error creating post:", error);
+        errorEmitter.emit(
+            'permission-error',
+            new FirestorePermissionError({
+                path: newDocRef.path,
+                operation: 'create',
+                requestResourceData: data,
+            })
+        );
+        toast({ variant: 'destructive', title: 'Erreur de publication', description: "Impossible de créer la publication. Vérifiez vos permissions." });
+    } finally {
+        // 4. THIS IS CRITICAL: Always reset loading state
+        setLoading(false);
+    }
   };
 
   const aspectClasses: Record<AspectRatio, string> = {
