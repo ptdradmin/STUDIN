@@ -6,16 +6,15 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Star, MessageSquare, GraduationCap, Search, ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
+import { Star, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import type { Tutor, TutoringReview, UserProfile } from '@/lib/types';
+import type { Tutor, TutoringReview } from '@/lib/types';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { getOrCreateConversation } from '@/lib/conversations';
 import { format } from 'date-fns';
@@ -151,11 +150,8 @@ export default function TutorProfilePage() {
                  <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9">
                     <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <div className="hidden md:flex flex-1 max-w-md items-center">
+                <div className="flex-1 max-w-md">
                     <GlobalSearch />
-                </div>
-                <div className="flex-1 md:hidden">
-                    <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
                 </div>
                 <div className="flex items-center gap-2">
                     <NotificationsDropdown />
@@ -241,5 +237,3 @@ export default function TutorProfilePage() {
     </div>
   );
 }
-
-    

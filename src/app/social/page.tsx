@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GraduationCap, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import GlobalSearch from '@/components/global-search';
@@ -134,12 +134,8 @@ export default function SocialPage() {
     const postsQuery = useMemoFirebase(() => {
         if (!firestore || !user || isProfileLoading) return null;
         
-        // Query posts from the user and the people they follow
         const idsToQuery = [...new Set([user.uid, ...(followingIds || [])])];
         
-        // Firestore 'in' queries are limited to 30 items in the array.
-        // For this app, we'll just take the first 29 followed users + the current user.
-        // A more robust solution might involve a backend that aggregates feeds.
         if (idsToQuery.length === 0) return null;
         
         return query(
@@ -234,7 +230,7 @@ export default function SocialPage() {
                              ) : (
                                <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
                                     <p className="text-lg font-semibold">Votre fil est vide</p>
-                                    <p className="text-sm">Suivez des personnes pour voir leurs publications ici. Commencez avec les suggestions ci-dessus !</p>
+                                    <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
                                 </div>
                             )}
                         </div>

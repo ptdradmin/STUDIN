@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2, MapPin, Play, UserCheck, X } from 'lucide-react';
+import { ArrowLeft, Check, Trophy, UploadCloud, Loader2, MapPin, Play, UserCheck, X } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge, ChallengeSubmission, UserProfile } from '@/lib/types';
@@ -218,11 +218,8 @@ export default function ChallengeDetailPage() {
                         <ArrowLeft className="h-5 w-5" />
                         <span className="hidden sm:inline">Retour aux défis</span>
                     </Button>
-                    <div className="hidden md:flex flex-1 max-w-md items-center">
+                    <div className="flex-1 max-w-md">
                         <GlobalSearch />
-                    </div>
-                    <div className="flex-1 md:hidden text-center font-bold">
-                        {challenge.title}
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationsDropdown />
@@ -390,5 +387,3 @@ export default function ChallengeDetailPage() {
         </div>
     )
 }
-
-    

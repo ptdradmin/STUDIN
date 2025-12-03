@@ -46,45 +46,24 @@ function SearchResults() {
             const searchTerm = q.toLowerCase();
             let allResults: SearchResult[] = [];
 
-             // Only search users collection textually
-            const userConfig = searchCollections.users;
-            const userQuery = query(
-                collection(firestore, 'users'),
-                orderBy(userConfig.field),
-                where(userConfig.field, '>=', searchTerm),
-                where(userConfig.field, '<=', searchTerm + '\uf8ff'),
-                limit(20)
-            );
-            
-            try {
-                const userSnapshot = await getDocs(userQuery);
-                const userItems = userSnapshot.docs.map(doc => ({
-                    type: userConfig.type,
-                    data: doc.data(),
-                } as SearchResult));
-                allResults = [...allResults, ...userItems];
-            } catch (error) {
-                console.error(`Error searching in users:`, error);
-            }
-
-            // For other collections, we just fetch recent items as we can't perform text search easily
-            for (const [col, config] of Object.entries(searchCollections)) {
-                 if (col === 'users') continue;
-
-                 const otherQuery = query(
-                     collection(firestore, col),
-                     orderBy('createdAt', 'desc'),
-                     limit(10)
-                 );
-                  try {
-                    const querySnapshot = await getDocs(otherQuery);
+             for (const [col, config] of Object.entries(searchCollections)) {
+                const q = query(
+                    collection(firestore, col),
+                    orderBy(config.field),
+                    where(config.field, '>=', searchTerm),
+                    where(config.field, '<=', searchTerm + '\uf8ff'),
+                    limit(20)
+                );
+                
+                try {
+                    const querySnapshot = await getDocs(q);
                     const items = querySnapshot.docs.map(doc => ({
                         type: config.type,
                         data: doc.data(),
                     } as SearchResult));
                     allResults = [...allResults, ...items];
                 } catch (error) {
-                    console.error(`Error fetching from ${col}:`, error)
+                    console.error(`Error searching in ${col}:`, error);
                 }
             }
             
@@ -165,11 +144,8 @@ export default function SearchPage() {
             <SocialSidebar />
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                    <div className="hidden md:flex flex-1 max-w-md items-center">
+                    <div className="flex-1 max-w-md">
                         <GlobalSearch />
-                    </div>
-                    <div className="flex-1 md:hidden">
-                        <Button variant="ghost" size="icon"><SearchIcon className="h-6 w-6" /></Button>
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationsDropdown />

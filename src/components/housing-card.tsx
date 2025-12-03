@@ -205,7 +205,3 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
         </Card>
     );
 }
-
-    
-
-    

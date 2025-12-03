@@ -20,8 +20,8 @@ interface SearchResultItemProps {
 
 const typeConfig = {
     user: { icon: User, getTitle: (d: UserProfile) => d.username, getSubtitle: (d: UserProfile) => `${d.firstName} ${d.lastName}`, getLink: (d: UserProfile) => `/profile/${d.id}` },
-    housing: { icon: Bed, getTitle: (d: Housing) => d.title, getSubtitle: (d: Housing) => d.city, getLink: (d: Housing) => `/housing` }, // Simplified link
-    event: { icon: PartyPopper, getTitle: (d: Event) => d.title, getSubtitle: (d: Event) => d.city, getLink: (d: Event) => `/events` }, // Simplified link
+    housing: { icon: Bed, getTitle: (d: Housing) => d.title, getSubtitle: (d: Housing) => d.city, getLink: (d: Housing) => `/housing/${d.id}` },
+    event: { icon: PartyPopper, getTitle: (d: Event) => d.title, getSubtitle: (d: Event) => d.city, getLink: (d: Event) => `/events#event-${d.id}` },
     tutor: { icon: BookOpen, getTitle: (d: Tutor) => d.subject, getSubtitle: (d: Tutor) => `par ${d.username}`, getLink: (d: Tutor) => `/tutoring/${d.id}` },
 };
 

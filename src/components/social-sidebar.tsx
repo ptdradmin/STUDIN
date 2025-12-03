@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 
 const mainNavItems = [
-  { href: "/social", label: "Accueil", icon: Home, roles: ['student'] },
+  { href: "/social", label: "Accueil", icon: Home, roles: ['student', 'institution', 'admin'] },
   { href: "/reels", label: "Reels", icon: Film, roles: ['student', 'institution', 'admin'] },
   { href: "/messages", label: "Messages", icon: MessageSquare, roles: ['student', 'institution', 'admin'] },
   { href: "/challenges", label: "Défis", icon: Target, roles: ['student', 'institution', 'admin'] },
@@ -31,12 +31,12 @@ const mainNavItems = [
   { href: "/housing", label: "Logements", icon: Bed, roles: ['student'] },
   { href: "/carpooling", label: "Covoiturage", icon: Car, roles: ['student'] },
   { href: "/tutoring", label: "Tutorat", icon: BookOpen, roles: ['student'] },
-  { href: "/events", label: "Événements", icon: PartyPopper, roles: ['student'] },
+  { href: "/events", label: "Événements", icon: PartyPopper, roles: ['student', 'institution', 'admin'] },
 ];
 
 function NavLink({ item, pathname }: { item: { href?: string, label: string, icon: React.ElementType }, pathname: string}) {
   const { href, label, icon: Icon } = item;
-  const isActive = href ? pathname === href : false;
+  const isActive = href ? pathname.startsWith(href) : false;
 
   return (
     <Link href={href || '#'} className="block">
@@ -87,9 +87,7 @@ export default function SocialSidebar() {
     }
 
     if (!user) {
-      // Don't show sidebar if not logged in.
-      // This case is for pages that conditionally show the sidebar.
-      const publicPages = ['/social', '/reels', '/messages', '/challenges', '/leaderboard', '/housing', '/carpooling', '/tutoring', '/events', '/profile', '/dashboard'];
+      const publicPages = ['/social', '/reels', '/messages', '/challenges', '/leaderboard', '/housing', '/carpooling', '/tutoring', '/events', '/profile', '/dashboard', '/search'];
       if (!publicPages.some(p => pathname.startsWith(p))) {
         return null;
       }

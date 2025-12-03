@@ -59,12 +59,16 @@ export default function GlobalSearch() {
               limit(3)
           );
 
-          const querySnapshot = await getDocs(q);
-          const items = querySnapshot.docs.map(doc => ({
-              type: config.type,
-              data: doc.data(),
-          } as SearchResult));
-          allResults = [...allResults, ...items];
+          try {
+            const querySnapshot = await getDocs(q);
+            const items = querySnapshot.docs.map(doc => ({
+                type: config.type,
+                data: doc.data(),
+            } as SearchResult));
+            allResults = [...allResults, ...items];
+          } catch(e) {
+              console.error(`Could not search collection ${col}`, e);
+          }
       }
       
       setResults(allResults.slice(0, 7)); // Limit total initial results
