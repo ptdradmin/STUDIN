@@ -26,8 +26,7 @@ function ConversationList() {
         if (!firestore || !user) return null;
         return query(
             collection(firestore, 'conversations'),
-            where('participantIds', 'array-contains', user.uid),
-            orderBy('updatedAt', 'desc')
+            where('participantIds', 'array-contains', user.uid)
         );
     }, [firestore, user]);
 
@@ -35,7 +34,12 @@ function ConversationList() {
 
     const sortedConversations = useMemo(() => {
         if (!conversations) return [];
-        return conversations;
+        // Tri manuel côté client puisque l'orderBy a été retiré de la requête
+        return conversations.sort((a, b) => {
+            const dateA = a.updatedAt?.toDate() || new Date(0);
+            const dateB = b.updatedAt?.toDate() || new Date(0);
+            return dateB.getTime() - dateA.getTime();
+        });
     }, [conversations]);
 
     if (isLoading) {
