@@ -328,9 +328,6 @@ export default function ConversationPage() {
             }
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
-            if (cancel) {
-                setFileToSend(null);
-            }
         }
     };
     
