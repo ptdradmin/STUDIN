@@ -202,7 +202,7 @@ service cloud.firestore {
     // =====================================================================
     match /posts/{postId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow list: if isSignedIn() && request.query.where[0] == 'userId';
       
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
