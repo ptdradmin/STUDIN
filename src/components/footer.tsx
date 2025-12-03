@@ -75,7 +75,12 @@ export default function Footer() {
                         </div>
                     ))}
                 </div>
-                <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
+                 <div className="mt-8 pt-4 border-t">
+                    <Link href="/register-institution" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                        Vous êtes une institution partenaire ? Inscrivez-vous ici.
+                    </Link>
+                </div>
+                <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
                     <p>&copy; {new Date().getFullYear()} STUD'IN. Tous droits réservés.</p>
                 </div>
             </div>

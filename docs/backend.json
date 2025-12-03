@@ -11,6 +11,11 @@
           "type": "string",
           "description": "Unique identifier for the user entity."
         },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["student", "institution", "admin"]
+        },
         "username": {
             "type": "string",
             "description": "User's public username."
@@ -98,16 +103,26 @@
       },
       "required": [
         "id",
+        "role",
         "username",
-        "email",
-        "firstName",
-        "lastName",
-        "postalCode",
-        "city",
-        "university",
-        "fieldOfStudy",
-        "isVerified"
+        "email"
       ]
+    },
+    "Institution": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Institution",
+        "type": "object",
+        "description": "Represents an institutional partner on the STUD'IN platform.",
+        "properties": {
+            "id": { "type": "string" },
+            "userId": { "type": "string", "description": "The ID of the user account associated with this institution." },
+            "name": { "type": "string" },
+            "postalCode": { "type": "string" },
+            "city": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "userId", "name", "postalCode", "city", "email"]
     },
      "Post": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -376,6 +391,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "Stores user profiles. Accessible only to the user with the matching userId."
+    },
+     "/institutions/{institutionId}": {
+      "schema": { "$ref": "#/entities/Institution" },
+      "description": "Stores institutional partner profiles."
     },
     "/users/{userId}/notifications/{notificationId}": {
       "schema": { "$ref": "#/entities/Notification" },

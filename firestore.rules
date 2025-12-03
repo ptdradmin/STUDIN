@@ -27,20 +27,34 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
 
+    function hasRequiredStudentFields() {
+        let data = request.resource.data;
+        return data.role == 'student'
+            && data.firstName is string && data.firstName.size() > 0
+            && data.lastName is string && data.lastName.size() > 0
+            && data.postalCode is string && data.postalCode.size() > 0
+            && data.city is string && data.city.size() > 0
+            && data.university is string && data.university.size() > 0
+            && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0;
+    }
+    
+    function hasRequiredInstitutionFields() {
+         let data = request.resource.data;
+         return data.role == 'institution'
+            && data.firstName is string // Corresponds to institution name in this context
+            && data.postalCode is string
+            && data.city is string;
+    }
+
     function hasRequiredUserFields() {
       let data = request.resource.data;
       return data.id == request.auth.uid
           && data.username is string && data.username.size() > 0
           && data.email is string && data.email.size() > 0
-          && data.firstName is string && data.firstName.size() > 0
-          && data.lastName is string && data.lastName.size() > 0
-          && data.postalCode is string && data.postalCode.size() > 0
-          && data.city is string && data.city.size() > 0
-          && data.university is string && data.university.size() > 0
-          && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0
           && data.isVerified == false
           && data.followerIds is list
-          && data.followingIds is list;
+          && data.followingIds is list
+          && (hasRequiredStudentFields() || hasRequiredInstitutionFields());
     }
     
     // =====================================================================
@@ -73,6 +87,16 @@ service cloud.firestore {
       }
     }
 
+    // =====================================================================
+    // Institutions Rules
+    // =====================================================================
+    match /institutions/{institutionId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isOwner(resource.data.userId);
+    }
+    
     // =====================================================================
     // Housing Rules
     // =====================================================================
@@ -186,7 +210,7 @@ service cloud.firestore {
     match /conversations/{conversationId} {
       allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow list: if isSignedIn() && request.query.where[0] == ['participantIds', 'array-contains', request.auth.uid];
+      allow list: if isSignedIn() && request.query.where[0] == 'participantIds' && request.query.where[1] == 'array-contains' && request.query.where[2] == request.auth.uid;
 
       match /messages/{messageId} {
         allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;

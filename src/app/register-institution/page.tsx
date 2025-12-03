@@ -1,9 +1,9 @@
 
-import RegisterForm from '@/components/register-form';
+import RegisterInstitutionForm from '@/components/register-institution-form';
 import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
-export default function RegisterPage() {
+export default function RegisterInstitutionPage() {
   return (
     <div className="container relative flex min-h-screen flex-col items-center justify-center py-10">
        <div className="absolute top-8 left-8">
@@ -14,13 +14,7 @@ export default function RegisterPage() {
               <h1 className="text-xl font-bold">STUD'IN</h1>
           </Link>
        </div>
-      <RegisterForm />
-       <div className="absolute bottom-8 text-center text-sm text-muted-foreground">
-          Vous êtes une institution ou un partenaire ?{' '}
-          <Link href="/register-institution" className="font-semibold text-primary hover:underline">
-            Inscrivez-vous ici.
-          </Link>
-        </div>
+      <RegisterInstitutionForm />
     </div>
   );
 }
