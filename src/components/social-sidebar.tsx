@@ -26,7 +26,7 @@ const mainNavItems = [
   { href: "/reels", label: "Reels", icon: Film },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/challenges", label: "Défis", icon: Target },
-  { href: "/leaderboard", label: "Classement", icon: Trophy, roles: ['institution', 'admin'] },
+  { href: "/leaderboard", label: "Classement", icon: Trophy },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/tutoring", label: "Tutorat", icon: BookOpen },
@@ -85,22 +85,32 @@ export default function SocialSidebar() {
         return email.substring(0, 2).toUpperCase();
     }
 
-    if (!user) return null;
+    if (!user) {
+      // Don't show sidebar if not logged in.
+      // This case is for pages that conditionally show the sidebar.
+      const publicPages = ['/social', '/reels', '/messages', '/challenges', '/leaderboard', '/housing', '/carpooling', '/tutoring', '/events', '/profile'];
+      if (!publicPages.some(p => pathname.startsWith(p))) {
+        return null;
+      }
+    }
 
     const visibleNavItems = mainNavItems.filter(item => {
-        if (!item.roles) return true; // Visible to all if no roles specified
-        if (!userProfile) return false; // Hide role-specific items if profile is not loaded
-        return item.roles.includes(userProfile.role);
+        if (item.label === 'Classement') {
+            return userProfile?.role === 'institution' || userProfile?.role === 'admin';
+        }
+        return true;
     });
 
     return (
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
-          <Link href="/social" className="mb-8 px-2 pt-3 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-xl font-bold">STUD'IN</h1>
-          </Link>
+          <div className="mb-8 px-2 pt-3">
+             <Link href="/social" className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                    <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-xl font-bold">STUD'IN</h1>
+            </Link>
+          </div>
 
           <nav className="flex flex-col gap-2 flex-grow">
             {visibleNavItems.map((item) => (
@@ -112,10 +122,10 @@ export default function SocialSidebar() {
              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
-                        <Avatar className="h-9 w-9">
+                        {user && <Avatar className="h-9 w-9">
                             <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user.uid)} />
                             <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
-                        </Avatar>
+                        </Avatar>}
                         <div className="flex flex-col items-start overflow-hidden">
                             <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
                             <p className="text-xs text-muted-foreground truncate">Voir les options</p>
