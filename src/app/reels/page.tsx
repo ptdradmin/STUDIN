@@ -22,22 +22,23 @@ export default function ReelsPage() {
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [hasMore, setHasMore] = useState(true);
 
-    const observerRef = useRef<IntersectionObserver>();
+    const observer = useRef<IntersectionObserver>();
 
-    const fetchReels = useCallback(async (startAfterDoc: QueryDocumentSnapshot<DocumentData> | null) => {
-        if (!firestore) return;
-        setIsLoading(true);
-
-        let q = query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(3));
-        if (startAfterDoc) {
-            q = query(q, startAfter(startAfterDoc));
-        }
+    const fetchNextReels = useCallback(async () => {
+        if (!firestore || !lastVisible) return;
+        
+        let q = query(
+            collection(firestore, 'reels'), 
+            orderBy('createdAt', 'desc'), 
+            startAfter(lastVisible),
+            limit(3)
+        );
         
         try {
             const documentSnapshots = await getDocs(q);
             const newReels = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reel));
             
-            setAllReels(prevReels => startAfterDoc ? [...prevReels, ...newReels] : newReels);
+            setAllReels(prevReels => [...prevReels, ...newReels]);
             
             const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
             setLastVisible(lastDoc || null);
@@ -46,27 +47,48 @@ export default function ReelsPage() {
                 setHasMore(false);
             }
         } catch (error) {
-            console.error("Error fetching reels:", error);
-        } finally {
-            setIsLoading(false);
+            console.error("Error fetching more reels:", error);
         }
-    }, [firestore]);
+    }, [firestore, lastVisible]);
     
     useEffect(() => {
-        fetchReels(null); // Fetch initial reels
-    }, [fetchReels]);
+        const fetchInitialReels = async () => {
+             if (!firestore) return;
+             setIsLoading(true);
+             setHasMore(true);
+
+             const q = query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(3));
+             try {
+                const documentSnapshots = await getDocs(q);
+                const initialReels = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reel));
+                setAllReels(initialReels);
+                
+                const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+                setLastVisible(lastDoc || null);
+
+                if (documentSnapshots.docs.length < 3) {
+                    setHasMore(false);
+                }
+             } catch (error) {
+                 console.error("Error fetching initial reels:", error);
+             } finally {
+                 setIsLoading(false);
+             }
+        };
+        fetchInitialReels();
+    }, [firestore]);
 
     const lastReelElementRef = useCallback(node => {
         if (isLoading) return;
-        if (observerRef.current) observerRef.current.disconnect();
+        if (observer.current) observer.current.disconnect();
         
-        observerRef.current = new IntersectionObserver(entries => {
+        observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
-                fetchReels(lastVisible);
+                fetchNextReels();
             }
         });
-        if (node) observerRef.current.observe(node);
-    }, [isLoading, hasMore, fetchReels, lastVisible]);
+        if (node) observer.current.observe(node);
+    }, [isLoading, hasMore, fetchNextReels]);
     
     const handleDeleteReel = (id: string) => {
         setAllReels(prevReels => prevReels.filter(r => r.id !== id));
