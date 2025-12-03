@@ -109,8 +109,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
-    // Close the modal immediately
-    onClose();
     toast({ title: 'Publication en cours...', description: 'Votre publication apparaîtra dans le fil.' });
 
     uploadTask.on('state_changed',
@@ -119,10 +117,12 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         },
         (error) => {
             console.error("Upload error:", error);
+            setLoading(false);
             toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "Impossible de téléverser l'image." });
         },
-        () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((imageUrl) => {
+        async () => {
+            try {
+                const imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
                 const postData = {
                     ...data,
                     id: newDocRef.id,
@@ -136,21 +136,20 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     imageUrl: imageUrl,
                 };
                 
-                 setDoc(newDocRef, postData).then(() => {
-                    toast({ title: 'Succès', description: 'Publication créée !' });
-                 }).catch((err) => {
-                    const permissionError = new FirestorePermissionError({
-                        path: newDocRef.path,
-                        operation: 'create',
-                        requestResourceData: postData,
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
-                });
+                await setDoc(newDocRef, postData);
+                
+                toast({ title: 'Succès', description: 'Publication créée !' });
+                onClose();
 
-            }).catch((error) => {
-                console.error("Error getting download URL:", error);
-                toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer la publication." });
-            });
+            } catch (err) {
+                 const permissionError = new FirestorePermissionError({
+                    path: newDocRef.path,
+                    operation: 'create',
+                    requestResourceData: data,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                setLoading(false);
+            }
         }
     );
   };
@@ -267,3 +266,5 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     </Dialog>
   );
 }
+
+    
