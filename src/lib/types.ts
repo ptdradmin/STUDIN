@@ -228,3 +228,18 @@ export interface Challenge {
     longitude?: number;
     createdAt: Timestamp;
 }
+
+export interface ChallengeSubmission {
+    id: string;
+    challengeId: string;
+    userId: string;
+    userProfile: {
+        username: string;
+        avatarUrl: string;
+    };
+    proofUrl: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: Timestamp;
+}
+
+    

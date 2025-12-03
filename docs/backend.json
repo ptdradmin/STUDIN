@@ -379,6 +379,28 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "creatorId", "title", "category", "difficulty", "points"]
+    },
+    "ChallengeSubmission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChallengeSubmission",
+      "type": "object",
+      "description": "Represents a user's submission for a challenge.",
+      "properties": {
+        "id": { "type": "string" },
+        "challengeId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userProfile": { 
+            "type": "object",
+            "properties": {
+                "username": { "type": "string" },
+                "avatarUrl": { "type": "string", "format": "uri" }
+            }
+        },
+        "proofUrl": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "challengeId", "userId", "proofUrl", "status", "createdAt"]
     }
   },
   "auth": {
@@ -452,6 +474,12 @@
     "/challenges/{challengeId}": {
       "schema": { "$ref": "#/entities/Challenge" },
       "description": "Stores UrbanQuest challenges. Publicly readable."
+    },
+    "/challenges/{challengeId}/submissions/{submissionId}": {
+        "schema": { "$ref": "#/entities/ChallengeSubmission" },
+        "description": "Stores user submissions for a specific challenge."
     }
   }
 }
+
+    

@@ -69,13 +69,11 @@ export default function LeaderboardPage() {
     }, [user, firestore]);
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
-    // Filter out the partner from the static data for now
-    const leaderboard = staticLeaderboard;
+    const isPartner = userProfile?.role === 'institution' || userProfile?.role === 'admin';
+    const leaderboard = isPartner ? staticLeaderboard.filter(u => u.userId !== 'user_current') : staticLeaderboard;
     const topThree = leaderboard.slice(0, 3);
     const restOfBoard = leaderboard.slice(3);
     const currentUserRanking = leaderboard.find(u => u.userId === 'user_current');
-
-    const isPartner = userProfile?.role === 'institution' || userProfile?.role === 'admin';
 
     if (profileLoading) {
         return (

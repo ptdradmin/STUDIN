@@ -5,10 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2, MapPin, Play, UserCheck } from 'lucide-react';
+import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2, MapPin, Play, UserCheck, X } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import type { Challenge } from '@/lib/types';
+import type { Challenge, ChallengeSubmission, UserProfile } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser } from '@/firebase';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -30,6 +31,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 const staticChallenges: Challenge[] = [
   {
     id: '1',
+    creatorId: 'partner-account-id', // Make this a predictable ID for demo purposes
     title: "Le Lion de Waterloo",
     description: "Prenez un selfie au pied de la Butte du Lion. Assurez-vous que le monument soit bien visible derrière vous. Bonus si vous imitez la posture du lion !",
     category: 'Exploration',
@@ -43,6 +45,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '2',
+    creatorId: 'admin-user',
     title: "Street Art à Bruxelles",
     description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock dans le centre-ville. La photo doit inclure un objet jaune pour prouver que vous y étiez récemment.",
     category: 'Créatif',
@@ -56,6 +59,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '3',
+    creatorId: 'admin-user',
     title: "Vue panoramique de Namur",
     description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre. Le défi doit être réalisé au coucher du soleil pour un maximum de points.",
     category: 'Exploration',
@@ -69,6 +73,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '4',
+    creatorId: 'admin-user',
     title: "Participer à une Cantus",
     description: "Immortialisez l'ambiance d'une cantus étudiante (avec respect et consentement !). Votre photo doit montrer votre codex ou votre verre.",
     category: 'Social',
@@ -79,6 +84,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '5',
+    creatorId: 'partner-account-id',
     title: "L'énigme du Manneken-Pis",
     description: "Le plus célèbre ket de Bruxelles a un secret. Chaque jeudi, un indice est révélé dans sa garde-robe. Trouvez l'indice de cette semaine et décryptez-le. Soumettez la réponse comme preuve.",
     category: 'Créatif',
@@ -88,6 +94,13 @@ const staticChallenges: Challenge[] = [
     location: 'Bruxelles', // On peut donner la ville sans les coordonnées précises
     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
+];
+
+
+const staticSubmissions: (ChallengeSubmission & { id: string })[] = [
+    { id: 'sub1', challengeId: '1', userId: 'user1', proofUrl: 'https://images.unsplash.com/photo-1549488344-cbb6c34cf08b?q=80&w=1974&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672620000, nanoseconds: 0 } as any, userProfile: { username: 'Alice', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=alice' } },
+    { id: 'sub2', challengeId: '1', userId: 'user2', proofUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1974&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672621000, nanoseconds: 0 } as any, userProfile: { username: 'Bob', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=bob' } },
+    { id: 'sub3', challengeId: '5', userId: 'user3', proofUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672622000, nanoseconds: 0 } as any, userProfile: { username: 'Charlie', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=charlie' } },
 ];
 
 
@@ -104,9 +117,22 @@ export default function ChallengeDetailPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [submissions, setSubmissions] = useState(staticSubmissions.filter(s => s.challengeId === challengeId));
 
     const challenge = staticChallenges.find(c => c.id === challengeId);
     
+    // This is a placeholder. In a real app, you'd fetch the user's role.
+    const isChallengeCreator = user?.uid === challenge?.creatorId;
+
+    const handleSubmissionAction = (submissionId: string, action: 'approve' | 'reject') => {
+        setSubmissions(prev => prev.filter(s => s.id !== submissionId));
+        toast({
+            title: `Participation ${action === 'approve' ? 'approuvée' : 'rejetée'}`,
+            description: `Les points de l'utilisateur ont été mis à jour.`,
+        });
+        // In a real app, you'd update the submission status and user points in Firestore.
+    };
+
     const imageHint = PlaceHolderImages.find(p => p.imageUrl === challenge?.imageUrl)?.imageHint || 'student challenge';
 
     const difficultyMap: {[key: string]: {text: string, color: string}} = {
@@ -258,7 +284,7 @@ export default function ChallengeDetailPage() {
                                 )}
 
                                 <Card>
-                                    {!isParticipating ? (
+                                    {!isParticipating && !isChallengeCreator ? (
                                         <CardContent className="p-6 text-center">
                                             <h3 className="font-bold">Prêt à relever le défi ?</h3>
                                             <p className="text-sm text-muted-foreground mt-2 mb-4">Cliquez sur participer pour commencer et débloquer la soumission de preuve.</p>
@@ -266,7 +292,7 @@ export default function ChallengeDetailPage() {
                                                 <Play className="mr-2 h-4 w-4" /> Participer au défi
                                             </Button>
                                         </CardContent>
-                                    ) : (
+                                    ) : !isChallengeCreator && (
                                         <>
                                             <CardHeader>
                                                 <CardTitle className="text-base flex items-center gap-2">
@@ -317,9 +343,52 @@ export default function ChallengeDetailPage() {
                                 </Card>
                             </div>
                         </div>
+
+                        {isChallengeCreator && (
+                            <div className="mt-10">
+                                <h2 className="text-2xl font-bold tracking-tight mb-4">Soumissions en attente ({submissions.length})</h2>
+                                <div className="space-y-4">
+                                {submissions.length > 0 ? submissions.map(sub => (
+                                    <Card key={sub.id}>
+                                        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start">
+                                            <div className="relative w-full md:w-48 h-48 flex-shrink-0 rounded-md overflow-hidden">
+                                                <Image src={sub.proofUrl} alt={`Preuve de ${sub.userProfile.username}`} layout="fill" objectFit="cover" />
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="h-8 w-8">
+                                                        <AvatarImage src={sub.userProfile.avatarUrl} />
+                                                        <AvatarFallback>{sub.userProfile.username.substring(0,2)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <p className="font-semibold">{sub.userProfile.username}</p>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-2">Soumis il y a quelques instants</p>
+                                            </div>
+                                            <div className="flex gap-2 self-start md:self-center flex-shrink-0">
+                                                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleSubmissionAction(sub.id, 'reject')}>
+                                                    <X className="mr-2 h-4 w-4" /> Rejeter
+                                                </Button>
+                                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleSubmissionAction(sub.id, 'approve')}>
+                                                    <Check className="mr-2 h-4 w-4" /> Approuver
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )) : (
+                                    <Card>
+                                        <CardContent className="p-8 text-center text-muted-foreground">
+                                            Aucune nouvelle participation à valider pour ce défi.
+                                        </CardContent>
+                                    </Card>
+                                )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                  </main>
             </div>
         </div>
     )
 }
+
+    
