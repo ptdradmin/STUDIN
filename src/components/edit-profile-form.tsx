@@ -226,7 +226,7 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         // 4. Update user posts if username or avatar changed
         const hasProfileChanged = data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture;
         if (firestore && hasProfileChanged) {
-             await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL }, batch);
+             await updateUserPosts(firestore, user.uid, { username: data.username, profilePicture: newPhotoURL }, batch);
         }
 
         // Commit all batched writes

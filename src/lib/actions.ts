@@ -184,3 +184,4 @@ export const toggleFavorite = async (
         });
     }
 };
+

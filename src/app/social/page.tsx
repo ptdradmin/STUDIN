@@ -19,115 +19,6 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import GlobalSearch from '@/components/global-search';
 import SocialSidebar from '@/components/social-sidebar';
 
-function SuggestionsSkeleton() {
-    return (
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-5 w-3/4" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {Array.from({length: 5}).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="flex-grow space-y-1">
-                            <Skeleton className="h-4 w-2/3" />
-                             <Skeleton className="h-3 w-1/3" />
-                        </div>
-                        <Skeleton className="h-8 w-16" />
-                    </div>
-                ))}
-            </CardContent>
-        </Card>
-    )
-}
-
-function Suggestions() {
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const [suggestedUsers, setSuggestedUsers] = useState<UserProfile[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchSuggestions = async () => {
-            if (!firestore || !user) return;
-            setIsLoading(true);
-
-            try {
-                const userDocRef = doc(firestore, 'users', user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-                const followingIds = userDocSnap.data()?.followingIds || [];
-                
-                const usersToExclude = [user.uid, ...followingIds];
-
-                const suggestionsQuery = query(
-                    collection(firestore, 'users'),
-                    limit(15) // Fetch a bit more to have a chance to filter
-                );
-                
-                const querySnapshot = await getDocs(suggestionsQuery);
-                const users = querySnapshot.docs
-                    .map(doc => doc.data() as UserProfile)
-                    .filter(u => !usersToExclude.includes(u.id))
-                    .slice(0, 5);
-                
-                setSuggestedUsers(users);
-            } catch (error) {
-                 if (error instanceof FirestorePermissionError === false) {
-                    const contextualError = new FirestorePermissionError({
-                        path: `users`,
-                        operation: 'list',
-                    });
-                    errorEmitter.emit('permission-error', contextualError);
-                 }
-                 console.error("Error fetching suggestions:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchSuggestions();
-    }, [firestore, user]);
-
-     const getInitials = (name?: string) => {
-        if (!name) return "..";
-        const parts = name.split(' ');
-        if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
-        return name.substring(0, 2).toUpperCase();
-    }
-
-    if (isLoading) {
-        return <SuggestionsSkeleton />;
-    }
-
-    if (suggestedUsers.length === 0) {
-        return null;
-    }
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-base">Suggestions pour vous</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {suggestedUsers.map(u => (
-                    <div key={u.id} className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={u.profilePicture} />
-                            <AvatarFallback>{getInitials(u.firstName)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-grow overflow-hidden">
-                            <Link href={`/profile/${u.id}`} className="font-semibold text-sm hover:underline truncate block">{u.username}</Link>
-                            <p className="text-xs text-muted-foreground truncate">Suggéré pour vous</p>
-                        </div>
-                        <Button variant="link" size="sm" asChild className="p-0 h-auto">
-                            <Link href={`/profile/${u.id}`}>Suivre</Link>
-                        </Button>
-                    </div>
-                ))}
-            </CardContent>
-        </Card>
-    )
-}
-
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
@@ -221,7 +112,7 @@ export default function SocialPage() {
                             )}
                         </div>
                         <div className="hidden md:block space-y-6">
-                            <Suggestions />
+                            {/* Suggestions temporarily removed */}
                         </div>
                     </div>
                 </div>
@@ -231,3 +122,4 @@ export default function SocialPage() {
       </div>
     );
 }
+

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
@@ -157,17 +157,17 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         (error) => {
             console.error("Upload error:", error);
             // Optionally, update the post to show an error state
-            setDoc(newDocRef, { uploadError: true }, { merge: true });
+            updateDoc(newDocRef, { uploadError: true, isUploading: false });
             toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "L'image n'a pas pu être envoyée."});
         },
         () => {
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                 // Finalize the post with the real URL
-                setDoc(newDocRef, {
+                updateDoc(newDocRef, {
                     imageUrl: downloadURL,
                     isUploading: false,
                     updatedAt: serverTimestamp()
-                }, { merge: true });
+                });
             });
         }
     );
