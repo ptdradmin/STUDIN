@@ -12,7 +12,7 @@ import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, Bo
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event, CarpoolBooking } from '@/lib/types';
+import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event, Book } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where, documentId, getDocs } from 'firebase/firestore';
@@ -218,7 +218,7 @@ export default function CurrentUserProfilePage() {
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
   const favoritedIds = useMemo(() => {
-      const ids: { [key in Favorite['itemType']]?: Set<string> } = { housing: new Set(), event: new Set(), tutor: new Set(), post: new Set() };
+      const ids: { [key in Favorite['itemType']]?: Set<string> } = { housing: new Set(), event: new Set(), tutor: new Set(), post: new Set(), book: new Set() };
       favoriteItems?.forEach(fav => {
           if (ids[fav.itemType]) {
             ids[fav.itemType]!.add(fav.itemId);
@@ -250,6 +250,12 @@ export default function CurrentUserProfilePage() {
     return query(collection(firestore, 'tutorings'), where(documentId(), 'in', Array.from(favoritedIds.tutor).slice(0, 30)));
   }, [firestore, favoritedIds.tutor]);
   const { data: savedTutors, isLoading: savedTutorsLoading } = useCollection<Tutor>(savedTutorsQuery);
+
+  const savedBooksQuery = useMemoFirebase(() => {
+    if (!firestore || !favoritedIds.book || favoritedIds.book.size === 0) return null;
+    return query(collection(firestore, 'books'), where(documentId(), 'in', Array.from(favoritedIds.book).slice(0, 30)));
+  }, [firestore, favoritedIds.book]);
+  const { data: savedBooks, isLoading: savedBooksLoading } = useCollection<Book>(savedBooksQuery);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -292,7 +298,8 @@ export default function CurrentUserProfilePage() {
   const followersCount = userProfile?.followerIds?.length || 0;
   const followingCount = userProfile?.followingIds?.length || 0;
 
-  const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading;
+  const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading || savedBooksLoading;
+  const totalSavedItems = (favoritedIds.post?.size || 0) + (favoritedIds.housing?.size || 0) + (favoritedIds.event?.size || 0) + (favoritedIds.tutor?.size || 0) + (favoritedIds.book?.size || 0);
 
   if (loading || !user || !userProfile) {
     return (
@@ -417,7 +424,7 @@ export default function CurrentUserProfilePage() {
                                           <Skeleton className="h-24 w-full" />
                                         </div>
                                     ) : (
-                                      ((favoritedIds.post?.size || 0) + (favoritedIds.housing?.size || 0) + (favoritedIds.event?.size || 0) + (favoritedIds.tutor?.size || 0)) === 0 ? (
+                                      totalSavedItems === 0 ? (
                                         <div className="text-center py-10">
                                             <h3 className="text-lg font-semibold">Aucun enregistrement</h3>
                                             <p className="text-muted-foreground text-sm">Les éléments que vous enregistrez apparaîtront ici.</p>
@@ -432,6 +439,23 @@ export default function CurrentUserProfilePage() {
                                                   </div>
                                               </div>
                                           )}
+                                           {savedBooks && savedBooks.length > 0 && (
+                                                <div>
+                                                    <h3 className="font-semibold mb-2">Livres</h3>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        {savedBooks.map(b => (
+                                                            <Link href={`/books`} key={b.id}>
+                                                                <Card className="hover:bg-muted/50 transition-colors">
+                                                                    <CardContent className="p-4 flex items-center gap-4">
+                                                                        <BookOpen className="h-5 w-5 text-primary" />
+                                                                        <div><p className="font-semibold">{b.title}</p></div>
+                                                                    </CardContent>
+                                                                </Card>
+                                                            </Link>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                           {savedEvents && savedEvents.length > 0 && (
                                               <div>
                                                   <h3 className="font-semibold mb-2">Événements</h3>
