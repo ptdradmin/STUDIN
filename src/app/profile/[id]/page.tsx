@@ -21,6 +21,7 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import { getOrCreateConversation } from '@/lib/conversations';
 import ProfileListingsTab from '@/components/profile-listings-tab';
 import { generateAvatar } from '@/lib/avatars';
+import { cn } from '@/lib/utils';
 
 
 const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
