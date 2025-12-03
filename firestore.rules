@@ -164,8 +164,11 @@ service cloud.firestore {
     // =====================================================================
     // Social (Posts) Rules
     // =====================================================================
+    match /posts {
+      allow list: if isSignedIn();
+    }
     match /posts/{postId} {
-      allow list, get: if isSignedIn();
+      allow get: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId)) ||
