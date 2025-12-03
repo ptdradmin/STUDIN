@@ -146,6 +146,7 @@ export interface CarpoolBooking {
 
 export interface UserProfile {
     id: string;
+    role: 'student' | 'institution' | 'admin';
     username: string;
     email: string;
     firstName: string;
@@ -215,6 +216,7 @@ export interface Favorite {
 
 export interface Challenge {
     id: string;
+    creatorId: string;
     title: string;
     description: string;
     category: 'Exploration' | 'Social' | 'Créatif' | 'Académique';

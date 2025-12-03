@@ -8,17 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Target, LayoutGrid, Map, GraduationCap } from 'lucide-react';
+import { Search, Target, LayoutGrid, Map, GraduationCap, Plus } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import type { Challenge } from '@/lib/types';
+import type { Challenge, UserProfile } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ChallengeCard from '@/components/challenge-card';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
+import { useUser, useDoc, useMemoFirebase } from '@/firebase';
+import CreateChallengeForm from '@/components/create-challenge-form';
+import { doc } from 'firebase/firestore';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -28,6 +30,7 @@ const MapView = dynamic(() => import('@/components/map-view'), {
 const staticChallenges: Challenge[] = [
   {
     id: '1',
+    creatorId: 'admin-user',
     title: "Le Lion de Waterloo",
     description: "Prenez un selfie au pied de la Butte du Lion. Un classique ! Assurez-vous que le monument soit bien visible derrière vous.",
     category: 'Exploration',
@@ -41,6 +44,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '2',
+    creatorId: 'admin-user',
     title: "Street Art à Bruxelles",
     description: "Trouvez et photographiez la fresque de Tintin et du Capitaine Haddock dans le centre-ville de Bruxelles.",
     category: 'Créatif',
@@ -54,6 +58,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '3',
+    creatorId: 'admin-user',
     title: "Vue panoramique de Namur",
     description: "Montez au sommet de la Citadelle et capturez la vue sur la Meuse et la Sambre au coucher du soleil.",
     category: 'Exploration',
@@ -67,6 +72,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '4',
+    creatorId: 'admin-user',
     title: "Participer à une Cantus",
     description: "Immortalisez l'ambiance d'une cantus étudiante. Votre photo doit montrer votre codex ou votre verre.",
     category: 'Social',
@@ -77,6 +83,7 @@ const staticChallenges: Challenge[] = [
   },
   {
     id: '5',
+    creatorId: 'admin-user',
     title: "L'énigme du Manneken-Pis",
     description: "Trouvez l'indice de la semaine sur le costume du Manneken-Pis et décryptez l'énigme pour gagner des points.",
     category: 'Créatif',
@@ -91,15 +98,25 @@ const staticChallenges: Challenge[] = [
 export default function ChallengesPage() {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const router = useRouter();
-    const { user } = useUser();
+    const { user, firestore } = useUser();
+    const [showCreateForm, setShowCreateForm] = useState(false);
+
     // For now, we use static data
     const challenges = staticChallenges;
 
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
     const challengesWithCoords = challenges.filter(c => c.latitude && c.longitude);
+    const canCreateChallenge = userProfile?.role === 'institution' || userProfile?.role === 'admin';
 
     return (
         <div className="flex min-h-screen w-full bg-background">
             <SocialSidebar />
+             {showCreateForm && <CreateChallengeForm onClose={() => setShowCreateForm(false)} />}
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <Link href={user ? "/social" : "/"} className="flex items-center gap-3">
@@ -117,14 +134,21 @@ export default function ChallengesPage() {
                 </header>
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     <div className="mb-8">
-                       <div className="flex items-center gap-4">
-                         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                            <Target className="h-8 w-8" />
+                       <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-4">
+                           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                              <Target className="h-8 w-8" />
+                           </div>
+                           <div>
+                              <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
+                              <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
+                           </div>
                          </div>
-                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
-                            <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
-                         </div>
+                         {canCreateChallenge && (
+                            <Button onClick={() => setShowCreateForm(true)}>
+                                <Plus className="mr-2 h-4 w-4" /> Créer un défi
+                            </Button>
+                         )}
                        </div>
                     </div>
 
