@@ -15,7 +15,7 @@
     {
       "id": "housing-3",
       "description": "Une cuisine commune dans une colocation étudiante.",
-      "imageUrl": "https://images.unsplash.com/photo-1717429541792-5c59021d6ceb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwa2l0Y2hlbnxlbnwwfHx8fDE3NjM2NzAwOTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1717429541792-5c59021d6ceb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwa2l0Y2hlbnxlbnwwfHx8fDE3NjM2NzAwOTR8MA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "cuisine moderne"
     },
     {
@@ -27,25 +27,25 @@
     {
       "id": "housing-5",
       "description": "Un studio lumineux et aéré.",
-      "imageUrl": "https://images.unsplash.com/photo-1702014862053-946a122b920d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkaW8lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzYzNzMyMjg1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1702014862053-946a122b920d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdHVkaW8lMjBhcGFydG1lbnR8ZW58MHx8fHwxNzYzNzMyMjg1fDA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "studio appartement"
     },
     {
       "id": "housing-6",
       "description": "Un coin d'étude tranquille dans une résidence étudiante.",
-      "imageUrl": "https://images.unsplash.com/photo-1567168544999-b8ca00a3d9c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdHVkeSUyMGFyZWF8ZW58MHx8fHwxNzYzNzM0MTYyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1567168544999-b8ca00a3d9c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdHVkeSUyMGFyZWF8ZW58MHx8fHwxNzYzNzM0MTYyfDA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "coin étude"
     },
     {
       "id": "housing-7",
       "description": "Une chambre confortable dans un kot étudiant.",
-      "imageUrl": "https://images.unsplash.com/photo-1595526051245-4506e0005bd0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiZWRyb29tJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzYzNzI4MjYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1595526051245-4506e0005bd0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiZWRyb29tJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzYzNzI4MjYwfDA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "intérieur chambre"
     },
     {
       "id": "housing-8",
       "description": "Un espace de vie partagé pour les étudiants.",
-      "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaXZpbmclMjByb29tfGVufDB8fHx8MTc2MzczMjA4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaXZpbmclMjByb29tfGVufDB8fHx8MTc2MzczMjA4Mnww&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "salle séjour"
     },
     {
@@ -97,6 +97,31 @@
       "id": "event-5",
       "imageUrl": "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=1974&auto=format&fit=crop",
       "imageHint": "bar amis"
+    },
+    {
+      "id": "service-housing",
+      "imageUrl": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "intérieur salon"
+    },
+    {
+      "id": "service-carpooling",
+      "imageUrl": "https://images.unsplash.com/photo-1490650034437-341523642878?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "voiture route"
+    },
+    {
+      "id": "service-tutoring",
+      "imageUrl": "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "salle classe"
+    },
+    {
+      "id": "service-events",
+      "imageUrl": "https://images.unsplash.com/photo-1519750024422-3806dfa9c723?q=80&w=1974&auto=format&fit=crop",
+      "imageHint": "festival lumières"
+    },
+    {
+      "id": "service-challenges",
+      "imageUrl": "https://images.unsplash.com/photo-1531844251246-9a1bfaae09fc?q=80&w=2116&auto=format&fit=crop",
+      "imageHint": "groupe amis"
     }
   ]
 }

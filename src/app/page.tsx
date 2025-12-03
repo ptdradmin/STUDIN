@@ -1,47 +1,58 @@
 
 'use client';
 
+import { useState } from 'react';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bed, Car, PartyPopper, BookOpen, Target } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 const services = [
     {
         name: "Logements",
-        description: "Trouvez le kot ou studio parfait.",
-        icon: <Bed className="h-8 w-8 text-primary"/>,
-        href: "/housing"
+        description: "Trouvez le kot ou studio parfait près de votre campus, dans un environnement sûr et vérifié.",
+        icon: <Bed className="h-6 w-6"/>,
+        href: "/housing",
+        image: PlaceHolderImages.find(p => p.id === 'service-housing')?.imageUrl || ''
     },
     {
         name: "Covoiturage",
-        description: "Partagez vos trajets, économisez.",
-        icon: <Car className="h-8 w-8 text-primary"/>,
-        href: "/carpooling"
+        description: "Partagez vos trajets quotidiens ou occasionnels pour économiser, réduire votre empreinte carbone et faire des rencontres.",
+        icon: <Car className="h-6 w-6"/>,
+        href: "/carpooling",
+        image: PlaceHolderImages.find(p => p.id === 'service-carpooling')?.imageUrl || ''
     },
      {
         name: "Tutorat",
-        description: "De l'aide pour réussir vos examens.",
-        icon: <BookOpen className="h-8 w-8 text-primary"/>,
-        href: "/tutoring"
+        description: "Obtenez de l'aide pour réussir vos examens ou proposez vos compétences pour aider d'autres étudiants.",
+        icon: <BookOpen className="h-6 w-6"/>,
+        href: "/tutoring",
+        image: PlaceHolderImages.find(p => p.id === 'service-tutoring')?.imageUrl || ''
     },
      {
         name: "Événements",
-        description: "Découvrez les soirées étudiantes.",
-        icon: <PartyPopper className="h-8 w-8 text-primary"/>,
-        href: "/events"
+        description: "Découvrez et participez aux meilleures soirées, conférences et activités étudiantes de votre ville.",
+        icon: <PartyPopper className="h-6 w-6"/>,
+        href: "/events",
+        image: PlaceHolderImages.find(p => p.id === 'service-events')?.imageUrl || ''
     },
     {
         name: "Défis",
-        description: "Relevez des défis dans votre ville.",
-        icon: <Target className="h-8 w-8 text-primary" />,
-        href: "/challenges"
+        description: "Relevez des défis dans votre ville, gagnez des points et grimpez dans le classement UrbanQuest.",
+        icon: <Target className="h-6 w-6" />,
+        href: "/challenges",
+        image: PlaceHolderImages.find(p => p.id === 'service-challenges')?.imageUrl || ''
     },
 ]
 
 export default function HomePage() {
+    const [activeService, setActiveService] = useState(services[0]);
+
     return (
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />
@@ -52,11 +63,14 @@ export default function HomePage() {
                             L'écosystème qui simplifie votre vie étudiante.
                         </h1>
                         <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
-                            Trouvez un logement, partagez un trajet, réussissez vos cours et ne manquez aucun événement.
+                            Trouvez un logement, partagez un trajet, réussissez vos cours, relevez des défis et ne manquez aucun événement.
                         </p>
-                        <div className="mt-8">
+                        <div className="mt-8 flex justify-center items-center gap-4">
                             <Button asChild size="lg">
                                 <Link href="/register">Rejoindre la communauté</Link>
+                            </Button>
+                             <Button asChild size="lg" variant="outline">
+                                <Link href="#features">Découvrir les services <ArrowRight className="ml-2 h-4 w-4" /></Link>
                             </Button>
                         </div>
                     </div>
@@ -66,24 +80,67 @@ export default function HomePage() {
                     <div className="container mx-auto px-4">
                         <div className="mx-auto mb-12 max-w-3xl text-center">
                             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                            Explorez Nos Services
+                            Une Plateforme, Toutes les Solutions
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-                            Tout ce dont vous avez besoin pour une vie étudiante épanouie.
+                            Tout ce dont vous avez besoin pour une vie étudiante épanouie, centralisé et simplifié.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
-                            {services.map(service => (
-                                 <Link href={service.href} key={service.name} className="block h-full group">
-                                    <Card className="h-full text-center p-6 shadow-md transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl flex flex-col items-center justify-start gap-4">
-                                         <div className="p-4 bg-primary/10 rounded-full transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                                            {service.icon}
-                                         </div>
-                                        <h3 className="font-bold text-lg">{service.name}</h3>
-                                        <p className="text-sm text-muted-foreground">{service.description}</p>
-                                    </Card>
-                                </Link>
-                            ))}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                           <div className="flex flex-col gap-4">
+                               {services.map(service => (
+                                   <div
+                                     key={service.name}
+                                     onMouseEnter={() => setActiveService(service)}
+                                     className={cn(
+                                        "p-6 rounded-lg cursor-pointer border-2 transition-all duration-300",
+                                        activeService.name === service.name ? "border-primary bg-primary/5" : "border-transparent hover:bg-muted/50"
+                                     )}
+                                   >
+                                       <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "p-3 rounded-full transition-colors",
+                                                activeService.name === service.name ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                                            )}>
+                                                {service.icon}
+                                            </div>
+                                           <h3 className="font-bold text-lg">{service.name}</h3>
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                           <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
+                               <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={activeService.name}
+                                        initial={{ opacity: 0, scale: 1.05 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                        className="absolute inset-0 h-full w-full"
+                                    >
+                                        <Image
+                                          src={activeService.image}
+                                          alt={activeService.name}
+                                          fill
+                                          className="object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                                        <div className="absolute bottom-0 left-0 p-6 text-white">
+                                            <div className="flex items-center gap-4 mb-2">
+                                                 <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm">
+                                                    {activeService.icon}
+                                                 </div>
+                                                 <h3 className="text-2xl font-bold">{activeService.name}</h3>
+                                            </div>
+                                            <p className="max-w-md text-white/90">{activeService.description}</p>
+                                            <Button asChild variant="secondary" className="mt-4">
+                                                <Link href={activeService.href}>Explorer <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                </AnimatePresence>
+                           </div>
                         </div>
                     </div>
                 </section>
