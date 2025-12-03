@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -20,6 +19,7 @@ import { getOrCreateConversation } from '@/lib/conversations';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import CreateReviewForm from '@/components/create-review-form';
+import Navbar from '@/components/navbar';
 
 function TutorPageSkeleton() {
     return (
@@ -144,19 +144,23 @@ export default function TutorProfilePage() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-        <SocialSidebar />
+        {user && <SocialSidebar />}
         <div className="flex flex-col flex-1">
-            <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                 <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9">
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div className="flex-1 max-w-md">
-                    <GlobalSearch />
-                </div>
-                <div className="flex items-center gap-2">
-                    <NotificationsDropdown />
-                </div>
-            </header>
+            {user ? (
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="flex-1 max-w-md">
+                        <GlobalSearch />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <NotificationsDropdown />
+                    </div>
+                </header>
+            ) : (
+                <Navbar />
+            )}
             <main className="flex-1 overflow-y-auto">
                 {isLoading ? <TutorPageSkeleton /> : tutor && (
                     <div className="max-w-4xl mx-auto p-4 md:p-6">

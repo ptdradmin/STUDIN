@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from "next/image";
@@ -85,6 +84,12 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
             router.push(`/login?from=/housing/${housing.id}`);
             return;
         }
+        if (user.uid === housing.userId) {
+            toast({title: "C'est votre annonce", description: "Vous ne pouvez pas vous contacter vous-même."});
+            router.push(`/messages`);
+            return;
+        }
+
         const conversationId = await getOrCreateConversation(firestore, user.uid, housing.userId);
         if (conversationId) {
             router.push(`/messages/${conversationId}`);
