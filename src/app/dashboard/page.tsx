@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,12 +57,11 @@ export default function DashboardPage() {
     
     const isAuthorized = userProfile?.role === 'institution' || userProfile?.role === 'admin';
 
-    // Simulate data fetching
-    useState(() => {
+    useEffect(() => {
         setTimeout(() => {
             setIsLoadingData(false);
         }, 1000);
-    });
+    }, []);
 
     if (isUserLoading || profileLoading) {
         return <PageSkeleton />;

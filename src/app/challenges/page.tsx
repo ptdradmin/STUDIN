@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Target, LayoutGrid, Map, GraduationCap, Plus } from 'lucide-react';
+import { LayoutGrid, Map, Plus, Target } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge, UserProfile } from '@/lib/types';
@@ -17,7 +17,6 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ChallengeCard from '@/components/challenge-card';
-import Link from 'next/link';
 import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
 import { doc } from 'firebase/firestore';
@@ -130,14 +129,9 @@ export default function ChallengesPage() {
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     <div className="mb-8">
                        <div className="flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                              <Target className="h-8 w-8" />
-                           </div>
-                           <div>
-                              <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
-                              <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
-                           </div>
+                         <div>
+                            <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
+                            <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
                          </div>
                          {canCreateChallenge && !isUserLoading && !profileLoading && (
                             <Button onClick={() => setShowCreateForm(true)}>
