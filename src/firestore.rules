@@ -194,8 +194,17 @@ service cloud.firestore {
     // =====================================================================
     // Social (Posts) Rules
     // =====================================================================
-    match /posts/{postId} {
-      allow read, write: if isSignedIn();
+    match /posts {
+      allow list: if isSignedIn();
+      match /{postId} {
+        allow get: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update: if isSignedIn() && (
+                        (isOwner(resource.data.userId)) ||
+                        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
+                      );
+        allow delete: if isResourceOwner(resource.data);
+      }
     }
     
     // =====================================================================
@@ -233,3 +242,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
