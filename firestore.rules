@@ -206,7 +206,7 @@ service cloud.firestore {
       match /submissions/{submissionId} {
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow get: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
-        allow list: if isSignedIn() && (isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
+        allow list: if isSignedIn();
         allow update: if isSignedIn() && (isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
         allow delete: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
       }
