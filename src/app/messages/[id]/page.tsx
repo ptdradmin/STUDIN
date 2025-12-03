@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
@@ -302,7 +303,7 @@ export default function ConversationPage() {
             mediaRecorderRef.current.onstop = () => {
                 const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
-                uploadFileAndSendMessage(audioFile);
+                setFileToSend(audioFile);
                 stream.getTracks().forEach(track => track.stop()); // Stop microphone
             };
 
@@ -437,3 +438,5 @@ export default function ConversationPage() {
         </div>
     );
 }
+
+    
