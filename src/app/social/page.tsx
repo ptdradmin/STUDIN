@@ -3,7 +3,7 @@
 
 import { collection, query, orderBy, limit, where, doc, getDoc, getDocs } from 'firebase/firestore';
 import type { Post, UserProfile, Favorite } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,26 +52,37 @@ function Suggestions() {
             if (!firestore || !user) return;
             setIsLoading(true);
 
-            // Fetch current user's following list
-            const userDocRef = doc(firestore, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            const followingIds = userDocSnap.data()?.followingIds || [];
-            
-            const usersToExclude = [user.uid, ...followingIds];
+            try {
+                const userDocRef = doc(firestore, 'users', user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                const followingIds = userDocSnap.data()?.followingIds || [];
+                
+                const usersToExclude = [user.uid, ...followingIds];
 
-            const suggestionsQuery = query(
-                collection(firestore, 'users'),
-                limit(15) // Fetch a bit more to have a chance to filter
-            );
-            
-            const querySnapshot = await getDocs(suggestionsQuery);
-            const users = querySnapshot.docs
-                .map(doc => doc.data() as UserProfile)
-                .filter(u => !usersToExclude.includes(u.id))
-                .slice(0, 5);
-            
-            setSuggestedUsers(users);
-            setIsLoading(false);
+                const suggestionsQuery = query(
+                    collection(firestore, 'users'),
+                    limit(15) // Fetch a bit more to have a chance to filter
+                );
+                
+                const querySnapshot = await getDocs(suggestionsQuery);
+                const users = querySnapshot.docs
+                    .map(doc => doc.data() as UserProfile)
+                    .filter(u => !usersToExclude.includes(u.id))
+                    .slice(0, 5);
+                
+                setSuggestedUsers(users);
+            } catch (error) {
+                 if (error instanceof FirestorePermissionError === false) {
+                    const contextualError = new FirestorePermissionError({
+                        path: `users`,
+                        operation: 'list',
+                    });
+                    errorEmitter.emit('permission-error', contextualError);
+                 }
+                 console.error("Error fetching suggestions:", error);
+            } finally {
+                setIsLoading(false);
+            }
         };
         fetchSuggestions();
     }, [firestore, user]);
@@ -132,16 +143,18 @@ export default function SocialPage() {
     const postsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         
-        let idsToQuery = [user?.uid];
+        let idsToQuery: string[] = [];
+        if (user) {
+            idsToQuery.push(user.uid);
+        }
         if (userProfile?.followingIds && userProfile.followingIds.length > 0) {
             idsToQuery.push(...userProfile.followingIds);
         }
         
-        // Ensure the array is not empty and contains valid UIDs.
         idsToQuery = idsToQuery.filter(id => typeof id === 'string' && id.length > 0);
         
         if (idsToQuery.length === 0) {
-            return query(
+             return query(
                 collection(firestore, 'posts'),
                 orderBy('createdAt', 'desc'),
                 limit(20)
@@ -150,7 +163,7 @@ export default function SocialPage() {
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', idsToQuery.slice(0, 30)), // Firestore 'in' query limit is 30
+          where('userId', 'in', idsToQuery.slice(0, 30)),
           orderBy('createdAt', 'desc')
         );
       }, [firestore, user, userProfile]);
