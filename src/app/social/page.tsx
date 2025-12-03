@@ -1,7 +1,7 @@
 
 'use client';
 
-import { collection, query, orderBy, limit, where, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import type { Post, UserProfile, Favorite } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
@@ -134,6 +134,7 @@ export default function SocialPage() {
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
+    // Simplified query to fetch the latest 50 posts
     const postsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return query(
