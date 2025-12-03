@@ -140,17 +140,13 @@ export default function SocialPage() {
         
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', idsToQuery.slice(0, 30))
+          where('userId', 'in', idsToQuery.slice(0, 30)),
+          orderBy('createdAt', 'desc')
         );
       }, [firestore, user, followingIds, isProfileLoading]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
-    const sortedPosts = useMemo(() => {
-      if (!posts) return [];
-      return [...posts].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
-    }, [posts]);
-
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, `users/${user.uid}/favorites`));
@@ -218,8 +214,8 @@ export default function SocialPage() {
                          <div className="w-full max-w-[470px] mx-auto space-y-4">
                              {isLoading ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                             ) : sortedPosts.length > 0 ? (
-                                sortedPosts.map(post => (
+                             ) : posts && posts.length > 0 ? (
+                                posts.map(post => (
                                     <PostCard 
                                         key={post.id} 
                                         post={post}
