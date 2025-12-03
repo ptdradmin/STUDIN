@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -77,16 +78,22 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
     const [searchQuery, setSearchQuery] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const togglePlay = (song: { title: string, url: string }) => {
+    const togglePlay = async (song: { title: string, url: string }) => {
         if (currentlyPlaying === song.url) {
             audioRef.current?.pause();
             setCurrentlyPlaying(null);
         } else {
             if (audioRef.current) {
                 audioRef.current.src = song.url;
-                audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+                try {
+                    await audioRef.current.play();
+                    setCurrentlyPlaying(song.url);
+                } catch (error) {
+                     if ((error as DOMException).name !== 'AbortError') {
+                        console.error("Audio play failed:", error);
+                    }
+                }
             }
-            setCurrentlyPlaying(song.url);
         }
     };
     

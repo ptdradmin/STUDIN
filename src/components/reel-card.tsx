@@ -39,21 +39,33 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(!hasEnabledAudio);
+    const [isMuted, setIsMuted] = useState(true);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
-    const playMedia = () => {
-        videoRef.current?.play();
-        if (audioRef.current) {
-            audioRef.current.play().catch(e => console.error("Audio play failed on reel:", e));
+    const playMedia = async () => {
+        if (videoRef.current?.paused) {
+            try {
+                await videoRef.current.play();
+                if (audioRef.current?.paused) {
+                    await audioRef.current.play();
+                }
+                setIsPlaying(true);
+            } catch (error) {
+                 if ((error as DOMException).name !== 'AbortError') {
+                    console.error("Media play failed:", error);
+                 }
+            }
         }
-        setIsPlaying(true);
     };
 
     const pauseMedia = () => {
-        videoRef.current?.pause();
-        audioRef.current?.pause();
+        if (!videoRef.current?.paused) {
+            videoRef.current?.pause();
+        }
+        if (!audioRef.current?.paused) {
+            audioRef.current?.pause();
+        }
         setIsPlaying(false);
     };
 
@@ -61,6 +73,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
+                    if (!hasEnabledAudio) {
+                        setIsMuted(true);
+                    }
                     playMedia();
                 } else {
                     pauseMedia();
@@ -78,6 +93,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             if (currentVideoRef) {
                 observer.unobserve(currentVideoRef);
             }
+            // Cleanup: pause media when component unmounts or re-renders
+            if (videoRef.current) videoRef.current.pause();
+            if (audioRef.current) audioRef.current.pause();
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -193,8 +211,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             {!hasEnabledAudio && (
                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white pointer-events-none text-center p-4">
                     <VolumeX className="h-12 w-12 mb-2" />
-                    <p className="font-semibold">Le son est coupé par défaut</p>
-                    <p className="text-sm">Appuyez sur la vidéo pour activer le son</p>
+                    <p className="font-semibold">Appuyez pour activer le son</p>
                 </div>
             )}
 
