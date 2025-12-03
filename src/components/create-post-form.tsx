@@ -113,8 +113,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   };
 
   const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
-    if (isUserLoading || isProfileLoading || !userProfile) {
-        toast({ variant: 'destructive', title: 'Erreur', description: 'Votre profil n\'est pas chargé. Veuillez patienter.' });
+    if (isUserLoading || isProfileLoading || !userProfile || !firestore || !storage || !user) {
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible ou votre profil n\'est pas chargé.' });
         return;
     }
     if (!imageFile) {
@@ -201,64 +201,63 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
           {step === 2 && previewUrl && (
              <div className="flex h-full">
-                  <div className="flex-1 flex items-center justify-center bg-black/90">
-                     <div className="relative w-full h-full">
+                  <div className="flex-1 flex items-center justify-center bg-black/90 relative">
+                     <div className="relative w-full aspect-square max-w-full max-h-full">
                         <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
                       </div>
                   </div>
                   
                   <div className="w-[320px] flex flex-col border-l">
-                    <Tabs defaultValue="filters" className="flex flex-col flex-grow overflow-hidden">
-                      <TabsList className="grid w-full grid-cols-2 rounded-none border-b flex-shrink-0">
-                          <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
-                          <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
-                      </TabsList>
-                      <div className="flex-grow overflow-y-auto">
-                        <TabsContent value="filters" className="p-4">
-                            <div className="grid grid-cols-3 gap-2">
-                                {filters.map(filter => (
-                                    <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
-                                        <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
-                                            <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="contain" className={filter.className} />
-                                        </div>
-                                        <p className="text-xs text-center mt-1">{filter.name}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </TabsContent>
-                        <TabsContent value="caption" className="flex flex-col p-4 h-full">
-                            {userProfile && (
-                                <div className="flex items-center gap-3 mb-4 flex-shrink-0">
-                                    <Avatar className="h-7 w-7">
-                                        <AvatarImage src={userProfile.profilePicture ?? undefined} />
-                                        <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
-                                    </Avatar>
-                                    <p className="font-semibold text-sm">{userProfile.username}</p>
-                                </div>
-                            )}
-                            <div className="flex-grow">
+                    <div className="flex-shrink-0">
+                      {userProfile && (
+                          <div className="flex items-center gap-3 p-4">
+                              <Avatar className="h-7 w-7">
+                                  <AvatarImage src={userProfile.profilePicture ?? undefined} />
+                                  <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
+                              </Avatar>
+                              <p className="font-semibold text-sm">{userProfile.username}</p>
+                          </div>
+                      )}
+                    </div>
+                    <div className="flex-grow overflow-y-auto">
+                        <Tabs defaultValue="caption" className="flex flex-col h-full">
+                            <TabsContent value="caption" className="mt-0 p-4 flex-grow flex flex-col">
                                 <Textarea
                                     id="caption"
                                     {...register('caption')}
                                     placeholder="Écrivez une légende..."
-                                    className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[100px]"
+                                    className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none flex-grow"
                                 />
                                 {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
-                            </div>
-
-                            <div className="border-t mt-auto pt-4 flex-shrink-0">
-                                <div className="relative">
-                                    <Input 
-                                        id="location" 
-                                        placeholder="Ajouter un lieu" 
-                                        {...register('location')}
-                                        className="border-none p-0 focus-visible:ring-0"
-                                    />
+                                <div className="border-t mt-4 pt-4">
+                                  <Input 
+                                      id="location" 
+                                      placeholder="Ajouter un lieu" 
+                                      {...register('location')}
+                                      className="border-none p-0 focus-visible:ring-0 text-sm"
+                                  />
                                 </div>
-                            </div>
-                        </TabsContent>
-                      </div>
-                    </Tabs>
+                            </TabsContent>
+                            <TabsContent value="filters" className="mt-0 p-4">
+                                <div className="grid grid-cols-3 gap-2">
+                                    {filters.map(filter => (
+                                        <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
+                                            <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
+                                                <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="contain" className={filter.className} />
+                                            </div>
+                                            <p className="text-xs text-center mt-1">{filter.name}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </TabsContent>
+                           <div className="flex-shrink-0 border-t">
+                             <TabsList className="grid w-full grid-cols-2 rounded-none">
+                                <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
+                                <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
+                              </TabsList>
+                           </div>
+                        </Tabs>
+                    </div>
                   </div>
             </div>
           )}

@@ -177,7 +177,7 @@
         "userAvatarUrl": { "type": "string", "format": "uri" },
         "title": { "type": "string" },
         "description": { "type": "string" },
-        "type": { "type": "string" },
+        "type": { "type": "string", "enum": ["kot", "studio", "colocation"] },
         "price": { "type": "number" },
         "address": { "type": "string" },
         "city": { "type": "string" },
@@ -258,7 +258,7 @@
         "level": { "type": "string" },
         "description": { "type": "string" },
         "pricePerHour": { "type": "number" },
-        "locationType": { "type": "string" },
+        "locationType": { "type": "string", "enum": ["online", "in-person", "both"] },
         "rating": { "type": "number" },
         "totalReviews": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -294,7 +294,7 @@
         "userAvatarUrl": { "type": "string", "format": "uri" },
         "title": { "type": "string" },
         "description": { "type": "string" },
-        "category": { "type": "string" },
+        "category": { "type": "string", "enum": ["soirée", "conférence", "sport", "culture"] },
         "startDate": { "type": "string", "format": "date-time" },
         "city": { "type": "string" },
         "address": { "type": "string" },
@@ -327,7 +327,7 @@
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
-        "itemType": { "type": "string" },
+        "itemType": { "type": "string", "enum": ["post", "housing", "event", "tutor"] },
         "itemId": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
@@ -370,7 +370,7 @@
       "description": "Represents a notification for a user.",
       "properties": {
         "id": { "type": "string" },
-        "type": { "type": "string" },
+        "type": { "type": "string", "enum": ["new_follower", "like", "comment", "new_message", "carpool_booking", "event_attendance"] },
         "senderId": { "type": "string" },
         "senderProfile": { "type": "object" },
         "recipientId": { "type": "string" },
@@ -391,7 +391,7 @@
         "creatorId": { "type": "string", "description": "The ID of the admin or institution who created the challenge." },
         "title": { "type": "string" },
         "description": { "type": "string" },
-        "category": { "type": "string" },
+        "category": { "type": "string", "enum": ["Exploration", "Social", "Créatif", "Académique"] },
         "difficulty": { "type": "string", "enum": ["facile", "moyen", "difficile"] },
         "points": { "type": "number" },
         "imageUrl": { "type": "string", "format": "uri" },
