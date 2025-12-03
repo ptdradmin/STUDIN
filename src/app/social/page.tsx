@@ -134,39 +134,14 @@ export default function SocialPage() {
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
-    const userProfileRef = useMemoFirebase(() => {
-      if (!user || !firestore) return null;
-      return doc(firestore, 'users', user.uid);
-    }, [user, firestore]);
-    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
     const postsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        
-        let idsToQuery: string[] = [];
-        if (user) {
-            idsToQuery.push(user.uid);
-        }
-        if (userProfile?.followingIds && userProfile.followingIds.length > 0) {
-            idsToQuery.push(...userProfile.followingIds);
-        }
-        
-        idsToQuery = idsToQuery.filter(id => typeof id === 'string' && id.length > 0);
-        
-        if (idsToQuery.length === 0) {
-             return query(
-                collection(firestore, 'posts'),
-                orderBy('createdAt', 'desc'),
-                limit(20)
-            );
-        }
-        
         return query(
           collection(firestore, 'posts'), 
-          where('userId', 'in', idsToQuery.slice(0, 30)),
-          orderBy('createdAt', 'desc')
+          orderBy('createdAt', 'desc'),
+          limit(50)
         );
-      }, [firestore, user, userProfile]);
+      }, [firestore]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -195,12 +170,11 @@ export default function SocialPage() {
         return <PageSkeleton />;
     }
     
-    if (isUserLoading || isProfileLoading) {
+    if (isUserLoading) {
       return <PageSkeleton />;
     }
 
     const isLoading = postsLoading || favoritesLoading;
-    const showSuggestionMessage = !userProfile?.followingIds || userProfile.followingIds.length === 0;
 
     return (
        <div className="flex min-h-screen w-full bg-background">
@@ -228,11 +202,9 @@ export default function SocialPage() {
                 <div className="container mx-auto max-w-xl px-0 md:px-4 py-6">
                     <div className="space-y-6">
                         
-                         {showSuggestionMessage && (
-                            <div className="md:hidden">
-                                <Suggestions />
-                            </div>
-                         )}
+                         <div className="md:hidden">
+                            <Suggestions />
+                        </div>
 
                          <div className="w-full max-w-[470px] mx-auto space-y-4">
                              {isLoading ? (
