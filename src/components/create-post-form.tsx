@@ -200,14 +200,14 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
           )}
 
           {step === 2 && previewUrl && (
-             <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] h-full">
-                  <div className="flex items-center justify-center bg-black/90 overflow-hidden">
-                     <div className="relative w-full aspect-square">
+             <div className="flex h-full">
+                  <div className="flex-1 flex items-center justify-center bg-black/90">
+                     <div className="relative w-full h-full">
                         <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
                       </div>
                   </div>
                   
-                  <div className="flex flex-col border-l">
+                  <div className="w-[320px] flex flex-col border-l">
                     <Tabs defaultValue="filters" className="flex flex-col flex-grow overflow-hidden">
                       <TabsList className="grid w-full grid-cols-2 rounded-none border-b flex-shrink-0">
                           <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
