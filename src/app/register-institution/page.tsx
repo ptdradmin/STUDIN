@@ -1,20 +1,19 @@
 
-import RegisterInstitutionForm from '@/components/register-institution-form';
-import { GraduationCap } from 'lucide-react';
-import Link from 'next/link';
+'use client';
 
-export default function RegisterInstitutionPage() {
-  return (
-    <div className="container relative flex min-h-screen flex-col items-center justify-center py-10">
-       <div className="absolute top-8 left-8">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-xl font-bold">STUD'IN</h1>
-          </Link>
-       </div>
-      <RegisterInstitutionForm />
-    </div>
-  );
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { PageSkeleton } from '@/components/page-skeleton';
+
+export default function RegisterInstitutionRedirectPage() {
+    const router = useRouter();
+
+    useEffect(() => {
+        // Redirect to the unified register page with the correct role pre-selected
+        // (Though the component structure makes this query param optional)
+        router.replace('/register'); 
+    }, [router]);
+
+    // Display a loading skeleton while redirecting
+    return <PageSkeleton />;
 }

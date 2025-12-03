@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -129,6 +129,7 @@ export default function RegisterForm() {
 
       const userData = {
           id: user.uid,
+          role: 'student', // Set role to student
           email,
           username,
           firstName,
@@ -222,9 +223,9 @@ export default function RegisterForm() {
   const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
-    <Card className="w-full max-w-lg shadow-2xl">
+    <>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Inscription</CardTitle>
+        <CardTitle className="text-2xl">Inscription Étudiant</CardTitle>
         <CardDescription>Rejoignez la communauté STUD'IN</CardDescription>
       </CardHeader>
       <CardContent>
@@ -240,7 +241,7 @@ export default function RegisterForm() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Ou s'inscrire avec un e-mail</span>
+              <span className="bg-card px-2 text-muted-foreground">Ou s'inscrire avec un e-mail</span>
             </div>
           </div>
           <Form {...form}>
@@ -408,7 +409,7 @@ export default function RegisterForm() {
           </Form>
         </div>
       </CardContent>
-       <CardFooter className="flex justify-center">
+       <CardFooter className="flex justify-center pt-4">
          <p className="text-sm text-muted-foreground">
             Déjà un compte ?{' '}
             <Link href="/login" className="font-semibold text-primary hover:underline">
@@ -416,6 +417,6 @@ export default function RegisterForm() {
             </Link>
           </p>
       </CardFooter>
-    </Card>
+    </>
   );
 }

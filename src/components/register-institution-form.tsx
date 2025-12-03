@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
@@ -16,6 +17,7 @@ import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
+import Link from 'next/link';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -147,7 +149,7 @@ export default function RegisterInstitutionForm() {
   const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
-    <Card className="w-full max-w-lg shadow-2xl">
+    <>
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Compte Partenaire</CardTitle>
         <CardDescription>Inscrivez votre institution sur STUD'IN</CardDescription>
@@ -254,6 +256,6 @@ export default function RegisterInstitutionForm() {
             </form>
           </Form>
       </CardContent>
-    </Card>
+    </>
   );
 }
