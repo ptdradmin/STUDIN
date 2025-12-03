@@ -39,14 +39,14 @@ interface CreatePostFormProps {
 }
 
 const trendingSongs = [
-    { title: "Street Vibe", artist: "Rap/Hip-Hop Beat", url: "/music/gimme-more.mp3" },
-    { title: "Chill Reggae", artist: "Reggae Instrumental", url: "/music/espresso.mp3" },
-    { title: "808 Flow", artist: "Trap Beat", url: "/music/feather.mp3" },
-    { title: "Ibiza Sunrise", artist: "Electro House Mix", url: "/music/gimme-more.mp3" },
-    { title: "Warehouse Rave", artist: "Techno Groove", url: "/music/espresso.mp3" },
-    { title: "Industrial Core", artist: "Hardcore Rhythm", url: "/music/feather.mp3" },
-    { title: "Espresso", artist: "Sabrina Carpenter", url: "/music/espresso.mp3" },
-    { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
+    { title: "Street Vibe", artist: "Rap/Hip-Hop Beat", url: "https://www.chosic.com/wp-content/uploads/2022/02/Gimme-More.mp3" },
+    { title: "Chill Reggae", artist: "Reggae Instrumental", url: "https://www.chosic.com/wp-content/uploads/2024/04/espresso.mp3" },
+    { title: "808 Flow", artist: "Trap Beat", url: "https://www.chosic.com/wp-content/uploads/2021/04/Feather.mp3" },
+    { title: "Ibiza Sunrise", artist: "Electro House Mix", url: "https://www.chosic.com/wp-content/uploads/2022/02/Gimme-More.mp3" },
+    { title: "Warehouse Rave", artist: "Techno Groove", url: "https://www.chosic.com/wp-content/uploads/2024/04/espresso.mp3" },
+    { title: "Industrial Core", artist: "Hardcore Rhythm", url: "https://www.chosic.com/wp-content/uploads/2021/04/Feather.mp3" },
+    { title: "Espresso", artist: "Sabrina Carpenter", url: "https://www.chosic.com/wp-content/uploads/2024/04/espresso.mp3" },
+    { title: "Gimme More", artist: "Britney Spears", url: "https://www.chosic.com/wp-content/uploads/2022/02/Gimme-More.mp3" },
 ];
 
 function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: { title: string, url: string }) => void, onClose: () => void }) {
