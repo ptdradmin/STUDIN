@@ -161,14 +161,14 @@ export default function ConversationPage() {
         }
     }
 
-    const uploadFileAndSendMessage = async () => {
-        if (!fileToSend || !user || !storage || !firestore || !conversationRef || !conversation) return;
+    const uploadFileAndSendMessage = async (file: File) => {
+        if (!user || !storage || !firestore || !conversationRef || !conversation) return;
 
         setUploadProgress(0);
         
-        const fileType = fileToSend.type.split('/')[0] as 'image' | 'video' | 'audio';
-        const sRef = storageRef(storage, `chat/${conversationId}/${user.uid}/${Date.now()}_${fileToSend.name}`);
-        const uploadTask = uploadBytesResumable(sRef, fileToSend);
+        const fileType = file.type.split('/')[0] as 'image' | 'video' | 'audio';
+        const sRef = storageRef(storage, `chat/${conversationId}/${user.uid}/${Date.now()}_${file.name}`);
+        const uploadTask = uploadBytesResumable(sRef, file);
 
         uploadTask.on('state_changed',
             (snapshot) => {
@@ -232,7 +232,7 @@ export default function ConversationPage() {
     const handleSendMessage = (e: FormEvent) => {
         e.preventDefault();
         if (fileToSend) {
-            uploadFileAndSendMessage();
+            uploadFileAndSendMessage(fileToSend);
             return;
         }
 
@@ -299,7 +299,7 @@ export default function ConversationPage() {
             mediaRecorderRef.current.onstop = () => {
                 const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
                 const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
-                setFileToSend(audioFile);
+                uploadFileAndSendMessage(audioFile);
                 stream.getTracks().forEach(track => track.stop()); // Stop microphone
             };
 
@@ -318,7 +318,11 @@ export default function ConversationPage() {
 
     const stopRecording = (cancel = false) => {
         if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
+            if (!cancel) {
+                mediaRecorderRef.current.stop();
+            } else {
+                mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+            }
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
             if (cancel) {
@@ -433,5 +437,7 @@ export default function ConversationPage() {
         </div>
     );
 }
+
+    
 
     
