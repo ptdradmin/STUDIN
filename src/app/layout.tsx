@@ -5,8 +5,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import FirebaseClientProvider from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
-import { useUser } from '@/firebase';
-import { PageSkeleton } from '@/components/page-skeleton';
 import BottomNavbar from '@/components/bottom-navbar';
 import { usePathname } from 'next/navigation';
 import { Inter, Poppins, Source_Code_Pro } from 'next/font/google';
@@ -25,7 +23,6 @@ const sourceCodePro = Source_Code_Pro({
 });
 
 function AppContent({ children }: { children: React.ReactNode }) {
-  const { isUserLoading } = useUser();
   const pathname = usePathname();
 
   const publicPages = [
@@ -44,10 +41,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
   ];
 
   const showBottomNav = !publicPages.includes(pathname);
-
-  if (isUserLoading && !publicPages.includes(pathname)) {
-    return <PageSkeleton />;
-  }
 
   return (
     <>

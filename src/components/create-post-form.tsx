@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -137,7 +137,14 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                 };
                 
                 // Use the non-blocking function to set the document
-                setDocumentNonBlocking(newDocRef, postData);
+                 setDoc(newDocRef, postData).catch((err) => {
+                    const permissionError = new FirestorePermissionError({
+                        path: newDocRef.path,
+                        operation: 'create',
+                        requestResourceData: postData,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
                 
                 // Update toast on success
                 toast({ title: 'Succès', description: 'Publication créée !' });
