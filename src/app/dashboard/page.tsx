@@ -56,6 +56,15 @@ export default function DashboardPage() {
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
     
     const isAuthorized = userProfile?.role === 'institution' || userProfile?.role === 'admin';
+    
+    useEffect(() => {
+        // This effect runs only on the client after the initial render.
+        // It checks for authorization and redirects if necessary.
+        if (!isUserLoading && !profileLoading && (!user || !isAuthorized)) {
+            router.push('/social');
+        }
+    }, [isUserLoading, profileLoading, user, isAuthorized, router]);
+
 
     useEffect(() => {
         setTimeout(() => {
@@ -63,14 +72,6 @@ export default function DashboardPage() {
         }, 1000);
     }, []);
     
-    useEffect(() => {
-        // Redirect if user is loaded and not authorized.
-        // This runs after the initial render to prevent state updates during render.
-        if (!isUserLoading && !profileLoading && (!user || !isAuthorized)) {
-            router.push('/social');
-        }
-    }, [isUserLoading, profileLoading, user, isAuthorized, router]);
-
 
     if (isUserLoading || profileLoading || !user || !isAuthorized) {
         return <PageSkeleton />;

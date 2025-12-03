@@ -14,6 +14,19 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+    }
+    
+    function isRole(userId, role) {
+      return getUserRole(userId) == role;
+    }
+    
+    function isChallengeCreator(challengeId) {
+        let challenge = get(/databases/$(database)/documents/challenges/$(challengeId));
+        return request.auth.uid == challenge.data.creatorId;
+    }
 
     function isResourceOwner(doc) {
       return isSignedIn() && request.auth.uid == doc.userId;
@@ -26,22 +39,22 @@ service cloud.firestore {
     function isEventOrganizer(eventId) {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
-    
+
     function hasRequiredStudentFields() {
         let data = request.resource.data;
         return data.role == 'student'
-            && data.firstName is string && data.firstName.size() > 0
-            && data.lastName is string && data.lastName.size() > 0
-            && data.postalCode is string && data.postalCode.size() > 0
-            && data.city is string && data.city.size() > 0
-            && data.university is string && data.university.size() > 0
-            && data.fieldOfStudy is string && data.fieldOfStudy.size() > 0;
+            && data.firstName is string
+            && data.lastName is string
+            && data.postalCode is string
+            && data.city is string
+            && data.university is string
+            && data.fieldOfStudy is string;
     }
     
     function hasRequiredInstitutionFields() {
          let data = request.resource.data;
          return data.role == 'institution'
-            && data.firstName is string // Corresponds to institution name
+            && data.firstName is string // Corresponds to institution name in this context
             && data.postalCode is string
             && data.city is string;
     }
@@ -58,7 +71,7 @@ service cloud.firestore {
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && request.query.keys().hasOnly(['orderBy', 'startAt', 'endAt', 'limit']);
+      allow list: if isSignedIn();
       // Allow creation with minimal fields, full validation on update
       allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
       allow update: if isOwner(userId) || 
@@ -91,7 +104,7 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isResourceOwner(resource.data);
+      allow update, delete: if isOwner(resource.data.userId);
     }
     
     // =====================================================================
@@ -207,7 +220,9 @@ service cloud.firestore {
     match /conversations/{conversationId} {
       allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow list: if isSignedIn() && request.query.where.size() == 1 && request.query.where[0].fieldPath == "participantIds" && request.query.where[0].op == "array-contains" && request.query.where[0].value == request.auth.uid;
+      allow list: if isSignedIn() 
+                  && request.query.where[0][0] == "participantIds" && request.query.where[0][1] == "array-contains" && request.query.where[0][2] == request.auth.uid
+                  && request.query.orderBy.size() > 0 && request.query.orderBy[0].field == "updatedAt";
 
       match /messages/{messageId} {
         allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
@@ -218,19 +233,6 @@ service cloud.firestore {
     // =====================================================================
     // UrbanQuest (Challenges) Rules
     // =====================================================================
-    function getRole(userId) {
-        return get(/databases/$(database)/documents/users/$(userId)).data.role;
-    }
-    
-    function isRole(userId, role) {
-        return getRole(userId) == role;
-    }
-    
-    function isChallengeCreator(challengeId) {
-        let challenge = get(/databases/$(database)/documents/challenges/$(challengeId));
-        return request.auth.uid == challenge.data.creatorId;
-    }
-    
     match /challenges/{challengeId} {
       allow get, list: if isSignedIn();
       allow create: if isSignedIn() && (isRole(request.auth.uid, 'admin') || isRole(request.auth.uid, 'institution'));
@@ -245,5 +247,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

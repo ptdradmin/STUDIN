@@ -55,7 +55,7 @@ export default function ReelsPage() {
     
     useEffect(() => {
         fetchReels(null); // Fetch initial reels
-    }, []); // Removed fetchReels from dependency array to prevent re-fetching
+    }, [fetchReels]);
 
     const lastReelElementRef = useCallback(node => {
         if (isLoading) return;

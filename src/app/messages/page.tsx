@@ -24,7 +24,7 @@ function ConversationList() {
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        // The query MUST include the 'where' clause to comply with Firestore security rules.
+        // The query MUST include the 'where' and 'orderBy' clauses to comply with Firestore security rules.
         return query(
             collection(firestore, 'conversations'),
             where('participantIds', 'array-contains', user.uid),

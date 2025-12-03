@@ -130,13 +130,23 @@ export default function SocialPage() {
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-
-        const followingIds = userProfile?.followingIds || [];
-        const idsToQuery = [...new Set([user.uid, ...followingIds])];
+        if (!firestore) return null;
         
-        // Ensure the array is not empty before querying, though it will always have at least the current user.
-        if (idsToQuery.length === 0) return null;
+        let idsToQuery = [user?.uid];
+        if (userProfile?.followingIds && userProfile.followingIds.length > 0) {
+            idsToQuery.push(...userProfile.followingIds);
+        }
+        
+        // Ensure the array is not empty and contains valid UIDs.
+        idsToQuery = idsToQuery.filter(id => typeof id === 'string' && id.length > 0);
+        
+        if (idsToQuery.length === 0) {
+            return query(
+                collection(firestore, 'posts'),
+                orderBy('createdAt', 'desc'),
+                limit(20)
+            );
+        }
         
         return query(
           collection(firestore, 'posts'), 
