@@ -17,11 +17,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
 import { Image as ImageIcon, ArrowLeft, AspectRatio } from 'lucide-react';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from 'next/navigation';
 import type { UserProfile } from '@/lib/types';
+import { Progress } from './ui/progress';
 
 
 const postSchema = z.object({
@@ -73,6 +74,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -123,49 +125,66 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
     setLoading(true);
     toast({ title: 'Publication en cours...', description: 'Votre publication apparaîtra dans le fil.' });
+    onClose();
 
     const newDocRef = doc(collection(firestore, 'posts'));
     const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
 
+    // Immediately create the post document with a placeholder/local URL
+    const postData = {
+        ...data,
+        id: newDocRef.id,
+        userId: user!.uid,
+        username: userProfile.username,
+        userAvatarUrl: userProfile.profilePicture,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        likes: [],
+        comments: [],
+        imageUrl: previewUrl, // Use local preview URL initially
+        isUploading: true,
+    };
+
     try {
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(snapshot.ref);
-
-        const postData = {
-            ...data,
-            id: newDocRef.id,
-            userId: user!.uid,
-            username: userProfile.username,
-            userAvatarUrl: userProfile.profilePicture,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            likes: [],
-            comments: [],
-            imageUrl: imageUrl,
-        };
-
         await setDoc(newDocRef, postData);
-        
-        toast({ title: 'Succès', description: 'Publication créée !' });
-        onClose();
-        router.refresh();
-
-    } catch (error: any) {
-        const isPermissionError = error.code === 'permission-denied';
-        toast({ variant: 'destructive', title: 'Erreur de publication', description: isPermissionError ? "Permission refusée." : "Impossible de créer la publication." });
-        if (isPermissionError) {
-             errorEmitter.emit(
-                'permission-error',
-                new FirestorePermissionError({
-                    path: newDocRef.path,
-                    operation: 'create',
-                    requestResourceData: data,
-                })
-            );
-        }
-    } finally {
+    } catch(e: any) {
         setLoading(false);
+        toast({ variant: 'destructive', title: 'Erreur de publication', description: "Impossible de créer la publication." });
+        errorEmitter.emit(
+            'permission-error',
+            new FirestorePermissionError({
+                path: newDocRef.path,
+                operation: 'create',
+                requestResourceData: data,
+            })
+        );
+        return;
     }
+
+    const uploadTask = uploadBytesResumable(imageRef, imageFile);
+
+    uploadTask.on('state_changed',
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setUploadProgress(progress);
+        },
+        (error) => {
+            console.error("Upload error:", error);
+            // Optionally, update the post to show an error state
+            setDoc(newDocRef, { uploadError: true }, { merge: true });
+            toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "L'image n'a pas pu être envoyée."});
+        },
+        () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                // Finalize the post with the real URL
+                setDoc(newDocRef, {
+                    imageUrl: downloadURL,
+                    isUploading: false,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            });
+        }
+    );
   };
 
   return (

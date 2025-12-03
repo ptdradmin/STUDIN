@@ -40,6 +40,8 @@ export interface Post {
         text: string;
         createdAt: string;
     }[];
+    isUploading?: boolean;
+    uploadError?: boolean;
 }
 
 export interface Reel {
