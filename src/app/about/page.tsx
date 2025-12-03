@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Car, BookOpen, PartyPopper, Target } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, Target, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
@@ -24,6 +24,12 @@ const features = [
     title: 'Tutorat',
     description: "Obtenez de l'aide ou proposez vos compétences dans toutes les matières.",
     href: "/tutoring",
+  },
+    {
+    icon: <ShoppingCart className="h-8 w-8" />,
+    title: 'Marché aux Livres',
+    description: "Achetez et vendez vos livres de cours d'occasion entre étudiants.",
+    href: "/books",
   },
   {
     icon: <PartyPopper className="h-8 w-8" />,
@@ -76,7 +82,7 @@ export default function AboutPage() {
                 Un Écosystème Complet
               </h2>
             </div>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature) => (
                  <Link href={feature.href} key={feature.title} className="block h-full">
                   <Card className="h-full text-center shadow-lg transition-transform hover:-translate-y-2">

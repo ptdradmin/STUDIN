@@ -29,7 +29,7 @@ export default function PrivacyPage() {
                         <li><strong>Données d'identification :</strong> Prénom, nom, nom d'utilisateur, photo de profil.</li>
                         <li><strong>Données de contact :</strong> Adresse e-mail, numéro de téléphone (optionnel).</li>
                         <li><strong>Données de profil académique :</strong> Université, domaine d'études.</li>
-                        <li><strong>Contenu généré par l'utilisateur (CGU) :</strong> Annonces (logement, covoiturage, tutorat), publications, photos, biographie, commentaires, soumissions aux défis (photos, textes) et messages que vous publiez ou échangez sur la plateforme.</li>
+                        <li><strong>Contenu généré par l'utilisateur (CGU) :</strong> Annonces (logement, covoiturage, tutorat, marché aux livres), publications, photos, biographie, commentaires, soumissions aux défis (photos, textes) et messages que vous publiez ou échangez sur la plateforme.</li>
                         <li><strong>Données techniques :</strong> Adresse IP, type de navigateur, système d'exploitation, informations sur les appareils, et données de navigation sur notre service.</li>
                         <li><strong>Données de localisation :</strong> Nous pouvons collecter des données de localisation approximatives (ville) pour personnaliser les services comme le logement ou les événements. La localisation précise n'est utilisée qu'avec votre consentement explicite, par exemple pour afficher votre position sur une carte dans le cadre d'un défi.</li>
                     </ul>
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
                     <p>Vos données sont utilisées pour les finalités suivantes :</p>
                     <ul>
                         <li><strong>Fourniture du service :</strong> Créer et gérer votre compte, héberger votre contenu, et vous permettre d'utiliser les fonctionnalités de l'application (y compris la participation aux défis).</li>
-                        <li><strong>Mise en relation :</strong> Faciliter la communication entre les utilisateurs pour les services de logement, covoiturage, tutorat, événements et défis.</li>
+                        <li><strong>Mise en relation :</strong> Faciliter la communication entre les utilisateurs pour les services de logement, covoiturage, tutorat, marché aux livres, événements et défis.</li>
                         <li><strong>Personnalisation :</strong> Vous proposer du contenu, des annonces et des événements pertinents en fonction de votre profil et de votre localisation.</li>
                         <li><strong>Sécurité et modération :</strong> Protéger la plateforme contre la fraude, les abus, et faire respecter nos conditions d'utilisation.</li>
                         <li><strong>Communication :</strong> Vous envoyer des notifications importantes relatives au service (par exemple, une confirmation de réservation) et, avec votre consentement, des newsletters ou des offres promotionnelles.</li>

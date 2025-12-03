@@ -35,7 +35,7 @@ export default function CommunityRulesPage() {
                         <h2 className="mt-6 text-2xl font-semibold">3. Soyez honnête et authentique</h2>
                         <ul>
                            <li>Ne vous faites pas passer pour quelqu'un d'autre (usurpation d'identité).</li>
-                           <li>Ne publiez pas d'informations fausses ou trompeuses, que ce soit dans les annonces (logement, covoiturage), les publications ou les défis.</li>
+                           <li>Ne publiez pas d'informations fausses ou trompeuses, que ce soit dans les annonces (logement, covoiturage, marché aux livres), les publications ou les défis.</li>
                            <li>La manipulation des avis, des likes, des commentaires ou des résultats des défis est interdite.</li>
                         </ul>
 

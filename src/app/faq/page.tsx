@@ -14,7 +14,7 @@ const faqs = [
         questions: [
             {
                 q: "Qu'est-ce que STUD'IN ?",
-                a: "STUD'IN est une plateforme tout-en-un conçue pour simplifier la vie des étudiants en Belgique francophone. Elle centralise des services essentiels comme la recherche de logement, le covoiturage, le tutorat et la découverte d'événements."
+                a: "STUD'IN est une plateforme tout-en-un conçue pour simplifier la vie des étudiants en Belgique francophone. Elle centralise des services essentiels comme la recherche de logement, le covoiturage, le tutorat, la vente de livres et la découverte d'événements."
             },
             {
                 q: "L'inscription est-elle gratuite ?",
@@ -27,6 +27,23 @@ const faqs = [
             {
                 q: "Comment puis-je signaler un contenu inapproprié ?",
                 a: "Chaque publication, annonce ou profil dispose d'une option de signalement (souvent via une icône '...'). Notre équipe de modération examinera votre signalement dans les plus brefs délais."
+            }
+        ]
+    },
+    {
+        category: "Marché aux Livres",
+        questions: [
+            {
+                q: "Comment puis-je vendre un livre ?",
+                a: "Rendez-vous dans la section 'Marché aux Livres' et cliquez sur le bouton 'Vendre un livre'. Remplissez le formulaire avec les informations du livre (titre, auteur, état, prix) et ajoutez une photo."
+            },
+            {
+                q: "Comment acheter un livre ?",
+                a: "Sur la fiche d'un livre qui vous intéresse, cliquez sur le bouton 'Contacter'. Cela ouvrira une conversation privée avec le vendeur dans la messagerie de l'application pour que vous puissiez vous arranger sur les modalités de paiement et de remise."
+            },
+            {
+                q: "Est-ce que STUD'IN gère la transaction financière ?",
+                a: "Non, STUD'IN est une plateforme de mise en relation. Le paiement se fait directement entre le vendeur et l'acheteur, par le moyen de leur choix (espèces, application de paiement, etc.)."
             }
         ]
     },

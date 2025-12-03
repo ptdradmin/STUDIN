@@ -24,7 +24,7 @@ export default function PressPage() {
                     
                     <h3 className="text-2xl font-semibold mt-10">Feuille de Route (Roadmap)</h3>
                     <ul className="text-left list-disc list-inside mx-auto max-w-md">
-                        <li><span className="font-semibold">Phase 1 (En cours):</span> Lancement de la plateforme avec les modules Logement et Social.</li>
+                        <li><span className="font-semibold">Phase 1 (En cours):</span> Lancement de la plateforme avec les modules Logement, Social et Marché aux Livres.</li>
                         <li><span className="font-semibold">Phase 2 (Q4 2024):</span> Intégration des modules Covoiturage et Événements.</li>
                         <li><span className="font-semibold">Phase 3 (Q1 2025):</span> Lancement du service de Tutorat et partenariats universitaires.</li>
                     </ul>
