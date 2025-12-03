@@ -19,6 +19,7 @@ import ChallengeCard from '@/components/challenge-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
 import { doc, collection, query } from 'firebase/firestore';
+import { staticChallenges } from '@/lib/static-data';
 
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -33,8 +34,9 @@ export default function ChallengesPage() {
     const firestore = useFirestore();
     const [showCreateForm, setShowCreateForm] = useState(false);
 
-    const challengesQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'challenges')), [firestore]);
-    const { data: challenges, isLoading: areChallengesLoading } = useCollection<Challenge>(challengesQuery);
+    // Use static challenges for now
+    const challenges = staticChallenges;
+    const areChallengesLoading = false;
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
