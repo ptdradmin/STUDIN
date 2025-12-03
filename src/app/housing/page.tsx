@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import HousingListings from '@/components/housing-listings';
-import { LayoutGrid, Map, Plus, Search } from 'lucide-react';
+import { LayoutGrid, Map, Plus, Search, GraduationCap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
@@ -18,6 +18,7 @@ import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -92,13 +93,17 @@ export default function HousingPage() {
             {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
 
             <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="flex-1 md:hidden">
+                     <Link href="/social" className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                            <GraduationCap className="h-5 w-5 text-white" />
+                          </div>
+                      </Link>
+                </div>
                 <div className="hidden md:flex flex-1 max-w-md items-center">
                     <GlobalSearch />
                 </div>
-                <div className="flex-1 md:hidden">
-                    <Button variant="ghost" size="icon"><Search className="h-6 w-6" /></Button>
-                </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-1 justify-end md:justify-normal">
                     <NotificationsDropdown />
                 </div>
             </header>
@@ -183,5 +188,3 @@ export default function HousingPage() {
     </div>
   );
 }
-
-    
