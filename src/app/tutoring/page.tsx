@@ -196,15 +196,8 @@ export default function TutoringPage() {
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <div className="mb-8">
-             <div className="flex items-center gap-4">
-               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <BookOpen className="h-8 w-8" />
-               </div>
-               <div>
-                  <h1 className="text-3xl font-bold tracking-tight">Tutorat</h1>
-                  <p className="text-muted-foreground mt-1">Obtenez de l'aide ou proposez vos compétences dans toutes les matières.</p>
-               </div>
-             </div>
+             <h1 className="text-3xl font-bold tracking-tight">Tutorat</h1>
+             <p className="text-muted-foreground mt-1">Obtenez de l'aide ou proposez vos compétences dans toutes les matières.</p>
           </div>
           <Card className="mb-6">
             <CardHeader>

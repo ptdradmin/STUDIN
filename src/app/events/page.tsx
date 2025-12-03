@@ -347,15 +347,8 @@ export default function EventsPage() {
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <div className="mb-8">
-               <div className="flex items-center gap-4">
-                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                    <PartyPopper className="h-8 w-8" />
-                 </div>
-                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Événements Étudiants</h1>
-                    <p className="text-muted-foreground mt-1">Ne manquez aucune soirée, conférence ou activité étudiante.</p>
-                 </div>
-               </div>
+               <h1 className="text-3xl font-bold tracking-tight">Événements Étudiants</h1>
+               <p className="text-muted-foreground mt-1">Ne manquez aucune soirée, conférence ou activité étudiante.</p>
             </div>
 
           <RecommendedEvents events={events || []} userProfile={userProfile || null} />
