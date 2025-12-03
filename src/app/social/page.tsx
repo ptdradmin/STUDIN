@@ -199,14 +199,9 @@ export default function SocialPage() {
           
           <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
              <div className="w-full">
-                <div className="container mx-auto max-w-xl px-0 md:px-4 py-6">
-                    <div className="space-y-6">
-                        
-                         <div className="md:hidden">
-                            <Suggestions />
-                        </div>
-
-                         <div className="w-full max-w-[470px] mx-auto space-y-4">
+                <div className="container mx-auto py-6">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-8">
+                        <div className="w-full max-w-[470px] mx-auto space-y-4">
                              {isLoading ? (
                                 Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                              ) : posts && posts.length > 0 ? (
@@ -224,6 +219,9 @@ export default function SocialPage() {
                                     <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
                                 </div>
                             )}
+                        </div>
+                        <div className="hidden md:block space-y-6">
+                            <Suggestions />
                         </div>
                     </div>
                 </div>
