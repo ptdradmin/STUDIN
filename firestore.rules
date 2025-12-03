@@ -83,7 +83,7 @@ service cloud.firestore {
     // Book Exchange Rules
     // =====================================================================
     match /books/{bookId} {
-      allow read, list: if isSignedIn();
+      allow read, list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow update, delete: if isBookSeller(resource.data);
     }
