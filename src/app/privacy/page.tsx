@@ -37,7 +37,7 @@ export default function PrivacyPage() {
                     <h2 className="mt-6 text-2xl font-semibold">3. Comment nous utilisons vos données</h2>
                     <p>Vos données sont utilisées pour les finalités suivantes :</p>
                     <ul>
-                        <li><strong>Fourniture du service :</strong> Créer et gérer votre compte, héberger votre contenu, et vous permettre d'utiliser les fonctionnalités de l'application.</li>
+                        <li><strong>Fourniture du service :</strong> Créer et gérer votre compte, héberger votre contenu, et vous permettre d'utiliser les fonctionnalités de l'application (y compris la participation aux défis).</li>
                         <li><strong>Mise en relation :</strong> Faciliter la communication entre les utilisateurs pour les services de logement, covoiturage, tutorat, événements et défis.</li>
                         <li><strong>Personnalisation :</strong> Vous proposer du contenu, des annonces et des événements pertinents en fonction de votre profil et de votre localisation.</li>
                         <li><strong>Sécurité et modération :</strong> Protéger la plateforme contre la fraude, les abus, et faire respecter nos conditions d'utilisation.</li>

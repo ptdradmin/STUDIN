@@ -29,8 +29,8 @@ export default function CommunityRulesPage() {
                             <li>Illégal ou qui encourage des activités illégales.</li>
                             <li>Qui porte atteinte à la vie privée d'autrui (partage d'informations personnelles sans consentement).</li>
                             <li>Constituant du spam ou de la publicité non sollicitée.</li>
-                            <li>Le contenu soumis dans le cadre des défis doit également respecter ces règles.</li>
                         </ul>
+                         <p>Le contenu soumis dans le cadre des défis doit également respecter ces règles.</p>
 
                         <h2 className="mt-6 text-2xl font-semibold">3. Soyez honnête et authentique</h2>
                         <ul>
