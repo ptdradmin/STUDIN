@@ -144,6 +144,8 @@ export default function RegisterForm() {
           followerIds: [],
           followingIds: [],
           isVerified: false,
+          points: 0,
+          challengesCompleted: 0,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
       };

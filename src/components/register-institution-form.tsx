@@ -98,6 +98,8 @@ export default function RegisterInstitutionForm() {
         followerIds: [],
         followingIds: [],
         isVerified: true, // Institutions are auto-verified for now
+        points: 0,
+        challengesCompleted: 0,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     };

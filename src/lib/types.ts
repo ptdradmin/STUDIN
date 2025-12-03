@@ -162,6 +162,8 @@ export interface UserProfile {
     isVerified?: boolean;
     followerIds: string[];
     followingIds: string[];
+    points: number;
+    challengesCompleted: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }
@@ -241,5 +243,3 @@ export interface ChallengeSubmission {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
 }
-
-    
