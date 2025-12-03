@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState } from 'react';
@@ -220,6 +218,12 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
             });
         }
         
+        // 4. Update user posts if username or avatar changed
+        const hasProfileChanged = data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture;
+        if (firestore && hasProfileChanged) {
+             await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL }, batch);
+        }
+
         // Commit all batched writes
         await batch.commit();
         
@@ -230,10 +234,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
             await updateProfile(currentUser, { displayName, photoURL: newPhotoURL });
         }
         
-        // 4. Update user posts if username or avatar changed
-        if (firestore && (data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture)) {
-            await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL });
-        }
 
         toast({ title: 'Succès', description: 'Profil mis à jour !' });
         onClose();

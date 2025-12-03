@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -16,6 +15,7 @@ import {
   where,
   setDoc,
   deleteDoc,
+  WriteBatch,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
@@ -122,11 +122,9 @@ export const createNotification = async (
 };
 
 
-export const updateUserPosts = async (firestore: Firestore, userId: string, updatedProfile: Partial<Pick<UserProfile, 'username' | 'profilePicture'>>) => {
+export const updateUserPosts = async (firestore: Firestore, userId: string, updatedProfile: Partial<Pick<UserProfile, 'username' | 'profilePicture'>>, batch: WriteBatch) => {
     const postsQuery = query(collection(firestore, 'posts'), where('userId', '==', userId));
-    const batch = writeBatch(firestore);
     
-    const postsToUpdate: { path: string; data: any }[] = [];
     const updatedData: any = {};
     if(updatedProfile.username) updatedData.username = updatedProfile.username;
     if(updatedProfile.profilePicture) updatedData.userAvatarUrl = updatedProfile.profilePicture;
@@ -135,29 +133,11 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
       return; // Nothing to update
     }
 
-    try {
-        const querySnapshot = await getDocs(postsQuery);
-        querySnapshot.forEach(doc => {
-            const postRef = doc.ref;
-            batch.update(postRef, updatedData);
-            postsToUpdate.push({ path: postRef.path, data: updatedData });
-        });
-        await batch.commit();
-    } catch (serverError) {
-         const permissionError = new FirestorePermissionError({
-            path: `posts (pour l'utilisateur ${userId})`,
-            operation: 'update',
-            requestResourceData: { 
-                note: 'Tentative de mise à jour de plusieurs publications après la mise à jour du profil.',
-                updatedData: updatedProfile,
-                postsPaths: postsToUpdate.map(p => p.path),
-            }
-        } satisfies SecurityRuleContext);
-
-        errorEmitter.emit('permission-error', permissionError);
-        // We re-throw the original error to let the caller know something went wrong.
-        throw serverError;
-    }
+    const querySnapshot = await getDocs(postsQuery);
+    querySnapshot.forEach(doc => {
+        const postRef = doc.ref;
+        batch.update(postRef, updatedData);
+    });
 };
 
 export const toggleFavorite = async (

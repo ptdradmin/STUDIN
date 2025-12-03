@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from 'next/navigation';
+import type { UserProfile } from '@/lib/types';
 
 
 const postSchema = z.object({
@@ -67,6 +67,12 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const firestore = useFirestore();
   const storage = useStorage();
   const router = useRouter();
+
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
   
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -97,7 +103,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   };
 
   const onSubmit: SubmitHandler<PostFormInputs> = (data) => {
-    if (!user || !firestore || !storage) {
+    if (!user || !firestore || !storage || !userProfile) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
     }
@@ -129,8 +135,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     ...data,
                     id: newDocRef.id,
                     userId: user.uid,
-                    username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-                    userAvatarUrl: user.photoURL,
+                    username: userProfile.username, // Use username from profile
+                    userAvatarUrl: userProfile.profilePicture, // Use avatar from profile
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp(),
                     likes: [],
@@ -232,13 +238,13 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                         </div>
                     </TabsContent>
                     <TabsContent value="caption" className="flex-grow flex flex-col p-4">
-                        {user && (
+                        {userProfile && (
                             <div className="flex items-center gap-3 mb-4">
                                 <Avatar className="h-7 w-7">
-                                    <AvatarImage src={user.photoURL ?? undefined} />
-                                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                                    <AvatarImage src={userProfile.profilePicture ?? undefined} />
+                                    <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
                                 </Avatar>
-                                <p className="font-semibold text-sm">{user.displayName?.split(' ')[0]}</p>
+                                <p className="font-semibold text-sm">{userProfile.username}</p>
                             </div>
                         )}
                         <div className="flex-grow">
