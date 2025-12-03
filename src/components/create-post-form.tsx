@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -56,6 +57,11 @@ const filters = [
     { name: 'Amaro', className: 'filter-hue-rotate-[-10deg] filter-contrast-90 filter-saturate-150' },
     { name: 'Mayfair', className: 'filter-contrast-110 filter-saturate-110' },
     { name: 'Rise', className: 'filter-brightness-105 filter-sepia-[0.2] filter-contrast-90 filter-saturate-90' },
+    { name: 'Hudson', className: 'filter-brightness-120 filter-contrast-90 filter-saturate-110' },
+    { name: 'Valencia', className: 'filter-contrast-110 filter-sepia-[0.08]' },
+    { name: 'X-Pro II', className: 'filter-contrast-150 filter-saturate-180' },
+    { name: 'Sierra', className: 'filter-contrast-90 filter-saturate-125' },
+    { name: 'Willow', className: 'filter-grayscale filter-contrast-95' },
 ];
 
 
@@ -166,7 +172,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   const aspectClasses: Record<AspectRatio, string> = {
     "1:1": "aspect-square",
-    "4:5": "aspect-[4/5]",
+    "4:5": "aspect-w-4 aspect-h-5",
     "16:9": "aspect-video",
   }
 
@@ -202,22 +208,24 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
           {step === 2 && previewUrl && (
              <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] min-h-[60vh]">
-                  <div className={cn("flex flex-col items-center justify-center border-r bg-black relative", aspectClasses[aspectRatio])}>
-                    <div className="absolute top-2 left-2 z-10">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="secondary" size="icon" className="rounded-full h-8 w-8 bg-black/50 hover:bg-black/70 text-white">
-                            <Crop className="h-4 w-4"/>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => setAspectRatio("1:1")}>Carré (1:1)</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setAspectRatio("4:5")}>Portrait (4:5)</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setAspectRatio("16:9")}>Paysage (16:9)</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
+                  <div className="flex items-center justify-center border-r bg-black">
+                     <div className={cn("relative w-full h-full max-h-[calc(80vh-53px)]", aspectClasses[aspectRatio])}>
+                        <div className="absolute top-2 left-2 z-10">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="secondary" size="icon" className="rounded-full h-8 w-8 bg-black/50 hover:bg-black/70 text-white">
+                                <Crop className="h-4 w-4"/>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => setAspectRatio("1:1")}>Carré (1:1)</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setAspectRatio("4:5")}>Portrait (4:5)</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setAspectRatio("16:9")}>Paysage (16:9)</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
+                      </div>
                   </div>
                   
                   <Tabs defaultValue="filters" className="flex flex-col">
