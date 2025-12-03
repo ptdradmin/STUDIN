@@ -37,7 +37,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const isOwner = user?.uid === reel.userId;
 
     const videoRef = useRef<HTMLVideoElement>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(!hasEnabledAudio);
     const [progress, setProgress] = useState(0);
@@ -47,9 +46,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         if (videoRef.current?.paused) {
             try {
                 await videoRef.current.play();
-                if (audioRef.current?.paused) {
-                    await audioRef.current.play();
-                }
                 setIsPlaying(true);
             } catch (error) {
                  if ((error as DOMException).name !== 'AbortError') {
@@ -62,9 +58,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const pauseMedia = () => {
         if (videoRef.current && !videoRef.current.paused) {
             videoRef.current.pause();
-        }
-        if (audioRef.current && !audioRef.current.paused) {
-            audioRef.current.pause();
         }
         setIsPlaying(false);
     };
@@ -94,7 +87,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 observer.unobserve(currentVideoRef);
             }
             if (videoRef.current) videoRef.current.pause();
-            if (audioRef.current) audioRef.current.pause();
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -114,10 +106,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     
     useEffect(() => {
         if(videoRef.current) {
-             videoRef.current.muted = true; // Video is always muted to sync with external audio
-        }
-        if(audioRef.current) {
-            audioRef.current.muted = isMuted;
+             videoRef.current.muted = isMuted;
         }
     }, [isMuted]);
 
@@ -202,12 +191,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 onClick={handleVideoClick}
                 onTimeUpdate={handleTimeUpdate}
                 id={`reel-video-${reel.id}`}
-                muted // Always mute the video element itself
             ></video>
-            
-            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
 
-            {!hasEnabledAudio && (
+            {!hasEnabledAudio && !isPlaying && (
                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white pointer-events-none text-center p-4">
                     <VolumeX className="h-12 w-12 mb-2" />
                     <p className="font-semibold">Appuyez pour activer le son</p>
