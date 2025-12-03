@@ -98,9 +98,8 @@ export default function RegisterInstitutionForm() {
     await batch.commit();
 
     // 3. Update Auth Profile
-    const currentUser = auth?.currentUser;
-    if (currentUser) {
-        await updateProfile(currentUser, { displayName: data.name, photoURL: userData.profilePicture });
+    if (user) {
+        await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
     }
   };
 
@@ -258,4 +257,3 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
-

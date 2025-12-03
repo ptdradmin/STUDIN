@@ -151,8 +151,9 @@ export default function RegisterForm() {
       await setDoc(userDocRef, userData);
 
       const newDisplayName = `${firstName} ${lastName}`;
-      if(auth?.currentUser && (auth.currentUser.displayName !== newDisplayName || auth.currentUser.photoURL !== userData.profilePicture)) {
-        await updateProfile(auth.currentUser, { displayName: newDisplayName, photoURL: userData.profilePicture });
+      // CRITICAL FIX: Ensure updateProfile is called on the correct user object from the credential
+      if(user && (user.displayName !== newDisplayName || user.photoURL !== userData.profilePicture)) {
+        await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
       }
   }
 
