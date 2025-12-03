@@ -39,7 +39,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(true);
+    const [isMuted, setIsMuted] = useState(!hasEnabledAudio);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
@@ -60,11 +60,11 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     };
 
     const pauseMedia = () => {
-        if (!videoRef.current?.paused) {
-            videoRef.current?.pause();
+        if (videoRef.current && !videoRef.current.paused) {
+            videoRef.current.pause();
         }
-        if (!audioRef.current?.paused) {
-            audioRef.current?.pause();
+        if (audioRef.current && !audioRef.current.paused) {
+            audioRef.current.pause();
         }
         setIsPlaying(false);
     };
@@ -93,7 +93,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             if (currentVideoRef) {
                 observer.unobserve(currentVideoRef);
             }
-            // Cleanup: pause media when component unmounts or re-renders
             if (videoRef.current) videoRef.current.pause();
             if (audioRef.current) audioRef.current.pause();
         };
