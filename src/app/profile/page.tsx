@@ -294,6 +294,21 @@ export default function CurrentUserProfilePage() {
 
   const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading;
 
+  if (loading || !user || !userProfile) {
+    return (
+       <div className="flex min-h-screen w-full bg-background">
+        <SocialSidebar />
+        <div className="flex flex-col flex-1">
+             <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <Skeleton className="h-10 w-full max-w-md" />
+                <div className="flex items-center gap-2"><Skeleton className="h-9 w-9 rounded-full" /></div>
+            </header>
+            <main className="flex-1 overflow-y-auto"><ProfilePageSkeleton /></main>
+        </div>
+       </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-background">
         <SocialSidebar />
@@ -311,7 +326,6 @@ export default function CurrentUserProfilePage() {
             </header>
             <main className="flex-1 overflow-y-auto">
                 <div className="container mx-auto px-4 py-8">
-                    {loading || !user || !userProfile ? <ProfilePageSkeleton /> : (
                         <div className="mx-auto max-w-4xl">
                             <div className="p-4 md:p-6">
                                 <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
@@ -470,12 +484,9 @@ export default function CurrentUserProfilePage() {
                                 </TabsContent>
                             </Tabs>
                         </div>
-                    )}
                 </div>
             </main>
         </div>
     </div>
   );
 }
-
-

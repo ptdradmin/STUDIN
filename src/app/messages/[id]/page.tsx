@@ -112,17 +112,20 @@ export default function ConversationPage() {
     
     // Mark conversation as read when it's opened
     useEffect(() => {
-        if (conversationRef && user && conversation?.lastMessage && conversation.lastMessage.senderId !== user.uid && conversation.unread) {
-             updateDoc(conversationRef, {
-                unread: false,
-             }).catch(err => {
-                const permissionError = new FirestorePermissionError({
-                    path: conversationRef.path,
-                    operation: 'update',
-                    requestResourceData: { unread: false }
+        if (conversationRef && user && conversation?.lastMessage && conversation.lastMessage.senderId !== user.uid) {
+             const unread = (conversation as any).unread; // Use any to bypass strict type checking for this field.
+             if (unread) {
+                 updateDoc(conversationRef, {
+                    unread: false,
+                 }).catch(err => {
+                    const permissionError = new FirestorePermissionError({
+                        path: conversationRef.path,
+                        operation: 'update',
+                        requestResourceData: { unread: false }
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
                 });
-                errorEmitter.emit('permission-error', permissionError);
-            });
+             }
         }
     }, [conversation, conversationRef, user]);
 
@@ -155,7 +158,7 @@ export default function ConversationPage() {
                 getDownloadURL(uploadTask.snapshot.ref).then(downloadURL => {
                     const messageData: Partial<ChatMessage> = {
                         senderId: user.uid,
-                        createdAt: serverTimestamp(),
+                        createdAt: serverTimestamp() as any,
                         fileType: fileType,
                     };
                     if (fileType === 'image') messageData.imageUrl = downloadURL;
