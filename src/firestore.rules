@@ -91,7 +91,7 @@ service cloud.firestore {
     // =====================================================================
     match /books/{bookId} {
       allow read, list: if isSignedIn();
-      allow create: if isSignedIn() && isBookSeller(request.resource.data);
+      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow update, delete: if isBookSeller(resource.data);
     }
 
