@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from 'next/navigation';
 
 
 const postSchema = z.object({
@@ -65,6 +66,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const storage = useStorage();
+  const router = useRouter();
   
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -136,11 +138,11 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     imageUrl: imageUrl,
                 };
                 
-                // This is the critical change: wrap setDoc in a try/catch
                 await setDoc(newDocRef, postData);
                 
                 toast({ title: 'Succès', description: 'Publication créée !' });
                 onClose();
+                router.refresh();
 
             } catch (err) {
                  const permissionError = new FirestorePermissionError({
