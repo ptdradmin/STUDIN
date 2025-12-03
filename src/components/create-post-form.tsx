@@ -184,6 +184,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
               </Button>
             )}
         </DialogHeader>
+        
         <div className="flex-grow overflow-hidden">
           {step === 1 && (
              <div className="flex flex-col items-center justify-center h-full text-center">
@@ -201,13 +202,13 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
           {step === 2 && previewUrl && (
              <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] h-full">
                   <div className="flex items-center justify-center bg-black/90 overflow-hidden">
-                     <div className="relative w-full h-full">
+                     <div className="relative w-full aspect-square">
                         <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
                       </div>
                   </div>
                   
-                  <div className="flex flex-col h-full border-l">
-                    <Tabs defaultValue="filters" className="flex-grow flex flex-col overflow-hidden">
+                  <div className="flex flex-col border-l">
+                    <Tabs defaultValue="filters" className="flex flex-col flex-grow overflow-hidden">
                       <TabsList className="grid w-full grid-cols-2 rounded-none border-b flex-shrink-0">
                           <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
                           <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
