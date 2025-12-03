@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useAuth, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
@@ -24,7 +24,7 @@ import { updateUserPosts } from '@/lib/actions';
 import { generateAvatar } from '@/lib/avatars';
 
 
-const profileSchema = z.object({
+const studentProfileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
   username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
@@ -37,7 +37,21 @@ const profileSchema = z.object({
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
 });
 
-type ProfileFormInputs = z.infer<typeof profileSchema>;
+const institutionProfileSchema = z.object({
+    // 'firstName' on UserProfile is the institution name
+    firstName: z.string().min(1, "Le nom de l'institution est requis"),
+    username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
+    postalCode: z.string().min(4, 'Code postal invalide'),
+    city: z.string().min(1, 'La ville est requise'),
+    bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
+    website: z.string().url("Veuillez entrer une URL valide").optional().or(z.literal('')),
+});
+
+
+type StudentProfileInputs = z.infer<typeof studentProfileSchema>;
+type InstitutionProfileInputs = z.infer<typeof institutionProfileSchema>;
+type ProfileFormInputs = StudentProfileInputs | InstitutionProfileInputs;
+
 
 const schoolsList = [
     // Universités
@@ -104,8 +118,10 @@ const FormSection = ({ title, description, children }: { title: string, descript
 );
 
 export default function EditProfileForm({ user, userProfile, onClose }: EditProfileFormProps) {
-  const { register, handleSubmit, control, formState: { errors }, reset } = useForm<ProfileFormInputs>({
-    resolver: zodResolver(profileSchema),
+  const isInstitution = userProfile.role === 'institution';
+
+  const { register, handleSubmit, control, formState: { errors } } = useForm<ProfileFormInputs>({
+    resolver: zodResolver(isInstitution ? institutionProfileSchema : studentProfileSchema),
     defaultValues: {
         firstName: userProfile?.firstName || '',
         lastName: userProfile?.lastName || '',
@@ -157,53 +173,55 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     setLoading(true);
     
     let newPhotoURL = userProfile.profilePicture;
-    const userDocRef = doc(firestore, 'users', user.uid);
-
+    
     try {
-      if (profilePictureFile) {
-        const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
-        await uploadBytes(fileRef, profilePictureFile);
-        newPhotoURL = await getDownloadURL(fileRef);
-      }
-      
-      const dataToUpdate = {
-          ...data,
-          profilePicture: newPhotoURL,
-          updatedAt: serverTimestamp()
-      };
-      
-      Object.keys(dataToUpdate).forEach(keyStr => {
-          const key = keyStr as keyof typeof dataToUpdate;
-          if (dataToUpdate[key] === undefined) {
-              delete (dataToUpdate as any)[key];
-          }
-      });
+        if (profilePictureFile) {
+            const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
+            await uploadBytes(fileRef, profilePictureFile);
+            newPhotoURL = await getDownloadURL(fileRef);
+        }
+
+        const batch = writeBatch(firestore);
         
-      await updateDoc(userDocRef, dataToUpdate);
-      
-      const displayName = `${data.firstName} ${data.lastName}`;
-      const currentUser = auth.currentUser;
-      if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
-          await updateProfile(currentUser, { 
-              displayName,
-              photoURL: newPhotoURL,
-          });
-      }
+        // 1. Update User Document
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const dataToUpdate = { ...data, profilePicture: newPhotoURL, updatedAt: serverTimestamp() };
+        batch.update(userDocRef, dataToUpdate);
 
-      if(firestore && (data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture)) {
-          await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL });
-      }
+        // 2. If institution, update Institution Document as well
+        if (isInstitution) {
+            const institutionDocRef = doc(firestore, 'institutions', user.uid);
+            batch.update(institutionDocRef, {
+                name: data.firstName,
+                postalCode: (data as InstitutionProfileInputs).postalCode,
+                city: (data as InstitutionProfileInputs).city
+            });
+        }
+        
+        // Commit all batched writes
+        await batch.commit();
+        
+        // 3. Update Auth Profile
+        const displayName = isInstitution ? data.firstName : `${data.firstName} ${(data as StudentProfileInputs).lastName}`;
+        const currentUser = auth.currentUser;
+        if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
+            await updateProfile(currentUser, { displayName, photoURL: newPhotoURL });
+        }
+        
+        // 4. Update user posts if username or avatar changed
+        if (firestore && (data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture)) {
+            await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL });
+        }
 
-      toast({ title: 'Succès', description: 'Profil mis à jour !' });
-      onClose();
+        toast({ title: 'Succès', description: 'Profil mis à jour !' });
+        onClose();
 
     } catch (error) {
-        // This will catch both the updateDoc error and any error from updateUserPosts
         if (!(error instanceof FirestorePermissionError)) {
              const contextualError = new FirestorePermissionError({
-                path: userDocRef.path,
+                path: `users/${user.uid} or institutions/${user.uid}`,
                 operation: 'update',
-                requestResourceData: data, // data is the attempted update payload
+                requestResourceData: data,
             });
             errorEmitter.emit('permission-error', contextualError);
         }
@@ -211,6 +229,9 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         setLoading(false);
     }
   };
+
+  const studentErrors = errors as z.ZodError<StudentProfileInputs>['formErrors']['fieldErrors'];
+  const institutionErrors = errors as z.ZodError<InstitutionProfileInputs>['formErrors']['fieldErrors'];
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -252,55 +273,80 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                 </div>
              </FormSection>
 
-             <FormSection title="Informations Privées" description="Ces informations ne seront pas visibles publiquement.">
-                <div className="grid grid-cols-2 gap-4">
-                     <div>
-                        <Label htmlFor="firstName">Prénom</Label>
-                        <Input id="firstName" {...register('firstName')} />
-                        {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
-                    </div>
-                     <div>
-                        <Label htmlFor="lastName">Nom</Label>
-                        <Input id="lastName" {...register('lastName')} />
-                        {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
-                    </div>
-                </div>
-                <div>
-                    <Label htmlFor="gender">Genre</Label>
-                    <Controller
-                        name="gender"
-                        control={control}
-                        render={({ field }) => (
-                             <Select onValueChange={field.onChange} value={field.value}>
-                                <SelectTrigger><SelectValue placeholder="Sélectionner le genre" /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="female">Femme</SelectItem>
-                                    <SelectItem value="male">Homme</SelectItem>
-                                    <SelectItem value="non-binary">Non-binaire</SelectItem>
-                                    <SelectItem value="prefer-not-to-say">Ne pas spécifier</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                </div>
+             <FormSection title={isInstitution ? "Informations sur l'institution" : "Informations Privées"} description={isInstitution ? "Détails sur votre organisation." : "Ces informations ne seront pas visibles publiquement."}>
+                {isInstitution ? (
+                    <>
+                        <div>
+                            <Label htmlFor="firstName">Nom de l'institution</Label>
+                            <Input id="firstName" {...register('firstName')} />
+                            {institutionErrors.firstName && <p className="text-xs text-destructive">{institutionErrors.firstName.message}</p>}
+                        </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="postalCode">Code Postal</Label>
+                                <Input id="postalCode" {...register('postalCode')} />
+                                {institutionErrors.postalCode && <p className="text-xs text-destructive">{institutionErrors.postalCode.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="city">Ville</Label>
+                                <Input id="city" {...register('city')} />
+                                {institutionErrors.city && <p className="text-xs text-destructive">{institutionErrors.city.message}</p>}
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="firstName">Prénom</Label>
+                                <Input id="firstName" {...register('firstName')} />
+                                {studentErrors.firstName && <p className="text-xs text-destructive">{studentErrors.firstName.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="lastName">Nom</Label>
+                                <Input id="lastName" {...register('lastName')} />
+                                {studentErrors.lastName && <p className="text-xs text-destructive">{studentErrors.lastName.message}</p>}
+                            </div>
+                        </div>
+                        <div>
+                            <Label htmlFor="gender">Genre</Label>
+                            <Controller
+                                name="gender"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger><SelectValue placeholder="Sélectionner le genre" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="female">Femme</SelectItem>
+                                            <SelectItem value="male">Homme</SelectItem>
+                                            <SelectItem value="non-binary">Non-binaire</SelectItem>
+                                            <SelectItem value="prefer-not-to-say">Ne pas spécifier</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label htmlFor="postalCode">Code Postal</Label>
+                                <Input id="postalCode" {...register('postalCode')} />
+                                {studentErrors.postalCode && <p className="text-xs text-destructive">{studentErrors.postalCode.message}</p>}
+                            </div>
+                            <div>
+                                <Label htmlFor="city">Ville</Label>
+                                <Input id="city" {...register('city')} />
+                                {studentErrors.city && <p className="text-xs text-destructive">{studentErrors.city.message}</p>}
+                            </div>
+                        </div>
+                    </>
+                )}
              </FormSection>
 
-            <FormSection title="Informations Académiques">
-                 <div className="grid grid-cols-2 gap-4">
+            {!isInstitution && (
+                <FormSection title="Informations Académiques">
                     <div>
-                        <Label htmlFor="postalCode">Code Postal</Label>
-                        <Input id="postalCode" {...register('postalCode')} />
-                        {errors.postalCode && <p className="text-xs text-destructive">{errors.postalCode.message}</p>}
-                    </div>
-                    <div>
-                        <Label htmlFor="city">Ville</Label>
-                        <Input id="city" {...register('city')} />
-                        {errors.city && <p className="text-xs text-destructive">{errors.city.message}</p>}
-                    </div>
-                </div>
-                 <div>
-                    <Label htmlFor="university">Établissement</Label>
-                    <Controller
+                        <Label htmlFor="university">Établissement</Label>
+                        <Controller
                             name="university"
                             control={control}
                             render={({ field }) => (
@@ -314,14 +360,15 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                                 </Select>
                             )}
                         />
-                    {errors.university && <p className="text-xs text-destructive">{errors.university.message}</p>}
-                </div>
-                 <div>
-                    <Label htmlFor="fieldOfStudy">Domaine d'études</Label>
-                    <Input id="fieldOfStudy" {...register('fieldOfStudy')} />
-                    {errors.fieldOfStudy && <p className="text-xs text-destructive">{errors.fieldOfStudy.message}</p>}
-                </div>
-            </FormSection>
+                        {studentErrors.university && <p className="text-xs text-destructive">{studentErrors.university.message}</p>}
+                    </div>
+                    <div>
+                        <Label htmlFor="fieldOfStudy">Domaine d'études</Label>
+                        <Input id="fieldOfStudy" {...register('fieldOfStudy')} />
+                        {studentErrors.fieldOfStudy && <p className="text-xs text-destructive">{studentErrors.fieldOfStudy.message}</p>}
+                    </div>
+                </FormSection>
+            )}
 
           <DialogFooter className="sticky bottom-0 bg-background pt-4">
             <DialogClose asChild>
