@@ -14,17 +14,16 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { doc, collection, query, where, addDoc, serverTimestamp, updateDoc, runTransaction, increment, setDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
-
+import { staticChallenges } from '@/lib/static-data';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -45,8 +44,14 @@ export default function ChallengeDetailPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
 
-    const challengeRef = useMemoFirebase(() => !firestore || !challengeId ? null : doc(firestore, 'challenges', challengeId), [firestore, challengeId]);
-    const { data: challenge, isLoading: isChallengeLoading } = useDoc<Challenge>(challengeRef);
+    const [challenge, setChallenge] = useState<Challenge | null>(null);
+    const [isChallengeLoading, setIsChallengeLoading] = useState(true);
+    
+    useEffect(() => {
+        const foundChallenge = staticChallenges.find(c => c.id === challengeId);
+        setChallenge(foundChallenge || null);
+        setIsChallengeLoading(false);
+    }, [challengeId]);
 
     const submissionsQuery = useMemoFirebase(() => !firestore || !challengeId ? null : query(collection(firestore, 'challenges', challengeId, 'submissions')), [firestore, challengeId]);
     const { data: submissions, isLoading: areSubmissionsLoading } = useCollection<ChallengeSubmission>(submissionsQuery);
@@ -93,8 +98,7 @@ export default function ChallengeDetailPage() {
         }
     };
 
-
-    const imageHint = PlaceHolderImages.find(p => p.imageUrl === challenge?.imageUrl)?.imageHint || 'student challenge';
+    const imageHint = challenge?.imageUrl || 'student challenge';
 
     const difficultyMap: {[key: string]: {text: string, color: string}} = {
       facile: { text: "Facile", color: "bg-green-500" },
@@ -107,7 +111,6 @@ export default function ChallengeDetailPage() {
             router.push(`/login?from=/challenges/${challengeId}`);
             return;
         }
-        // This button is now hidden if user is participating, but keeping the logic
         toast({ title: "Vous participez déjà !", description: "Vous pouvez maintenant soumettre votre preuve." });
     }
     
@@ -291,7 +294,7 @@ export default function ChallengeDetailPage() {
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent>
-                                            {isParticipating ? (
+                                            {isParticipating && userSubmission ? (
                                                 <div className="text-center p-4 bg-muted rounded-md border">
                                                     {userSubmission?.proofUrl && <Image src={userSubmission.proofUrl} alt="Votre soumission" width={200} height={150} className="rounded-md mx-auto mb-2" />}
                                                     <p className="text-sm text-muted-foreground">Statut : <Badge variant={userSubmission.status === 'approved' ? 'default' : userSubmission.status === 'rejected' ? 'destructive' : 'secondary'}>{userSubmission.status}</Badge></p>
@@ -378,3 +381,5 @@ export default function ChallengeDetailPage() {
         </div>
     )
 }
+
+    
