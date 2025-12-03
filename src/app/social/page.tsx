@@ -2,81 +2,20 @@
 
 'use client';
 
-import { collection, query, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
-import type { Post, UserProfile, Favorite } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase, useUser, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import type { Post, Favorite } from '@/lib/types';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import GlobalSearch from '@/components/global-search';
 import SocialSidebar from '@/components/social-sidebar';
-
-function SuggestedUsers() {
-    const firestore = useFirestore();
-    const { user } = useUser();
-    
-    const usersQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collection(firestore, 'users'), limit(5));
-    }, [firestore]);
-
-    const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
-
-    if (isLoading) {
-        return (
-            <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="space-y-1">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-3 w-16" />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        )
-    }
-
-    // Filter out the current user from suggestions
-    const suggestions = users?.filter(u => u.id !== user?.uid);
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-base">Suggestions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-                {suggestions?.map(u => (
-                    <div key={u.id} className="flex items-center justify-between">
-                        <Link href={`/profile/${u.id}`} className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={u.profilePicture} />
-                                <AvatarFallback>{u.username.slice(0, 2)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="font-semibold text-sm">{u.username}</p>
-                                <p className="text-xs text-muted-foreground">{u.university}</p>
-                            </div>
-                        </Link>
-                        <Button variant="secondary" size="sm" asChild>
-                            <Link href={`/profile/${u.id}`}>Voir</Link>
-                        </Button>
-                    </div>
-                ))}
-            </CardContent>
-        </Card>
-    )
-}
+import SuggestedUsersCarousel from '@/components/suggested-users-carousel';
 
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
@@ -148,32 +87,26 @@ export default function SocialPage() {
           </header>
           
           <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-             <div className="w-full">
-                <div className="container mx-auto py-6">
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-8">
-                        <div className="w-full max-w-[470px] mx-auto space-y-4">
-                             {isLoading ? (
-                                Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                             ) : posts && posts.length > 0 ? (
-                                posts.map(post => (
-                                    <PostCard 
-                                        key={post.id} 
-                                        post={post}
-                                        isInitiallySaved={savedPostMap.has(post.id)}
-                                        initialFavoriteId={savedPostMap.get(post.id)}
-                                    />
-                                ))
-                             ) : (
-                               <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg">
-                                    <p className="text-lg font-semibold">Votre fil est vide</p>
-                                    <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
-                                </div>
-                            )}
+             <div className="w-full max-w-[470px] mx-auto">
+                <SuggestedUsersCarousel />
+                <div className="space-y-4">
+                     {isLoading ? (
+                        Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
+                     ) : posts && posts.length > 0 ? (
+                        posts.map(post => (
+                            <PostCard 
+                                key={post.id} 
+                                post={post}
+                                isInitiallySaved={savedPostMap.has(post.id)}
+                                initialFavoriteId={savedPostMap.get(post.id)}
+                            />
+                        ))
+                     ) : (
+                       <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
+                            <p className="text-lg font-semibold">Votre fil est vide</p>
+                            <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
                         </div>
-                        <div className="hidden md:block space-y-6">
-                            <SuggestedUsers />
-                        </div>
-                    </div>
+                    )}
                 </div>
            </div>
           </main>

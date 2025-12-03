@@ -11,18 +11,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, ArrowLeft, AspectRatio, Music, Play, Pause, Search, Video } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, Music, Play, Pause, Search, Video } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRouter } from 'next/navigation';
 import type { UserProfile } from '@/lib/types';
-import { Progress } from './ui/progress';
 
 
 const postSchema = z.object({
@@ -92,7 +89,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
         if (currentlyPlaying) {
             audioRef.current.pause();
-            audioRef.current.src = ''; // Force unload of previous source
+            audioRef.current.src = ''; 
         }
         
         audioRef.current.src = song.url;
@@ -198,7 +195,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const storage = useStorage();
-  const router = useRouter();
 
   const userProfileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;

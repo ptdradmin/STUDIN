@@ -3,14 +3,14 @@
 'use client';
 
 import Image from "next/image";
-import type { Post, Favorite } from "@/lib/types";
+import type { Post } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, updateDoc, arrayUnion, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toggleFavorite, createNotification } from "@/lib/actions";
@@ -31,7 +31,7 @@ interface PostCardProps {
     initialFavoriteId?: string | null;
 }
 
-export default function PostCard({ post, isInitiallySaved = false, initialFavoriteId = null }: PostCardProps) {
+export default function PostCard({ post, isInitiallySaved = false }: PostCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -272,7 +272,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
                     </div>
                 ) : post.fileType === 'video' && post.videoUrl ? (
-                    <video src={post.videoUrl} controls className="w-full h-full object-cover" />
+                    <video src={post.videoUrl} controls className="w-full h-full object-cover bg-black" />
                 ) : post.imageUrl ? (
                     <Image
                         src={post.imageUrl}
@@ -308,6 +308,14 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                     </Link>
                     <span className="ml-2">{post.caption}</span>
                 </div>
+                 {post.songTitle && post.audioUrl && (
+                    <div className="px-2 mt-1">
+                        <a href={post.audioUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs text-muted-foreground hover:underline">
+                            <Music className="h-3 w-3" />
+                            <p className="truncate">{post.songTitle}</p>
+                        </a>
+                    </div>
+                )}
                 
                 {optimisticComments.length > 1 && !showAllComments && (
                     <Button variant="link" className="p-0 h-auto text-muted-foreground text-sm mt-1 px-2" onClick={() => setShowAllComments(true)}>
