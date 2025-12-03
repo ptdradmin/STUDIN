@@ -220,7 +220,9 @@ service cloud.firestore {
     match /conversations/{conversationId} {
       allow get, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow list: if isSignedIn() && request.query.where[0] == 'participantIds' && request.query.where[1] == 'array-contains' && request.query.where[2] == request.auth.uid;
+      allow list: if isSignedIn() 
+                  && request.query.get('where') == [["participantIds","array-contains",request.auth.uid]]
+                  && request.query.get('orderBy') == [["updatedAt", "desc"]];
 
       match /messages/{messageId} {
         allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
