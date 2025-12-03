@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Reel } from "@/lib/types";
@@ -35,7 +36,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, setIsMuted] = useState(false); // Start with sound on
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
@@ -88,6 +89,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     };
     
     useEffect(() => {
+        if(videoRef.current) {
+             videoRef.current.muted = isMuted;
+        }
         if(audioRef.current) {
             audioRef.current.muted = isMuted;
         }

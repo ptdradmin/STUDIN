@@ -60,7 +60,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         } else {
             if (audioRef.current) {
                 audioRef.current.src = song.url;
-                audioRef.current.play();
+                audioRef.current.play().catch(e => console.error("Audio play failed:", e));
             }
             setCurrentlyPlaying(song.url);
         }
@@ -68,10 +68,13 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
     useEffect(() => {
         audioRef.current = new Audio();
-        audioRef.current.addEventListener('ended', () => setCurrentlyPlaying(null));
+        const handleEnded = () => setCurrentlyPlaying(null);
+        audioRef.current.addEventListener('ended', handleEnded);
+        
         return () => {
-            audioRef.current?.pause();
-            audioRef.current = null;
+            const currentAudio = audioRef.current;
+            currentAudio?.pause();
+            currentAudio?.removeEventListener('ended', handleEnded);
         }
     }, []);
 
