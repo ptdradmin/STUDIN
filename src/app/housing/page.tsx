@@ -93,7 +93,7 @@ export default function HousingPage() {
             {showCreateForm && <CreateHousingForm onClose={handleCloseForm} housingToEdit={editingHousing} />}
 
             <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                 <Link href="/social" className="flex items-center gap-3">
+                 <Link href={user ? "/social" : "/"} className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                         <GraduationCap className="h-5 w-5 text-white" />
                       </div>
@@ -103,7 +103,7 @@ export default function HousingPage() {
                     <GlobalSearch />
                 </div>
                 <div className="flex items-center gap-2">
-                    <NotificationsDropdown />
+                    {user && <NotificationsDropdown />}
                 </div>
             </header>
             

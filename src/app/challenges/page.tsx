@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ChallengeCard from '@/components/challenge-card';
 import Link from 'next/link';
+import { useUser } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -90,6 +91,7 @@ const staticChallenges: Challenge[] = [
 export default function ChallengesPage() {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const router = useRouter();
+    const { user } = useUser();
     // For now, we use static data
     const challenges = staticChallenges;
 
@@ -100,7 +102,7 @@ export default function ChallengesPage() {
             <SocialSidebar />
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                    <Link href="/social" className="flex items-center gap-3">
+                    <Link href={user ? "/social" : "/"} className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
                             <GraduationCap className="h-5 w-5 text-white" />
                         </div>
@@ -110,7 +112,7 @@ export default function ChallengesPage() {
                         <GlobalSearch />
                     </div>
                     <div className="flex items-center gap-2">
-                        <NotificationsDropdown />
+                        {user && <NotificationsDropdown />}
                     </div>
                 </header>
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
