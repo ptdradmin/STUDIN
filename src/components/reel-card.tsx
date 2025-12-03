@@ -50,27 +50,20 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         }
     }, [reel.audioUrl]);
 
-    const playMedia = () => {
+     const playMedia = async () => {
         if (!videoRef.current) return;
-
-        const videoPromise = videoRef.current.play();
-        let audioPromise: Promise<void> | null = null;
+        setIsPlaying(true);
+        videoRef.current.play().catch(e => {
+            if (e.name !== 'AbortError') console.error("Video play error:", e);
+        });
 
         if (audioRef.current) {
             audioRef.current.currentTime = videoRef.current.currentTime;
             audioRef.current.muted = isMuted;
-            audioPromise = audioRef.current.play();
-        }
-
-        Promise.all([videoPromise, audioPromise].filter(p => p !== null))
-            .then(() => setIsPlaying(true))
-            .catch(error => {
-                // Ignore AbortError, which is common on fast interactions
-                if ((error as DOMException).name !== 'AbortError') {
-                    console.error("Media play failed:", error);
-                    setIsPlaying(false);
-                }
+            audioRef.current.play().catch(e => {
+                if (e.name !== 'AbortError') console.error("Audio play error:", e);
             });
+        }
     };
 
     const pauseMedia = () => {
@@ -78,7 +71,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         if (audioRef.current) audioRef.current.pause();
         setIsPlaying(false);
     };
-
+    
     const togglePlayPause = (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent card-level events
         if (isPlaying) {
@@ -94,6 +87,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             ([entry]) => {
                 if (!entry.isIntersecting) {
                     pauseMedia();
+                } else {
+                    // Optional: autoplay if desired and allowed
+                    // playMedia(); 
                 }
             },
             { threshold: 0.5 } // Trigger when 50% of the video is out of view
@@ -197,7 +193,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 src={reel.videoUrl}
                 playsInline
                 loop
-                muted={!!reel.audioUrl} // Mute video if there's custom audio
+                muted={true} // The main video is ALWAYS muted. Sound comes from the separate audio element.
                 className="h-full w-full object-cover"
                 onTimeUpdate={handleTimeUpdate}
                 onEnded={handleVideoEnd}
