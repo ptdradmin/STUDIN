@@ -272,7 +272,9 @@ export default function UserProfilePage() {
 
 
                              <Tabs defaultValue="posts" className="w-full">
-                                <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 rounded-none border-y">
+                                <TabsList className={cn("grid w-full rounded-none border-y",
+                                   (hasListings && hasEvents) ? 'grid-cols-3' : (hasListings || hasEvents) ? 'grid-cols-2' : 'grid-cols-1'
+                                )}>
                                     <TabsTrigger value="posts" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
                                         <Grid3x3 className="h-5 w-5" />
                                         <span className="hidden md:inline ml-2">Publications</span>

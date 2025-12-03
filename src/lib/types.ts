@@ -223,7 +223,7 @@ export interface Challenge {
     creatorId: string;
     title: string;
     description: string;
-    category: 'Exploration' | 'Social' | 'Créatif' | 'Académique';
+    category: 'Exploration' | 'Social' | 'Créatif' | 'Académique' | 'Environnement' | 'Sportif';
     difficulty: 'facile' | 'moyen' | 'difficile';
     points: number;
     imageUrl: string;
