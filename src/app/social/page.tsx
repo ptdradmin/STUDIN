@@ -195,24 +195,19 @@ export default function SocialPage() {
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
           
           <header className="sticky top-0 z-30 flex h-16 items-center justify-between md:justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex-1 md:hidden">
-                {/* Espace vide pour centrer le logo */}
-            </div>
-            
-            <div className="absolute left-1/2 -translate-x-1/2 md:hidden">
-                 <Link href="/social" className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                        <GraduationCap className="h-5 w-5 text-white" />
-                      </div>
-                  </Link>
-            </div>
+             <Link href="/social" className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-md bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                  <GraduationCap className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-bold hidden md:inline-block">STUD'IN</span>
+            </Link>
 
-            <div className="hidden md:flex flex-1 max-w-md items-center">
+            <div className="flex-1 max-w-md mx-auto">
                 <GlobalSearch />
             </div>
 
-            <div className="flex items-center gap-2 flex-1 justify-end">
-                <Button onClick={() => setShowCreatePost(true)} size="sm" variant="ghost" className="hidden md:flex items-center gap-2" disabled={isUserLoading || !user}>
+            <div className="flex items-center gap-2">
+                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2" disabled={isUserLoading || !user}>
                     <Plus className="h-4 w-4" />
                     Créer
                 </Button>
