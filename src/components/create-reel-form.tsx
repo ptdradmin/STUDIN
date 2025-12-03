@@ -55,17 +55,17 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         return;
       }
       
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.onloadedmetadata = function() {
-        window.URL.revokeObjectURL(video.src);
-        if (video.duration > MAX_DURATION_SECONDS) {
+      const videoElement = document.createElement('video');
+      videoElement.preload = 'metadata';
+      
+      videoElement.onloadedmetadata = function() {
+        window.URL.revokeObjectURL(videoElement.src);
+        if (videoElement.duration > MAX_DURATION_SECONDS) {
           toast({
             variant: "destructive",
             title: "Vidéo trop longue",
             description: `Le Reel ne doit pas dépasser ${MAX_DURATION_SECONDS} secondes.`
           });
-          // Reset the input
           if(event.target) {
             event.target.value = "";
           }
@@ -73,10 +73,16 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
           setPreviewUrl(null);
         } else {
             setVideoFile(file);
-            setPreviewUrl(URL.createObjectURL(file));
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              if (typeof reader.result === 'string') {
+                setPreviewUrl(reader.result);
+              }
+            };
+            reader.readAsDataURL(file);
         }
       }
-      video.src = URL.createObjectURL(file);
+      videoElement.src = URL.createObjectURL(file);
     }
   };
 
