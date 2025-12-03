@@ -16,7 +16,7 @@ import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/fi
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, ArrowLeft, AspectRatio, Music, Play, Pause, Search } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, AspectRatio, Music, Play, Pause, Search, Video } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -84,26 +84,29 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
     const togglePlay = async (song: { title: string, url: string }) => {
         if (!audioRef.current) return;
         
-        // If the clicked song is currently playing, pause it.
         if (currentlyPlaying === song.url) {
             audioRef.current.pause();
             setCurrentlyPlaying(null);
             return;
         }
 
-        // If another song is playing, pause it first.
         if (currentlyPlaying) {
             audioRef.current.pause();
+            audioRef.current.src = ''; // Force unload of previous source
         }
-
-        // Set the new source and play it.
+        
         audioRef.current.src = song.url;
         setCurrentlyPlaying(song.url);
+        
         try {
             await audioRef.current.play();
         } catch (error) {
-            console.error("Audio play error:", error);
-            setCurrentlyPlaying(null); // Reset if play fails
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                 // Ignore abort errors, they are expected on rapid interaction.
+            } else {
+                console.error("Audio play error:", error);
+                setCurrentlyPlaying(null);
+            }
         }
     };
 
@@ -112,7 +115,6 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         const handleEnded = () => setCurrentlyPlaying(null);
         audioRef.current.addEventListener('ended', handleEnded);
         
-        // Cleanup function: pause audio and remove listener when the component unmounts.
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -205,8 +207,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
   
   const [step, setStep] = useState(1);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<'image' | 'video' | null>(null);
   const [showMusicSelection, setShowMusicSelection] = useState(false);
   const [selectedSong, setSelectedSong] = useState<{title: string, url: string} | null>(null);
 
@@ -220,10 +223,11 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     return name.substring(0, 2).toUpperCase();
   }
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setImageFile(file);
+      setMediaFile(file);
+      setFileType(file.type.startsWith('video') ? 'video' : 'image');
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
@@ -245,8 +249,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible ou votre profil n\'est pas chargé.' });
         return;
     }
-    if (!imageFile) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Une image est requise pour la publication." });
+    if (!mediaFile) {
+        toast({ variant: 'destructive', title: 'Erreur', description: "Une image ou une vidéo est requise." });
         return;
     }
     setLoading(true);
@@ -254,9 +258,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     onClose();
 
     const newDocRef = doc(collection(firestore, 'posts'));
-    const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
+    const mediaRef = storageRef(storage, `posts/${newDocRef.id}/${mediaFile.name}`);
 
-    const postData = {
+    const postData: Partial<Post> = {
         ...data,
         id: newDocRef.id,
         userId: user!.uid,
@@ -266,28 +270,39 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         updatedAt: serverTimestamp(),
         likes: [],
         comments: [],
-        imageUrl: previewUrl, 
+        fileType: fileType as 'image' | 'video',
         isUploading: true,
     };
     
+    if (fileType === 'image') {
+        postData.imageUrl = previewUrl as string;
+    } else {
+        postData.videoUrl = previewUrl as string;
+    }
+    
     setDocumentNonBlocking(newDocRef, postData);
     
-    const uploadTask = uploadBytesResumable(imageRef, imageFile);
+    const uploadTask = uploadBytesResumable(mediaRef, mediaFile);
 
     uploadTask.on('state_changed',
-        () => {}, // Progress updates ignored for non-blocking
+        () => {},
         (error) => {
             console.error("Upload error:", error);
             updateDoc(newDocRef, { uploadError: true, isUploading: false });
-            toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "L'image n'a pas pu être envoyée."});
+            toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "Le média n'a pas pu être envoyé."});
         },
         () => {
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                updateDoc(newDocRef, {
-                    imageUrl: downloadURL,
+                const updateData: Partial<Post> = {
                     isUploading: false,
                     updatedAt: serverTimestamp()
-                });
+                };
+                 if (fileType === 'image') {
+                    updateData.imageUrl = downloadURL;
+                } else {
+                    updateData.videoUrl = downloadURL;
+                }
+                updateDoc(newDocRef, updateData);
             });
         }
     );
@@ -299,7 +314,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
       <DialogContent className="sm:max-w-4xl p-0 h-[80vh] flex flex-col" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="p-3 pb-0 border-b text-center relative flex justify-between items-center flex-row flex-shrink-0">
             {step === 2 && (
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setStep(1); setPreviewUrl(null); setMediaFile(null); }}><ArrowLeft className="h-5 w-5" /></Button>
             )}
            <DialogTitle className="text-base font-semibold absolute left-1/2 -translate-x-1/2">
              {step === 1 ? "Créer une nouvelle publication" : "Édition"}
@@ -315,13 +330,13 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
           {step === 1 && (
              <div className="flex flex-col items-center justify-center h-full text-center">
                   <ImageIcon className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
-                  <p className="mt-4 text-xl">Faites glisser les photos ici</p>
+                  <p className="mt-4 text-xl">Sélectionnez des photos ou vidéos</p>
                   <Button type="button" variant="link" asChild className="mt-2">
-                      <Label htmlFor="image-upload" className="cursor-pointer text-base">
+                      <Label htmlFor="media-upload" className="cursor-pointer text-base">
                           Sélectionner depuis l'ordinateur
                       </Label>
                   </Button>
-                  <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
+                  <Input id="media-upload" type="file" accept="image/*,video/*" className="sr-only" onChange={handleMediaUpload} />
               </div>
           )}
 
@@ -329,7 +344,11 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
              <div className="flex h-full">
                   <div className="flex-1 flex items-center justify-center bg-black/90 relative">
                      <div className="relative w-full aspect-square max-w-full max-h-full">
-                        <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" />
+                        {fileType === 'image' ? (
+                            <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" />
+                        ) : (
+                            <video src={previewUrl} controls className="w-full h-full object-contain" />
+                        )}
                       </div>
                   </div>
                   

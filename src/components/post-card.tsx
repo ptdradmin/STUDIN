@@ -288,23 +288,23 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                 </DropdownMenu>
             </div>
             
-            {post.imageUrl && (
-                <div className="relative aspect-square bg-muted">
-                    {post.isUploading ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
-                        </div>
-                    ) : (
-                        <Image
-                            src={post.imageUrl}
-                            alt={`Post by ${post.username}`}
-                            fill
-                            className="object-cover"
-                            data-ai-hint="social media post"
-                        />
-                    )}
-                </div>
-            )}
+            <div className="relative aspect-square bg-muted">
+                {post.isUploading ? (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
+                    </div>
+                ) : post.fileType === 'video' && post.videoUrl ? (
+                    <video src={post.videoUrl} controls className="w-full h-full object-cover" />
+                ) : post.imageUrl ? (
+                    <Image
+                        src={post.imageUrl}
+                        alt={`Post by ${post.username}`}
+                        fill
+                        className="object-cover"
+                        data-ai-hint="social media post"
+                    />
+                ) : null}
+            </div>
              
             {post.audioUrl && (
                 <div className="flex items-center gap-2 p-3 bg-muted/50 border-y overflow-hidden group">

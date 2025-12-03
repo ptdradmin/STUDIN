@@ -29,6 +29,8 @@ export interface Post {
     userAvatarUrl?: string;
     caption: string;
     imageUrl?: string;
+    videoUrl?: string;
+    fileType?: 'image' | 'video';
     location?: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;

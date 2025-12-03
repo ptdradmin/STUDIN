@@ -142,6 +142,8 @@
         "id": { "type": "string" },
         "caption": { "type": "string" },
         "imageUrl": { "type": "string", "format": "uri" },
+        "videoUrl": { "type": "string", "format": "uri" },
+        "fileType": { "type": "string", "enum": ["image", "video"] },
         "location": { "type": "string" },
         "userId": { "type": "string" },
         "username": { "type": "string" },
