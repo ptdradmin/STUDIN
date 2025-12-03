@@ -44,20 +44,13 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
 
-    function hasRequiredUserFieldsOnCreate() {
-      let data = request.resource.data;
-      return data.id == request.auth.uid
-          && data.username is string && data.username.size() > 0
-          && data.email is string && data.email.size() > 0;
-    }
-    
     // =====================================================================
     // User Profile Rules
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
+      allow create: if isOwner(userId);
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']) ||
@@ -191,13 +184,14 @@ service cloud.firestore {
     // Conversation & Message Rules
     // =====================================================================
     match /conversations/{conversationId} {
-      allow list: if isSignedIn() && request.query.where[0] == ['participantIds', 'array-contains', request.auth.uid];
+      allow list: if isSignedIn();
       allow read, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
       
       match /messages/{messageId} {
         allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+        allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
       }
     }
 
@@ -218,5 +212,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
