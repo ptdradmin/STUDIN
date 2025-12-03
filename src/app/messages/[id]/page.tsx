@@ -3,7 +3,7 @@
 
 import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Conversation, ChatMessage } from "@/lib/types";
-import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc, deleteDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,9 @@ function MessagesHeader({ conversation }: { conversation: Conversation | null })
     )
 }
 
-function MessageBubble({ message, isOwnMessage }: { message: ChatMessage, isOwnMessage: boolean}) {
+function MessageBubble({ message, isOwnMessage, onDelete }: { message: ChatMessage, isOwnMessage: boolean, onDelete: (messageId: string) => void }) {
+    const [isHovered, setIsHovered] = useState(false);
+
     const content = () => {
         if (message.imageUrl) {
             return <Image src={message.imageUrl} alt="Image sent in chat" width={300} height={300} className="rounded-lg object-cover" />;
@@ -67,7 +69,16 @@ function MessageBubble({ message, isOwnMessage }: { message: ChatMessage, isOwnM
     }
     
     return (
-        <div className={`flex items-end gap-2 ${isOwnMessage ? 'justify-end' : ''}`}>
+        <div 
+            className={`flex items-end gap-2 group ${isOwnMessage ? 'justify-end' : ''}`}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+             {isOwnMessage && isHovered && (
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(message.id)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            )}
              <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 {content()}
              </div>
@@ -132,6 +143,21 @@ export default function ConversationPage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFileToSend(e.target.files[0]);
+        }
+    }
+
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!firestore || !conversationId) return;
+        const messageRef = doc(firestore, 'conversations', conversationId, 'messages', messageId);
+        try {
+            await deleteDoc(messageRef);
+            toast({ title: "Message supprimé" });
+        } catch (error) {
+             const permissionError = new FirestorePermissionError({
+                path: messageRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
         }
     }
 
@@ -333,7 +359,7 @@ export default function ConversationPage() {
                     )}
                     
                     {messages && messages.map(msg => (
-                        <MessageBubble key={msg.id} message={msg} isOwnMessage={msg.senderId === user?.uid} />
+                        <MessageBubble key={msg.id} message={msg} isOwnMessage={msg.senderId === user?.uid} onDelete={handleDeleteMessage} />
                     ))}
                     <div ref={messagesEndRef} />
                 </div>
