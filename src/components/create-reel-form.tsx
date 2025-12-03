@@ -14,7 +14,7 @@ import { useFirestore, useUser, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Film, Music, Play, Pause } from 'lucide-react';
+import { Film, Music, Play, Pause, Search } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
 import { Progress } from './ui/progress';
@@ -34,23 +34,28 @@ interface CreateReelFormProps {
 }
 
 const pixabayMusic = [
-    { title: "Lofi Chill", artist: "FASSounds", url: "https://cdn.pixabay.com/download/audio/2022/05/19/audio_d893f48a1c.mp3" },
-    { title: "The Beat of Nature", artist: "Olexy", url: "https://cdn.pixabay.com/download/audio/2023/04/23/audio_85244d6a8d.mp3" },
-    { title: "In the Forest", artist: "Lesfm", url: "https://cdn.pixabay.com/download/audio/2022/01/21/audio_18c5e63e52.mp3" },
-    { title: "Powerful Trap", artist: "AlexiAction", url: "https://cdn.pixabay.com/download/audio/2023/05/20/audio_53b692a73c.mp3" },
-    { title: "Modern Vlo-fi", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2022/06/10/audio_27f1b4c73d.mp3"},
+    { title: "Lofi Chill", artist: "FASSounds", url: "https://archive.org/download/lofi-chill-173895/lofi-chill-173895.mp3" },
+    { title: "The Beat of Nature", artist: "Olexy", url: "https://archive.org/download/the-beat-of-nature-122841/the-beat-of-nature-122841.mp3" },
+    { title: "In the Forest", artist: "Lesfm", url: "https://archive.org/download/in-the-forest-ambient-atmospheric-background-music-121403/in-the-forest-ambient-atmospheric-background-music-121403.mp3" },
+    { title: "Powerful Trap", artist: "AlexiAction", url: "https://archive.org/download/powerful-trap-12 Powerful Trap (underscore)_main_powerful-trap-180180/powerful-trap-12%20Powerful%20Trap%20(underscore)_main_powerful-trap-180180.mp3" },
+    { title: "Modern Vlo-fi", artist: "penguinmusic", url: "https://archive.org/download/modern-vlog-140795/modern-vlog-140795.mp3"},
+    { title: "Relaxing", artist: "relaxdaily", url: "https://archive.org/download/relaxing-music-vol.1/Relaxing-Music-Vol.1-01-A.mp3" },
+    { title: "Chill Abstract", artist: "Coma-Media", url: "https://archive.org/download/chill-abstract-intention-12099/chill-abstract-intention-12099.mp3" },
+    { title: "Espresso", artist: "Sabrina Carpenter", url: "https://archive.org/download/sabrina-carpenter-espresso-official-video/Sabrina%20Carpenter%20-%20Espresso%20%28Official%20Video%29.mp3" }
 ];
 
 const pixabaySoundEffects = [
-    { title: "Whoosh", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_e728d8b675.mp3" },
-    { title: "Applaudissements", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_23b378839d.mp3" },
-    { title: "Goutte d'eau", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/03/17/audio_43b02f8be0.mp3" },
-    { title: "Notification", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/11/17/audio_8b24886f4a.mp3" },
-    { title: "Rire", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2021/10/08/audio_2c25c84d23.mp3" }
+    { title: "Whoosh", artist: "Pixabay", url: "https://archive.org/download/whoosh-sound-effect-152869/whoosh-sound-effect-152869.mp3" },
+    { title: "Applaudissements", artist: "Pixabay", url: "https://archive.org/download/small-crowd-applause-6695/small-crowd-applause-6695.mp3" },
+    { title: "Goutte d'eau", artist: "Pixabay", url: "https://archive.org/download/water-drop-sound-effect-6047/water-drop-sound-effect-6047.mp3" },
+    { title: "Notification", artist: "Pixabay", url: "https://archive.org/download/cute-level-up-3-189853/cute-level-up-3-189853.mp3" },
+    { title: "Rire", artist: "Pixabay", url: "https://archive.org/download/medium-crowd-laugh-40110/medium-crowd-laugh-40110.mp3" }
 ];
+
 
 function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: { title: string, url: string }) => void, onClose: () => void }) {
     const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const togglePlay = (song: { title: string, url: string }) => {
@@ -78,6 +83,14 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         }
     }, []);
 
+    const filterSongs = (songs: typeof pixabayMusic) => {
+        if (!searchQuery) return songs;
+        return songs.filter(song => 
+            song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            song.artist.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }
+
     const renderSongList = (songs: {title: string, artist: string, url: string}[]) => (
         <div className="space-y-2">
             {songs.map(song => (
@@ -100,16 +113,25 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
                 <DialogHeader>
                     <DialogTitle>Choisir un son</DialogTitle>
                 </DialogHeader>
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                        placeholder="Rechercher une musique..."
+                        className="pl-10"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                    />
+                </div>
                 <Tabs defaultValue="music" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="music">Musique</TabsTrigger>
                         <TabsTrigger value="sfx">Effets Sonores</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="music" className="max-h-[60vh] overflow-y-auto">
-                        {renderSongList(pixabayMusic)}
+                    <TabsContent value="music" className="max-h-[50vh] overflow-y-auto">
+                        {renderSongList(filterSongs(pixabayMusic))}
                     </TabsContent>
-                    <TabsContent value="sfx" className="max-h-[60vh] overflow-y-auto">
-                        {renderSongList(pixabaySoundEffects)}
+                    <TabsContent value="sfx" className="max-h-[50vh] overflow-y-auto">
+                        {renderSongList(filterSongs(pixabaySoundEffects))}
                     </TabsContent>
                 </Tabs>
                 <DialogFooter>
