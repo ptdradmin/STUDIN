@@ -2,9 +2,9 @@
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, MoreHorizontal, Trash2 } from "lucide-react";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy } from "firebase/firestore";
+import { collection, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 import type { Conversation } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -13,14 +13,35 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 
 function ConversationList() {
     const { user } = useUser();
     const firestore = useFirestore();
     const params = useParams();
+    const { toast } = useToast();
     const currentConversationId = params?.id;
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
     const conversationsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
@@ -34,13 +55,35 @@ function ConversationList() {
 
     const sortedConversations = useMemo(() => {
         if (!conversations) return [];
-        // Tri manuel côté client puisque l'orderBy a été retiré de la requête
         return conversations.sort((a, b) => {
             const dateA = a.updatedAt?.toDate() || new Date(0);
             const dateB = b.updatedAt?.toDate() || new Date(0);
             return dateB.getTime() - dateA.getTime();
         });
     }, [conversations]);
+
+    const handleDeleteClick = (e: React.MouseEvent, convId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setConversationToDelete(convId);
+        setDialogOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!conversationToDelete || !firestore) return;
+        
+        try {
+            await deleteDoc(doc(firestore, "conversations", conversationToDelete));
+            toast({ title: "Conversation supprimée", description: "La conversation a été supprimée avec succès." });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erreur", description: "Impossible de supprimer la conversation." });
+            console.error("Error deleting conversation:", error);
+        } finally {
+            setConversationToDelete(null);
+            setDialogOpen(false);
+        }
+    };
+
 
     if (isLoading) {
         return (
@@ -88,28 +131,59 @@ function ConversationList() {
                 if (!otherParticipant) return null;
 
                 return (
-                    <Link href={`/messages/${conv.id}`} key={conv.id}>
-                        <div className={cn("p-4 flex items-start gap-3 hover:bg-muted/50 cursor-pointer border-b", isActive && "bg-muted")}>
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={otherParticipant.profilePicture} />
-                                <AvatarFallback>{getInitials(otherParticipant.username)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-grow overflow-hidden">
-                                <div className="flex justify-between items-center">
-                                    <p className="font-semibold truncate">{otherParticipant.username}</p>
-                                    <p className="text-xs text-muted-foreground flex-shrink-0">{timeAgo}</p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <p className={cn("text-sm text-muted-foreground truncate", isUnread && "font-bold text-foreground")}>
-                                       {lastMessage?.senderId === user?.uid && "Vous: "}{lastMessage?.text || "..."}
-                                    </p>
-                                     {isUnread && <span className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 ml-2"></span>}
+                    <div key={conv.id} className="group relative">
+                        <Link href={`/messages/${conv.id}`}>
+                            <div className={cn("p-4 flex items-start gap-3 hover:bg-muted/50 cursor-pointer border-b", isActive && "bg-muted")}>
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={otherParticipant.profilePicture} />
+                                    <AvatarFallback>{getInitials(otherParticipant.username)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-grow overflow-hidden">
+                                    <div className="flex justify-between items-center">
+                                        <p className="font-semibold truncate">{otherParticipant.username}</p>
+                                        <p className="text-xs text-muted-foreground flex-shrink-0">{timeAgo}</p>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <p className={cn("text-sm text-muted-foreground truncate", isUnread && "font-bold text-foreground")}>
+                                        {lastMessage?.senderId === user?.uid && "Vous: "}{lastMessage?.text || "..."}
+                                        </p>
+                                        {isUnread && <span className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 ml-2"></span>}
+                                    </div>
                                 </div>
                             </div>
+                        </Link>
+                         <div className="absolute top-1/2 -translate-y-1/2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                     <DropdownMenuItem onSelect={(e) => handleDeleteClick(e, conv.id)} className="text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4"/>
+                                        Supprimer la conversation
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                    </Link>
+                    </div>
                 );
             })}
+             <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cette conversation ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Cette action est irréversible. Tous les messages de cette conversation seront définitivement supprimés.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setConversationToDelete(null)}>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
