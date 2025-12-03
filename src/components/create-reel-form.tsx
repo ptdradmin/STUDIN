@@ -14,13 +14,15 @@ import { useFirestore, useUser, useStorage } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
-import { Film } from 'lucide-react';
+import { Film, Music } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
 import { Progress } from './ui/progress';
 
 const reelSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
+  songTitle: z.string().optional(),
+  audioUrl: z.string().optional(),
 });
 
 type ReelFormInputs = z.infer<typeof reelSchema>;
@@ -29,11 +31,14 @@ interface CreateReelFormProps {
   onClose: () => void;
 }
 
-const MAX_DURATION_SECONDS = 60;
-const MAX_FILE_SIZE_MB = 50;
+const trendingSongs = [
+    { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
+    { title: "Espresso", artist: "Sabrina Carpenter", url: "/music/espresso.mp3" },
+    { title: "Feather", artist: "Sabrina Carpenter", url: "/music/feather.mp3" },
+];
 
 export default function CreateReelForm({ onClose }: CreateReelFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<ReelFormInputs>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReelFormInputs>({
     resolver: zodResolver(reelSchema),
   });
   
@@ -46,6 +51,8 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const storage = useStorage();
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showMusicSelection, setShowMusicSelection] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<{title: string, url: string} | null>(null);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "..";
@@ -64,6 +71,13 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSelectSong = (song: { title: string, url: string }) => {
+      setSelectedSong(song);
+      setValue('songTitle', song.title);
+      setValue('audioUrl', song.url);
+      setShowMusicSelection(false);
   };
 
   const onSubmit: SubmitHandler<ReelFormInputs> = async (data) => {
@@ -123,6 +137,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   };
 
   return (
+    <>
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md p-0">
         <DialogHeader className="p-4 pb-0 border-b text-center">
@@ -139,7 +154,6 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                         <div className="text-center text-muted-foreground">
                             <Film className="h-16 w-16 mx-auto" strokeWidth={1} />
                             <p className="mt-2 text-sm">Téléchargez une vidéo</p>
-                            <p className="text-xs text-muted-foreground">(Max {MAX_FILE_SIZE_MB} Mo, {MAX_DURATION_SECONDS}s)</p>
                              <Button type="button" variant="link" asChild className="mt-1">
                                 <Label htmlFor="video-upload" className="cursor-pointer">
                                     Sélectionner depuis l'ordinateur
@@ -151,7 +165,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                 </div>
 
                 {user && (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                         <Avatar className="h-9 w-9">
                             <AvatarImage src={user.photoURL ?? undefined} />
                             <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
@@ -166,6 +180,13 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                 )}
                 {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
                 
+                <div className="border-t pt-4">
+                    <Button variant="ghost" className="w-full justify-start p-0" onClick={() => setShowMusicSelection(true)}>
+                        <Music className="h-4 w-4 mr-2" />
+                        {selectedSong ? selectedSong.title : 'Ajouter de la musique'}
+                    </Button>
+                </div>
+
                 {loading && (
                     <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Téléversement en cours...</p>
@@ -181,5 +202,29 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         </form>
       </DialogContent>
     </Dialog>
+    {showMusicSelection && (
+            <Dialog open onOpenChange={() => setShowMusicSelection(false)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Sons populaires</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                        {trendingSongs.map(song => (
+                            <div key={song.title} onClick={() => handleSelectSong(song)} className="flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer">
+                                <div>
+                                    <p className="font-semibold">{song.title}</p>
+                                    <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                </div>
+                                <audio src={song.url} controls className="h-8" />
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                         <Button variant="secondary" onClick={() => setShowMusicSelection(false)}>Fermer</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        )}
+    </>
   );
 }

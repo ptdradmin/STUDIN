@@ -42,6 +42,8 @@ export interface Post {
     }[];
     isUploading?: boolean;
     uploadError?: boolean;
+    songTitle?: string;
+    audioUrl?: string;
 }
 
 export interface Reel {
@@ -61,6 +63,8 @@ export interface Reel {
         text: string;
         createdAt: string;
     }[];
+    songTitle?: string;
+    audioUrl?: string;
 }
 
 export interface Event {

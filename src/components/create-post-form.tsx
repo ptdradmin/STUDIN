@@ -13,10 +13,10 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, ArrowLeft, AspectRatio } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, AspectRatio, Music } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,6 +28,8 @@ import { Progress } from './ui/progress';
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
   location: z.string().optional(),
+  songTitle: z.string().optional(),
+  audioUrl: z.string().optional(),
 });
 
 type PostFormInputs = z.infer<typeof postSchema>;
@@ -36,45 +38,24 @@ interface CreatePostFormProps {
   onClose: () => void;
 }
 
-const filters = [
-    { name: 'Normal', className: 'filter-none' },
-    { name: 'Clarendon', className: 'filter-contrast-[1.2] filter-saturate-[1.35]' },
-    { name: 'Gingham', className: 'filter-brightness-105 filter-hue-rotate-[-10deg]' },
-    { name: 'Moon', className: 'filter-grayscale filter-contrast-110 filter-brightness-110' },
-    { name: 'Lark', className: 'filter-contrast-90 filter-saturate-110' },
-    { name: 'Reyes', className: 'filter-sepia-[0.22] filter-brightness-110 filter-contrast-[0.85] filter-saturate-[0.75]' },
-    { name: 'Juno', className: 'filter-contrast-120 filter-brightness-110 filter-saturate-180' },
-    { name: 'Slumber', className: 'filter-saturate-[0.66] filter-brightness-105' },
-    { name: 'Crema', className: 'filter-sepia-[0.5] filter-contrast-120 filter-saturate-120' },
-    { name: 'Ludwig', className: 'filter-brightness-105 filter-saturate-200' },
-    { name: 'Aden', className: 'filter-hue-rotate-[-20deg] filter-contrast-90 filter-saturate-[0.85] filter-brightness-120' },
-    { name: 'Perpetua', className: 'filter-contrast-110 filter-brightness-125' },
-    { name: 'Amaro', className: 'filter-hue-rotate-[-10deg] filter-contrast-90 filter-saturate-150' },
-    { name: 'Mayfair', className: 'filter-contrast-110 filter-saturate-110' },
-    { name: 'Rise', className: 'filter-brightness-105 filter-sepia-[0.2] filter-contrast-90 filter-saturate-90' },
-    { name: 'Hudson', className: 'filter-brightness-120 filter-contrast-90 filter-saturate-110' },
-    { name: 'Valencia', className: 'filter-contrast-110 filter-sepia-[0.08]' },
-    { name: 'X-Pro II', className: 'filter-contrast-150 filter-saturate-180' },
-    { name: 'Sierra', className: 'filter-contrast-90 filter-saturate-125' },
-    { name: 'Willow', className: 'filter-grayscale filter-contrast-95' },
-    { name: 'Lo-Fi', className: 'filter-saturate-110 filter-contrast-150' },
-    { name: 'Inkwell', className: 'filter-grayscale filter-contrast-110 filter-brightness-110' },
-    { name: 'Hefe', className: 'filter-contrast-110 filter-saturate-140' },
-    { name: 'Nashville', className: 'filter-sepia-[0.2] filter-contrast-120 filter-brightness-[0.9] filter-hue-rotate-[-15deg]' },
+const trendingSongs = [
+    { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
+    { title: "Espresso", artist: "Sabrina Carpenter", url: "/music/espresso.mp3" },
+    { title: "Feather", artist: "Sabrina Carpenter", url: "/music/feather.mp3" },
 ];
 
-
 export default function CreatePostForm({ onClose }: CreatePostFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<PostFormInputs>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<PostFormInputs>({
     resolver: zodResolver(postSchema),
     defaultValues: {
       caption: '',
       location: '',
+      songTitle: '',
+      audioUrl: '',
     }
   });
 
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -90,7 +71,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedFilter, setSelectedFilter] = useState('filter-none');
+  const [showMusicSelection, setShowMusicSelection] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<{title: string, url: string} | null>(null);
+
 
   const getInitials = (name?: string | null) => {
     if (!name) return "..";
@@ -114,6 +97,13 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
   };
 
+  const handleSelectSong = (song: { title: string, url: string }) => {
+      setSelectedSong(song);
+      setValue('songTitle', song.title);
+      setValue('audioUrl', song.url);
+      setShowMusicSelection(false);
+  };
+
   const onSubmit: SubmitHandler<PostFormInputs> = (data) => {
     if (isUserLoading || isProfileLoading || !userProfile || !firestore || !storage || !user) {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible ou votre profil n\'est pas chargé.' });
@@ -130,7 +120,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     const newDocRef = doc(collection(firestore, 'posts'));
     const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
 
-    // Immediately create the post document with a placeholder/local URL
     const postData = {
         ...data,
         id: newDocRef.id,
@@ -141,7 +130,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         updatedAt: serverTimestamp(),
         likes: [],
         comments: [],
-        imageUrl: previewUrl, // Use local preview URL initially
+        imageUrl: previewUrl, 
         isUploading: true,
     };
     
@@ -150,19 +139,14 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
     uploadTask.on('state_changed',
-        (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setUploadProgress(progress);
-        },
+        () => {}, // Progress updates ignored for non-blocking
         (error) => {
             console.error("Upload error:", error);
-            // Optionally, update the post to show an error state
             updateDoc(newDocRef, { uploadError: true, isUploading: false });
             toast({ variant: 'destructive', title: 'Erreur de téléversement', description: "L'image n'a pas pu être envoyée."});
         },
         () => {
             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                // Finalize the post with the real URL
                 updateDoc(newDocRef, {
                     imageUrl: downloadURL,
                     isUploading: false,
@@ -208,7 +192,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
              <div className="flex h-full">
                   <div className="flex-1 flex items-center justify-center bg-black/90 relative">
                      <div className="relative w-full aspect-square max-w-full max-h-full">
-                        <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
+                        <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" />
                       </div>
                   </div>
                   
@@ -224,49 +208,56 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                           </div>
                       )}
                     </div>
-                    <div className="flex-grow overflow-y-auto">
-                        <Tabs defaultValue="caption" className="flex flex-col h-full">
-                            <TabsContent value="caption" className="mt-0 p-4 flex-grow flex flex-col">
-                                <Textarea
-                                    id="caption"
-                                    {...register('caption')}
-                                    placeholder="Écrivez une légende..."
-                                    className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none flex-grow"
-                                />
-                                {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
-                                <div className="border-t mt-4 pt-4">
-                                  <Input 
-                                      id="location" 
-                                      placeholder="Ajouter un lieu" 
-                                      {...register('location')}
-                                      className="border-none p-0 focus-visible:ring-0 text-sm"
-                                  />
-                                </div>
-                            </TabsContent>
-                            <TabsContent value="filters" className="mt-0 p-4">
-                                <div className="grid grid-cols-3 gap-2">
-                                    {filters.map(filter => (
-                                        <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
-                                            <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
-                                                <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="contain" className={filter.className} />
-                                            </div>
-                                            <p className="text-xs text-center mt-1">{filter.name}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </TabsContent>
-                           <div className="flex-shrink-0 border-t">
-                             <TabsList className="grid w-full grid-cols-2 rounded-none">
-                                <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
-                                <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
-                              </TabsList>
-                           </div>
-                        </Tabs>
+                    <div className="flex-grow overflow-y-auto p-4 space-y-4">
+                      <Textarea
+                          id="caption"
+                          {...register('caption')}
+                          placeholder="Écrivez une légende..."
+                          className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none flex-grow min-h-[100px]"
+                      />
+                      {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+                      <div className="border-t pt-4">
+                        <Input 
+                            id="location" 
+                            placeholder="Ajouter un lieu" 
+                            {...register('location')}
+                            className="border-none p-0 focus-visible:ring-0 text-sm"
+                        />
+                      </div>
+                       <div className="border-t pt-4">
+                         <Button variant="ghost" className="w-full justify-start p-0" onClick={() => setShowMusicSelection(true)}>
+                            <Music className="h-4 w-4 mr-2" />
+                            {selectedSong ? selectedSong.title : 'Ajouter de la musique'}
+                         </Button>
+                      </div>
                     </div>
                   </div>
             </div>
           )}
         </div>
+        {showMusicSelection && (
+            <Dialog open onOpenChange={() => setShowMusicSelection(false)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Sons populaires</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                        {trendingSongs.map(song => (
+                            <div key={song.title} onClick={() => handleSelectSong(song)} className="flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer">
+                                <div>
+                                    <p className="font-semibold">{song.title}</p>
+                                    <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                </div>
+                                <audio src={song.url} controls className="h-8" />
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                         <Button variant="secondary" onClick={() => setShowMusicSelection(false)}>Fermer</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        )}
       </DialogContent>
     </Dialog>
   );

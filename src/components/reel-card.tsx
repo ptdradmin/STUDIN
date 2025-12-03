@@ -4,7 +4,7 @@
 import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause, EyeOff, Link as LinkIcon, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause, EyeOff, Link as LinkIcon, Trash2, Music } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
@@ -33,46 +33,65 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const isOwner = user?.uid === reel.userId;
 
     const videoRef = useRef<HTMLVideoElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
+    const playMedia = () => {
+        videoRef.current?.play();
+        if (audioRef.current) {
+            audioRef.current.muted = isMuted; // Sync mute state
+            audioRef.current?.play();
+        }
+        setIsPlaying(true);
+    };
+
+    const pauseMedia = () => {
+        videoRef.current?.pause();
+        audioRef.current?.pause();
+        setIsPlaying(false);
+    };
+
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
-                    videoRef.current?.play();
-                    setIsPlaying(true);
+                    playMedia();
                 } else {
-                    videoRef.current?.pause();
-                    setIsPlaying(false);
+                    pauseMedia();
                 }
             },
             { threshold: 0.5 }
         );
 
-        if (videoRef.current) {
-            observer.observe(videoRef.current);
+        const currentVideoRef = videoRef.current;
+        if (currentVideoRef) {
+            observer.observe(currentVideoRef);
         }
 
         return () => {
-            if (videoRef.current) {
-                observer.unobserve(videoRef.current);
+            if (currentVideoRef) {
+                observer.unobserve(currentVideoRef);
             }
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleVideoClick = () => {
-        if (videoRef.current) {
-            if (isPlaying) {
-                videoRef.current.pause();
-            } else {
-                videoRef.current.play();
-            }
-            setIsPlaying(!isPlaying);
+        if (isPlaying) {
+            pauseMedia();
+        } else {
+            playMedia();
         }
     };
+    
+    useEffect(() => {
+        if(audioRef.current) {
+            audioRef.current.muted = isMuted;
+        }
+    }, [isMuted]);
 
     const handleTimeUpdate = () => {
         if (videoRef.current) {
@@ -127,7 +146,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             title: "Reel masqué",
             description: "Nous vous montrerons moins de contenu de ce type."
         });
-        // Here you could also call a function to update user preferences
     }
     
     const handleDelete = () => {
@@ -150,13 +168,14 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 ref={videoRef}
                 src={reel.videoUrl}
                 loop
-                muted={isMuted}
                 playsInline
                 className="h-full w-full object-cover"
                 onClick={handleVideoClick}
                 onTimeUpdate={handleTimeUpdate}
                 id={`reel-video-${reel.id}`}
             ></video>
+            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
+
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
 
@@ -173,7 +192,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             )}
 
             <div className="absolute bottom-0 left-0 right-0 p-4 text-white flex justify-between items-end">
-                <div className="space-y-2 flex-grow">
+                <div className="space-y-2 flex-grow overflow-hidden">
                     <div className="flex items-center gap-2">
                         <Link href={`/profile/${reel.userId}`}>
                            <Avatar className="h-9 w-9 border-2 border-white">
@@ -186,6 +205,12 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                         </Link>
                     </div>
                     <p className="text-sm drop-shadow">{reel.caption}</p>
+                     {reel.songTitle && (
+                        <div className="flex items-center gap-2 text-xs">
+                            <Music className="h-3 w-3" />
+                            <p className="truncate">{reel.songTitle}</p>
+                        </div>
+                    )}
                 </div>
                 
                 <div className="flex flex-col items-center space-y-4">

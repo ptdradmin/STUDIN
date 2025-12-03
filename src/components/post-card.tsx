@@ -6,7 +6,7 @@ import type { Post, Favorite } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toggleFavorite, createNotification } from "@/lib/actions";
@@ -38,12 +38,35 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
     const [optimisticLikes, setOptimisticLikes] = useState(post.likes || []);
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
-
+    const audioRef = useRef<HTMLAudioElement>(null);
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
     
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
+
+     useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    audio.play().catch(() => {}); // Autoplay might be blocked
+                } else {
+                    audio.pause();
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        observer.observe(audio);
+
+        return () => {
+            observer.disconnect();
+            audio.pause();
+        };
+    }, [post.audioUrl]);
 
 
     const getInitials = (name: string) => {
@@ -274,6 +297,15 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                         className="object-cover"
                         data-ai-hint="social media post"
                     />
+                    {post.audioUrl && (
+                        <div className="absolute bottom-4 left-4 right-4 text-white text-xs flex items-center overflow-hidden">
+                             <Music className="h-4 w-4 mr-2 flex-shrink-0" />
+                            <div className="relative w-full whitespace-nowrap">
+                                <span className="inline-block animate-marquee">{post.songTitle}</span>
+                            </div>
+                            <audio ref={audioRef} src={post.audioUrl} loop />
+                        </div>
+                    )}
                 </div>
             )}
 
