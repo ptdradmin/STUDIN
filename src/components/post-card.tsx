@@ -45,29 +45,6 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
 
-     useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    audio.play().catch(() => {}); // Autoplay might be blocked
-                } else {
-                    audio.pause();
-                }
-            },
-            { threshold: 0.5 }
-        );
-
-        observer.observe(audio);
-
-        return () => {
-            observer.disconnect();
-            audio.pause();
-        };
-    }, [post.audioUrl]);
-
 
     const getInitials = (name: string) => {
         if (!name) return '??';
@@ -297,17 +274,19 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                         className="object-cover"
                         data-ai-hint="social media post"
                     />
-                    {post.audioUrl && (
-                        <div className="absolute bottom-4 left-4 right-4 text-white text-xs flex items-center overflow-hidden">
-                             <Music className="h-4 w-4 mr-2 flex-shrink-0" />
-                            <div className="relative w-full whitespace-nowrap">
-                                <span className="inline-block animate-marquee">{post.songTitle}</span>
-                            </div>
-                            <audio ref={audioRef} src={post.audioUrl} loop />
-                        </div>
-                    )}
                 </div>
             )}
+             
+            {post.audioUrl && (
+                <div className="p-3 border-t">
+                    <div className="flex items-center gap-3">
+                         <Music className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-semibold">{post.songTitle}</span>
+                    </div>
+                    <audio ref={audioRef} src={post.audioUrl} controls className="w-full h-8 mt-2" />
+                </div>
+            )}
+
 
             <div className="p-3 flex flex-col items-start">
                 <div className="flex items-center justify-between w-full -ml-2">

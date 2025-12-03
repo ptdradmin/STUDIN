@@ -173,8 +173,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 onClick={handleVideoClick}
                 onTimeUpdate={handleTimeUpdate}
                 id={`reel-video-${reel.id}`}
+                muted={isMuted}
             ></video>
-            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
+            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop muted={isMuted}/>}
 
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
