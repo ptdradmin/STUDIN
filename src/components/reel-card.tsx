@@ -5,7 +5,7 @@
 import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause, EyeOff, Link as LinkIcon, Trash2, Music, CheckCircle } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, EyeOff, Link as LinkIcon, Trash2, Music } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
@@ -32,96 +32,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
     const hasLiked = user && optimisticLikes.includes(user.uid);
     const isOwner = user?.uid === reel.userId;
-
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(true);
-    const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
-
-    // This effect ensures that whenever a new reel comes into view, its audio track is loaded.
-    useEffect(() => {
-        if (reel.audioUrl && audioRef.current) {
-            if (audioRef.current.src !== reel.audioUrl) {
-                audioRef.current.src = reel.audioUrl;
-                audioRef.current.load();
-            }
-        }
-    }, [reel.audioUrl]);
-
-     const playMedia = async () => {
-        if (!videoRef.current) return;
-        setIsPlaying(true);
-        videoRef.current.play().catch(e => {
-            if (e.name !== 'AbortError') console.error("Video play error:", e);
-        });
-
-        if (audioRef.current) {
-            audioRef.current.currentTime = videoRef.current.currentTime;
-            audioRef.current.muted = isMuted;
-            audioRef.current.play().catch(e => {
-                if (e.name !== 'AbortError') console.error("Audio play error:", e);
-            });
-        }
-    };
-
-    const pauseMedia = () => {
-        if (videoRef.current) videoRef.current.pause();
-        if (audioRef.current) audioRef.current.pause();
-        setIsPlaying(false);
-    };
-    
-    const togglePlayPause = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent card-level events
-        if (isPlaying) {
-            pauseMedia();
-        } else {
-            playMedia();
-        }
-    };
-    
-    // Auto-pause when scrolling away
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (!entry.isIntersecting) {
-                    pauseMedia();
-                } else {
-                    // Optional: autoplay if desired and allowed
-                    // playMedia(); 
-                }
-            },
-            { threshold: 0.5 } // Trigger when 50% of the video is out of view
-        );
-
-        const currentVideoRef = videoRef.current;
-        if (currentVideoRef) {
-            observer.observe(currentVideoRef);
-        }
-
-        return () => {
-            if (currentVideoRef) {
-                observer.unobserve(currentVideoRef);
-            }
-            pauseMedia();
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reel.id]);
-
-
-    const handleTimeUpdate = () => {
-        if (videoRef.current?.duration) {
-            const currentProgress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-            setProgress(currentProgress);
-        }
-    };
-
-    const handleVideoEnd = () => {
-        if (videoRef.current) videoRef.current.currentTime = 0;
-        if (audioRef.current) audioRef.current.currentTime = 0;
-        playMedia();
-    };
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
@@ -160,7 +71,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         toast({
             title: "Lien copié !",
             description: "Le lien vers le Reel a été copié.",
-            icon: <CheckCircle className="h-5 w-5 text-green-500" />
         });
     }
     
@@ -189,45 +99,24 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     return (
         <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-background shadow-lg group">
             <video
-                ref={videoRef}
                 src={reel.videoUrl}
                 playsInline
+                controls // Utilise les contrôles natifs du navigateur
                 loop
-                muted={true} // The main video is ALWAYS muted. Sound comes from the separate audio element.
+                muted={false} // Le son est géré par le navigateur
                 className="h-full w-full object-cover"
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleVideoEnd}
                 id={`reel-video-${reel.id}`}
             ></video>
 
-            {reel.audioUrl && (
-                <audio
-                    ref={audioRef}
-                    src={reel.audioUrl}
-                    loop
-                ></audio>
-            )}
-
-            <div className="absolute inset-0" onClick={togglePlayPause}></div>
-
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+            {/* L'audio séparé n'est plus nécessaire */}
             
-            {!isPlaying && (
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" onClick={togglePlayPause}>
-                    <Play className="h-20 w-20 text-white/70" />
-                </div>
-            )}
-
-
             <div className="absolute top-4 right-4 z-10">
-                <Button variant="ghost" size="icon" className="text-white bg-black/30 h-8 w-8" onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}>
-                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                </Button>
+                {/* Le contrôle de volume est maintenant natif à la vidéo */}
             </div>
             
-            <div className="absolute bottom-0 left-0 right-0 p-4 text-white flex justify-between items-end z-10">
+            <div className="absolute bottom-16 left-0 right-0 p-4 text-white flex justify-between items-end z-10 pointer-events-none">
                 <div className="space-y-2 flex-grow overflow-hidden">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 pointer-events-auto">
                         <Link href={`/profile/${reel.userId}`}>
                            <Avatar className="h-9 w-9 border-2 border-white">
                                 <AvatarImage src={reel.userAvatarUrl} />
@@ -247,7 +136,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                     )}
                 </div>
                 
-                <div className="flex flex-col items-center space-y-4">
+                <div className="flex flex-col items-center space-y-4 pointer-events-auto">
                     <Button variant="ghost" size="icon" className="text-white h-12 w-12" onClick={handleLike}>
                         <div className="flex flex-col items-center">
                             <Heart className={`h-7 w-7 ${hasLiked ? 'text-red-500 fill-red-500' : ''}`} />
@@ -276,10 +165,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0 h-1 z-10">
-                <Progress value={progress} className="h-1 bg-white/20 [&>div]:bg-white" />
             </div>
         </div>
     );
