@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -52,12 +53,15 @@ export default function DashboardPage() {
     );
     const { data: events, isLoading: eventsLoading } = useCollection<Event>(eventsQuery);
 
+    const challengeMap = useMemo(() => new Map(challenges?.map(c => [c.id, c])), [challenges]);
+
     // Fetching submissions for all challenges created by the user
+    // NOTE: This is a simplified query. For a large number of challenges, this would need to be handled differently (e.g., fetching submissions per challenge).
     const submissionsQuery = useMemoFirebase(() => {
         if (!firestore || !challenges || challenges.length === 0) return null;
-        const challengeIds = challenges.map(c => c.id);
-        // Firestore 'in' query is limited to 30 items. We might need batching for > 30 challenges.
-        return query(collection(firestore, 'challenges', challengeIds[0], 'submissions')); // Simplified for one challenge
+        // This query is simplified and only fetches for the first challenge.
+        // A robust solution would require a different data model or multiple queries.
+        return query(collection(firestore, 'challenges', challenges[0].id, 'submissions'));
     }, [firestore, challenges]);
     const { data: submissions, isLoading: submissionsLoading } = useCollection<ChallengeSubmission>(submissionsQuery);
 
@@ -68,11 +72,6 @@ export default function DashboardPage() {
         }
     }, [isUserLoading, profileLoading, user, isAuthorized, router]);
 
-
-    if (isUserLoading || profileLoading || !user || !isAuthorized) {
-        return <PageSkeleton />;
-    }
-    
     const handleSubmissionAction = async (submissionId: string, challengeId: string, action: 'approve' | 'reject') => {
         if (!firestore) return;
         
@@ -88,8 +87,11 @@ export default function DashboardPage() {
             toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour la soumission.' });
         }
     };
+
+    if (isUserLoading || profileLoading || !user || !isAuthorized) {
+        return <PageSkeleton />;
+    }
     
-    const challengeMap = useMemo(() => new Map(challenges?.map(c => [c.id, c])), [challenges]);
     const isLoadingData = challengesLoading || eventsLoading || submissionsLoading;
 
     return (
