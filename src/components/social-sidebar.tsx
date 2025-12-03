@@ -22,15 +22,15 @@ import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 
 const mainNavItems = [
-  { href: "/social", label: "Accueil", icon: Home },
-  { href: "/reels", label: "Reels", icon: Film },
-  { href: "/messages", label: "Messages", icon: MessageSquare },
-  { href: "/challenges", label: "Défis", icon: Target },
-  { href: "/leaderboard", label: "Classement", icon: Trophy },
-  { href: "/housing", label: "Logements", icon: Bed },
-  { href: "/carpooling", label: "Covoiturage", icon: Car },
-  { href: "/tutoring", label: "Tutorat", icon: BookOpen },
-  { href: "/events", label: "Événements", icon: PartyPopper },
+  { href: "/social", label: "Accueil", icon: Home, roles: ['student'] },
+  { href: "/reels", label: "Reels", icon: Film, roles: ['student'] },
+  { href: "/messages", label: "Messages", icon: MessageSquare, roles: ['student', 'institution', 'admin'] },
+  { href: "/challenges", label: "Défis", icon: Target, roles: ['student', 'institution', 'admin'] },
+  { href: "/leaderboard", label: "Classement", icon: Trophy, roles: ['student', 'institution', 'admin'] },
+  { href: "/housing", label: "Logements", icon: Bed, roles: ['student'] },
+  { href: "/carpooling", label: "Covoiturage", icon: Car, roles: ['student'] },
+  { href: "/tutoring", label: "Tutorat", icon: BookOpen, roles: ['student'] },
+  { href: "/events", label: "Événements", icon: PartyPopper, roles: ['student'] },
 ];
 
 function NavLink({ item, pathname }: { item: { href?: string, label: string, icon: React.ElementType }, pathname: string}) {
@@ -94,12 +94,9 @@ export default function SocialSidebar() {
       }
     }
 
-    const visibleNavItems = mainNavItems.filter(item => {
-        if (item.label === 'Classement') {
-            return userProfile?.role === 'institution' || userProfile?.role === 'admin';
-        }
-        return true;
-    });
+    const userRole = userProfile?.role || 'student';
+    const visibleNavItems = mainNavItems.filter(item => item.roles.includes(userRole));
+
 
     return (
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
