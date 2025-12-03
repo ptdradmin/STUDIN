@@ -48,6 +48,7 @@ export default function ChallengeDetailPage() {
     const [isChallengeLoading, setIsChallengeLoading] = useState(true);
     
     useEffect(() => {
+        setIsChallengeLoading(true);
         const foundChallenge = staticChallenges.find(c => c.id === challengeId);
         setChallenge(foundChallenge || null);
         setIsChallengeLoading(false);
@@ -224,9 +225,11 @@ export default function ChallengeDetailPage() {
                         
                         <div className="grid md:grid-cols-3 gap-8">
                             <div className="md:col-span-2">
-                                 <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
-                                    <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover" data-ai-hint={imageHint} />
-                                </div>
+                                 {challenge.imageUrl && (
+                                     <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
+                                        <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover" data-ai-hint={imageHint} />
+                                    </div>
+                                 )}
                                 <h1 className="text-3xl font-bold tracking-tight">{challenge.title}</h1>
                                 <p className="text-muted-foreground mt-4">{challenge.description}</p>
                             </div>
@@ -381,5 +384,3 @@ export default function ChallengeDetailPage() {
         </div>
     )
 }
-
-    
