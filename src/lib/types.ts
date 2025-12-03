@@ -261,3 +261,5 @@ export interface ChallengeSubmission {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
 }
+
+    
