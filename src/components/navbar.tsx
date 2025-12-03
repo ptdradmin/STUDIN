@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, GraduationCap } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, GraduationCap, Target } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
@@ -26,6 +26,7 @@ const navLinks = [
   { href: "/carpooling", label: "Covoiturage", icon: <Car className="mr-2 h-4 w-4" /> },
   { href: "/tutoring", label: "Tutorat", icon: <BookOpen className="mr-2 h-4 w-4" /> },
   { href: "/events", label: "Événements", icon: <PartyPopper className="mr-2 h-4 w-4" /> },
+  { href: "/challenges", label: "Défis", icon: <Target className="mr-2 h-4 w-4" /> },
 ];
 
 export default function Navbar() {

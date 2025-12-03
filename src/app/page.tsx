@@ -5,7 +5,7 @@ import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bed, Car, PartyPopper, BookOpen } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen, Target } from 'lucide-react';
 import Link from 'next/link';
 
 const services = [
@@ -32,6 +32,12 @@ const services = [
         description: "Découvrez les soirées étudiantes.",
         icon: <PartyPopper className="h-8 w-8 text-primary"/>,
         href: "/events"
+    },
+    {
+        name: "Défis",
+        description: "Relevez des défis dans votre ville.",
+        icon: <Target className="h-8 w-8 text-primary" />,
+        href: "/challenges"
     },
 ]
 
@@ -66,7 +72,7 @@ export default function HomePage() {
                             Tout ce dont vous avez besoin pour une vie étudiante épanouie.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
                             {services.map(service => (
                                  <Link href={service.href} key={service.name} className="block h-full group">
                                     <Card className="h-full text-center p-6 shadow-md transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-xl flex flex-col items-center justify-start gap-4">
