@@ -160,25 +160,22 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         router.refresh();
 
     } catch (error: any) {
-        errorEmitter.emit(
-            'permission-error',
-            new FirestorePermissionError({
-                path: newDocRef.path,
-                operation: 'create',
-                requestResourceData: data,
-            })
-        );
-        toast({ variant: 'destructive', title: 'Erreur de publication', description: "Impossible de créer la publication. Vérifiez vos permissions." });
+        const isPermissionError = error.code === 'permission-denied';
+        if (isPermissionError) {
+             errorEmitter.emit(
+                'permission-error',
+                new FirestorePermissionError({
+                    path: newDocRef.path,
+                    operation: 'create',
+                    requestResourceData: data,
+                })
+            );
+        }
+        toast({ variant: 'destructive', title: 'Erreur de publication', description: isPermissionError ? "Permission refusée." : "Impossible de créer la publication." });
     } finally {
         setLoading(false);
     }
   };
-
-  const aspectClasses: Record<AspectRatio, string> = {
-    "1:1": "aspect-square",
-    "4:5": "aspect-[4/5]",
-    "16:9": "aspect-video",
-  }
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -212,8 +209,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
           {step === 2 && previewUrl && (
              <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] min-h-[60vh]">
-                  <div className="flex items-center justify-center border-r bg-black/90">
-                     <div className="relative w-full max-w-md aspect-square">
+                  <div className="flex items-center justify-center border-r bg-black/90 p-4">
+                     <div className="relative w-full h-full max-w-md max-h-[50vh] md:max-h-[calc(60vh-2rem)]">
                         <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
                       </div>
                   </div>
@@ -228,7 +225,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                             {filters.map(filter => (
                                 <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
                                     <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
-                                        <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="cover" className={filter.className} />
+                                        <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="contain" className={filter.className} />
                                     </div>
                                     <p className="text-xs text-center mt-1">{filter.name}</p>
                                 </div>
@@ -274,4 +271,3 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     </Dialog>
   );
 }
-
