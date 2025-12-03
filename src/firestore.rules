@@ -195,18 +195,14 @@ service cloud.firestore {
     // Social (Posts) Rules
     // =====================================================================
     match /posts/{postId} {
-      allow read, get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
                       (isOwner(resource.data.userId)) ||
                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
                     );
       allow delete: if isResourceOwner(resource.data);
-    }
-    
-    // Allow any signed-in user to list posts (for the main feed)
-    match /posts {
-      allow list: if isSignedIn();
     }
     
     // =====================================================================
@@ -244,3 +240,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
