@@ -270,6 +270,8 @@
         "locationType": { "type": "string", "enum": ["online", "in-person", "both"] },
         "rating": { "type": "number" },
         "totalReviews": { "type": "number" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": [ "id", "tutorId", "username", "subject", "level", "pricePerHour" ]
@@ -309,6 +311,8 @@
         "address": { "type": "string" },
         "price": { "type": "number" },
         "imageUrl": { "type": "string", "format": "uri" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
         "attendeeIds": { "type": "array", "items": { "type": "string" } },
         "createdAt": { "type": "string", "format": "date-time" }
       },

@@ -306,7 +306,7 @@ export default function ChallengeDetailPage() {
                                                 <form onSubmit={handleProofSubmit} className="space-y-4">
                                                     {previewUrl && (
                                                         <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                                            <Image src={previewUrl} alt="Aperçu de la preuve" layout="fill" objectFit="cover" />
+                                                            <Image src={previewUrl} alt="Aperçu de la preuve" fill objectFit="cover" />
                                                         </div>
                                                     )}
                                                     <div>
@@ -346,7 +346,7 @@ export default function ChallengeDetailPage() {
                                     <Card key={sub.id}>
                                         <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start">
                                             <div className="relative w-full md:w-48 h-48 flex-shrink-0 rounded-md overflow-hidden">
-                                                <Image src={sub.proofUrl} alt={`Preuve de ${sub.userProfile.username}`} layout="fill" objectFit="cover" />
+                                                <Image src={sub.proofUrl} alt={`Preuve de ${sub.userProfile.username}`} fill objectFit="cover" />
                                             </div>
                                             <div className="flex-grow">
                                                 <div className="flex items-center gap-2">
