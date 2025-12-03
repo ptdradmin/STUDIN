@@ -4,7 +4,7 @@
 import * as React from 'react';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Search, Trophy } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
@@ -18,7 +18,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from 'next/link';
-import Image from 'next/image';
+import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const staticLeaderboard = [
   { rank: 1, userId: 'user1', username: 'Eva', points: 1250, challengesCompleted: 25, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=eva` },
@@ -32,19 +37,14 @@ const staticLeaderboard = [
 ];
 
 const PodiumCard = ({ user, rank }: { user: typeof staticLeaderboard[0], rank: number }) => {
-  const rankColors = {
+  const rankColors: {[key: number]: string} = {
     1: 'from-amber-400 to-yellow-500',
     2: 'from-slate-300 to-gray-400',
     3: 'from-amber-600 to-orange-700',
   };
-  const rankTrophy = {
-    1: '/gold-trophy.png',
-    2: '/silver-trophy.png',
-    3: '/bronze-trophy.png',
-  }
 
   return (
-    <div className={`relative flex flex-col items-center rounded-xl p-6 bg-gradient-to-br ${rankColors[rank as keyof typeof rankColors]} text-white shadow-lg`}>
+    <div className={`relative flex flex-col items-center rounded-xl p-6 bg-gradient-to-br ${rankColors[rank]} text-white shadow-lg`}>
         <div className="absolute -top-8">
              <Trophy className={`h-12 w-12 drop-shadow-lg ${rank === 1 ? 'text-yellow-300' : rank === 2 ? 'text-gray-200' : 'text-orange-400'}`} />
         </div>
@@ -60,10 +60,39 @@ const PodiumCard = ({ user, rank }: { user: typeof staticLeaderboard[0], rank: n
 
 
 export default function LeaderboardPage() {
-    const [leaderboard, setLeaderboard] = React.useState(staticLeaderboard);
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
+
+    // Filter out the partner from the static data for now
+    const leaderboard = staticLeaderboard;
     const topThree = leaderboard.slice(0, 3);
     const restOfBoard = leaderboard.slice(3);
-    const currentUser = leaderboard.find(u => u.userId === 'user_current');
+    const currentUserRanking = leaderboard.find(u => u.userId === 'user_current');
+
+    const isPartner = userProfile?.role === 'institution' || userProfile?.role === 'admin';
+
+    if (profileLoading) {
+        return (
+            <div className="flex min-h-screen w-full bg-background">
+                <SocialSidebar />
+                <div className="flex flex-col flex-1 p-6">
+                    <Skeleton className="h-10 w-1/3 mx-auto mb-10" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 mb-10 mt-16">
+                        <Skeleton className="h-48 w-full rounded-xl" />
+                        <Skeleton className="h-56 w-full rounded-xl" />
+                        <Skeleton className="h-48 w-full rounded-xl" />
+                    </div>
+                    <Skeleton className="h-96 w-full rounded-lg" />
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -86,10 +115,53 @@ export default function LeaderboardPage() {
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-3">
                                 <Trophy className="h-8 w-8 text-primary" />
-                                Classement UrbanQuest
+                                {isPartner ? "Classement de vos défis" : "Classement UrbanQuest"}
                             </h1>
-                            <p className="text-muted-foreground mt-1">Qui sont les maîtres de la ville ?</p>
+                            <p className="text-muted-foreground mt-1">
+                                {isPartner ? "Analysez la participation à vos défis." : "Qui sont les maîtres de la ville ?"}
+                            </p>
                         </div>
+                        
+                        {isPartner && (
+                             <Card className="mb-6">
+                                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end">
+                                    <div>
+                                        <Label htmlFor="challenge-filter">Défi</Label>
+                                        <Select>
+                                            <SelectTrigger><SelectValue placeholder="Tous vos défis" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">Tous vos défis</SelectItem>
+                                                <SelectItem value="challenge-1">Le Lion de Waterloo</SelectItem>
+                                                <SelectItem value="challenge-2">Street Art à Bruxelles</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="category-filter">Catégorie</Label>
+                                        <Select>
+                                            <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">Toutes</SelectItem>
+                                                <SelectItem value="Exploration">Exploration</SelectItem>
+                                                <SelectItem value="Créatif">Créatif</SelectItem>
+                                                <SelectItem value="Social">Social</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="period-filter">Période</Label>
+                                        <Select>
+                                            <SelectTrigger><SelectValue placeholder="Depuis le début" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all-time">Depuis le début</SelectItem>
+                                                <SelectItem value="monthly">Ce mois-ci</SelectItem>
+                                                <SelectItem value="weekly">Cette semaine</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                         
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 mb-10 mt-16">
                             {topThree[1] && <div className="md:mt-6"><PodiumCard user={topThree[1]} rank={2} /></div>}
@@ -131,19 +203,19 @@ export default function LeaderboardPage() {
                         </Card>
                     </div>
                 </main>
-                {currentUser && (
-                    <footer className="sticky bottom-0 bg-secondary/95 backdrop-blur border-t p-3">
+                {currentUserRanking && !isPartner && (
+                    <footer className="sticky bottom-16 md:bottom-0 bg-secondary/95 backdrop-blur border-t p-3">
                          <div className="max-w-4xl mx-auto">
                             <div className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-3">
-                                    <span className="font-bold w-10 text-center">{currentUser.rank}</span>
+                                    <span className="font-bold w-10 text-center">{currentUserRanking.rank}</span>
                                      <Avatar className="h-9 w-9">
-                                        <AvatarImage src={currentUser.avatar} />
-                                        <AvatarFallback>{currentUser.username.substring(0,2)}</AvatarFallback>
+                                        <AvatarImage src={currentUserRanking.avatar} />
+                                        <AvatarFallback>{currentUserRanking.username.substring(0,2)}</AvatarFallback>
                                     </Avatar>
                                     <span className="font-bold">Vous</span>
                                 </div>
-                                <div className="font-bold text-primary">{currentUser.points} pts</div>
+                                <div className="font-bold text-primary">{currentUserRanking.points} pts</div>
                             </div>
                         </div>
                     </footer>
@@ -152,3 +224,5 @@ export default function LeaderboardPage() {
         </div>
     );
 }
+
+    
