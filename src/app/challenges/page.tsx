@@ -43,7 +43,7 @@ export default function ChallengesPage() {
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const challengesWithCoords = challenges?.filter(c => c.latitude && c.longitude) || [];
-    const canCreateChallenge = userProfile?.role === 'institution' || userProfile?.role === 'admin';
+    const canCreateChallenge = !isUserLoading && !profileLoading && (userProfile?.role === 'institution' || userProfile?.role === 'admin');
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -65,7 +65,7 @@ export default function ChallengesPage() {
                             <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
                             <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
                          </div>
-                         {canCreateChallenge && !isUserLoading && !profileLoading && (
+                         {canCreateChallenge && (
                             <Button onClick={() => setShowCreateForm(true)}>
                                 <Plus className="mr-2 h-4 w-4" /> Créer un défi
                             </Button>
