@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -15,8 +14,9 @@ import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Film } from 'lucide-react';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
+import { Progress } from './ui/progress';
 
 const reelSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -29,6 +29,7 @@ interface CreateReelFormProps {
 }
 
 const MAX_DURATION_SECONDS = 60;
+const MAX_FILE_SIZE_MB = 50;
 
 export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const { register, handleSubmit, formState: { errors } } = useForm<ReelFormInputs>({
@@ -37,6 +38,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -52,8 +54,8 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if(file.size > 25 * 1024 * 1024) { // 25MB limit
-        toast({ variant: "destructive", title: "Fichier trop volumineux", description: "La vidéo ne doit pas dépasser 25 Mo."});
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        toast({ variant: "destructive", title: "Fichier trop volumineux", description: `La vidéo ne doit pas dépasser ${MAX_FILE_SIZE_MB} Mo.`});
         return;
       }
       
@@ -99,36 +101,48 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
     }
     
     setLoading(true);
-    toast({ title: 'Téléversement...', description: 'Votre Reel est en cours de téléversement.' });
 
     try {
         const newDocRef = doc(collection(firestore, 'reels'));
-        const imageRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
-        const uploadTask = await uploadBytes(imageRef, videoFile);
-        const videoUrl = await getDownloadURL(uploadTask.ref);
+        const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
+        
+        const uploadTask = uploadBytesResumable(videoRef, videoFile);
 
-        const reelData = {
-            ...data,
-            id: newDocRef.id,
-            userId: user.uid,
-            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-            userAvatarUrl: user.photoURL,
-            createdAt: serverTimestamp(),
-            likes: [],
-            comments: [],
-            videoUrl: videoUrl,
-        };
-        
-        await setDoc(newDocRef, reelData);
-        
-        toast({ title: 'Succès', description: 'Reel publié !' });
-        onClose();
-        router.refresh();
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+            },
+            (error) => {
+                setLoading(false);
+                toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée."});
+            },
+            async () => {
+                const videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
+                const reelData = {
+                    ...data,
+                    id: newDocRef.id,
+                    userId: user.uid,
+                    username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+                    userAvatarUrl: user.photoURL,
+                    createdAt: serverTimestamp(),
+                    likes: [],
+                    comments: [],
+                    videoUrl: videoUrl,
+                };
+                
+                await setDoc(newDocRef, reelData);
+                
+                setLoading(false);
+                toast({ title: 'Succès', description: 'Reel publié !' });
+                onClose();
+                router.refresh();
+            }
+        );
 
     } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de publier le Reel." });
-    } finally {
         setLoading(false);
+        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de publier le Reel." });
     }
   };
 
@@ -149,7 +163,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                         <div className="text-center text-muted-foreground">
                             <Film className="h-16 w-16 mx-auto" strokeWidth={1} />
                             <p className="mt-2 text-sm">Téléchargez une vidéo</p>
-                            <p className="text-xs text-muted-foreground">(Max 25 Mo, {MAX_DURATION_SECONDS}s)</p>
+                            <p className="text-xs text-muted-foreground">(Max {MAX_FILE_SIZE_MB} Mo, {MAX_DURATION_SECONDS}s)</p>
                              <Button type="button" variant="link" asChild className="mt-1">
                                 <Label htmlFor="video-upload" className="cursor-pointer">
                                     Sélectionner depuis l'ordinateur
@@ -175,6 +189,13 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
                     </div>
                 )}
                 {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+                
+                {loading && (
+                    <div className="space-y-1">
+                        <p className="text-sm text-muted-foreground">Téléversement en cours...</p>
+                        <Progress value={uploadProgress} />
+                    </div>
+                )}
            </div>
           <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
             <Button type="submit" disabled={loading || isUserLoading || !videoFile} className="w-full">

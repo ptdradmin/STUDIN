@@ -1,4 +1,3 @@
-
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
@@ -11,10 +10,12 @@ import { Film, Plus } from "lucide-react";
 import CreateReelForm from "@/components/create-reel-form";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function ReelsPage() {
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
+    const router = useRouter();
     
     const [showCreateReel, setShowCreateReel] = useState(false);
     const [allReels, setAllReels] = useState<Reel[]>([]);
@@ -93,6 +94,14 @@ export default function ReelsPage() {
     const handleDeleteReel = (id: string) => {
         setAllReels(prevReels => prevReels.filter(r => r.id !== id));
     }
+    
+    const handleCreateClick = () => {
+        if (!user) {
+            router.push('/login?from=/reels');
+            return;
+        }
+        setShowCreateReel(true);
+    }
 
     return (
         <div className="flex h-screen w-full bg-black">
@@ -100,7 +109,7 @@ export default function ReelsPage() {
              {showCreateReel && <CreateReelForm onClose={() => setShowCreateReel(false)} />}
             <div className="flex-1 flex flex-col justify-center items-center overflow-hidden">
                 <div className="absolute top-4 right-4 z-10">
-                     <Button onClick={() => setShowCreateReel(true)} disabled={isUserLoading || !user}>
+                     <Button onClick={handleCreateClick} disabled={isUserLoading}>
                         <Plus className="mr-2 h-4 w-4" /> Créer un Reel
                     </Button>
                 </div>
