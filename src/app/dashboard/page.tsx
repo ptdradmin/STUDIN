@@ -6,7 +6,7 @@ import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, X, Users, Eye, Loader2 } from 'lucide-react';
+import { Check, X, Users, Eye, Loader2, Plus } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge, ChallengeSubmission, Event, UserProfile } from '@/lib/types';
@@ -19,6 +19,7 @@ import { PageSkeleton } from '@/components/page-skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import CreateEventForm from '@/components/create-event-form';
 
 // Mock data - replace with Firestore queries
 const staticChallenges: Challenge[] = [
@@ -46,6 +47,7 @@ export default function DashboardPage() {
     const [submissions, setSubmissions] = useState(staticSubmissions);
     const [events, setEvents] = useState(staticEvents);
     const [isLoadingData, setIsLoadingData] = useState(true);
+    const [showCreateEventForm, setShowCreateEventForm] = useState(false);
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -85,6 +87,7 @@ export default function DashboardPage() {
     return (
         <div className="flex min-h-screen w-full bg-background">
             <SocialSidebar />
+            {showCreateEventForm && <CreateEventForm onClose={() => setShowCreateEventForm(false)} />}
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                     <div className="flex-1 max-w-md">
@@ -152,9 +155,14 @@ export default function DashboardPage() {
                         </TabsContent>
                         <TabsContent value="events" className="mt-6">
                              <Card>
-                                <CardHeader>
+                                <CardHeader className="flex flex-row items-center justify-between">
+                                  <div>
                                     <CardTitle>Vos Événements</CardTitle>
-                                    <CardDescription>Suivez le nombre de participants pour chaque événement que vous organisez.</CardDescription>
+                                    <CardDescription>Suivez le nombre de participants et créez de nouveaux événements.</CardDescription>
+                                  </div>
+                                  <Button onClick={() => setShowCreateEventForm(true)}>
+                                    <Plus className="mr-2 h-4 w-4" /> Créer un événement
+                                  </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                      {isLoadingData ? (
