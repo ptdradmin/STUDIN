@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,7 +19,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, setHours, setMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
 
@@ -102,7 +102,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<EventFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<EventFormInputs> = (data) => {
     if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
@@ -113,41 +113,48 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     }
     setLoading(true);
     toast({ title: 'Création...', description: 'Votre événement est en cours de publication.' });
+    onClose();
 
-    try {
-        const newDocRef = doc(collection(firestore, 'events'));
-        
-        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(snapshot.ref);
-        
-        const finalStartDate = data.startDate.toISOString();
+    const newDocRef = doc(collection(firestore, 'events'));
+    const finalStartDate = data.startDate.toISOString();
 
-        const eventData = {
-            ...data,
-            startDate: finalStartDate,
-            id: newDocRef.id,
-            organizerId: user.uid,
-            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-            userAvatarUrl: user.photoURL,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            attendeeIds: [],
-            endDate: finalStartDate, // simplified
-            locationName: data.address, // simplified
-            coordinates: [50.8503, 4.3517], 
-            imageHint: "student event",
-            imageUrl: imageUrl,
-        };
+    const eventData = {
+        ...data,
+        startDate: finalStartDate,
+        id: newDocRef.id,
+        organizerId: user.uid,
+        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+        userAvatarUrl: user.photoURL,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        attendeeIds: [],
+        endDate: finalStartDate, // simplified
+        locationName: data.address, // simplified
+        coordinates: [50.8503, 4.3517], 
+        imageHint: "student event",
+        imageUrl: previewUrl, // Use local preview URL initially
+    };
+    
+    setDocumentNonBlocking(newDocRef, eventData);
+    
+    const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
+    const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
-        await setDoc(newDocRef, eventData);
-
-        toast({ title: 'Succès', description: 'Événement créé !' });
-        onClose();
-    } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer l'événement." });
-        setLoading(false);
-    }
+    uploadTask.on('state_changed', 
+        () => {}, // Progress updates ignored for non-blocking
+        (error) => {
+            console.error("Upload error:", error);
+            updateDoc(newDocRef, { uploadError: true }); // Mark error on doc
+        },
+        async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            // Finalize with the real URL
+            updateDoc(newDocRef, {
+                imageUrl: downloadURL,
+                updatedAt: serverTimestamp()
+            });
+        }
+    );
   };
 
   return (
