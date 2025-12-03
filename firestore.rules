@@ -52,7 +52,7 @@ service cloud.firestore {
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && request.query.keys().hasAny(['orderBy', 'limit']);
+      allow list: if isSignedIn();
       allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
@@ -177,11 +177,13 @@ service cloud.firestore {
     // =====================================================================
     // Conversation & Message Rules
     // =====================================================================
+    match /conversations {
+        allow list: if isSignedIn();
+    }
     match /conversations/{conversationId} {
       allow read, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
-      allow list: if isSignedIn() && request.query.where[0][2] == request.auth.uid;
-
+      
       match /messages/{messageId} {
         allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
