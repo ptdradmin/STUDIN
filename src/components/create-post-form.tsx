@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -150,7 +150,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         router.refresh();
 
     } catch (error: any) {
-        console.error("Error creating post:", error);
         errorEmitter.emit(
             'permission-error',
             new FirestorePermissionError({
