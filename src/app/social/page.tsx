@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { collection, query, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore';
@@ -18,6 +19,64 @@ import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import GlobalSearch from '@/components/global-search';
 import SocialSidebar from '@/components/social-sidebar';
+
+function SuggestedUsers() {
+    const firestore = useFirestore();
+    const { user } = useUser();
+    
+    const usersQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'users'), limit(5));
+    }, [firestore]);
+
+    const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-1">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-16" />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
+    // Filter out the current user from suggestions
+    const suggestions = users?.filter(u => u.id !== user?.uid);
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-base">Suggestions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+                {suggestions?.map(u => (
+                    <div key={u.id} className="flex items-center justify-between">
+                        <Link href={`/profile/${u.id}`} className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                                <AvatarImage src={u.profilePicture} />
+                                <AvatarFallback>{u.username.slice(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-semibold text-sm">{u.username}</p>
+                                <p className="text-xs text-muted-foreground">{u.university}</p>
+                            </div>
+                        </Link>
+                        <Button variant="secondary" size="sm" asChild>
+                            <Link href={`/profile/${u.id}`}>Voir</Link>
+                        </Button>
+                    </div>
+                ))}
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
@@ -112,7 +171,7 @@ export default function SocialPage() {
                             )}
                         </div>
                         <div className="hidden md:block space-y-6">
-                            {/* Suggestions temporarily removed */}
+                            <SuggestedUsers />
                         </div>
                     </div>
                 </div>
@@ -122,4 +181,3 @@ export default function SocialPage() {
       </div>
     );
 }
-

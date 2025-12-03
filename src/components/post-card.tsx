@@ -39,24 +39,12 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
     const [optimisticLikes, setOptimisticLikes] = useState(post.likes || []);
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
-    const [isPlaying, setIsPlaying] = useState(false);
     
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
     
-     useEffect(() => {
-        if (post.audioUrl) {
-            audioRef.current = new Audio(post.audioUrl);
-            audioRef.current.loop = true;
-        }
-        return () => {
-            audioRef.current?.pause();
-        };
-    }, [post.audioUrl]);
-
 
     const getInitials = (name: string) => {
         if (!name) return '??';
@@ -104,16 +92,6 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
         });
     };
     
-    const togglePlay = () => {
-        if (!audioRef.current) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.play();
-        }
-        setIsPlaying(!isPlaying);
-    }
-
 
     const handleLike = async () => {
         if (!user || !firestore) {
@@ -306,20 +284,6 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
                 ) : null}
             </div>
              
-            {post.audioUrl && (
-                <div className="flex items-center gap-2 p-3 bg-muted/50 border-y overflow-hidden group">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={togglePlay}>
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    </Button>
-                    <div className="w-full relative h-4 overflow-hidden">
-                        <p className="text-sm font-semibold whitespace-nowrap absolute animate-marquee group-hover:pause">
-                            {post.songTitle}
-                        </p>
-                    </div>
-                </div>
-            )}
-
-
             <div className="p-3 flex flex-col items-start">
                 <div className="flex items-center justify-between w-full -ml-2">
                     <div className="flex items-center">

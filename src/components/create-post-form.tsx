@@ -381,7 +381,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                         />
                       </div>
                        <div className="border-t pt-4">
-                         <Button variant="ghost" className="w-full justify-start p-0" onClick={() => setShowMusicSelection(true)}>
+                         <Button variant="ghost" className="w-full justify-start p-0" type="button" onClick={() => setShowMusicSelection(true)}>
                             <Music className="h-4 w-4 mr-2" />
                             {selectedSong ? selectedSong.title : 'Ajouter de la musique'}
                          </Button>
