@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Car, BookOpen, PartyPopper } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, Target } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
@@ -30,6 +30,12 @@ const features = [
     title: 'Événements',
     description: 'Ne manquez aucune soirée, conférence ou activité étudiante.',
     href: "/events",
+  },
+  {
+    icon: <Target className="h-8 w-8" />,
+    title: 'Défis',
+    description: 'Gamifiez votre quotidien et explorez votre ville autrement.',
+    href: "/challenges",
   },
 ];
 
@@ -70,7 +76,7 @@ export default function AboutPage() {
                 Un Écosystème Complet
               </h2>
             </div>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
               {features.map((feature) => (
                  <Link href={feature.href} key={feature.title} className="block h-full">
                   <Card className="h-full text-center shadow-lg transition-transform hover:-translate-y-2">
