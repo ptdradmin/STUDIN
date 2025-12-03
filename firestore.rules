@@ -23,8 +23,9 @@ service cloud.firestore {
       return getUserRole(userId) == role;
     }
     
-    function isChallengeCreator() {
-        return request.auth.uid == resource.data.creatorId;
+    function isChallengeCreator(challengeId) {
+        let challenge = get(/databases/$(database)/documents/challenges/$(challengeId));
+        return request.auth.uid == challenge.data.creatorId;
     }
 
     function isResourceOwner(doc) {
@@ -233,7 +234,14 @@ service cloud.firestore {
     match /challenges/{challengeId} {
       allow get, list: if isSignedIn();
       allow create: if isSignedIn() && (isRole(request.auth.uid, 'admin') || isRole(request.auth.uid, 'institution'));
-      allow update, delete: if isSignedIn() && (isRole(request.auth.uid, 'admin') || (isRole(request.auth.uid, 'institution') && isChallengeCreator()));
+      allow update, delete: if isSignedIn() && (isRole(request.auth.uid, 'admin') || (isRole(request.auth.uid, 'institution') && isChallengeCreator(challengeId)));
+
+      match /submissions/{submissionId} {
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow get, list: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
+        allow update: if isSignedIn() && (isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
+        allow delete: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
+      }
     }
   }
 }
