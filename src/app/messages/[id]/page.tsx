@@ -8,7 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Paperclip, X, File as FileIcon, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Paperclip, X, FileIcon, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -239,10 +239,13 @@ export default function ConversationPage() {
         if (!user || !firestore || !conversationRef || !newMessage.trim() || !conversation) return;
 
         const messagesColRef = collection(firestore, 'conversations', conversationId, 'messages');
-        const messageData = {
+        const messageDocRef = doc(messagesColRef);
+        
+        const messageData: Partial<ChatMessage> = {
+            id: messageDocRef.id,
             senderId: user.uid,
             text: newMessage,
-            createdAt: serverTimestamp(),
+            createdAt: serverTimestamp() as any,
         };
 
         const otherParticipantId = conversation.participantIds.find(id => id !== user.uid);
@@ -251,10 +254,10 @@ export default function ConversationPage() {
         const currentMessage = newMessage;
         setNewMessage('');
 
-        addDoc(messagesColRef, messageData)
+        setDoc(messageDocRef, messageData)
             .catch(err => {
                 const permissionError = new FirestorePermissionError({
-                    path: messagesColRef.path,
+                    path: messageDocRef.path,
                     operation: 'create',
                     requestResourceData: messageData
                 });
@@ -437,7 +440,3 @@ export default function ConversationPage() {
         </div>
     );
 }
-
-    
-
-    
