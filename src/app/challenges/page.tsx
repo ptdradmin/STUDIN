@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ChallengeCard from '@/components/challenge-card';
 import Link from 'next/link';
-import { useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
 import { doc } from 'firebase/firestore';
 
@@ -98,7 +98,8 @@ const staticChallenges: Challenge[] = [
 export default function ChallengesPage() {
     const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
     const router = useRouter();
-    const { user, firestore } = useUser();
+    const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     // For now, we use static data
@@ -108,7 +109,7 @@ export default function ChallengesPage() {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
-    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const challengesWithCoords = challenges.filter(c => c.latitude && c.longitude);
     const canCreateChallenge = userProfile?.role === 'institution' || userProfile?.role === 'admin';
@@ -144,7 +145,7 @@ export default function ChallengesPage() {
                               <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
                            </div>
                          </div>
-                         {canCreateChallenge && (
+                         {canCreateChallenge && !isUserLoading && !profileLoading && (
                             <Button onClick={() => setShowCreateForm(true)}>
                                 <Plus className="mr-2 h-4 w-4" /> Créer un défi
                             </Button>

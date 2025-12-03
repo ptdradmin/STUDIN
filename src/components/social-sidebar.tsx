@@ -3,8 +3,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +26,7 @@ const mainNavItems = [
   { href: "/reels", label: "Reels", icon: Film },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/challenges", label: "Défis", icon: Target },
-  { href: "/leaderboard", label: "Classement", icon: Trophy },
+  { href: "/leaderboard", label: "Classement", icon: Trophy, roles: ['institution', 'admin'] },
   { href: "/housing", label: "Logements", icon: Bed },
   { href: "/carpooling", label: "Covoiturage", icon: Car },
   { href: "/tutoring", label: "Tutorat", icon: BookOpen },
@@ -51,11 +53,17 @@ function NavLink({ item, pathname }: { item: { href?: string, label: string, ico
 }
 
 export default function SocialSidebar() {
-    const { user } = useUser();
-    const { auth } = useAuth();
+    const { user, isUserLoading } = useUser();
+    const { auth, firestore } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const { toast } = useToast();
+
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const handleLogout = async () => {
         if (auth) {
@@ -79,6 +87,12 @@ export default function SocialSidebar() {
 
     if (!user) return null;
 
+    const visibleNavItems = mainNavItems.filter(item => {
+        if (!item.roles) return true; // Visible to all if no roles specified
+        if (!userProfile) return false; // Hide role-specific items if profile is not loaded
+        return item.roles.includes(userProfile.role);
+    });
+
     return (
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
           <Link href="/social" className="mb-8 px-2 pt-3 flex items-center gap-3">
@@ -89,7 +103,7 @@ export default function SocialSidebar() {
           </Link>
 
           <nav className="flex flex-col gap-2 flex-grow">
-            {mainNavItems.map((item) => (
+            {visibleNavItems.map((item) => (
               <NavLink key={item.label} item={item} pathname={pathname}/>
             ))}
           </nav>
