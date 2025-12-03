@@ -37,15 +37,20 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const isOwner = user?.uid === reel.userId;
 
     const videoRef = useRef<HTMLVideoElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(!hasEnabledAudio);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
-    const playMedia = async () => {
-        if (videoRef.current?.paused) {
+     const playMedia = async () => {
+        if (!videoRef.current) return;
+        if (videoRef.current.paused) {
             try {
                 await videoRef.current.play();
+                if (audioRef.current && reel.audioUrl) {
+                    await audioRef.current.play();
+                }
                 setIsPlaying(true);
             } catch (error) {
                  if ((error as DOMException).name !== 'AbortError') {
@@ -59,8 +64,39 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         if (videoRef.current && !videoRef.current.paused) {
             videoRef.current.pause();
         }
+        if (audioRef.current && !audioRef.current.paused) {
+            audioRef.current.pause();
+        }
         setIsPlaying(false);
     };
+    
+    useEffect(() => {
+        const video = videoRef.current;
+        const audio = audioRef.current;
+
+        const syncAudio = () => {
+            if (video && audio) {
+                if (Math.abs(video.currentTime - audio.currentTime) > 0.1) {
+                    audio.currentTime = video.currentTime;
+                }
+            }
+        };
+
+        if (video) {
+            video.addEventListener('play', syncAudio);
+            video.addEventListener('playing', syncAudio);
+            video.addEventListener('seeked', syncAudio);
+        }
+
+        return () => {
+            if (video) {
+                video.removeEventListener('play', syncAudio);
+                video.removeEventListener('playing', syncAudio);
+                video.removeEventListener('seeked', syncAudio);
+            }
+        }
+    }, [reel.audioUrl]);
+
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -87,9 +123,10 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 observer.unobserve(currentVideoRef);
             }
             if (videoRef.current) videoRef.current.pause();
+             if (audioRef.current) audioRef.current.pause();
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [reel.id]);
 
     const handleVideoClick = () => {
         if (!hasEnabledAudio) {
@@ -105,10 +142,15 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     };
     
     useEffect(() => {
+        // Mute the video if there's custom audio, otherwise respect the user's mute choice
         if(videoRef.current) {
-             videoRef.current.muted = isMuted;
+             videoRef.current.muted = reel.audioUrl ? true : isMuted;
         }
-    }, [isMuted]);
+        if(audioRef.current) {
+             audioRef.current.muted = isMuted;
+        }
+    }, [isMuted, reel.audioUrl]);
+
 
     const handleTimeUpdate = () => {
         if (videoRef.current) {
@@ -193,6 +235,14 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 id={`reel-video-${reel.id}`}
             ></video>
 
+            {reel.audioUrl && (
+                <audio
+                    ref={audioRef}
+                    src={reel.audioUrl}
+                    loop
+                ></audio>
+            )}
+
             {!hasEnabledAudio && !isPlaying && (
                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white pointer-events-none text-center p-4">
                     <VolumeX className="h-12 w-12 mb-2" />
@@ -204,7 +254,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
 
             <div className="absolute top-4 right-4">
-                <Button variant="ghost" size="icon" className="text-white bg-black/30 h-8 w-8" onClick={() => setIsMuted(!isMuted)}>
+                <Button variant="ghost" size="icon" className="text-white bg-black/30 h-8 w-8" onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}>
                     {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 </Button>
             </div>
