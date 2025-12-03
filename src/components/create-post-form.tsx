@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, useStorage, errorEmitter, FirestorePermissionError, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -114,7 +114,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
+  const onSubmit: SubmitHandler<PostFormInputs> = (data) => {
     if (isUserLoading || isProfileLoading || !userProfile || !firestore || !storage || !user) {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible ou votre profil n\'est pas chargé.' });
         return;
@@ -144,23 +144,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         imageUrl: previewUrl, // Use local preview URL initially
         isUploading: true,
     };
-
-    try {
-        await setDoc(newDocRef, postData);
-    } catch(e: any) {
-        setLoading(false);
-        toast({ variant: 'destructive', title: 'Erreur de publication', description: "Impossible de créer la publication." });
-        errorEmitter.emit(
-            'permission-error',
-            new FirestorePermissionError({
-                path: newDocRef.path,
-                operation: 'create',
-                requestResourceData: data,
-            })
-        );
-        return;
-    }
-
+    
+    setDocumentNonBlocking(newDocRef, postData);
+    
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
     uploadTask.on('state_changed',
