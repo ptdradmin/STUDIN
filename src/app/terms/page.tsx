@@ -34,14 +34,14 @@ export default function TermsPage() {
 
                     <h2 className="mt-6 text-2xl font-semibold">3. Contenu et Propriété Intellectuelle</h2>
                     <ul>
-                        <li><strong>Votre contenu :</strong> Vous conservez tous les droits de propriété sur le contenu que vous publiez sur STUD'IN (annonces, photos, messages). Cependant, vous nous accordez une licence mondiale, non exclusive et libre de droits pour utiliser, héberger, afficher, reproduire et distribuer ce contenu dans le seul but de faire fonctionner et d'améliorer nos services.</li>
+                        <li><strong>Votre contenu :</strong> Vous conservez tous les droits de propriété sur le contenu que vous publiez sur STUD'IN (annonces, photos, messages, soumissions aux défis). Cependant, vous nous accordez une licence mondiale, non exclusive et libre de droits pour utiliser, héberger, afficher, reproduire et distribuer ce contenu dans le seul but de faire fonctionner et d'améliorer nos services.</li>
                         <li><strong>Notre contenu :</strong> Le service STUD'IN, y compris son logo, son design, ses textes, ses graphiques et son code, est la propriété exclusive de STUD'IN et est protégé par les lois sur le droit d'auteur et la propriété intellectuelle.</li>
                     </ul>
 
                     <h2 className="mt-6 text-2xl font-semibold">4. Responsabilité</h2>
                     <p>STUD'IN est une plateforme de mise en relation. Nous ne sommes pas partie prenante aux accords conclus entre les utilisateurs (par exemple, un contrat de location, un accord de covoiturage, une séance de tutorat ou la réalisation d'un défi).</p>
                     <ul>
-                       <li>Nous ne garantissons pas la qualité, la sécurité, ou la légalité des annonces et des services proposés par les utilisateurs.</li>
+                       <li>Nous ne garantissons pas la qualité, la sécurité, ou la légalité des annonces et des services proposés par les utilisateurs, y compris les défis.</li>
                        <li>Vous êtes seul responsable de vos interactions avec les autres utilisateurs. Nous vous encourageons à faire preuve de prudence et de bon sens.</li>
                        <li>Notre responsabilité est limitée au montant que vous nous avez payé (le cas échéant) au cours des 12 derniers mois, dans toute la mesure permise par la loi.</li>
                     </ul>
@@ -59,7 +59,7 @@ export default function TermsPage() {
                         <p className="text-muted-foreground mt-2">Pour toute question concernant ces conditions, veuillez nous contacter à <a href="mailto:legal@studin.online" className="text-primary hover:underline">legal@studin.online</a>.</p>
                     </div>
                 </CardContent>
-            </Card>
+             </Card>
         </div>
       </main>
       <Footer />
