@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, LayoutGrid, Map, Plus, Search, User, Bookmark, MessageSquare, GraduationCap } from "lucide-react";
+import { MapPin, LayoutGrid, Map, Plus, Search, User, Bookmark, MessageSquare, GraduationCap, PartyPopper } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -352,6 +352,18 @@ export default function EventsPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
+            <div className="mb-8">
+               <div className="flex items-center gap-4">
+                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <PartyPopper className="h-8 w-8" />
+                 </div>
+                 <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Événements Étudiants</h1>
+                    <p className="text-muted-foreground mt-1">Ne manquez aucune soirée, conférence ou activité étudiante.</p>
+                 </div>
+               </div>
+            </div>
+
           <RecommendedEvents events={events || []} userProfile={userProfile || null} />
 
           <Card className="mb-6">

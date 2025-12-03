@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare, GraduationCap } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare, GraduationCap, Car } from "lucide-react";
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
@@ -85,10 +85,8 @@ export default function CarpoolingPage() {
   const filteredTrips = useMemo(() => {
     if (!trips) return [];
     
-    // Simulate arrival coordinates for demo
     const tripsWithArrivalCoords = trips.map(trip => ({
         ...trip,
-        // For demonstration, let's create slightly different arrival coordinates
         arrivalCoordinates: [
           (trip.coordinates[0] || 50.46) + (Math.random() - 0.5) * 0.5,
           (trip.coordinates[1] || 4.87) + (Math.random() - 0.5) * 0.5,
@@ -191,7 +189,6 @@ export default function CarpoolingPage() {
         });
 
     } catch (e: any) {
-        // This will now catch both client-side errors and Firestore permission errors.
         const permissionError = new FirestorePermissionError({
             path: `Transaction on carpoolings/${trip.id} and its subcollection`,
             operation: 'write', 
@@ -233,6 +230,18 @@ export default function CarpoolingPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
+           <div className="mb-8">
+               <div className="flex items-center gap-4">
+                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <Car className="h-8 w-8" />
+                 </div>
+                 <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Covoiturage</h1>
+                    <p className="text-muted-foreground mt-1">Partagez vos trajets, économisez et rencontrez d'autres étudiants.</p>
+                 </div>
+               </div>
+            </div>
+
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Trouver un trajet</CardTitle>

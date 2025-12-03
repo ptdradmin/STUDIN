@@ -116,34 +116,18 @@ export default function ChallengesPage() {
                     </div>
                 </header>
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
-                    <div className="mb-6 flex justify-between items-center">
-                       <div>
-                         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                            <Target className="h-8 w-8 text-primary" />
-                            UrbanQuest
-                        </h1>
-                        <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
+                    <div className="mb-8">
+                       <div className="flex items-center gap-4">
+                         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <Target className="h-8 w-8" />
+                         </div>
+                         <div>
+                            <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
+                            <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
+                         </div>
                        </div>
-                       <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                          <Button
-                            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('list')}
-                            className="px-3"
-                          >
-                            <LayoutGrid className="h-5 w-5" />
-                          </Button>
-                          <Button
-                            variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('map')}
-                            className="px-3"
-                          >
-                            <Map className="h-5 w-5" />
-                          </Button>
-                        </div>
                     </div>
-                    
+
                     <Card className="mb-6">
                         <CardHeader>
                             <CardTitle>Filtrer les défis</CardTitle>
@@ -193,6 +177,28 @@ export default function ChallengesPage() {
                             </form>
                         </CardContent>
                     </Card>
+
+                    <div className="flex justify-end mb-4">
+                        <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                          <Button
+                            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('list')}
+                            className="px-3"
+                          >
+                            <LayoutGrid className="h-5 w-5" />
+                          </Button>
+                          <Button
+                            variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('map')}
+                            className="px-3"
+                          >
+                            <Map className="h-5 w-5" />
+                          </Button>
+                        </div>
+                    </div>
+
 
                     {viewMode === 'list' ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import HousingListings from '@/components/housing-listings';
-import { LayoutGrid, Map, Plus, Search, GraduationCap } from 'lucide-react';
+import { LayoutGrid, Map, Plus, Search, GraduationCap, Bed } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
@@ -22,7 +22,7 @@ import Link from 'next/link';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
-  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse" />,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
 });
 
 export default function HousingPage() {
@@ -108,6 +108,18 @@ export default function HousingPage() {
             </header>
             
             <main className="flex-1 overflow-y-auto p-4 md:p-6">
+                <div className="mb-8">
+                   <div className="flex items-center gap-4">
+                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <Bed className="h-8 w-8" />
+                     </div>
+                     <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Logements Étudiants</h1>
+                        <p className="text-muted-foreground mt-1">Trouvez votre prochain kot, studio ou colocation.</p>
+                     </div>
+                   </div>
+                </div>
+
                  <Card className="mb-6">
                     <CardHeader>
                         <CardTitle>Filtrer les logements</CardTitle>
@@ -139,7 +151,7 @@ export default function HousingPage() {
                 </Card>
 
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold tracking-tight">Logements disponibles</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">Annonces récentes</h2>
                   <div className="flex items-center gap-2">
                     <Button onClick={handleCreateClick} disabled={isUserLoading}>
                         <Plus className="mr-2 h-4 w-4" /> Ajouter une annonce
