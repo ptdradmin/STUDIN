@@ -38,14 +38,33 @@ interface CreatePostFormProps {
 }
 
 const pixabayMusic = [
+    // Electro / Techno / House
+    { title: "Let's Go", artist: "AlexiAction", url: "https://archive.org/download/lets-go-by-alexiaction-from-pixabay/let_s-go-by-alexiaction-from-pixabay.mp3" },
+    { title: "Wake Up", artist: "MBB", url: "https://archive.org/download/wake-up-by-mbb-from-pixabay/wake-up-by-mbb-from-pixabay.mp3" },
+    { title: "Powerful Electro", artist: "penguinmusic", url: "https://archive.org/download/powerful-electro-by-penguinmusic-from-pixabay/powerful-electro-by-penguinmusic-from-pixabay.mp3" },
+    { title: "Electronic Rock", artist: "AlexGrohl", url: "https://archive.org/download/electronic-rock-king-around-here-by-alex-grohl-from-pixabay/electronic-rock-king-around-here-by-alex-grohl-from-pixabay.mp3" },
+    { title: "Cyber-Attack", artist: "SoundGallery", url: "https://archive.org/download/cyber-attack-by-soundgallery-by-pixabay/cyber-attack-by-soundgallery-by-pixabay.mp3" },
+    
+    // Hip Hop / Rap / Trap
+    { title: "The Urban Groove", artist: "SoulProdMusic", url: "https://archive.org/download/the-urban-groove-by-soulprodmusic-from-pixabay/the-urban-groove-by-soulprodmusic-from-pixabay.mp3" },
+    { title: "No-Copyright-Rap", artist: "The R-Man", url: "https://archive.org/download/no-copyright-rap-by-the-r-man-from-pixabay/no-copyright-rap-by-the-r-man-from-pixabay.mp3" },
+    { title: "Trap Powerful", artist: "AlexiAction", url: "https://archive.org/download/trap-powerful-by-alexiaction-from-pixabay/trap-powerful-by-alexiaction-from-pixabay.mp3" },
+    { title: "Boom Bap", artist: "Leva", url: "https://archive.org/download/boom-bap-by-leva-from-pixabay/boom-bap-by-leva-from-pixabay.mp3" },
+
+    // Reggae
+    { title: "Reggae Fun", artist: "Lesfm", url: "https://archive.org/download/reggae-fun-by-lesfm-from-pixabay/reggae-fun-by-lesfm-from-pixabay.mp3" },
+    { title: "Reggae Style", artist: "prazkhanal", url: "https://archive.org/download/reggae-style-by-prazkhanal-from-pixabay/reggae-style-by-prazkhanal-from-pixabay.mp3" },
+
+    // Lo-fi and Chill
     { title: "Lofi Chill", artist: "FASSounds", url: "https://archive.org/download/lofi-chill-173895/lofi-chill-173895.mp3" },
     { title: "The Beat of Nature", artist: "Olexy", url: "https://archive.org/download/the-beat-of-nature-122841/the-beat-of-nature-122841.mp3" },
-    { title: "In the Forest", artist: "Lesfm", url: "https://archive.org/download/in-the-forest-ambient-atmospheric-background-music-121403/in-the-forest-ambient-atmospheric-background-music-121403.mp3" },
-    { title: "Powerful Trap", artist: "AlexiAction", url: "https://archive.org/download/powerful-trap-12 Powerful Trap (underscore)_main_powerful-trap-180180/powerful-trap-12%20Powerful%20Trap%20(underscore)_main_powerful-trap-180180.mp3" },
     { title: "Modern Vlo-fi", artist: "penguinmusic", url: "https://archive.org/download/modern-vlog-140795/modern-vlog-140795.mp3"},
-    { title: "Relaxing", artist: "relaxdaily", url: "https://archive.org/download/relaxing-music-vol.1/Relaxing-Music-Vol.1-01-A.mp3" },
     { title: "Chill Abstract", artist: "Coma-Media", url: "https://archive.org/download/chill-abstract-intention-12099/chill-abstract-intention-12099.mp3" },
-    { title: "Espresso", artist: "Sabrina Carpenter", url: "https://archive.org/download/sabrina-carpenter-espresso-official-video/Sabrina%20Carpenter%20-%20Espresso%20%28Official%20Video%29.mp3" }
+    
+    // Hardcore / Rock
+    { title: "Metal", artist: "AlexGrohl", url: "https://archive.org/download/metal-by-alex-grohl-from-pixabay/metal-by-alex-grohl-from-pixabay.mp3" },
+    { title: "At the Top", artist: "ItsAGun", url: "https://archive.org/download/at-the-top-by-itsagundont-worry-from-pixabay/at-the-top-by-itsagundont-worry-from-pixabay.mp3" },
+
 ];
 
 const pixabaySoundEffects = [
