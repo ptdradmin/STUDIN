@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -21,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 
 const mainNavItems = [
+  { href: "/social", label: "Accueil", icon: Home },
   { href: "/reels", label: "Reels", icon: Film },
   { href: "/messages", label: "Messages", icon: MessageSquare },
   { href: "/challenges", label: "Défis", icon: Target },
