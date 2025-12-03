@@ -34,7 +34,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(true);
+    const [isMuted, setIsMuted] = useState(false);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 

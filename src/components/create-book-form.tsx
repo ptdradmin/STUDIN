@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,11 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
 
@@ -82,32 +83,36 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
     }
     setLoading(true);
     toast({ title: 'Création...', description: 'Votre annonce est en cours de publication.' });
+    onClose();
 
-    try {
-        const newDocRef = doc(collection(firestore, 'books'));
-        
-        const imageRef = storageRef(storage, `books/${newDocRef.id}/${imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(snapshot.ref);
-        
-        const bookData = {
-            ...data,
-            id: newDocRef.id,
-            sellerId: user.uid,
-            sellerName: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-            sellerAvatarUrl: user.photoURL,
-            createdAt: serverTimestamp(),
-            imageUrl: imageUrl,
-        };
+    const newDocRef = doc(collection(firestore, 'books'));
+    
+    const bookData = {
+        ...data,
+        id: newDocRef.id,
+        sellerId: user.uid,
+        sellerName: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+        sellerAvatarUrl: user.photoURL,
+        createdAt: serverTimestamp(),
+        imageUrl: previewUrl, // Use local preview URL initially
+    };
 
-        await setDoc(newDocRef, bookData);
+    setDocumentNonBlocking(newDocRef, bookData);
 
-        toast({ title: 'Succès', description: 'Livre mis en vente !' });
-        onClose();
-    } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer l'annonce." });
-        setLoading(false);
-    }
+    const imageRef = storageRef(storage, `books/${newDocRef.id}/${imageFile.name}`);
+    const uploadTask = uploadBytesResumable(imageRef, imageFile);
+
+    uploadTask.on('state_changed',
+      () => {}, // Progress
+      (error) => {
+          console.error("Upload error:", error);
+          updateDoc(newDocRef, { uploadError: true });
+      },
+      async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          updateDoc(newDocRef, { imageUrl: downloadURL });
+      }
+    );
   };
 
   return (

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -54,39 +55,14 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        toast({ variant: "destructive", title: "Fichier trop volumineux", description: `La vidéo ne doit pas dépasser ${MAX_FILE_SIZE_MB} Mo.`});
-        return;
-      }
-      
-      const videoElement = document.createElement('video');
-      videoElement.preload = 'metadata';
-      
-      videoElement.onloadedmetadata = function() {
-        window.URL.revokeObjectURL(videoElement.src);
-        if (videoElement.duration > MAX_DURATION_SECONDS) {
-          toast({
-            variant: "destructive",
-            title: "Vidéo trop longue",
-            description: `Le Reel ne doit pas dépasser ${MAX_DURATION_SECONDS} secondes.`
-          });
-          if(event.target) {
-            event.target.value = "";
-          }
-          setVideoFile(null);
-          setPreviewUrl(null);
-        } else {
-            setVideoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              if (typeof reader.result === 'string') {
-                setPreviewUrl(reader.result);
-              }
-            };
-            reader.readAsDataURL(file);
+      setVideoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setPreviewUrl(reader.result);
         }
-      }
-      videoElement.src = URL.createObjectURL(file);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
