@@ -3,12 +3,12 @@
 
 import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
 import type { Conversation, ChatMessage } from "@/lib/types";
-import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, doc, orderBy, addDoc, serverTimestamp, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Paperclip, X, File, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Paperclip, X, File as FileIcon, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
@@ -181,8 +181,11 @@ export default function ConversationPage() {
                 setFileToSend(null);
             },
             () => {
-                getDownloadURL(uploadTask.snapshot.ref).then(downloadURL => {
+                getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+                    const messageDocRef = doc(collection(firestore, 'conversations', conversationId, 'messages'))
+
                     const messageData: Partial<ChatMessage> = {
+                        id: messageDocRef.id,
                         senderId: user.uid,
                         createdAt: serverTimestamp() as any,
                         fileType: fileType,
@@ -193,10 +196,10 @@ export default function ConversationPage() {
                     
                     const lastMessageText = `A envoyé ${fileType === 'image' ? 'une image' : fileType === 'video' ? 'une vidéo' : 'un audio'}`;
 
-                    addDoc(collection(firestore, 'conversations', conversationId, 'messages'), messageData)
+                    setDoc(messageDocRef, messageData)
                         .catch(err => {
                             const permissionError = new FirestorePermissionError({
-                                path: `conversations/${conversationId}/messages`,
+                                path: messageDocRef.path,
                                 operation: 'create',
                                 requestResourceData: messageData
                             });
@@ -325,11 +328,11 @@ export default function ConversationPage() {
     };
     
     const getFileIcon = (file: File | null) => {
-        if (!file) return <File />;
+        if (!file) return <FileIcon />;
         if (file.type.startsWith('image/')) return <ImageIcon />;
         if (file.type.startsWith('video/')) return <Video />;
         if (file.type.startsWith('audio/')) return <Mic />;
-        return <File />;
+        return <FileIcon />;
     }
 
     const formatRecordingTime = (time: number) => {
@@ -430,3 +433,5 @@ export default function ConversationPage() {
         </div>
     );
 }
+
+    
