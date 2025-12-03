@@ -55,8 +55,7 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
             ([entry]) => {
                 if (post.audioUrl && audioRef.current) {
                     if (entry.isIntersecting) {
-                        audioRef.current.play().catch(e => console.error("Audio play failed", e));
-                        setIsPlaying(true);
+                        // Do not autoplay audio on posts
                     } else {
                         audioRef.current.pause();
                         setIsPlaying(false);
@@ -312,18 +311,14 @@ export default function PostCard({ post, isInitiallySaved = false, initialFavori
             )}
              
             {post.audioUrl && (
-                 <div className="flex items-center gap-2 p-3 bg-muted/50 border-y overflow-hidden">
+                <div className="flex items-center gap-2 p-3 bg-muted/50 border-y overflow-hidden group">
                     <Music className="h-4 w-4 flex-shrink-0" />
-                     <div className="w-full relative h-4 overflow-hidden">
+                    <div className="w-full relative h-4 overflow-hidden">
                         <p className="text-sm font-semibold whitespace-nowrap absolute animate-marquee group-hover:pause">
                             {post.songTitle}
                         </p>
                     </div>
-                    {/* The audio element is controlled by the intersection observer */}
-                    <audio ref={audioRef} src={post.audioUrl} loop muted={isMuted}/>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsMuted(!isMuted)}>
-                       {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                    </Button>
+                    {/* The audio element is not needed here as it's for Reels */}
                 </div>
             )}
 

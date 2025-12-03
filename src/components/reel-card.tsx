@@ -5,7 +5,7 @@
 import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause, EyeOff, Link as LinkIcon, Trash2, Music } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, Volume2, VolumeX, Play, Pause, EyeOff, Link as LinkIcon, Trash2, Music, CheckCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
@@ -18,6 +18,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// Global state to track if user has interacted to enable audio
+let hasEnabledAudio = false;
 
 interface ReelCardProps {
     reel: Reel;
@@ -36,15 +39,14 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(false); // Start with sound on
+    const [isMuted, setIsMuted] = useState(!hasEnabledAudio);
     const [progress, setProgress] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
 
     const playMedia = () => {
         videoRef.current?.play();
         if (audioRef.current) {
-            audioRef.current.muted = isMuted; // Sync mute state
-            audioRef.current?.play();
+            audioRef.current.play().catch(e => console.error("Audio play failed on reel:", e));
         }
         setIsPlaying(true);
     };
@@ -81,6 +83,11 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     }, []);
 
     const handleVideoClick = () => {
+        if (!hasEnabledAudio) {
+            hasEnabledAudio = true;
+            setIsMuted(false);
+        }
+        
         if (isPlaying) {
             pauseMedia();
         } else {
@@ -90,7 +97,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     
     useEffect(() => {
         if(videoRef.current) {
-             videoRef.current.muted = isMuted;
+             videoRef.current.muted = true; // Video is always muted to sync with external audio
         }
         if(audioRef.current) {
             audioRef.current.muted = isMuted;
@@ -141,6 +148,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         toast({
             title: "Lien copié !",
             description: "Le lien vers le Reel a été copié.",
+            icon: <CheckCircle className="h-5 w-5 text-green-500" />
         });
     }
     
@@ -177,9 +185,18 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 onClick={handleVideoClick}
                 onTimeUpdate={handleTimeUpdate}
                 id={`reel-video-${reel.id}`}
-                muted={isMuted}
+                muted // Always mute the video element itself
             ></video>
-            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop muted={isMuted}/>}
+            
+            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
+
+            {!hasEnabledAudio && (
+                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white pointer-events-none text-center p-4">
+                    <VolumeX className="h-12 w-12 mb-2" />
+                    <p className="font-semibold">Le son est coupé par défaut</p>
+                    <p className="text-sm">Appuyez sur la vidéo pour activer le son</p>
+                </div>
+            )}
 
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
