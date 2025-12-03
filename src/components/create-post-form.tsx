@@ -151,6 +151,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                     requestResourceData: data,
                 });
                 errorEmitter.emit('permission-error', permissionError);
+            } finally {
                 setLoading(false);
             }
         }
