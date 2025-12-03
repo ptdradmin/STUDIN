@@ -22,6 +22,9 @@ import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
 import { updateUserPosts } from '@/lib/actions';
 import { generateAvatar } from '@/lib/avatars';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 
 const studentProfileSchema = z.object({
@@ -117,6 +120,17 @@ const FormSection = ({ title, description, children }: { title: string, descript
     </div>
 );
 
+const avatarStyles = [
+  'micah',
+  'bottts',
+  'adventurer',
+  'fun-emoji',
+  'lorelei',
+  'notionists',
+  'identicon',
+  'initials',
+];
+
 export default function EditProfileForm({ user, userProfile, onClose }: EditProfileFormProps) {
   const isInstitution = userProfile.role === 'institution';
 
@@ -156,6 +170,11 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     }
   }
 
+  const handleAvatarSelect = (avatarUrl: string) => {
+    setPreviewUrl(avatarUrl);
+    setProfilePictureFile(null); // Clear file if an avatar is selected
+  }
+
   const getInitials = (name?: string) => {
     if (!name) return "..";
     const parts = name.split(' ');
@@ -179,6 +198,9 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
             const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
             await uploadBytes(fileRef, profilePictureFile);
             newPhotoURL = await getDownloadURL(fileRef);
+        } else if (previewUrl && previewUrl !== userProfile.profilePicture) {
+            // This means a generated avatar was selected
+            newPhotoURL = previewUrl;
         }
 
         const batch = writeBatch(firestore);
@@ -233,6 +255,8 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
   const studentErrors = errors as z.ZodError<StudentProfileInputs>['formErrors']['fieldErrors'];
   const institutionErrors = errors as z.ZodError<InstitutionProfileInputs>['formErrors']['fieldErrors'];
 
+  const generatedAvatars = avatarStyles.map(style => `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(user.email || user.uid)}`);
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl">
@@ -249,12 +273,35 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                         <AvatarImage src={previewUrl || generateAvatar(user.email || user.uid)} />
                         <AvatarFallback>{getInitials(userProfile?.firstName)}</AvatarFallback>
                     </Avatar>
-                     <Label htmlFor="photo-upload" className="cursor-pointer">
-                        <Button type="button" variant="outline" asChild>
-                            <span className="w-full text-center">Changer la photo</span>
-                        </Button>
-                    </Label>
-                    <Input id="photo-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageChange}/>
+                     <div className="flex flex-col gap-2">
+                        <Label htmlFor="photo-upload" className="cursor-pointer">
+                            <Button type="button" variant="outline" asChild>
+                                <span className="w-full text-center">Changer la photo</span>
+                            </Button>
+                        </Label>
+                        <Input id="photo-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageChange}/>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button type="button" variant="outline">Générer un avatar</Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80">
+                                <div className="grid grid-cols-4 gap-2">
+                                    {generatedAvatars.map((avatarUrl, index) => (
+                                        <button
+                                            key={index}
+                                            type="button"
+                                            onClick={() => handleAvatarSelect(avatarUrl)}
+                                            className={cn("rounded-full ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", previewUrl === avatarUrl && 'ring-2 ring-primary')}
+                                        >
+                                            <Avatar className="h-14 w-14">
+                                                <AvatarImage src={avatarUrl} />
+                                            </Avatar>
+                                        </button>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                     </div>
                 </div>
                  <div>
                     <Label htmlFor="username">Nom d'utilisateur</Label>
