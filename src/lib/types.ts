@@ -214,6 +214,7 @@ export interface Conversation {
 export interface Notification {
   id: string;
   type: 'new_follower' | 'like' | 'comment' | 'new_message' | 'carpool_booking' | 'event_attendance';
+  senderId: string;
   senderProfile: {
       username: string;
       profilePicture: string;

@@ -122,7 +122,7 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
           <div>
             <Label htmlFor="comment">Commentaire</Label>
             <Textarea id="comment" {...register('comment')} placeholder="Partagez votre expérience..."/>
-            {errors.comment && <p className="text-xs text-destructive">{errors.comment.message}</p>}
+            {errors.comment && <p className="text-xs text-destructive mt-1">{errors.comment.message}</p>}
           </div>
           <DialogFooter>
             <DialogClose asChild>
