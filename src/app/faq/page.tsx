@@ -95,11 +95,11 @@ const faqs = [
         ]
     },
     {
-        category: "UrbanQuest (Défis)",
+        category: "Défis",
         questions: [
             {
-                q: "Qu'est-ce que UrbanQuest ?",
-                a: "UrbanQuest est la section de gamification de STUD'IN. Elle vous permet de participer à des défis (challenges) dans votre ville pour gagner des points, découvrir de nouveaux lieux et vous mesurer aux autres étudiants dans le classement."
+                q: "Qu'est-ce que la section Défis ?",
+                a: "La section des Défis est la partie gamifiée de STUD'IN. Elle vous permet de participer à des défis dans votre ville pour gagner des points, découvrir de nouveaux lieux et vous mesurer aux autres étudiants dans le classement."
             },
             {
                 q: "Comment participer à un défi ?",

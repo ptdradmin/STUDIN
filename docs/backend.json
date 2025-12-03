@@ -394,7 +394,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Challenge",
       "type": "object",
-      "description": "Represents a gamified challenge in UrbanQuest.",
+      "description": "Represents a gamified challenge.",
       "properties": {
         "id": { "type": "string" },
         "creatorId": { "type": "string", "description": "The ID of the admin or institution who created the challenge." },
@@ -508,7 +508,7 @@
     },
     "/challenges/{challengeId}": {
       "schema": { "$ref": "#/entities/Challenge" },
-      "description": "Stores UrbanQuest challenges. Publicly readable."
+      "description": "Stores challenges. Publicly readable."
     },
     "/challenges/{challengeId}/submissions/{submissionId}": {
         "schema": { "$ref": "#/entities/ChallengeSubmission" },

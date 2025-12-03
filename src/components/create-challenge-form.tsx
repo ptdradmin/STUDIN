@@ -112,7 +112,7 @@ export default function CreateChallengeForm({ onClose }: CreateChallengeFormProp
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Créer un nouveau défi UrbanQuest</DialogTitle>
+          <DialogTitle>Créer un nouveau défi</DialogTitle>
            <DialogDescription>Remplissez les détails pour créer un défi pour la communauté.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-h-[80vh] overflow-y-auto p-1 pr-4">

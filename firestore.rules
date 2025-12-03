@@ -196,7 +196,7 @@ service cloud.firestore {
     }
 
     // =====================================================================
-    // UrbanQuest (Challenges) Rules
+    // Challenges Rules
     // =====================================================================
     match /challenges/{challengeId} {
       allow read: if isSignedIn();

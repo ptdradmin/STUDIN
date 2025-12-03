@@ -103,7 +103,7 @@ export default function LeaderboardPage() {
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-3">
                                 <Trophy className="h-8 w-8 text-primary" />
-                                {isPartner ? "Classement des défis" : "Classement UrbanQuest"}
+                                {isPartner ? "Classement des défis" : "Classement des Défis"}
                             </h1>
                             <p className="text-muted-foreground mt-1">
                                 {isPartner ? "Analysez la participation à vos défis." : "Qui sont les maîtres de la ville ?"}

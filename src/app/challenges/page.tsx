@@ -64,7 +64,7 @@ export default function ChallengesPage() {
                     <div className="mb-8">
                        <div className="flex items-center justify-between">
                          <div>
-                            <h1 className="text-3xl font-bold tracking-tight">UrbanQuest</h1>
+                            <h1 className="text-3xl font-bold tracking-tight">Défis</h1>
                             <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
                          </div>
                          {canCreateChallenge && (
