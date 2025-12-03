@@ -39,7 +39,7 @@ export default function TermsPage() {
                     </ul>
 
                     <h2 className="mt-6 text-2xl font-semibold">4. Responsabilité</h2>
-                    <p>STUD'IN est une plateforme de mise en relation. Nous ne sommes pas partie prenante aux accords conclus entre les utilisateurs (par exemple, un contrat de location, un accord de covoiturage ou une séance de tutorat). Par conséquent :</p>
+                    <p>STUD'IN est une plateforme de mise en relation. Nous ne sommes pas partie prenante aux accords conclus entre les utilisateurs (par exemple, un contrat de location, un accord de covoiturage, une séance de tutorat ou la réalisation d'un défi).</p>
                     <ul>
                        <li>Nous ne garantissons pas la qualité, la sécurité, ou la légalité des annonces et des services proposés par les utilisateurs.</li>
                        <li>Vous êtes seul responsable de vos interactions avec les autres utilisateurs. Nous vous encourageons à faire preuve de prudence et de bon sens.</li>

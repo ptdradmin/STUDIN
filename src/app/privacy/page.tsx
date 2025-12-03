@@ -29,7 +29,7 @@ export default function PrivacyPage() {
                         <li><strong>Données d'identification :</strong> Prénom, nom, nom d'utilisateur, photo de profil.</li>
                         <li><strong>Données de contact :</strong> Adresse e-mail, numéro de téléphone (optionnel).</li>
                         <li><strong>Données de profil académique :</strong> Université, domaine d'études.</li>
-                        <li><strong>Contenu généré par l'utilisateur (CGU) :</strong> Annonces (logement, covoiturage, tutorat), publications, photos, biographie, commentaires et messages que vous publiez ou échangez sur la plateforme.</li>
+                        <li><strong>Contenu généré par l'utilisateur (CGU) :</strong> Annonces (logement, covoiturage, tutorat), publications, photos, biographie, commentaires, soumissions aux défis (photos, textes) et messages que vous publiez ou échangez sur la plateforme.</li>
                         <li><strong>Données techniques :</strong> Adresse IP, type de navigateur, système d'exploitation, informations sur les appareils, et données de navigation sur notre service.</li>
                         <li><strong>Données de localisation :</strong> Nous pouvons collecter des données de localisation approximatives (ville) pour personnaliser les services comme le logement ou les événements. La localisation précise n'est utilisée qu'avec votre consentement explicite, par exemple pour afficher votre position sur une carte.</li>
                     </ul>

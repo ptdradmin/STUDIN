@@ -29,13 +29,14 @@ export default function CommunityRulesPage() {
                             <li>Illégal ou qui encourage des activités illégales.</li>
                             <li>Qui porte atteinte à la vie privée d'autrui (partage d'informations personnelles sans consentement).</li>
                             <li>Constituant du spam ou de la publicité non sollicitée.</li>
+                            <li>Le contenu soumis dans le cadre des défis doit également respecter ces règles.</li>
                         </ul>
 
                         <h2 className="mt-6 text-2xl font-semibold">3. Soyez honnête et authentique</h2>
                         <ul>
                            <li>Ne vous faites pas passer pour quelqu'un d'autre (usurpation d'identité).</li>
-                           <li>Ne publiez pas d'informations fausses ou trompeuses, que ce soit dans les annonces (logement, covoiturage) ou dans les publications.</li>
-                           <li>La manipulation des avis, des likes ou des commentaires est interdite.</li>
+                           <li>Ne publiez pas d'informations fausses ou trompeuses, que ce soit dans les annonces (logement, covoiturage), les publications ou les défis.</li>
+                           <li>La manipulation des avis, des likes, des commentaires ou des résultats des défis est interdite.</li>
                         </ul>
 
                         <h2 className="mt-6 text-2xl font-semibold">4. Respectez la propriété intellectuelle</h2>
