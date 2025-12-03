@@ -62,6 +62,10 @@ const filters = [
     { name: 'X-Pro II', className: 'filter-contrast-150 filter-saturate-180' },
     { name: 'Sierra', className: 'filter-contrast-90 filter-saturate-125' },
     { name: 'Willow', className: 'filter-grayscale filter-contrast-95' },
+    { name: 'Lo-Fi', className: 'filter-saturate-110 filter-contrast-150' },
+    { name: 'Inkwell', className: 'filter-grayscale filter-contrast-110 filter-brightness-110' },
+    { name: 'Hefe', className: 'filter-contrast-110 filter-saturate-140' },
+    { name: 'Nashville', className: 'filter-sepia-[0.2] filter-contrast-120 filter-brightness-[0.9] filter-hue-rotate-[-15deg]' },
 ];
 
 
@@ -233,7 +237,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                         <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
                         <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="filters" className="flex-grow p-4">
+                    <TabsContent value="filters" className="flex-grow p-4 overflow-y-auto">
                         <div className="grid grid-cols-3 gap-2">
                             {filters.map(filter => (
                                 <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
