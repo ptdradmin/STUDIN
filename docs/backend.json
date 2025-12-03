@@ -143,6 +143,28 @@
       },
       "required": ["id", "caption", "userId", "username", "createdAt"]
     },
+    "Book": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Book",
+        "type": "object",
+        "description": "Represents a book listing in the book exchange.",
+        "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "author": { "type": "string" },
+            "description": { "type": "string" },
+            "condition": { "type": "string", "enum": ["Neuf", "Très bon", "Bon", "Acceptable"] },
+            "price": { "type": "number" },
+            "imageUrl": { "type": "string", "format": "uri" },
+            "sellerId": { "type": "string" },
+            "sellerName": { "type": "string" },
+            "sellerAvatarUrl": { "type": "string", "format": "uri" },
+            "course": { "type": "string" },
+            "university": { "type": "string" },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "title", "author", "condition", "price", "sellerId"]
+    },
     "Housing": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Housing",
@@ -431,6 +453,10 @@
       "schema": { "$ref": "#/entities/Post" },
       "description": "Stores social media posts. Publicly readable."
     },
+    "/books/{bookId}": {
+      "schema": { "$ref": "#/entities/Book" },
+      "description": "Stores book listings for the book exchange."
+    },
     "/reels/{reelId}": {
       "schema": { "$ref": "#/entities/Reel" },
       "description": "Stores short video reels. Publicly readable."
@@ -481,5 +507,3 @@
     }
   }
 }
-
-    
