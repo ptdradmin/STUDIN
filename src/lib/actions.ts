@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -86,7 +87,7 @@ export const toggleFollowUser = (
  */
 export const createNotification = async (
     firestore: Firestore,
-    notifData: Omit<Notification, 'id' | 'createdAt' | 'read' | 'senderProfile'>
+    notifData: Omit<Notification, 'id' | 'createdAt' | 'read' | 'senderProfile' | 'senderId'> & { senderId: string }
 ) => {
     try {
         const senderProfileSnap = await getDoc(doc(firestore, 'users', notifData.senderId));

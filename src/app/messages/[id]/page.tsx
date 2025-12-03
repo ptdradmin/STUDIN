@@ -375,6 +375,7 @@ export default function ConversationPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*"/>
                     {fileToSend && (
                          <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
                              <div className="flex items-center gap-2 overflow-hidden">
@@ -411,7 +412,7 @@ export default function ConversationPage() {
                                 <Paperclip className="h-5 w-5" />
                             </Button>
                             <Input 
-                                placeholder={fileToSend ? "Prêt à envoyer l'audio..." : "Écrivez votre message..."}
+                                placeholder={fileToSend ? "Prêt à envoyer le fichier..." : "Écrivez votre message..."}
                                 className="flex-grow" 
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
