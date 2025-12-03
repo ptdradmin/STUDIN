@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, Check, Search, Trophy, UploadCloud, Loader2, MapPin, Play, UserCheck } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge } from '@/lib/types';
@@ -18,6 +19,7 @@ import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useUser } from '@/firebase';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -93,8 +95,10 @@ export default function ChallengeDetailPage() {
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useUser();
     const challengeId = params.id as string;
     
+    const [isParticipating, setIsParticipating] = useState(false);
     const [proofFile, setProofFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,6 +114,18 @@ export default function ChallengeDetailPage() {
       moyen: { text: "Moyen", color: "bg-yellow-500" },
       difficile: { text: "Difficile", color: "bg-red-500" },
     };
+
+    const handleParticipate = () => {
+        if (!user) {
+            router.push(`/login?from=/challenges/${challengeId}`);
+            return;
+        }
+        setIsParticipating(true);
+        toast({
+            title: "Participation enregistrée !",
+            description: "Vous pouvez maintenant soumettre votre preuve.",
+        });
+    }
     
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -242,49 +258,63 @@ export default function ChallengeDetailPage() {
                                 )}
 
                                 <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-base">Soumettre votre preuve</CardTitle>
-                                        <CardDescription>Téléchargez une photo pour valider le défi.</CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                      {isSubmitted ? (
-                                        <div className="text-center p-4 bg-green-50 rounded-md border border-green-200">
-                                            <Check className="h-10 w-10 text-green-600 mx-auto mb-2" />
-                                            <h4 className="font-semibold text-green-800">Participation envoyée !</h4>
-                                            <p className="text-sm text-green-700">Votre preuve est en cours de validation.</p>
-                                        </div>
-                                      ) : (
-                                        <form onSubmit={handleProofSubmit} className="space-y-4">
-                                            {previewUrl && (
-                                                <div className="relative aspect-video w-full rounded-md overflow-hidden border">
-                                                    <Image src={previewUrl} alt="Aperçu de la preuve" layout="fill" objectFit="cover" />
-                                                </div>
-                                            )}
-                                            <div>
-                                                <Label htmlFor="proof-file" className="sr-only">Fichier de preuve</Label>
-                                                <Input id="proof-file" type="file" accept="image/*" onChange={handleFileChange} disabled={isSubmitting} />
-                                            </div>
-
-                                            {isSubmitting && <Progress value={uploadProgress} className="w-full h-2" />}
-
-                                            <Button className="w-full" type="submit" disabled={isSubmitting || !proofFile}>
-                                                {isSubmitting ? (
-                                                  <>
-                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                    Envoi...
-                                                  </>
-                                                ) : (
-                                                  <>
-                                                    <UploadCloud className="mr-2 h-4 w-4" />
-                                                    Valider ma participation
-                                                  </>
-                                                )}
+                                    {!isParticipating ? (
+                                        <CardContent className="p-6 text-center">
+                                            <h3 className="font-bold">Prêt à relever le défi ?</h3>
+                                            <p className="text-sm text-muted-foreground mt-2 mb-4">Cliquez sur participer pour commencer et débloquer la soumission de preuve.</p>
+                                            <Button className="w-full" onClick={handleParticipate}>
+                                                <Play className="mr-2 h-4 w-4" /> Participer au défi
                                             </Button>
-                                        </form>
-                                      )}
-                                    </CardContent>
-                                </Card>
+                                        </CardContent>
+                                    ) : (
+                                        <>
+                                            <CardHeader>
+                                                <CardTitle className="text-base flex items-center gap-2">
+                                                    <UserCheck className="h-5 w-5 text-green-600" />
+                                                    Vous participez !
+                                                </CardTitle>
+                                                <CardDescription>Téléchargez une photo pour valider le défi.</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                            {isSubmitted ? (
+                                                <div className="text-center p-4 bg-green-50 rounded-md border border-green-200">
+                                                    <Check className="h-10 w-10 text-green-600 mx-auto mb-2" />
+                                                    <h4 className="font-semibold text-green-800">Participation envoyée !</h4>
+                                                    <p className="text-sm text-green-700">Votre preuve est en cours de validation.</p>
+                                                </div>
+                                            ) : (
+                                                <form onSubmit={handleProofSubmit} className="space-y-4">
+                                                    {previewUrl && (
+                                                        <div className="relative aspect-video w-full rounded-md overflow-hidden border">
+                                                            <Image src={previewUrl} alt="Aperçu de la preuve" layout="fill" objectFit="cover" />
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <Label htmlFor="proof-file" className="sr-only">Fichier de preuve</Label>
+                                                        <Input id="proof-file" type="file" accept="image/*" onChange={handleFileChange} disabled={isSubmitting} />
+                                                    </div>
 
+                                                    {isSubmitting && <Progress value={uploadProgress} className="w-full h-2" />}
+
+                                                    <Button className="w-full" type="submit" disabled={isSubmitting || !proofFile}>
+                                                        {isSubmitting ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            Envoi...
+                                                        </>
+                                                        ) : (
+                                                        <>
+                                                            <UploadCloud className="mr-2 h-4 w-4" />
+                                                            Valider ma participation
+                                                        </>
+                                                        )}
+                                                    </Button>
+                                                </form>
+                                            )}
+                                            </CardContent>
+                                        </>
+                                    )}
+                                </Card>
                             </div>
                         </div>
                     </div>
