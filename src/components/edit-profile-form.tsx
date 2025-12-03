@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -127,6 +128,10 @@ const avatarStyles = [
   'notionists',
   'identicon',
   'initials',
+  'avataaars',
+  'big-smile',
+  'personas',
+  'pixel-art',
 ];
 
 export default function EditProfileForm({ user, userProfile, onClose }: EditProfileFormProps) {
@@ -284,8 +289,8 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                             <PopoverTrigger asChild>
                                 <Button type="button" variant="outline">Générer un avatar</Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-80">
-                                <div className="grid grid-cols-4 gap-2">
+                            <PopoverContent className="w-96">
+                                <div className="grid grid-cols-6 gap-2">
                                     {generatedAvatars.map((avatarUrl, index) => (
                                         <button
                                             key={index}
@@ -293,7 +298,7 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
                                             onClick={() => handleAvatarSelect(avatarUrl)}
                                             className={cn("rounded-full ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", previewUrl === avatarUrl && 'ring-2 ring-primary')}
                                         >
-                                            <Avatar className="h-14 w-14">
+                                            <Avatar className="h-12 w-12">
                                                 <AvatarImage src={avatarUrl} />
                                             </Avatar>
                                         </button>

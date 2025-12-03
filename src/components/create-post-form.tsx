@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -41,14 +42,19 @@ interface CreatePostFormProps {
 
 const filters = [
     { name: 'Normal', className: 'filter-none' },
-    { name: 'Grayscale', className: 'filter-grayscale' },
-    { name: 'Sepia', className: 'filter-sepia' },
-    { name: 'Saturate', className: 'filter-saturate' },
-    { name: 'Contrast', className: 'filter-contrast' },
-    { name: 'Brightness', className: 'filter-brightness' },
-    { name: 'Hue-Rotate', className: 'filter-hue-rotate' },
-    { name: 'Invert', className: 'filter-invert' },
+    { name: 'Clarendon', className: 'filter-contrast-[1.2] filter-saturate-[1.35]' },
+    { name: 'Gingham', className: 'filter-brightness-105 filter-hue-rotate-[-10deg]' },
+    { name: 'Moon', className: 'filter-grayscale filter-contrast-110 filter-brightness-110' },
+    { name: 'Lark', className: 'filter-contrast-90 filter-saturate-110' },
+    { name: 'Reyes', className: 'filter-sepia-[0.22] filter-brightness-110 filter-contrast-[0.85] filter-saturate-[0.75]' },
+    { name: 'Juno', className: 'filter-contrast-120 filter-brightness-110 filter-saturate-180' },
+    { name: 'Slumber', className: 'filter-saturate-[0.66] filter-brightness-105' },
+    { name: 'Crema', className: 'filter-sepia-[0.5] filter-contrast-120 filter-saturate-120' },
+    { name: 'Ludwig', className: 'filter-brightness-105 filter-saturate-200' },
+    { name: 'Aden', className: 'filter-hue-rotate-[-20deg] filter-contrast-90 filter-saturate-[0.85] filter-brightness-120' },
+    { name: 'Perpetua', className: 'filter-contrast-110 filter-brightness-125' },
 ];
+
 
 type AspectRatio = "1:1" | "4:5" | "16:9";
 
@@ -118,11 +124,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     const imageRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
 
     try {
-        // 1. Upload image
         const snapshot = await uploadBytes(imageRef, imageFile);
         const imageUrl = await getDownloadURL(snapshot.ref);
 
-        // 2. Prepare post data
         const postData = {
             ...data,
             id: newDocRef.id,
@@ -136,7 +140,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
             imageUrl: imageUrl,
         };
 
-        // 3. Write post data to Firestore
         await setDoc(newDocRef, postData);
         
         toast({ title: 'Succès', description: 'Publication créée !' });
@@ -144,7 +147,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         router.refresh();
 
     } catch (error: any) {
-        // This will now catch both upload and firestore errors
         console.error("Error creating post:", error);
         errorEmitter.emit(
             'permission-error',
@@ -156,7 +158,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         );
         toast({ variant: 'destructive', title: 'Erreur de publication', description: "Impossible de créer la publication. Vérifiez vos permissions." });
     } finally {
-        // 4. THIS IS CRITICAL: Always reset loading state
         setLoading(false);
     }
   };
