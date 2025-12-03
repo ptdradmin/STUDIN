@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,7 +16,7 @@ import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, AspectRatio } from 'lucide-react';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -113,7 +113,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   };
 
   const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
-    if (isProfileLoading || !userProfile) {
+    if (isUserLoading || isProfileLoading || !userProfile) {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Votre profil n\'est pas chargé. Veuillez patienter.' });
         return;
     }
@@ -134,7 +134,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         const postData = {
             ...data,
             id: newDocRef.id,
-            userId: user.uid,
+            userId: user!.uid,
             username: userProfile.username,
             userAvatarUrl: userProfile.profilePicture,
             createdAt: serverTimestamp(),
@@ -152,6 +152,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
     } catch (error: any) {
         const isPermissionError = error.code === 'permission-denied';
+        toast({ variant: 'destructive', title: 'Erreur de publication', description: isPermissionError ? "Permission refusée." : "Impossible de créer la publication." });
         if (isPermissionError) {
              errorEmitter.emit(
                 'permission-error',
@@ -162,7 +163,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                 })
             );
         }
-        toast({ variant: 'destructive', title: 'Erreur de publication', description: isPermissionError ? "Permission refusée." : "Impossible de créer la publication." });
     } finally {
         setLoading(false);
     }
@@ -170,8 +170,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl p-0" onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader className="p-3 pb-0 border-b text-center relative flex justify-between items-center flex-row">
+      <DialogContent className="sm:max-w-4xl p-0 h-[80vh] flex flex-col" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogHeader className="p-3 pb-0 border-b text-center relative flex justify-between items-center flex-row flex-shrink-0">
             {step === 2 && (
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setStep(1)}><ArrowLeft className="h-5 w-5" /></Button>
             )}
@@ -184,9 +184,9 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
               </Button>
             )}
         </DialogHeader>
-        <form>
+        <div className="flex-grow overflow-hidden">
           {step === 1 && (
-             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+             <div className="flex flex-col items-center justify-center h-full text-center">
                   <ImageIcon className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
                   <p className="mt-4 text-xl">Faites glisser les photos ici</p>
                   <Button type="button" variant="link" asChild className="mt-2">
@@ -199,67 +199,69 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
           )}
 
           {step === 2 && previewUrl && (
-             <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] min-h-[60vh]">
-                  <div className="flex items-center justify-center border-r bg-black/90 p-4">
-                     <div className="relative w-full h-full max-w-md max-h-[50vh] md:max-h-[calc(60vh-2rem)]">
+             <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] h-full">
+                  <div className="flex items-center justify-center bg-black/90 overflow-hidden">
+                     <div className="relative w-full h-full">
                         <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="contain" className={cn("transition-all", selectedFilter)} />
                       </div>
                   </div>
                   
-                  <div className="flex flex-col">
-                    <Tabs defaultValue="filters" className="flex-grow flex flex-col">
-                      <TabsList className="grid w-full grid-cols-2 rounded-none border-b">
+                  <div className="flex flex-col h-full border-l">
+                    <Tabs defaultValue="filters" className="flex-grow flex flex-col overflow-hidden">
+                      <TabsList className="grid w-full grid-cols-2 rounded-none border-b flex-shrink-0">
                           <TabsTrigger value="filters" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Filtres</TabsTrigger>
                           <TabsTrigger value="caption" className="rounded-none shadow-none data-[state=active]:border-b-2 border-primary data-[state=active]:shadow-none -mb-px">Légende</TabsTrigger>
                       </TabsList>
-                      <TabsContent value="filters" className="flex-grow p-4 overflow-y-auto">
-                          <div className="grid grid-cols-3 gap-2">
-                              {filters.map(filter => (
-                                  <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
-                                      <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
-                                          <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="contain" className={filter.className} />
-                                      </div>
-                                      <p className="text-xs text-center mt-1">{filter.name}</p>
-                                  </div>
-                              ))}
-                          </div>
-                      </TabsContent>
-                      <TabsContent value="caption" className="flex-grow flex flex-col p-4">
-                          {userProfile && (
-                              <div className="flex items-center gap-3 mb-4">
-                                  <Avatar className="h-7 w-7">
-                                      <AvatarImage src={userProfile.profilePicture ?? undefined} />
-                                      <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
-                                  </Avatar>
-                                  <p className="font-semibold text-sm">{userProfile.username}</p>
-                              </div>
-                          )}
-                          <div className="flex-grow">
-                              <Textarea
-                                  id="caption"
-                                  {...register('caption')}
-                                  placeholder="Écrivez une légende..."
-                                  className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[100px]"
-                              />
-                              {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
-                          </div>
+                      <div className="flex-grow overflow-y-auto">
+                        <TabsContent value="filters" className="p-4">
+                            <div className="grid grid-cols-3 gap-2">
+                                {filters.map(filter => (
+                                    <div key={filter.name} onClick={() => setSelectedFilter(filter.className)} className="cursor-pointer">
+                                        <div className={cn("relative aspect-square rounded-md overflow-hidden ring-2 ring-offset-2 ring-offset-background", selectedFilter === filter.className ? 'ring-primary' : 'ring-transparent')}>
+                                            <Image src={previewUrl} alt={filter.name} layout="fill" objectFit="contain" className={filter.className} />
+                                        </div>
+                                        <p className="text-xs text-center mt-1">{filter.name}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="caption" className="flex flex-col p-4 h-full">
+                            {userProfile && (
+                                <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+                                    <Avatar className="h-7 w-7">
+                                        <AvatarImage src={userProfile.profilePicture ?? undefined} />
+                                        <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="font-semibold text-sm">{userProfile.username}</p>
+                                </div>
+                            )}
+                            <div className="flex-grow">
+                                <Textarea
+                                    id="caption"
+                                    {...register('caption')}
+                                    placeholder="Écrivez une légende..."
+                                    className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[100px]"
+                                />
+                                {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+                            </div>
 
-                          <div className="border-t mt-auto pt-4">
-                              <div className="relative">
-                                  <Input 
-                                      id="location" 
-                                      placeholder="Ajouter un lieu" 
-                                      {...register('location')}
-                                      className="border-none p-0 focus-visible:ring-0"
-                                  />
-                              </div>
-                          </div>
-                      </TabsContent>
+                            <div className="border-t mt-auto pt-4 flex-shrink-0">
+                                <div className="relative">
+                                    <Input 
+                                        id="location" 
+                                        placeholder="Ajouter un lieu" 
+                                        {...register('location')}
+                                        className="border-none p-0 focus-visible:ring-0"
+                                    />
+                                </div>
+                            </div>
+                        </TabsContent>
+                      </div>
                     </Tabs>
                   </div>
             </div>
           )}
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
