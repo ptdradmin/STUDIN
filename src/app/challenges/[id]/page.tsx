@@ -24,6 +24,7 @@ import { doc, collection, query, where, addDoc, serverTimestamp, updateDoc, runT
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
 import { staticChallenges } from '@/lib/static-data';
+import { verifySubmission } from '@/ai/flows/verify-submission-flow';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -129,7 +130,7 @@ export default function ChallengeDetailPage() {
 
     const handleProofSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!proofFile || !user || !userProfile || !firestore || !storage || !challenge) {
+        if (!proofFile || !user || !userProfile || !firestore || !storage || !challenge || !previewUrl) {
             toast({ title: "Erreur", description: "Vérifiez que vous êtes connecté et qu'un fichier est sélectionné.", variant: "destructive"});
             return;
         }
@@ -137,22 +138,30 @@ export default function ChallengeDetailPage() {
         toast({ title: "Envoi en cours...", description: "Votre participation est en cours de validation."});
 
         const submissionRef = doc(collection(firestore, 'challenges', challenge.id, 'submissions'));
-        const imageRef = storageRef(storage, `submissions/${challenge.id}/${user.uid}/${proofFile.name}`);
+        
+        try {
+            const verificationResult = await verifySubmission({
+                photoDataUri: previewUrl,
+                challengeTitle: challenge.title,
+                challengeDescription: challenge.description,
+            });
 
-        const uploadTask = uploadBytesResumable(imageRef, proofFile);
+            const { isVerified, reason } = verificationResult;
 
-        uploadTask.on('state_changed', 
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-            },
-            (error) => {
-                setIsSubmitting(false);
-                setUploadProgress(0);
-                toast({ title: "Erreur de téléversement", description: "Impossible d'envoyer votre preuve.", variant: "destructive" });
-            },
-            () => {
-                getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+            const imageRef = storageRef(storage, `submissions/${challenge.id}/${user.uid}/${proofFile.name}`);
+            const uploadTask = uploadBytesResumable(imageRef, proofFile);
+            
+             uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setUploadProgress(progress);
+                },
+                (error) => {
+                    throw new Error("Erreur de téléversement");
+                },
+                async () => {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    
                     const submissionData = {
                         id: submissionRef.id,
                         challengeId: challenge.id,
@@ -162,19 +171,39 @@ export default function ChallengeDetailPage() {
                             avatarUrl: userProfile.profilePicture
                         },
                         proofUrl: downloadURL,
-                        status: 'pending',
+                        status: isVerified ? 'approved' : 'rejected' as 'approved' | 'rejected',
                         createdAt: serverTimestamp()
                     };
 
-                    await setDoc(submissionRef, submissionData);
+                    const userRef = doc(firestore, 'users', user.uid);
+                    
+                    await runTransaction(firestore, async (transaction) => {
+                         transaction.set(submissionRef, submissionData);
+                         if (isVerified) {
+                             transaction.update(userRef, {
+                                 points: increment(challenge.points),
+                                 challengesCompleted: increment(1)
+                             });
+                         }
+                    });
+
                     setUploadProgress(100);
-                    setTimeout(() => {
+                     setTimeout(() => {
                         setIsSubmitting(false);
-                        toast({ title: "Participation envoyée !", description: "Votre preuve a été soumise pour examen."});
+                        if (isVerified) {
+                            toast({ title: "Participation approuvée !", description: `Félicitations ! ${reason}` });
+                        } else {
+                            toast({ variant: 'destructive', title: "Participation rejetée", description: `L'IA a déterminé que la photo ne correspond pas. Raison : ${reason}` });
+                        }
                     }, 500);
-                });
-            }
-        );
+                }
+            );
+
+        } catch (error) {
+             console.error("Error during submission process:", error);
+             setIsSubmitting(false);
+             toast({ title: "Erreur de soumission", description: "Une erreur est survenue lors de la validation.", variant: "destructive" });
+        }
     }
 
     if (isChallengeLoading) {
@@ -225,7 +254,7 @@ export default function ChallengeDetailPage() {
                         
                         <div className="grid md:grid-cols-3 gap-8">
                             <div className="md:col-span-2">
-                                 {challenge.imageUrl && (
+                                 {challenge && challenge.imageUrl && (
                                      <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6">
                                         <Image src={challenge.imageUrl} alt={challenge.title} fill className="object-cover" data-ai-hint={imageHint} />
                                     </div>
