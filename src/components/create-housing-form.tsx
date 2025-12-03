@@ -19,6 +19,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
 import { Separator } from './ui/separator';
+import { staticChallenges } from '@/lib/static-data';
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -123,8 +124,14 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
             imageUrl = await getDownloadURL(snapshot.ref);
         }
 
+        const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
+        const newCoords: [number, number] = [
+            (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
+            (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
+        ];
+
         if (isEditing && housingToEdit) {
-            const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl };
+            const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
             await updateDoc(housingRef, dataToUpdate);
             toast({ title: 'Succès', description: 'Annonce de logement mise à jour !' });
         } else {
@@ -136,7 +143,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 userAvatarUrl: user.photoURL,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-                coordinates: [50.8503, 4.3517], // TODO: Geocode address
+                coordinates: newCoords,
                 imageHint: "student room",
                 imageUrl: imageUrl,
             };

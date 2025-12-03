@@ -22,6 +22,7 @@ import { fr } from 'date-fns/locale';
 import { ref as storageRef, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
+import { staticChallenges } from '@/lib/static-data';
 
 const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
@@ -117,6 +118,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
 
     const newDocRef = doc(collection(firestore, 'events'));
     const finalStartDate = data.startDate.toISOString();
+    const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
+    const newCoords: [number, number] = [
+        (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
+        (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
+    ];
 
     const eventData = {
         ...data,
@@ -130,9 +136,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         attendeeIds: [],
         endDate: finalStartDate, // simplified
         locationName: data.address, // simplified
-        coordinates: [50.8503, 4.3517], 
+        coordinates: newCoords, 
         imageHint: "student event",
         imageUrl: previewUrl, // Use local preview URL initially
+        latitude: newCoords[0],
+        longitude: newCoords[1],
     };
     
     setDocumentNonBlocking(newDocRef, eventData);

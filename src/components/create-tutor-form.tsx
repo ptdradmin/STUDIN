@@ -14,6 +14,7 @@ import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { staticChallenges } from '@/lib/static-data';
 
 const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
@@ -63,6 +64,12 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     const tutoringsCollection = collection(firestore, 'tutorings');
     const newDocRef = doc(tutoringsCollection);
 
+    const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
+    const newCoords: [number, number] = [
+        (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
+        (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
+    ];
+
     const tutorData = {
         ...data,
         id: newDocRef.id,
@@ -73,7 +80,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         updatedAt: serverTimestamp(),
         rating: 0,
         totalReviews: 0,
-        coordinates: [50.8503, 4.3517] // Default to Brussels, TODO: Geocode user's location
+        coordinates: newCoords,
     };
 
     setDocumentNonBlocking(newDocRef, tutorData);

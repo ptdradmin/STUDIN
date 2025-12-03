@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { format, setHours, setMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Car, Users } from 'lucide-react';
+import { staticChallenges } from '@/lib/static-data';
 
 
 const CarIllustration = ({ availableSeats }: { availableSeats: number }) => {
@@ -145,6 +146,11 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     const newDocRef = doc(carpoolingsCollection);
     
     const finalDepartureTime = data.departureTime.toISOString();
+    const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
+    const newCoords: [number, number] = [
+        (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
+        (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
+    ];
 
     const tripData = {
         ...data,
@@ -158,7 +164,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         passengerIds: [],
         departureAddress: data.departureCity, // simplified
         arrivalAddress: data.arrivalCity, // simplified
-        coordinates: [50.4674, 4.8720] // Default to Namur, TODO: Geocode
+        coordinates: newCoords,
     };
     
     setDocumentNonBlocking(newDocRef, tripData);
