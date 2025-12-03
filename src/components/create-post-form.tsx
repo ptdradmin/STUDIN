@@ -38,15 +38,15 @@ interface CreatePostFormProps {
 }
 
 const trendingSongs = [
-    { title: "Street Vibe", artist: "Rap/Hip-Hop Beat", url: "https://www.chosic.com/wp-content/uploads/2022/02/Gimme-More.mp3" },
-    { title: "Chill Reggae", artist: "Reggae Instrumental", url: "https://www.chosic.com/wp-content/uploads/2024/04/espresso.mp3" },
-    { title: "808 Flow", artist: "Trap Beat", url: "https://www.chosic.com/wp-content/uploads/2021/04/Feather.mp3" },
-    { title: "Ibiza Sunrise", artist: "Electro House Mix", url: "https://www.chosic.com/wp-content/uploads/2022/02/Gimme-More.mp3" },
-    { title: "Warehouse Rave", artist: "Techno Groove", url: "https://www.chosic.com/wp-content/uploads/2024/04/espresso.mp3" },
-    { title: "Industrial Core", artist: "Hardcore Rhythm", url: "https://www.chosic.com/wp-content/uploads/2021/04/Feather.mp3" },
-    { title: "Espresso", artist: "Sabrina Carpenter", url: "https://www.chosic.com/wp-content/uploads/2024/04/espresso.mp3" },
-    { title: "Gimme More", artist: "Britney Spears", url: "https://www.chosic.com/wp-content/uploads/2022/02/Gimme-More.mp3" },
+    { title: "Street Vibe", artist: "Rap/Hip-Hop Beat", url: "https://archive.org/download/22-rap-beat-instrumental-hip-hop-type-beat-2022-insane/22.%20Rap%20Beat%20Instrumental%20Hip%20Hop%20Type%20Beat%202022%20-%20%27Insane%27.mp3" },
+    { title: "Chill Reggae", artist: "Reggae Instrumental", url: "https://archive.org/download/reggae-instrumental_202302/Reggae%20Instrumental.mp3" },
+    { title: "808 Flow", artist: "Trap Beat", url: "https://archive.org/download/free-trap-beat-savage/Free%20Trap%20Beat%20-%20Savage.mp3" },
+    { title: "Ibiza Sunrise", artist: "Electro House Mix", url: "https://archive.org/download/powerful-stylish-stomp-groove-electro-house-version-60s-14022/powerful-stylish-stomp-groove-electro-house-version-60s-14022.mp3" },
+    { title: "Warehouse Rave", artist: "Techno Groove", url: "https://archive.org/download/techno-power-191242/techno-power-191242.mp3" },
+    { title: "Industrial Core", artist: "Hardcore Rhythm", url: "https://archive.org/download/gabber-kick-drum-samples/Hardcore%20Kick%202.mp3" },
+    { title: "Lofi Chill", artist: "Lofi Beat", url: "https://archive.org/download/lofi-beat-chill-instrumental/Lofi%20Beat%20Chill%20Instrumental.mp3" },
 ];
+
 
 function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: { title: string, url: string }) => void, onClose: () => void }) {
     const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
