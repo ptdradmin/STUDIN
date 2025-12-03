@@ -53,6 +53,9 @@ const filters = [
     { name: 'Ludwig', className: 'filter-brightness-105 filter-saturate-200' },
     { name: 'Aden', className: 'filter-hue-rotate-[-20deg] filter-contrast-90 filter-saturate-[0.85] filter-brightness-120' },
     { name: 'Perpetua', className: 'filter-contrast-110 filter-brightness-125' },
+    { name: 'Amaro', className: 'filter-hue-rotate-[-10deg] filter-contrast-90 filter-saturate-150' },
+    { name: 'Mayfair', className: 'filter-contrast-110 filter-saturate-110' },
+    { name: 'Rise', className: 'filter-brightness-105 filter-sepia-[0.2] filter-contrast-90 filter-saturate-90' },
 ];
 
 
