@@ -44,20 +44,13 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
 
-    function hasRequiredUserFieldsOnCreate() {
-      let data = request.resource.data;
-      return data.id == request.auth.uid
-          && data.username is string && data.username.size() > 0
-          && data.email is string && data.email.size() > 0;
-    }
-    
     // =====================================================================
     // User Profile Rules
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
+      allow create: if isOwner(userId);
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']) ||

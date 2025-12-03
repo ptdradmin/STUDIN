@@ -78,7 +78,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
-  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
   
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -110,7 +110,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   const onSubmit: SubmitHandler<PostFormInputs> = async (data) => {
     if (!user || !firestore || !storage || !userProfile) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Votre profil n\'est pas chargé. Veuillez patienter.' });
       return;
     }
     if (!imageFile) {
@@ -179,7 +179,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
              {step === 1 ? "Créer une nouvelle publication" : "Édition"}
            </DialogTitle>
             {step === 2 && (
-              <Button variant="link" onClick={handleSubmit(onSubmit)} className="ml-auto p-0 h-auto font-bold" disabled={loading}>
+              <Button variant="link" onClick={handleSubmit(onSubmit)} className="ml-auto p-0 h-auto font-bold" disabled={loading || isUserLoading || isProfileLoading}>
                  {loading ? 'Publication...' : 'Partager'}
               </Button>
             )}
