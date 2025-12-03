@@ -46,7 +46,7 @@ export default function WhoWeArePage() {
               </Card>
               <div className="max-w-4xl mx-auto mt-8 text-muted-foreground space-y-4">
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-                  {['Trouver un logement', 'Organiser un covoiturage', "Obtenir de l’aide scolaire", "Repérer les événements importants de la vie étudiante"].map(item => (
+                  {['Trouver un logement', 'Organiser un covoiturage', "Obtenir de l’aide scolaire", "Repérer les événements importants", "Relever des défis urbains"].map(item => (
                      <li key={item} className="flex items-center gap-3">
                         <Check className="h-5 w-5 text-primary flex-shrink-0"/>
                         <span>{item}</span>
@@ -94,6 +94,10 @@ export default function WhoWeArePage() {
                      <li className="flex items-start gap-4">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Check className="h-5 w-5"/></div>
                         <div><strong className="block">Événements :</strong> Repérer les activités importantes liées à la vie étudiante.</div>
+                    </li>
+                    <li className="flex items-start gap-4">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Check className="h-5 w-5"/></div>
+                        <div><strong className="block">Défis :</strong> Gamifier le quotidien via des défis urbains et communautaires.</div>
                     </li>
                 </ul>
                 <p className="mt-8 text-center text-lg">
