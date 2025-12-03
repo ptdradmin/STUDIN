@@ -62,13 +62,17 @@ export default function DashboardPage() {
             setIsLoadingData(false);
         }, 1000);
     }, []);
+    
+    useEffect(() => {
+        // Redirect if user is loaded and not authorized.
+        // This runs after the initial render to prevent state updates during render.
+        if (!isUserLoading && !profileLoading && (!user || !isAuthorized)) {
+            router.push('/social');
+        }
+    }, [isUserLoading, profileLoading, user, isAuthorized, router]);
 
-    if (isUserLoading || profileLoading) {
-        return <PageSkeleton />;
-    }
 
-    if (!user || !isAuthorized) {
-        router.push('/social'); // Redirect to social if not authorized
+    if (isUserLoading || profileLoading || !user || !isAuthorized) {
         return <PageSkeleton />;
     }
     
