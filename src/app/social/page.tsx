@@ -134,7 +134,6 @@ export default function SocialPage() {
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
-    // Simplified query to fetch the latest 50 posts
     const postsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
         return query(

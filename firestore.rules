@@ -40,25 +40,6 @@ service cloud.firestore {
       return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
     }
 
-    function hasRequiredStudentFields() {
-        let data = request.resource.data;
-        return data.role == 'student'
-            && data.firstName is string
-            && data.lastName is string
-            && data.postalCode is string
-            && data.city is string
-            && data.university is string
-            && data.fieldOfStudy is string;
-    }
-    
-    function hasRequiredInstitutionFields() {
-         let data = request.resource.data;
-         return data.role == 'institution'
-            && data.firstName is string // Corresponds to institution name in this context
-            && data.postalCode is string
-            && data.city is string;
-    }
-
     function hasRequiredUserFieldsOnCreate() {
       let data = request.resource.data;
       return data.id == request.auth.uid
@@ -72,7 +53,6 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn() && request.query.keys().hasAny(['orderBy', 'limit']);
-      // Allow creation with minimal fields, full validation on update
       allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
@@ -87,13 +67,9 @@ service cloud.firestore {
         allow delete: if isOwner(userId);
       }
       
-      // =====================================================================
-      // Favorites Subcollection Rules
-      // =====================================================================
       match /favorites/{favoriteId} {
-        allow read, delete: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if false;
+        allow read, write: if isOwner(userId) && request.resource.data.userId == userId;
+        allow list: if isOwner(userId);
       }
     }
 
@@ -135,8 +111,6 @@ service cloud.firestore {
     match /carpoolings/{carpoolingId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      // The driver can update any field.
-      // A passenger can ONLY update the seatsAvailable and passengerIds.
       allow update: if (isSignedIn() && request.auth.uid == resource.data.driverId) ||
                       (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds']) && request.resource.data.diff(resource.data).affectedKeys().size() == 2);
       allow delete: if isOwner(resource.data.driverId);
@@ -156,15 +130,11 @@ service cloud.firestore {
     match /tutorings/{tutoringId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
-      // Allow tutor to update their own profile, or anyone to update review stats
       allow update: if (isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId) || 
                       (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['rating', 'totalReviews']));
       allow delete: if isOwner(resource.data.tutorId);
     }
     
-    // =====================================================================
-    // Tutoring Review Rules
-    // =====================================================================
     match /tutoring_reviews/{tutoringReviewId} {
       allow get: if true;
       allow list: if request.query.keys().hasOnly(['tutoringId', 'orderBy', 'limit']);
@@ -239,5 +209,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
