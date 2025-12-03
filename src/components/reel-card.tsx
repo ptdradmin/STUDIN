@@ -5,13 +5,12 @@
 import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
-import { Heart, MessageCircle, Send, MoreHorizontal, EyeOff, Link as LinkIcon, Trash2, Music } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, EyeOff, Link as LinkIcon, Trash2, Music, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { Progress } from "./ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,9 +29,74 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const { toast } = useToast();
     
     const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(false); // Start with sound on, but playback requires interaction
+    const [isVisible, setIsVisible] = useState(true);
+
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const cardRef = useRef<HTMLDivElement>(null);
+
     const hasLiked = user && optimisticLikes.includes(user.uid);
     const isOwner = user?.uid === reel.userId;
-    const [isVisible, setIsVisible] = useState(true);
+
+    // This effect synchronizes the external audio with the video playback state
+    useEffect(() => {
+        const video = videoRef.current;
+        const audio = audioRef.current;
+        if (!video || !audio) return;
+
+        if (isPlaying) {
+            video.play().catch(e => {
+                if (e.name !== 'AbortError') console.error("Video play error:", e)
+            });
+            if (reel.audioUrl) {
+                audio.play().catch(e => {
+                    if (e.name !== 'AbortError') console.error("Audio play error:", e)
+                });
+            }
+        } else {
+            video.pause();
+            if (reel.audioUrl) {
+                audio.pause();
+            }
+        }
+    }, [isPlaying, reel.audioUrl]);
+
+    // This effect handles audio muting
+    useEffect(() => {
+        const audio = audioRef.current;
+        const video = videoRef.current;
+        if (reel.audioUrl && audio) {
+            audio.muted = isMuted;
+        } else if (video) {
+            video.muted = isMuted;
+        }
+    }, [isMuted, reel.audioUrl]);
+
+    // Intersection Observer to pause video when it goes out of view
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) {
+                    setIsPlaying(false);
+                }
+            },
+            { threshold: 0.5 } // Trigger when 50% of the video is visible
+        );
+
+        const currentCardRef = cardRef.current;
+        if (currentCardRef) {
+            observer.observe(currentCardRef);
+        }
+
+        return () => {
+            if (currentCardRef) {
+                observer.unobserve(currentCardRef);
+            }
+        };
+    }, []);
+
 
     const getInitials = (name?: string) => {
         if (!name) return '??';
@@ -94,27 +158,45 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             })
     }
 
+    const togglePlay = () => {
+        setIsPlaying(prev => !prev);
+    }
+
     if (!isVisible) return null;
 
     return (
-        <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-background shadow-lg group">
+        <div ref={cardRef} className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-lg group">
             <video
+                ref={videoRef}
                 src={reel.videoUrl}
                 playsInline
-                controls // Utilise les contrôles natifs du navigateur
                 loop
-                muted={false} // Le son est géré par le navigateur
+                muted={!!reel.audioUrl} // Mute video if there is background music
                 className="h-full w-full object-cover"
                 id={`reel-video-${reel.id}`}
-            ></video>
+                onClick={togglePlay}
+            />
 
-            {/* L'audio séparé n'est plus nécessaire */}
+            {reel.audioUrl && (
+                <audio ref={audioRef} src={reel.audioUrl} loop />
+            )}
             
-            <div className="absolute top-4 right-4 z-10">
-                {/* Le contrôle de volume est maintenant natif à la vidéo */}
+            {/* Play/Pause Overlay */}
+            <div 
+                className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 transition-opacity duration-300 pointer-events-none"
+                style={{ opacity: isPlaying ? 0 : 1 }}
+            >
+                <Play className="h-20 w-20 text-white/70 drop-shadow-lg" />
             </div>
             
-            <div className="absolute bottom-16 left-0 right-0 p-4 text-white flex justify-between items-end z-10 pointer-events-none">
+            {/* Sound Control */}
+            <div className="absolute top-4 right-4 z-10">
+                <Button variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50" onClick={() => setIsMuted(prev => !prev)}>
+                    {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+                </Button>
+            </div>
+            
+            <div className="absolute bottom-0 left-0 right-0 p-4 pb-16 md:pb-4 text-white bg-gradient-to-t from-black/50 to-transparent flex justify-between items-end z-10 pointer-events-none">
                 <div className="space-y-2 flex-grow overflow-hidden">
                     <div className="flex items-center gap-2 pointer-events-auto">
                         <Link href={`/profile/${reel.userId}`}>
