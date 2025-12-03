@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -32,9 +33,14 @@ interface CreateReelFormProps {
 }
 
 const trendingSongs = [
-    { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
+    { title: "Street Vibe", artist: "Rap/Hip-Hop Beat", url: "/music/gimme-more.mp3" },
+    { title: "Chill Reggae", artist: "Reggae Instrumental", url: "/music/espresso.mp3" },
+    { title: "808 Flow", artist: "Trap Beat", url: "/music/feather.mp3" },
+    { title: "Ibiza Sunrise", artist: "Electro House Mix", url: "/music/gimme-more.mp3" },
+    { title: "Warehouse Rave", artist: "Techno Groove", url: "/music/espresso.mp3" },
+    { title: "Industrial Core", artist: "Hardcore Rhythm", url: "/music/feather.mp3" },
     { title: "Espresso", artist: "Sabrina Carpenter", url: "/music/espresso.mp3" },
-    { title: "Feather", artist: "Sabrina Carpenter", url: "/music/feather.mp3" },
+    { title: "Gimme More", artist: "Britney Spears", url: "/music/gimme-more.mp3" },
 ];
 
 export default function CreateReelForm({ onClose }: CreateReelFormProps) {
