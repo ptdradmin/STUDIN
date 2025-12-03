@@ -108,7 +108,7 @@ export default function RegisterInstitutionForm() {
         title: "Inscription réussie !",
         description: "Votre compte partenaire a été créé.",
       });
-      router.push('/social');
+      router.push('/leaderboard');
       router.refresh();
   };
 

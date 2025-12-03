@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -157,11 +157,12 @@ export default function RegisterForm() {
       }
   }
 
-  const handleSuccess = () => {
+  const handleSuccess = (user: User) => {
      toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
       });
+      // For all students, the home page is the social feed.
       router.push('/social');
       router.refresh();
   }
@@ -186,7 +187,7 @@ export default function RegisterForm() {
     try {
       const result = await signInWithPopup(auth, provider);
       await createUserDocument(result.user);
-      handleSuccess();
+      handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -213,7 +214,7 @@ export default function RegisterForm() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await createUserDocument(userCredential.user, data);
-      handleSuccess();
+      handleSuccess(userCredential.user);
     } catch (error: any) {
         handleError(error);
     } finally {

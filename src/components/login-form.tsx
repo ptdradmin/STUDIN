@@ -91,13 +91,35 @@ export default function LoginForm() {
     }
   }
 
-  const handleSuccess = () => {
+  const handleSuccess = async (user: User) => {
       toast({
         title: "Connexion réussie",
         description: "Bienvenue sur STUD'IN!",
       });
-      const from = searchParams.get('from') || '/social';
-      router.push(from);
+
+      if (firestore) {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+            const userProfile = userDocSnap.data();
+            switch (userProfile.role) {
+                case 'institution':
+                case 'admin':
+                    router.push('/leaderboard');
+                    break;
+                case 'student':
+                default:
+                    router.push('/social');
+                    break;
+            }
+        } else {
+            // Default redirection if profile is not found (should be rare)
+             router.push('/social');
+        }
+      } else {
+        const from = searchParams.get('from') || '/social';
+        router.push(from);
+      }
       router.refresh();
   }
 
@@ -120,7 +142,7 @@ export default function LoginForm() {
     try {
       const result = await signInWithPopup(auth, provider);
       await createUserDocument(result.user);
-      handleSuccess();
+      await handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -144,8 +166,8 @@ export default function LoginForm() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await createUserDocument(userCredential.user);
-      handleSuccess();
+      // No need to create doc, just log in. `createUserDocument` is for new sign-ups.
+      await handleSuccess(userCredential.user);
     } catch (error: any) {
       handleError(error);
     } finally {
