@@ -19,50 +19,80 @@ import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { staticChallenges } from '@/lib/static-data';
+import { doc, collection, query, where, addDoc, serverTimestamp, updateDoc, runTransaction, increment } from 'firebase/firestore';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { useStorage } from '@/firebase/provider';
+
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full" />,
 });
 
-const staticSubmissions: (ChallengeSubmission & { id: string })[] = [
-    { id: 'sub1', challengeId: '1', userId: 'user1', proofUrl: 'https://images.unsplash.com/photo-1549488344-cbb6c34cf08b?q=80&w=1974&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672620000, nanoseconds: 0 } as any, userProfile: { username: 'Alice', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=alice' } },
-    { id: 'sub2', challengeId: '1', userId: 'user2', proofUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=1974&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672621000, nanoseconds: 0 } as any, userProfile: { username: 'Bob', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=bob' } },
-    { id: 'sub3', challengeId: '5', userId: 'user3', proofUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=1961&auto=format&fit=crop', status: 'pending', createdAt: { seconds: 1672622000, nanoseconds: 0 } as any, userProfile: { username: 'Charlie', avatarUrl: 'https://api.dicebear.com/7.x/micah/svg?seed=charlie' } },
-];
-
-
 export default function ChallengeDetailPage() {
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
     const { user } = useUser();
+    const firestore = useFirestore();
+    const storage = useStorage();
     const challengeId = params.id as string;
     
-    const [isParticipating, setIsParticipating] = useState(false);
     const [proofFile, setProofFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [submissions, setSubmissions] = useState(staticSubmissions.filter(s => s.challengeId === challengeId));
 
-    const challenge = staticChallenges.find(c => c.id === challengeId);
-    
-    // This is a placeholder. In a real app, you'd fetch the user's role.
+    const challengeRef = useMemoFirebase(() => !firestore || !challengeId ? null : doc(firestore, 'challenges', challengeId), [firestore, challengeId]);
+    const { data: challenge, isLoading: isChallengeLoading } = useDoc<Challenge>(challengeRef);
+
+    const submissionsQuery = useMemoFirebase(() => !firestore || !challengeId ? null : query(collection(firestore, 'challenges', challengeId, 'submissions')), [firestore, challengeId]);
+    const { data: submissions, isLoading: areSubmissionsLoading } = useCollection<ChallengeSubmission>(submissionsQuery);
+
+    const userSubmission = useMemo(() => submissions?.find(s => s.userId === user?.uid), [submissions, user]);
+
+    const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [user, firestore]);
+    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
     const isChallengeCreator = user?.uid === challenge?.creatorId;
 
-    const handleSubmissionAction = (submissionId: string, action: 'approve' | 'reject') => {
-        setSubmissions(prev => prev.filter(s => s.id !== submissionId));
-        toast({
-            title: `Participation ${action === 'approve' ? 'approuvée' : 'rejetée'}`,
-            description: `Les points de l'utilisateur ont été mis à jour.`,
-        });
-        // In a real app, you'd update the submission status and user points in Firestore.
+    const handleSubmissionAction = async (submission: ChallengeSubmission, action: 'approve' | 'reject') => {
+        if (!firestore || !challenge) return;
+        const submissionRef = doc(firestore, 'challenges', challenge.id, 'submissions', submission.id);
+        const userRef = doc(firestore, 'users', submission.userId);
+
+        try {
+             await runTransaction(firestore, async (transaction) => {
+                const userDoc = await transaction.get(userRef);
+                if (!userDoc.exists()) {
+                    throw "User not found!";
+                }
+
+                transaction.update(submissionRef, { status: action });
+                
+                if(action === 'approve') {
+                    transaction.update(userRef, { 
+                        points: increment(challenge.points),
+                        challengesCompleted: increment(1)
+                    });
+                }
+            });
+
+            toast({
+                title: `Participation ${action === 'approve' ? 'approuvée' : 'rejetée'}`,
+                description: action === 'approve' ? `Les points ont été ajoutés à ${submission.userProfile.username}.` : undefined,
+            });
+        } catch (error) {
+             toast({
+                variant: 'destructive',
+                title: 'Erreur',
+                description: `Impossible de mettre à jour la participation.`,
+            });
+        }
     };
+
 
     const imageHint = PlaceHolderImages.find(p => p.imageUrl === challenge?.imageUrl)?.imageHint || 'student challenge';
 
@@ -72,16 +102,13 @@ export default function ChallengeDetailPage() {
       difficile: { text: "Difficile", color: "bg-red-500" },
     };
 
-    const handleParticipate = () => {
-        if (!user) {
+    const handleParticipate = async () => {
+        if (!user || !firestore) {
             router.push(`/login?from=/challenges/${challengeId}`);
             return;
         }
-        setIsParticipating(true);
-        toast({
-            title: "Participation enregistrée !",
-            description: "Vous pouvez maintenant soumettre votre preuve.",
-        });
+        // This button is now hidden if user is participating, but keeping the logic
+        toast({ title: "Vous participez déjà !", description: "Vous pouvez maintenant soumettre votre preuve." });
     }
     
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,36 +123,67 @@ export default function ChallengeDetailPage() {
         }
     };
 
-    const handleProofSubmit = (e: React.FormEvent) => {
+    const handleProofSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!proofFile) {
-            toast({ title: "Aucune preuve sélectionnée", description: "Veuillez choisir une photo.", variant: "destructive"});
+        if (!proofFile || !user || !userProfile || !firestore || !storage || !challenge) {
+            toast({ title: "Erreur", description: "Vérifiez que vous êtes connecté et qu'un fichier est sélectionné.", variant: "destructive"});
             return;
         }
         setIsSubmitting(true);
         toast({ title: "Envoi en cours...", description: "Votre participation est en cours de validation."});
 
-        // Simulate upload
-        const interval = setInterval(() => {
-            setUploadProgress(prev => {
-                if (prev >= 95) {
-                    return prev;
-                }
-                return prev + 10;
-            });
-        }, 200);
+        const submissionRef = doc(collection(firestore, 'challenges', challenge.id, 'submissions'));
+        const imageRef = storageRef(storage, `submissions/${challenge.id}/${user.uid}/${proofFile.name}`);
 
-        setTimeout(() => {
-            clearInterval(interval);
-            setUploadProgress(100);
-            setTimeout(() => {
+        const uploadTask = uploadBytesResumable(imageRef, proofFile);
+
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+            },
+            (error) => {
                 setIsSubmitting(false);
-                setIsSubmitted(true);
-                toast({ title: "Participation envoyée !", description: "Votre preuve a été soumise pour examen."});
-            }, 500);
-        }, 2500);
+                setUploadProgress(0);
+                toast({ title: "Erreur de téléversement", description: "Impossible d'envoyer votre preuve.", variant: "destructive" });
+            },
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+                    const submissionData = {
+                        id: submissionRef.id,
+                        challengeId: challenge.id,
+                        userId: user.uid,
+                        userProfile: {
+                            username: userProfile.username,
+                            avatarUrl: userProfile.profilePicture
+                        },
+                        proofUrl: downloadURL,
+                        status: 'pending',
+                        createdAt: serverTimestamp()
+                    };
+
+                    await setDoc(submissionRef, submissionData);
+                    setUploadProgress(100);
+                    setTimeout(() => {
+                        setIsSubmitting(false);
+                        toast({ title: "Participation envoyée !", description: "Votre preuve a été soumise pour examen."});
+                    }, 500);
+                });
+            }
+        );
     }
 
+    if (isChallengeLoading) {
+        return (
+            <div className="flex min-h-screen w-full bg-background">
+                <SocialSidebar />
+                <div className="flex-1 flex flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            </div>
+        )
+    }
+    
     if (!challenge) {
         return (
             <div className="flex min-h-screen w-full bg-background">
@@ -139,6 +197,7 @@ export default function ChallengeDetailPage() {
     }
     
     const hasLocation = challenge.latitude && challenge.longitude;
+    const isParticipating = !!userSubmission;
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -215,7 +274,7 @@ export default function ChallengeDetailPage() {
                                     {!isParticipating && !isChallengeCreator ? (
                                         <CardContent className="p-6 text-center">
                                             <h3 className="font-bold">Prêt à relever le défi ?</h3>
-                                            <p className="text-sm text-muted-foreground mt-2 mb-4">Cliquez sur participer pour commencer et débloquer la soumission de preuve.</p>
+                                            <p className="text-sm text-muted-foreground mt-2 mb-4">Rejoignez pour débloquer la soumission de preuve.</p>
                                             <Button className="w-full" onClick={handleParticipate}>
                                                 <Play className="mr-2 h-4 w-4" /> Participer au défi
                                             </Button>
@@ -225,16 +284,17 @@ export default function ChallengeDetailPage() {
                                             <CardHeader>
                                                 <CardTitle className="text-base flex items-center gap-2">
                                                     <UserCheck className="h-5 w-5 text-green-600" />
-                                                    Vous participez !
+                                                    {userSubmission?.status === 'pending' ? "Participation en attente" : userSubmission?.status === 'approved' ? "Participation approuvée !" : "Soumettez votre preuve"}
                                                 </CardTitle>
-                                                <CardDescription>Téléchargez une photo pour valider le défi.</CardDescription>
+                                                <CardDescription>
+                                                    {userSubmission?.status === 'pending' ? "Votre preuve est en cours de validation." : userSubmission?.status === 'approved' ? "Félicitations, les points ont été ajoutés !" : "Téléchargez une photo pour valider le défi."}
+                                                </CardDescription>
                                             </CardHeader>
                                             <CardContent>
-                                            {isSubmitted ? (
-                                                <div className="text-center p-4 bg-green-50 rounded-md border border-green-200">
-                                                    <Check className="h-10 w-10 text-green-600 mx-auto mb-2" />
-                                                    <h4 className="font-semibold text-green-800">Participation envoyée !</h4>
-                                                    <p className="text-sm text-green-700">Votre preuve est en cours de validation.</p>
+                                            {isParticipating ? (
+                                                <div className="text-center p-4 bg-muted rounded-md border">
+                                                    {userSubmission?.proofUrl && <Image src={userSubmission.proofUrl} alt="Votre soumission" width={200} height={150} className="rounded-md mx-auto mb-2" />}
+                                                    <p className="text-sm text-muted-foreground">Statut : <Badge variant={userSubmission.status === 'approved' ? 'default' : userSubmission.status === 'rejected' ? 'destructive' : 'secondary'}>{userSubmission.status}</Badge></p>
                                                 </div>
                                             ) : (
                                                 <form onSubmit={handleProofSubmit} className="space-y-4">
@@ -274,9 +334,9 @@ export default function ChallengeDetailPage() {
 
                         {isChallengeCreator && (
                             <div className="mt-10">
-                                <h2 className="text-2xl font-bold tracking-tight mb-4">Soumissions en attente ({submissions.length})</h2>
+                                <h2 className="text-2xl font-bold tracking-tight mb-4">Soumissions en attente ({submissions?.filter(s=>s.status === 'pending').length || 0})</h2>
                                 <div className="space-y-4">
-                                {submissions.length > 0 ? submissions.map(sub => (
+                                {areSubmissionsLoading ? <Loader2 className="h-6 w-6 animate-spin"/> : submissions && submissions.filter(s => s.status === 'pending').length > 0 ? submissions.filter(s => s.status === 'pending').map(sub => (
                                     <Card key={sub.id}>
                                         <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start">
                                             <div className="relative w-full md:w-48 h-48 flex-shrink-0 rounded-md overflow-hidden">
@@ -293,10 +353,10 @@ export default function ChallengeDetailPage() {
                                                 <p className="text-sm text-muted-foreground mt-2">Soumis il y a quelques instants</p>
                                             </div>
                                             <div className="flex gap-2 self-start md:self-center flex-shrink-0">
-                                                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleSubmissionAction(sub.id, 'reject')}>
+                                                <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleSubmissionAction(sub, 'reject')}>
                                                     <X className="mr-2 h-4 w-4" /> Rejeter
                                                 </Button>
-                                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleSubmissionAction(sub.id, 'approve')}>
+                                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleSubmissionAction(sub, 'approve')}>
                                                     <Check className="mr-2 h-4 w-4" /> Approuver
                                                 </Button>
                                             </div>

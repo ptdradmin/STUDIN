@@ -76,6 +76,14 @@
             "type": "boolean",
             "description": "Indicates if the user has a verified badge."
         },
+        "points": {
+            "type": "number",
+            "description": "Total points earned from challenges."
+        },
+        "challengesCompleted": {
+            "type": "number",
+            "description": "Number of challenges successfully completed."
+        },
         "followerIds": {
           "type": "array",
           "description": "List of user IDs who are following this user.",

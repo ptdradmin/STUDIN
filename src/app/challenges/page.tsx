@@ -8,19 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LayoutGrid, Map, Plus, Target } from 'lucide-react';
+import { LayoutGrid, Map, Plus, Target, Loader2 } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import type { Challenge, UserProfile } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import ChallengeCard from '@/components/challenge-card';
-import { useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
+import { useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
-import { doc } from 'firebase/firestore';
-import { staticChallenges } from '@/lib/static-data';
+import { doc, collection, query } from 'firebase/firestore';
+
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -34,8 +33,8 @@ export default function ChallengesPage() {
     const firestore = useFirestore();
     const [showCreateForm, setShowCreateForm] = useState(false);
 
-    // For now, we use static data
-    const challenges = staticChallenges;
+    const challengesQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'challenges')), [firestore]);
+    const { data: challenges, isLoading: areChallengesLoading } = useCollection<Challenge>(challengesQuery);
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -43,7 +42,7 @@ export default function ChallengesPage() {
     }, [user, firestore]);
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
-    const challengesWithCoords = challenges.filter(c => c.latitude && c.longitude);
+    const challengesWithCoords = challenges?.filter(c => c.latitude && c.longitude) || [];
     const canCreateChallenge = userProfile?.role === 'institution' || userProfile?.role === 'admin';
 
     return (
@@ -146,13 +145,17 @@ export default function ChallengesPage() {
                     </div>
 
 
-                    {viewMode === 'list' ? (
+                    {areChallengesLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
+                        </div>
+                    ) : viewMode === 'list' && challenges ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {challenges.map(challenge => (
                               <ChallengeCard key={challenge.id} challenge={challenge} />
                           ))}
                       </div>
-                    ) : (
+                    ) : viewMode === 'map' ? (
                        <Card>
                           <CardContent className="p-2">
                             <div className="h-[600px] w-full rounded-md overflow-hidden">
@@ -160,10 +163,10 @@ export default function ChallengesPage() {
                             </div>
                           </CardContent>
                         </Card>
-                    )}
+                    ) : null}
 
 
-                    {challenges.length === 0 && (
+                    {!areChallengesLoading && challenges?.length === 0 && (
                          <Card className="text-center py-20 col-span-full">
                             <CardContent>
                                 <h3 className="text-xl font-semibold">Aucun défi pour le moment</h3>

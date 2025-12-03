@@ -65,6 +65,8 @@ export const staticChallenges: Challenge[] = [
     points: 50,
     imageUrl: PlaceHolderImages.find(p => p.id === 'challenge-5')?.imageUrl || '',
     location: 'Bruxelles',
+    latitude: 50.8449,
+    longitude: 4.3499,
     createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
   },
 ];

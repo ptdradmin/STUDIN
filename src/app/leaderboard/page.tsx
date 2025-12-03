@@ -3,9 +3,8 @@
 
 import * as React from 'react';
 import SocialSidebar from '@/components/social-sidebar';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy } from 'lucide-react';
+import { Trophy, Loader2 } from 'lucide-react';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,25 +17,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from 'next/link';
-import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
 import { UserProfile } from '@/lib/types';
-import { doc } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const staticLeaderboard = [
-  { rank: 1, userId: 'user1', username: 'Eva', points: 1250, challengesCompleted: 25, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=eva` },
-  { rank: 2, userId: 'user2', username: 'Leo', points: 1100, challengesCompleted: 22, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=leo` },
-  { rank: 3, userId: 'user3', username: 'Chloe', points: 980, challengesCompleted: 20, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=chloe` },
-  { rank: 4, userId: 'user4', username: 'Arthur', points: 850, challengesCompleted: 18, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=arthur` },
-  { rank: 5, userId: 'user5', username: 'Juliette', points: 760, challengesCompleted: 15, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=juliette` },
-  { rank: 6, userId: 'user6', username: 'Thomas', points: 640, challengesCompleted: 12, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=thomas` },
-  { rank: 7, userId: 'user7', username: 'Manon', points: 520, challengesCompleted: 10, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=manon` },
-  { rank: 8, userId: 'user_current', username: 'Vous', points: 410, challengesCompleted: 8, avatar: `https://api.dicebear.com/7.x/micah/svg?seed=you` },
-];
-
-const PodiumCard = ({ user, rank }: { user: typeof staticLeaderboard[0], rank: number }) => {
+const PodiumCard = ({ user, rank }: { user: UserProfile, rank: number }) => {
   const rankColors: {[key: number]: string} = {
     1: 'from-amber-400 to-yellow-500',
     2: 'from-slate-300 to-gray-400',
@@ -49,47 +37,52 @@ const PodiumCard = ({ user, rank }: { user: typeof staticLeaderboard[0], rank: n
              <Trophy className={`h-12 w-12 drop-shadow-lg ${rank === 1 ? 'text-yellow-300' : rank === 2 ? 'text-gray-200' : 'text-orange-400'}`} />
         </div>
         <Avatar className="h-20 w-20 border-4 border-white/50 mt-4">
-            <AvatarImage src={user.avatar} />
+            <AvatarImage src={user.profilePicture} />
             <AvatarFallback>{user.username.substring(0,2)}</AvatarFallback>
         </Avatar>
         <p className="font-bold text-xl mt-3 drop-shadow-sm">{user.username}</p>
-        <p className="font-extrabold text-2xl drop-shadow-md">{user.points} pts</p>
+        <p className="font-extrabold text-2xl drop-shadow-md">{user.points || 0} pts</p>
     </div>
   );
 };
 
+function PageSkeleton() {
+     return (
+        <div className="flex min-h-screen w-full bg-background">
+            <SocialSidebar />
+            <div className="flex flex-col flex-1 p-6">
+                <Skeleton className="h-10 w-1/3 mx-auto mb-10" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 mb-10 mt-16">
+                    <Skeleton className="h-48 w-full rounded-xl" />
+                    <Skeleton className="h-56 w-full rounded-xl" />
+                    <Skeleton className="h-48 w-full rounded-xl" />
+                </div>
+                <Skeleton className="h-96 w-full rounded-lg" />
+            </div>
+        </div>
+    )
+}
 
 export default function LeaderboardPage() {
-    const { user } = useUser();
+    const { user: authUser, isUserLoading } = useUser();
     const firestore = useFirestore();
 
+    const usersQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('points', 'desc'), limit(50)), [firestore]);
+    const { data: leaderboardData, isLoading: areUsersLoading } = useCollection<UserProfile>(usersQuery);
+    
     const userProfileRef = useMemoFirebase(() => {
-        if (!user || !firestore) return null;
-        return doc(firestore, 'users', user.uid);
-    }, [user, firestore]);
+        if (!authUser || !firestore) return null;
+        return doc(firestore, 'users', authUser.uid);
+    }, [authUser, firestore]);
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const isPartner = userProfile?.role === 'institution' || userProfile?.role === 'admin';
-    const leaderboard = isPartner ? staticLeaderboard.filter(u => u.userId !== 'user_current') : staticLeaderboard;
-    const topThree = leaderboard.slice(0, 3);
-    const restOfBoard = leaderboard.slice(3);
-    const currentUserRanking = leaderboard.find(u => u.userId === 'user_current');
+    const topThree = leaderboardData?.slice(0, 3) || [];
+    const restOfBoard = leaderboardData?.slice(3) || [];
+    const currentUserRanking = leaderboardData?.findIndex(u => u.id === authUser?.uid);
 
-    if (profileLoading) {
-        return (
-            <div className="flex min-h-screen w-full bg-background">
-                <SocialSidebar />
-                <div className="flex flex-col flex-1 p-6">
-                    <Skeleton className="h-10 w-1/3 mx-auto mb-10" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 mb-10 mt-16">
-                        <Skeleton className="h-48 w-full rounded-xl" />
-                        <Skeleton className="h-56 w-full rounded-xl" />
-                        <Skeleton className="h-48 w-full rounded-xl" />
-                    </div>
-                    <Skeleton className="h-96 w-full rounded-lg" />
-                </div>
-            </div>
-        )
+    if (profileLoading || isUserLoading || areUsersLoading) {
+        return <PageSkeleton />;
     }
 
     return (
@@ -110,7 +103,7 @@ export default function LeaderboardPage() {
                         <div className="mb-8 text-center">
                             <h1 className="text-3xl font-bold tracking-tight flex items-center justify-center gap-3">
                                 <Trophy className="h-8 w-8 text-primary" />
-                                {isPartner ? "Classement de vos défis" : "Classement UrbanQuest"}
+                                {isPartner ? "Classement des défis" : "Classement UrbanQuest"}
                             </h1>
                             <p className="text-muted-foreground mt-1">
                                 {isPartner ? "Analysez la participation à vos défis." : "Qui sont les maîtres de la ville ?"}
@@ -126,8 +119,6 @@ export default function LeaderboardPage() {
                                             <SelectTrigger><SelectValue placeholder="Tous vos défis" /></SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="all">Tous vos défis</SelectItem>
-                                                <SelectItem value="challenge-1">Le Lion de Waterloo</SelectItem>
-                                                <SelectItem value="challenge-2">Street Art à Bruxelles</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -176,20 +167,20 @@ export default function LeaderboardPage() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {restOfBoard.map(user => (
-                                            <TableRow key={user.userId}>
-                                                <TableCell className="font-bold text-center text-muted-foreground">{user.rank}</TableCell>
+                                        {restOfBoard.map((user, index) => (
+                                            <TableRow key={user.id}>
+                                                <TableCell className="font-bold text-center text-muted-foreground">{index + 4}</TableCell>
                                                 <TableCell>
-                                                     <Link href={`/profile/${user.userId}`} className="flex items-center gap-3 group">
+                                                     <Link href={`/profile/${user.id}`} className="flex items-center gap-3 group">
                                                         <Avatar className="h-9 w-9">
-                                                            <AvatarImage src={user.avatar} />
+                                                            <AvatarImage src={user.profilePicture} />
                                                             <AvatarFallback>{user.username.substring(0,2)}</AvatarFallback>
                                                         </Avatar>
                                                         <span className="font-medium group-hover:text-primary transition-colors">{user.username}</span>
                                                      </Link>
                                                 </TableCell>
-                                                <TableCell className="text-right text-muted-foreground">{user.challengesCompleted}</TableCell>
-                                                <TableCell className="text-right font-bold">{user.points}</TableCell>
+                                                <TableCell className="text-right text-muted-foreground">{user.challengesCompleted || 0}</TableCell>
+                                                <TableCell className="text-right font-bold">{user.points || 0}</TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -198,19 +189,19 @@ export default function LeaderboardPage() {
                         </Card>
                     </div>
                 </main>
-                {currentUserRanking && !isPartner && (
+                {currentUserRanking !== undefined && currentUserRanking > -1 && !isPartner && leaderboardData && (
                     <footer className="sticky bottom-16 md:bottom-0 bg-secondary/95 backdrop-blur border-t p-3">
                          <div className="max-w-4xl mx-auto">
                             <div className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-3">
-                                    <span className="font-bold w-10 text-center">{currentUserRanking.rank}</span>
+                                    <span className="font-bold w-10 text-center">{currentUserRanking + 1}</span>
                                      <Avatar className="h-9 w-9">
-                                        <AvatarImage src={currentUserRanking.avatar} />
-                                        <AvatarFallback>{currentUserRanking.username.substring(0,2)}</AvatarFallback>
+                                        <AvatarImage src={leaderboardData[currentUserRanking].profilePicture} />
+                                        <AvatarFallback>{leaderboardData[currentUserRanking].username.substring(0,2)}</AvatarFallback>
                                     </Avatar>
                                     <span className="font-bold">Vous</span>
                                 </div>
-                                <div className="font-bold text-primary">{currentUserRanking.points} pts</div>
+                                <div className="font-bold text-primary">{leaderboardData[currentUserRanking].points || 0} pts</div>
                             </div>
                         </div>
                     </footer>
