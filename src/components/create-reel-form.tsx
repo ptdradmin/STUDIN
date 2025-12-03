@@ -78,17 +78,29 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
     const [searchQuery, setSearchQuery] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const togglePlay = (song: { title: string, url: string }) => {
+    const togglePlay = async (song: { title: string, url: string }) => {
         if (!audioRef.current) return;
-
+        
+        // If the clicked song is currently playing, pause it.
         if (currentlyPlaying === song.url) {
             audioRef.current.pause();
             setCurrentlyPlaying(null);
-        } else {
-            audioRef.current.src = song.url;
-            audioRef.current.play().then(() => {
-                setCurrentlyPlaying(song.url);
-            }).catch(e => console.error("Audio play error", e));
+            return;
+        }
+
+        // If another song is playing, pause it first.
+        if (currentlyPlaying) {
+            audioRef.current.pause();
+        }
+
+        // Set the new source and play it.
+        audioRef.current.src = song.url;
+        setCurrentlyPlaying(song.url);
+        try {
+            await audioRef.current.play();
+        } catch (error) {
+            console.error("Audio play error:", error);
+            setCurrentlyPlaying(null); // Reset if play fails
         }
     };
     
@@ -97,9 +109,12 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
         const handleEnded = () => setCurrentlyPlaying(null);
         audioRef.current.addEventListener('ended', handleEnded);
         
+        // Cleanup function: pause audio and remove listener when the component unmounts.
         return () => {
-            audioRef.current?.pause();
-            audioRef.current?.removeEventListener('ended', handleEnded);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.removeEventListener('ended', handleEnded);
+            }
         }
     }, []);
 
