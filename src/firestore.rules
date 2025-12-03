@@ -52,7 +52,7 @@ service cloud.firestore {
     // =====================================================================
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && request.query.keys().hasAny(['orderBy', 'limit']);
+      allow list: if isSignedIn();
       allow create: if isOwner(userId) && hasRequiredUserFieldsOnCreate();
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
@@ -164,10 +164,8 @@ service cloud.firestore {
     // =====================================================================
     // Social (Posts) Rules
     // =====================================================================
-    match /posts {
-      allow list: if isSignedIn();
-    }
     match /posts/{postId} {
+      allow list: if isSignedIn();
       allow get: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && (
@@ -181,7 +179,7 @@ service cloud.firestore {
     // Conversation & Message Rules
     // =====================================================================
     match /conversations {
-        allow list: if isSignedIn() && request.query.where[0][0] == 'participantIds' && request.query.where[0][1] == 'array-contains' && request.query.where[0][2] == request.auth.uid;
+      allow list: if isSignedIn();
     }
     match /conversations/{conversationId} {
       allow read, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
