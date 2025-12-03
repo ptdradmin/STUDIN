@@ -8,15 +8,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
+import Link from 'next/link';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -53,6 +54,14 @@ export default function RegisterInstitutionForm() {
     },
   });
 
+  const isUsernameUnique = async (username: string): Promise<boolean> => {
+    if (!firestore) return false;
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('username', '==', username));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+  };
+
   const createUserDocuments = async (user: User, data: RegisterFormValues) => {
     if (!firestore) return;
 
@@ -60,10 +69,23 @@ export default function RegisterInstitutionForm() {
 
     // 1. User Document
     const userDocRef = doc(firestore, 'users', user.uid);
+    
+    let username = data.name.toLowerCase().replace(/\s+/g, '_').substring(0, 20);
+    let isUnique = await isUsernameUnique(username);
+    let counter = 1;
+    while(!isUnique) {
+        const newUsername = `${username}${counter}`;
+        isUnique = await isUsernameUnique(newUsername);
+        if (isUnique) {
+            username = newUsername;
+        }
+        counter++;
+    }
+
     const userData = {
         id: user.uid,
         role: 'institution',
-        username: data.name.toLowerCase().replace(/\s+/g, '_').substring(0, 20),
+        username: username,
         email: data.email,
         firstName: data.name, // Use institution name as firstName for consistency
         lastName: '', // No last name for institution
@@ -254,6 +276,14 @@ export default function RegisterInstitutionForm() {
             </form>
           </Form>
       </CardContent>
+       <CardFooter className="flex justify-center">
+         <p className="text-sm text-muted-foreground">
+            Vous êtes étudiant ?{' '}
+            <Link href="/register" className="font-semibold text-primary hover:underline" scroll={false}>
+              Inscrivez-vous ici
+            </Link>
+          </p>
+      </CardFooter>
     </>
   );
 }
