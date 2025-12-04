@@ -29,7 +29,6 @@ import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { useLanguage } from "@/contexts/language-context";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -97,7 +96,6 @@ export default function SettingsPage() {
   const { auth } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { language, setLanguage } = useLanguage();
 
   const [isPrivateProfile, setIsPrivateProfile] = useState(false);
   const [pauseAllNotifications, setPauseAllNotifications] = useState(false);
@@ -289,31 +287,6 @@ export default function SettingsPage() {
                         </AccordionContent>
                         </AccordionItem>
                         
-                        <AccordionItem value="language">
-                        <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
-                            <div className="flex items-center gap-3">
-                            <Globe />
-                            Langue
-                            </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="px-6 space-y-2">
-                            <Button
-                                variant={language === 'fr' ? 'secondary' : 'ghost'}
-                                onClick={() => setLanguage('fr')}
-                                className="w-full justify-start"
-                            >
-                                🇫🇷 Français
-                            </Button>
-                            <Button
-                                variant={language === 'en' ? 'secondary' : 'ghost'}
-                                onClick={() => setLanguage('en')}
-                                className="w-full justify-start"
-                            >
-                                🇬🇧 English
-                            </Button>
-                        </AccordionContent>
-                        </AccordionItem>
-
                         <AccordionItem value="content">
                         <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
                             <div className="flex items-center gap-3">
