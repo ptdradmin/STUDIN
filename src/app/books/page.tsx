@@ -12,7 +12,7 @@ import Image from "next/image";
 import type { Book } from "@/lib/types";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
@@ -86,12 +86,12 @@ export default function BookMarketPage() {
   const [courseFilter, setCourseFilter] = useState('');
   const [universityFilter, setUniversityFilter] = useState('');
 
-  const booksCollection = useMemoFirebase(() => {
+  const booksQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, 'books');
+    return query(collection(firestore, 'books'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
-  const { data: books, isLoading } = useCollection<Book>(booksCollection);
+  const { data: books, isLoading } = useCollection<Book>(booksQuery);
 
   const filteredBooks = useMemo(() => {
     if (!books) return [];
