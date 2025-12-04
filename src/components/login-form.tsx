@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User }
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
+import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -35,6 +36,19 @@ export default function LoginForm() {
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
+
+  const getRecaptchaToken = useCallback(async (action: string) => {
+    if (!window.grecaptcha) {
+      console.error("reCAPTCHA script not loaded");
+      return null;
+    }
+    return new Promise<string>((resolve) => {
+      window.grecaptcha.enterprise.ready(async () => {
+        const token = await window.grecaptcha.enterprise.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action });
+        resolve(token);
+      });
+    });
+  }, []);
 
   const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
@@ -153,6 +167,20 @@ export default function LoginForm() {
     e.preventDefault();
     setLoading('email');
 
+    const token = await getRecaptchaToken('LOGIN');
+    if (!token) {
+        toast({ variant: "destructive", title: "Erreur reCAPTCHA", description: "Veuillez réessayer." });
+        setLoading('');
+        return;
+    }
+
+    const { isVerified, score } = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
+    if (!isVerified) {
+        toast({ variant: "destructive", title: "Vérification échouée", description: `Activité suspecte détectée (score: ${score}). Veuillez réessayer.` });
+        setLoading('');
+        return;
+    }
+
     if (!auth || !firestore) {
       toast({
         variant: "destructive",
@@ -201,7 +229,7 @@ export default function LoginForm() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Ou continuer avec</span>
+              <span className="bg-card px-2 text-muted-foreground">Ou continuer avec</span>
             </div>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">

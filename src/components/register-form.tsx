@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -19,6 +19,7 @@ import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, getDoc
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
+import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -86,6 +87,19 @@ export default function RegisterForm() {
       fieldOfStudy: '',
     },
   });
+
+  const getRecaptchaToken = useCallback(async (action: string) => {
+    if (!window.grecaptcha) {
+      console.error("reCAPTCHA script not loaded");
+      return null;
+    }
+    return new Promise<string>((resolve) => {
+      window.grecaptcha.enterprise.ready(async () => {
+        const token = await window.grecaptcha.enterprise.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action });
+        resolve(token);
+      });
+    });
+  }, []);
 
   const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
@@ -199,6 +213,20 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading('email');
+
+    const token = await getRecaptchaToken('SIGNUP');
+    if (!token) {
+        toast({ variant: "destructive", title: "Erreur reCAPTCHA", description: "Veuillez réessayer." });
+        setLoading('');
+        return;
+    }
+
+    const { isVerified, score } = await verifyRecaptcha({ token, expectedAction: 'SIGNUP' });
+    if (!isVerified) {
+        toast({ variant: "destructive", title: "Vérification échouée", description: `Activité suspecte détectée (score: ${score}). Veuillez réessayer.` });
+        setLoading('');
+        return;
+    }
     
     if (!auth || !firestore) {
         toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
