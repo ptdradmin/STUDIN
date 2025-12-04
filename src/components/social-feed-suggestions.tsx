@@ -88,9 +88,9 @@ export default function SocialFeedSuggestions() {
             <UserCard userProfile={currentUserProfile} />
 
             {suggestions.length > 0 && (
-                <div>
+                 <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-3">Suggestions pour vous</h3>
-                    <div className="space-y-4">
+                    <div className="max-h-60 overflow-y-auto space-y-4 pr-2">
                         {suggestions.map(profile => (
                              <UserCard key={profile.id} userProfile={profile} isSuggestion />
                         ))}
@@ -98,7 +98,7 @@ export default function SocialFeedSuggestions() {
                 </div>
             )}
             
-            <footer className="text-xs text-muted-foreground space-x-2">
+            <footer className="text-xs text-black space-x-2">
                 <Link href="/about" className="hover:underline">À propos</Link><span>&middot;</span>
                 <Link href="/help" className="hover:underline">Aide</Link><span>&middot;</span>
                 <Link href="/terms" className="hover:underline">Conditions</Link><span>&middot;</span>
