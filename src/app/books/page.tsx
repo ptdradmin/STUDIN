@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -102,7 +103,6 @@ export default function BookMarketPage() {
   }, [books, titleFilter, courseFilter, universityFilter]);
 
   const handleContactSeller = async (sellerId: string) => {
-    if (isUserLoading) return;
     if (!user || !firestore) {
         router.push('/login?from=/books');
         return;
