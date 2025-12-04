@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, ReactNode, useMemo } from 'react';
@@ -30,11 +29,12 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
 
     useEffect(() => {
         if (typeof window !== 'undefined' && !isAppCheckInitialized) {
-            const initialize = () => {
-                try {
-                    // Check if grecaptcha is available
-                    if ((window as any).grecaptcha) {
-                        // Prevent re-initialization
+            // Poll for the grecaptcha.ready function to be available.
+            const intervalId = setInterval(() => {
+                if ((window as any).grecaptcha?.ready) {
+                    clearInterval(intervalId); // Stop polling
+                    try {
+                        // Prevent re-initialization if it somehow runs again
                         if (!(firebaseApp as any)._appCheck) {
                           initializeAppCheck(firebaseApp, {
                             provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
@@ -42,22 +42,14 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
                           });
                         }
                         setIsAppCheckInitialized(true);
-                        // Stop checking once initialized
-                        clearInterval(intervalId);
+                    } catch (e: any) {
+                        console.error("Failed to initialize App Check:", e);
+                        setError(e);
                     }
-                } catch (e: any) {
-                    console.error("Failed to initialize App Check:", e);
-                    setError(e);
-                    // Stop checking on error
-                    clearInterval(intervalId);
                 }
-            };
-            
-            // Poll for grecaptcha object
-            const intervalId = setInterval(initialize, 100);
+            }, 100); // Check every 100ms
 
-            // Cleanup interval on unmount
-            return () => clearInterval(intervalId);
+            return () => clearInterval(intervalId); // Cleanup on unmount
         }
     }, [isAppCheckInitialized]);
 
