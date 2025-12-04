@@ -1,3 +1,4 @@
+
 'use client';
 
 import Navbar from '@/components/navbar';
@@ -5,13 +6,7 @@ import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { PlaceHolderImages } from '@/lib/image-data';
 import Image from 'next/image';
-
-const getImageByHint = (hint: string) => {
-    const image = PlaceHolderImages.find(p => p.imageHint.includes(hint));
-    return image?.imageUrl || PlaceHolderImages[0]?.imageUrl || '';
-}
 
 const services = [
     {
@@ -19,42 +14,42 @@ const services = [
         description: "Trouvez le kot ou studio parfait près de votre campus.",
         icon: <Bed className="h-6 w-6"/>,
         href: "/housing",
-        image: getImageByHint('intérieur salon')
+        image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Covoiturage",
         description: "Partagez vos trajets pour économiser et faire des rencontres.",
         icon: <Car className="h-6 w-6"/>,
         href: "/carpooling",
-        image: getImageByHint('voiture route')
+        image: "https://images.unsplash.com/photo-1490650034437-341523642878?q=80&w=2070&auto=format&fit=crop"
     },
      {
         name: "Tutorat",
         description: "Obtenez de l'aide pour réussir ou proposez vos compétences.",
         icon: <BookOpen className="h-6 w-6"/>,
         href: "/tutoring",
-        image: getImageByHint('salle classe')
+        image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Marché aux Livres",
         description: "Achetez ou vendez vos livres de cours d'occasion.",
         icon: <BookOpen className="h-6 w-6"/>,
         href: "/books",
-        image: getImageByHint('bibliothèque livres')
+        image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1974&auto=format&fit=crop"
     },
      {
         name: "Événements",
         description: "Découvrez les meilleures soirées et activités étudiantes.",
         icon: <PartyPopper className="h-6 w-6"/>,
         href: "/events",
-        image: getImageByHint('festival lumières')
+        image: "https://images.unsplash.com/photo-1519750024422-3806dfa9c723?q=80&w=1974&auto=format&fit=crop"
     },
     {
         name: "Défis",
         description: "Relevez des défis, gagnez des points et explorez votre ville.",
         icon: <Target className="h-6 w-6" />,
         href: "/challenges",
-        image: getImageByHint('groupe amis')
+        image: "https://images.unsplash.com/photo-1531844251246-9a1bfaae09fc?q=80&w=2116&auto=format&fit=crop"
     },
 ]
 
