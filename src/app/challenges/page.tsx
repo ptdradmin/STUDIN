@@ -46,7 +46,7 @@ export default function ChallengesPage() {
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const challengesWithCoords = challenges?.filter(c => c.latitude && c.longitude) || [];
-    const canCreateChallenge = !isUserLoading && !profileLoading && (userProfile?.role === 'institution' || userProfile?.role === 'admin');
+    const canCreateChallenge = !isUserLoading && !profileLoading && !!userProfile && (userProfile.role === 'institution' || userProfile.role === 'admin');
 
     return (
         <div className="flex min-h-screen w-full bg-background">
