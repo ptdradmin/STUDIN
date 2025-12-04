@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -11,7 +10,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth, useFirestore, useUser } from '@/firebase';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -66,7 +65,9 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState('');
   const router = useRouter();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const { isUserLoading } = useUser();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -113,7 +114,7 @@ export default function RegisterForm() {
 
 
   const handleGoogleSignIn = async () => {
-    if (!areServicesAvailable || !auth || !firestore) {
+    if (!auth || !firestore) {
       toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez patienter."});
       return;
     }
@@ -134,7 +135,7 @@ export default function RegisterForm() {
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
-    if (!areServicesAvailable || !auth || !firestore) {
+    if (!auth || !firestore) {
         toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
         return;
     }
@@ -158,7 +159,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <>
@@ -172,7 +173,7 @@ export default function RegisterForm() {
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                  {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                 {loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'S\'inscrire avec Google'}
+                {isUserLoading ? 'Chargement...' : 'S\'inscrire avec Google'}
               </Button>
            </div>
           <div className="relative">
@@ -343,7 +344,7 @@ export default function RegisterForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : "S'inscrire"}
+                {isUserLoading ? 'Chargement...' : "S'inscrire"}
               </Button>
             </form>
           </Form>

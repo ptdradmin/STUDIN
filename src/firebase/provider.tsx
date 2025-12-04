@@ -1,10 +1,10 @@
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, getFirestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, getAuth } from 'firebase/auth';
-import { FirebaseStorage, getStorage } from "firebase/storage";
+import { Firestore } from 'firebase/firestore';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { FirebaseStorage } from "firebase/storage";
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { initializeFirebase } from '.';
 
@@ -16,8 +16,6 @@ interface FirebaseContextState {
   storage: FirebaseStorage | null;
   user: User | null;
   isUserLoading: boolean;
-  areServicesAvailable: boolean;
-  userError: Error | null;
 }
 
 // Create the context with an undefined initial value
@@ -32,71 +30,46 @@ interface FirebaseProviderProps {
  * This component should wrap the root of your application.
  */
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
-  const [firebaseApp, setFirebaseApp] = useState<FirebaseApp | null>(null);
-  const [auth, setAuth] = useState<Auth | null>(null);
-  const [firestore, setFirestore] = useState<Firestore | null>(null);
-  const [storage, setStorage] = useState<FirebaseStorage | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true);
-  const [userError, setUserError] = useState<Error | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [isUserLoading, setIsUserLoading] = useState(true);
+    
+    // Services are initialized once and memoized.
+    const { firebaseApp, auth, firestore, storage } = useMemo(() => {
+        return initializeFirebase();
+    }, []);
 
-  // Initialize Firebase app and services once on mount
-  useEffect(() => {
-    try {
-      const { firebaseApp: app, auth: authInstance, firestore: dbInstance, storage: storageInstance } = initializeFirebase();
-      setFirebaseApp(app);
-      setAuth(authInstance);
-      setFirestore(dbInstance);
-      setStorage(storageInstance);
-    } catch (e) {
-      console.error("Firebase initialization failed:", e);
-      setUserError(e as Error);
-    }
-  }, []);
+    useEffect(() => {
+        if (!auth) {
+            setIsUserLoading(false);
+            return;
+        }
 
-  // Subscribe to authentication state changes
-  useEffect(() => {
-    if (!auth) {
-      setIsUserLoading(false);
-      return;
-    }
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            setUser(firebaseUser);
+            setIsUserLoading(false);
+        }, (error) => {
+            console.error("Firebase auth state error:", error);
+            setIsUserLoading(false);
+        });
 
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (firebaseUser) => {
-        setUser(firebaseUser);
-        setIsUserLoading(false);
-      },
-      (error) => {
-        console.error("Firebase auth state error:", error);
-        setUserError(error);
-        setIsUserLoading(false);
-      }
+        return () => unsubscribe();
+    }, [auth]);
+
+    const contextValue = useMemo(() => ({
+        firebaseApp,
+        auth,
+        firestore,
+        storage,
+        user,
+        isUserLoading,
+    }), [firebaseApp, auth, firestore, storage, user, isUserLoading]);
+
+    return (
+        <FirebaseContext.Provider value={contextValue}>
+            <FirebaseErrorListener />
+            {children}
+        </FirebaseContext.Provider>
     );
-
-    return () => unsubscribe(); // Cleanup subscription
-  }, [auth]);
-
-  const areServicesAvailable = !!(firebaseApp && auth && firestore);
-
-  // Memoize the context value to prevent unnecessary re-renders
-  const contextValue = useMemo(() => ({
-    firebaseApp,
-    auth,
-    firestore,
-    storage,
-    user,
-    isUserLoading,
-    areServicesAvailable,
-    userError,
-  }), [firebaseApp, auth, firestore, storage, user, isUserLoading, areServicesAvailable, userError]);
-
-  return (
-    <FirebaseContext.Provider value={contextValue}>
-      <FirebaseErrorListener />
-      {children}
-    </FirebaseContext.Provider>
-  );
 };
 
 
@@ -136,7 +109,7 @@ export const useFirebaseApp = (): FirebaseApp | null => {
  * Custom hook to memoize Firebase queries or references.
  * This is crucial to prevent infinite loops in `useEffect` hooks within `useCollection` and `useDoc`.
  */
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
+export function useMemoFirebase<T>(factory: () => T, deps: React.DependencyList): T {
     const memoized = useMemo(factory, deps);
     
     if (typeof memoized !== 'object' || memoized === null) {

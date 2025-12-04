@@ -1,18 +1,18 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
 import { createUserDocument } from '@/lib/user-actions';
+import { useFirestore } from '@/firebase';
 
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -32,7 +32,9 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const { isUserLoading } = useUser();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -65,7 +67,7 @@ export default function LoginForm() {
 }
 
   const handleGoogleSignIn = async () => {
-    if (!areServicesAvailable || !auth || !firestore) {
+    if (!auth || !firestore) {
       toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez patienter."});
       return;
     }
@@ -91,7 +93,7 @@ export default function LoginForm() {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
-    if (!areServicesAvailable || !auth) {
+    if (!auth) {
         toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
         return;
     }
@@ -102,7 +104,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -162,7 +164,7 @@ export default function LoginForm() {
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter'}
+                {isUserLoading ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
             <div className="relative">
@@ -178,7 +180,7 @@ export default function LoginForm() {
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                 {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                 {loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter avec Google'}
+                {isUserLoading ? 'Chargement...' : 'Se connecter avec Google'}
             </Button>
         </div>
         <div className="mt-4 text-center text-sm">
