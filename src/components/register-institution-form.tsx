@@ -18,6 +18,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
 import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
+import Link from 'next/link';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -309,9 +310,9 @@ export default function RegisterInstitutionForm() {
        <CardFooter className="flex justify-center">
          <p className="text-sm text-muted-foreground">
             Vous êtes étudiant ?{' '}
-            <button type="button" onClick={() => (form.reset(), router.push('/register'))} className="font-semibold text-primary hover:underline">
-                Inscrivez-vous ici
-            </button>
+            <Link href="/register" className="font-semibold text-primary hover:underline">
+              Inscrivez-vous ici
+            </Link>
           </p>
       </CardFooter>
     </>

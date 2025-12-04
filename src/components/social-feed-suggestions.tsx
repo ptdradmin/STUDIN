@@ -98,7 +98,7 @@ export default function SocialFeedSuggestions() {
                 </div>
             )}
             
-            <footer className="text-xs text-black space-x-2">
+            <footer className="text-xs text-muted-foreground space-x-2">
                 <Link href="/about" className="hover:underline">À propos</Link><span>&middot;</span>
                 <Link href="/help" className="hover:underline">Aide</Link><span>&middot;</span>
                 <Link href="/terms" className="hover:underline">Conditions</Link><span>&middot;</span>

@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useLanguage } from "@/contexts/language-context";
 import { Button } from "./ui/button";
+import { GraduationCap } from "lucide-react";
 
 const footerLinks = {
     'Société': [
@@ -31,16 +32,14 @@ export default function Footer() {
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div className="col-span-2 md:col-span-1">
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="flex flex-col">
-                                <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                                STUD'IN
-                                </span>
-                                <span className="text-xs -mt-1 text-muted-foreground">Wallonie-Bruxelles</span>
+                        <Link href="/" className="flex items-center gap-3">
+                           <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                                <GraduationCap className="h-6 w-6 text-white" />
                             </div>
+                            <h1 className="text-xl font-bold">STUD'IN</h1>
                         </Link>
                         <p className="text-muted-foreground text-sm mt-4">
-                            La plateforme tout-en-un pour les étudiants.
+                            La plateforme tout-en-un pour les étudiants de la Fédération Wallonie-Bruxelles.
                         </p>
                         <div className="mt-4 flex gap-2">
                              <Button
@@ -76,7 +75,7 @@ export default function Footer() {
                     ))}
                 </div>
                  <div className="mt-8 pt-4 border-t">
-                    <Link href="/register-institution" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    <Link href="/register" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                         Vous êtes une institution partenaire ? Inscrivez-vous ici.
                     </Link>
                 </div>
