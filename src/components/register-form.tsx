@@ -65,7 +65,7 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState('');
   const router = useRouter();
-  const { auth, firestore, areServicesAvailable } = useAuth();
+  const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -151,6 +151,8 @@ export default function RegisterForm() {
         setLoading('');
     }
   };
+  
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <>
@@ -161,7 +163,7 @@ export default function RegisterForm() {
       <CardContent>
         <div className="space-y-4">
            <div className="grid grid-cols-1 gap-4">
-              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !areServicesAvailable}>
+              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                 {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 S'inscrire avec Google
               </Button>
@@ -184,7 +186,7 @@ export default function RegisterForm() {
                     <FormItem>
                       <FormLabel>Prénom</FormLabel>
                       <FormControl>
-                        <Input placeholder="Jean" {...field} disabled={!areServicesAvailable} />
+                        <Input placeholder="Jean" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -197,7 +199,7 @@ export default function RegisterForm() {
                     <FormItem>
                       <FormLabel>Nom</FormLabel>
                       <FormControl>
-                        <Input placeholder="Dupont" {...field} disabled={!areServicesAvailable} />
+                        <Input placeholder="Dupont" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -211,7 +213,7 @@ export default function RegisterForm() {
                     <FormItem>
                       <FormLabel>Nom d'utilisateur</FormLabel>
                       <FormControl>
-                        <Input placeholder="jean.dupont" {...field} disabled={!areServicesAvailable} />
+                        <Input placeholder="jean.dupont" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -224,7 +226,7 @@ export default function RegisterForm() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="votre.email@example.com" {...field} disabled={!areServicesAvailable} />
+                      <Input type="email" placeholder="votre.email@example.com" {...field} disabled={buttonsDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -239,7 +241,7 @@ export default function RegisterForm() {
                       <FormLabel>Mot de passe</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={!areServicesAvailable} className="pr-10"/>
+                          <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={buttonsDisabled} className="pr-10"/>
                           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
@@ -257,7 +259,7 @@ export default function RegisterForm() {
                       <FormLabel>Confirmer le mot de passe</FormLabel>
                       <FormControl>
                         <div className="relative">
-                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={!areServicesAvailable} className="pr-10"/>
+                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={buttonsDisabled} className="pr-10"/>
                            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
                             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
@@ -277,7 +279,7 @@ export default function RegisterForm() {
                     <FormItem>
                       <FormLabel>Code Postal</FormLabel>
                       <FormControl>
-                        <Input placeholder="5000" {...field} disabled={!areServicesAvailable} />
+                        <Input placeholder="5000" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -290,7 +292,7 @@ export default function RegisterForm() {
                     <FormItem>
                       <FormLabel>Ville</FormLabel>
                       <FormControl>
-                        <Input placeholder="Namur" {...field} disabled={!areServicesAvailable} />
+                        <Input placeholder="Namur" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -304,7 +306,7 @@ export default function RegisterForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Établissement</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!areServicesAvailable}>
+                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={buttonsDisabled}>
                         <FormControl>
                           <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
                         </FormControl>
@@ -325,14 +327,14 @@ export default function RegisterForm() {
                   <FormItem>
                     <FormLabel>Domaine d'études</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Informatique, Droit..." {...field} disabled={!areServicesAvailable} />
+                      <Input placeholder="Ex: Informatique, Droit..." {...field} disabled={buttonsDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={!!loading || !areServicesAvailable}>
+              <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                 {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
               </Button>

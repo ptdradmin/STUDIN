@@ -20,11 +20,10 @@ interface FirebaseServices {
   auth: Auth;
   firestore: Firestore;
   storage: FirebaseStorage;
-  appCheck: AppCheck;
 }
 
 let firebaseServices: FirebaseServices | null = null;
-let appCheckInitialized = false;
+let appCheckPromise: Promise<AppCheck> | null = null;
 
 function getFirebaseServices(): FirebaseServices {
   if (firebaseServices) {
@@ -32,10 +31,9 @@ function getFirebaseServices(): FirebaseServices {
   }
 
   const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  
-  if (typeof window !== 'undefined' && !appCheckInitialized) {
-    appCheckInitialized = true; // Set flag immediately
-    initializeAppCheck(app, {
+
+  if (typeof window !== 'undefined' && !appCheckPromise) {
+    appCheckPromise = initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
       isTokenAutoRefreshEnabled: true
     });
@@ -44,9 +42,8 @@ function getFirebaseServices(): FirebaseServices {
   const auth = getAuth(app);
   const firestore = getFirestore(app);
   const storage = getStorage(app);
-  const appCheck = (globalThis as any)._firebaseAppCheck; // Access initialized AppCheck instance
 
-  firebaseServices = { app, auth, firestore, storage, appCheck };
+  firebaseServices = { app, auth, firestore, storage };
   return firebaseServices;
 }
 
@@ -58,17 +55,36 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
   useEffect(() => {
     const s = getFirebaseServices();
     setServices(s);
+    
+    // Wait for app check to be ready before setting up auth listener
+    if (appCheckPromise) {
+      appCheckPromise.then(() => {
+        const unsubscribe = onAuthStateChanged(s.auth, (firebaseUser) => {
+          setUser(firebaseUser);
+          setIsAuthLoading(false);
+        }, (error) => {
+          console.error("Firebase auth state error:", error);
+          setUser(null);
+          setIsAuthLoading(false);
+        });
+        return unsubscribe;
+      }).catch(error => {
+        console.error("App Check initialization failed:", error);
+        setIsAuthLoading(false); // Stop loading on App Check failure
+      });
+    } else {
+        // Fallback for environments where app check might not run (e.g. server-side)
+        const unsubscribe = onAuthStateChanged(s.auth, (firebaseUser) => {
+          setUser(firebaseUser);
+          setIsAuthLoading(false);
+        }, (error) => {
+          console.error("Firebase auth state error:", error);
+          setUser(null);
+          setIsAuthLoading(false);
+        });
+        return () => unsubscribe();
+    }
 
-    const unsubscribe = onAuthStateChanged(s.auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setIsAuthLoading(false);
-    }, (error) => {
-      console.error("Firebase auth state error:", error);
-      setUser(null);
-      setIsAuthLoading(false);
-    });
-
-    return () => unsubscribe();
   }, []);
 
   return (
@@ -79,7 +95,7 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
       storage={services?.storage || null}
       user={user}
       isUserLoading={isAuthLoading}
-      areServicesAvailable={!!services && !!services.appCheck} // Ensure AppCheck is also ready
+      areServicesAvailable={!!services}
     >
       <FirebaseErrorListener />
       {children}

@@ -31,7 +31,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, areServicesAvailable } = useAuth();
+  const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -75,7 +75,6 @@ export default function LoginForm() {
     });
     try {
       const result = await signInWithPopup(auth, provider);
-      // Ensure user document exists before considering login successful
       await createUserDocument(firestore, result.user);
       handleSuccess(result.user);
     } catch (error: any) {
@@ -102,6 +101,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -126,7 +126,7 @@ export default function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={!!loading || !areServicesAvailable}
+                disabled={buttonsDisabled}
               />
             </div>
             <div className="grid gap-2">
@@ -147,7 +147,7 @@ export default function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={!!loading || !areServicesAvailable}
+                  disabled={buttonsDisabled}
                   className="pr-10"
                 />
                 <button
@@ -159,7 +159,7 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading || !areServicesAvailable}>
+            <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -174,7 +174,7 @@ export default function LoginForm() {
                 </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !areServicesAvailable}>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                 {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 Se connecter avec Google
             </Button>
