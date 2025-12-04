@@ -125,7 +125,7 @@ export default function ConversationPage() {
     // Mark conversation as read when it's opened
     useEffect(() => {
         if (conversationRef && user && conversation?.lastMessage && conversation.lastMessage.senderId !== user.uid) {
-             const unread = (conversation as any).unread; // Use any to bypass strict type checking for this field.
+             const unread = (conversation as any).unread;
              if (unread) {
                  updateDoc(conversationRef, {
                     unread: false,
