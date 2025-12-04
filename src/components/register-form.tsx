@@ -158,7 +158,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = !!loading || isUserLoading;
+  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
 
   return (
     <>
@@ -172,7 +172,7 @@ export default function RegisterForm() {
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                  {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                 {loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />}
-                {isUserLoading ? 'Chargement...' : 'S\'inscrire avec Google'}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'S\'inscrire avec Google'}
               </Button>
            </div>
           <div className="relative">
@@ -343,7 +343,7 @@ export default function RegisterForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading ? 'Chargement...' : "S'inscrire"}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : "S'inscrire"}
               </Button>
             </form>
           </Form>
@@ -360,4 +360,3 @@ export default function RegisterForm() {
     </>
   );
 }
-

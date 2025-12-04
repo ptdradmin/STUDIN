@@ -39,7 +39,7 @@ export default function RegisterInstitutionForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, firestore, isUserLoading } = useFirebase();
+  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -169,7 +169,7 @@ export default function RegisterInstitutionForm() {
     }
   };
 
-  const buttonsDisabled = loading || isUserLoading;
+  const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
 
   return (
     <>
@@ -275,7 +275,7 @@ export default function RegisterInstitutionForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading ? 'Chargement...' : 'S\'inscrire'}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'S\'inscrire'}
               </Button>
             </form>
           </Form>
@@ -291,4 +291,3 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
-

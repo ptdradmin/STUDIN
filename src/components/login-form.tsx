@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -102,7 +102,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading;
+  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -162,7 +162,7 @@ export default function LoginForm() {
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading ? 'Chargement...' : 'Se connecter'}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
             <div className="relative">
@@ -178,7 +178,7 @@ export default function LoginForm() {
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                 {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                 {loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />}
-                {isUserLoading ? 'Chargement...' : 'Se connecter avec Google'}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter avec Google'}
             </Button>
         </div>
         <div className="mt-4 text-center text-sm">
@@ -190,5 +190,3 @@ export default function LoginForm() {
       </div>
   );
 }
-
-    
