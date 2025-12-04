@@ -37,9 +37,10 @@ interface HousingCardProps {
     housing: Housing;
     onEdit: (housing: Housing) => void;
     isFavorited?: boolean;
+    onClick?: () => void;
 }
 
-export default function HousingCard({ housing, onEdit, isFavorited = false }: HousingCardProps) {
+export default function HousingCard({ housing, onEdit, isFavorited = false, onClick }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -70,11 +71,14 @@ export default function HousingCard({ housing, onEdit, isFavorited = false }: Ho
 
     const handleCardClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
-        // Prevent navigation if a button or dropdown is clicked
         if (target.closest('button, [role="menu"], [role="dialog"]')) {
             return;
         }
-        router.push(`/housing/${housing.id}`);
+        if (onClick) {
+          onClick();
+        } else {
+          router.push(`/housing/${housing.id}`);
+        }
     }
     
     const handleContact = async (e: React.MouseEvent) => {

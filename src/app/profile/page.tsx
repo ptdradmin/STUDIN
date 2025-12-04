@@ -435,7 +435,7 @@ export default function CurrentUserProfilePage() {
                                               <div>
                                                   <h3 className="font-semibold mb-2">Logements</h3>
                                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} onClick={() => router.push(`/housing/${h.id}`)} isFavorited={favoritedIds.housing?.has(h.id)} />)}
+                                                      {savedHousings.map(h => <HousingCard key={h.id} housing={h} onEdit={() => {}} isFavorited={favoritedIds.housing?.has(h.id)} />)}
                                                   </div>
                                               </div>
                                           )}
