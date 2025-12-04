@@ -27,8 +27,9 @@ export default function ReelsPage() {
     const observer = useRef<IntersectionObserver>();
 
     const fetchNextReels = useCallback(async () => {
-        if (!firestore || !lastVisible) return;
+        if (!firestore || !lastVisible || !hasMore) return;
         
+        setIsLoading(true);
         let q = query(
             collection(firestore, 'reels'), 
             orderBy('createdAt', 'desc'), 
@@ -50,8 +51,10 @@ export default function ReelsPage() {
             }
         } catch (error) {
             console.error("Error fetching more reels:", error);
+        } finally {
+            setIsLoading(false);
         }
-    }, [firestore, lastVisible]);
+    }, [firestore, lastVisible, hasMore]);
     
     useEffect(() => {
         const fetchInitialReels = async () => {

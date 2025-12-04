@@ -69,6 +69,12 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
 
         if (!video) return;
 
+        const handleVideoPlay = () => setIsPlaying(true);
+        const handleVideoPause = () => setIsPlaying(false);
+
+        video.addEventListener('play', handleVideoPlay);
+        video.addEventListener('pause', handleVideoPause);
+
         if (isInView) {
             const playPromise = video.play();
             if (playPromise !== undefined) {
@@ -76,7 +82,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                     if (audio) {
                         audio.play().catch(e => console.error("Audio play failed:", e));
                     }
-                    setIsPlaying(true);
                 }).catch(e => {
                     // Autoplay was prevented, user interaction needed.
                     setIsPlaying(false);
@@ -85,7 +90,11 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         } else {
             video.pause();
             if (audio) audio.pause();
-            setIsPlaying(false);
+        }
+
+        return () => {
+             video.removeEventListener('play', handleVideoPlay);
+             video.removeEventListener('pause', handleVideoPause);
         }
     }, [isInView]);
 
