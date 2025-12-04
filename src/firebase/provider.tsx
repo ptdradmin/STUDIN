@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -16,6 +17,7 @@ interface FirebaseContextState {
   storage: FirebaseStorage | null;
   user: User | null;
   isUserLoading: boolean;
+  areServicesAvailable: boolean; // Add this line
 }
 
 // Create the context with an undefined initial value
@@ -32,10 +34,13 @@ interface FirebaseProviderProps {
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
+    const [areServicesAvailable, setAreServicesAvailable] = useState(false);
     
     // Services are initialized once and memoized.
     const { firebaseApp, auth, firestore, storage } = useMemo(() => {
-        return initializeFirebase();
+        const services = initializeFirebase();
+        setAreServicesAvailable(true); // Services are available right after initialization
+        return services;
     }, []);
 
     useEffect(() => {
@@ -62,7 +67,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         storage,
         user,
         isUserLoading,
-    }), [firebaseApp, auth, firestore, storage, user, isUserLoading]);
+        areServicesAvailable, // Add this line
+    }), [firebaseApp, auth, firestore, storage, user, isUserLoading, areServicesAvailable]);
 
     return (
         <FirebaseContext.Provider value={contextValue}>
