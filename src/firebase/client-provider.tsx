@@ -27,29 +27,28 @@ let firebaseServices: FirebaseServices | null = null;
 
 
 function initializeFirebase() {
-  if (!getApps().length) {
-    let firebaseApp;
-    try {
-      firebaseApp = initializeApp();
-    } catch (e) {
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      firebaseApp = initializeApp(firebaseConfig);
+  if (getApps().length) {
+    return getSdks(getApp());
+  }
+  
+  let firebaseApp;
+  try {
+    firebaseApp = initializeApp();
+  } catch (e) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
     }
-    
-    if (typeof window !== 'undefined') {
-      initializeAppCheck(firebaseApp, {
-        provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-        isTokenAutoRefreshEnabled: true
-      });
-    }
-
-
-    return getSdks(firebaseApp);
+    firebaseApp = initializeApp(firebaseConfig);
+  }
+  
+  if (typeof window !== 'undefined') {
+    initializeAppCheck(firebaseApp, {
+      provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+      isTokenAutoRefreshEnabled: true
+    });
   }
 
-  return getSdks(getApp());
+  return getSdks(firebaseApp);
 }
 
 function getSdks(firebaseApp: FirebaseApp) {
@@ -71,7 +70,6 @@ function getFirebaseServices() {
 
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // Get services. This will initialize them on the first render on the client.
   const services = getFirebaseServices();
 
   const [user, setUser] = useState<User | null>(null);
@@ -88,8 +86,7 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
     });
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [services.auth]);
 
   return (
     <FirebaseProvider

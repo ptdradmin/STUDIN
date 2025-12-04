@@ -1,19 +1,15 @@
-
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, initiateEmailSignIn } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, User, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
-import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
-import { generateAvatar } from '@/lib/avatars';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
 import { createUserDocument } from '@/lib/user-actions';
 
@@ -47,7 +43,7 @@ export default function LoginForm() {
       const from = searchParams.get('from') || '/social';
       
       router.push(from);
-      router.refresh(); // Force a refresh to ensure all components get the new auth state
+      router.refresh();
   }
 
   const handleError = (error: any) => {
@@ -74,10 +70,11 @@ export default function LoginForm() {
     setLoading('google');
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
-      prompt: 'select_account' // Force account selection every time
+      prompt: 'select_account'
     });
     try {
       const result = await signInWithPopup(auth, provider);
+      // Ensure user document exists before considering login successful
       await createUserDocument(firestore, result.user);
       handleSuccess(result.user);
     } catch (error: any) {
@@ -191,5 +188,4 @@ export default function LoginForm() {
       </div>
   );
 }
-
     

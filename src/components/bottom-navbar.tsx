@@ -42,7 +42,7 @@ export default function BottomNavbar() {
   ];
   
   const hideNavbar = !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
-
+  
   return (
     <>
       {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}

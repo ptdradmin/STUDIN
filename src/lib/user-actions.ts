@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -24,11 +23,10 @@ export const isUsernameUnique = async (firestore: Firestore, username: string): 
 
 export const createUserDocument = async (
   firestore: Firestore,
-  user: User | null, // Can be null now for username check
+  user: User | null,
   additionalData: Record<string, any> = {}
 ) => {
 
-  // If only a username check is needed
   if (additionalData.checkUsername && !user) {
     return isUsernameUnique(firestore, additionalData.checkUsername);
   }
@@ -44,28 +42,35 @@ export const createUserDocument = async (
     return; // User document already exists
   }
 
+  // --- Start of Critical Section for Username Generation ---
+  let username = '';
+  if (additionalData.username) {
+      const isUnique = await isUsernameUnique(firestore, additionalData.username);
+      if (!isUnique) {
+          throw new Error('Username is already taken.');
+      }
+      username = additionalData.username;
+  } else {
+      let base = (user.email?.split('@')[0] || `user${user.uid.substring(0, 6)}`).toLowerCase().replace(/[^a-z0-9_.]/g, '');
+      let isUnique = false;
+      let counter = 1;
+      username = base;
+      while(!isUnique) {
+          isUnique = await isUsernameUnique(firestore, username);
+          if (!isUnique) {
+              username = `${base}${counter}`;
+              counter++;
+          }
+      }
+  }
+  // --- End of Critical Section ---
+
   const { email, displayName, photoURL } = user;
   const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
 
   const firstName = additionalData.firstName || firstNameFromProvider || '';
   const lastName = additionalData.lastName || lastNameFromProvider || '';
   
-  let username = additionalData.username || '';
-  if (!username) {
-      let base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
-      username = base.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-      let isUnique = await isUsernameUnique(firestore, username);
-      let counter = 1;
-      while(!isUnique) {
-          const newUsername = `${username}${counter}`;
-          isUnique = await isUsernameUnique(firestore, newUsername);
-          if (isUnique) {
-              username = newUsername;
-          }
-          counter++;
-      }
-  }
-
   const userData = {
       id: user.uid,
       role: 'student',
@@ -96,5 +101,4 @@ export const createUserDocument = async (
     await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
   }
 };
-
     

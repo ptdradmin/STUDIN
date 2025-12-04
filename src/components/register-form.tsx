@@ -1,9 +1,7 @@
-
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,10 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
-import { createUserDocument, isUsernameUnique } from '@/lib/user-actions';
+import { createUserDocument } from '@/lib/user-actions';
+import Link from 'next/link';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -64,7 +63,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(''); // can be 'google', 'email'
+  const [loading, setLoading] = useState('');
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
@@ -115,7 +114,7 @@ export default function RegisterForm() {
     setLoading('google');
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
-      prompt: 'select_account' // Force account selection every time
+      prompt: 'select_account'
     });
     try {
       const result = await signInWithPopup(auth, provider);
@@ -133,17 +132,16 @@ export default function RegisterForm() {
         toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
         return;
     }
-
     setLoading('email');
     
-    const uniqueUsername = await isUsernameUnique(firestore, data.username);
-    if (!uniqueUsername) {
-        form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
-        setLoading('');
-        return;
-    }
-
     try {
+      const isUnique = await createUserDocument(firestore, null, { checkUsername: data.username });
+      if (!isUnique) {
+          form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
+          setLoading('');
+          return;
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await createUserDocument(firestore, userCredential.user, data);
       handleSuccess(userCredential.user);
@@ -355,3 +353,5 @@ export default function RegisterForm() {
     </>
   );
 }
+
+    

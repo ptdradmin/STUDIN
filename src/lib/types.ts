@@ -1,5 +1,3 @@
-
-
 import type { Timestamp } from 'firebase/firestore';
 
 export type Housing = {
@@ -267,3 +265,5 @@ export type ChallengeSubmission = {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
 };
+
+    
