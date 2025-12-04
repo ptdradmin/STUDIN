@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -95,13 +94,13 @@ export default function RegisterForm() {
   }
 
   const handleError = (error: any) => {
-      let description = "Impossible de créer le compte.";
+      let description = `Impossible de créer le compte. (${error.code})`;
       if (error.code === 'auth/email-already-in-use') {
           description = "Cet email est déjà utilisé. Essayez de vous connecter.";
       } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
       } else if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
-        description = "Problème de configuration de sécurité. Veuillez réessayer."
+        description = `Problème de configuration (${error.code}). Veuillez réessayer.`
       }
       toast({
           variant: "destructive",
@@ -356,5 +355,3 @@ export default function RegisterForm() {
     </>
   );
 }
-
-    
