@@ -15,6 +15,7 @@ import { signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
+import { LogoIcon } from './logo-icon';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -175,7 +176,7 @@ export default function LoginForm() {
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
         <div className="grid gap-2 text-center">
              <Link href="/" className="flex items-center gap-2 justify-center text-2xl font-bold mb-4">
-                <GraduationCap className="h-8 w-8" />
+                <LogoIcon />
                 <span className="font-headline">STUD'IN</span>
             </Link>
           <h1 className="text-3xl font-bold">Connexion</h1>

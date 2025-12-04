@@ -10,6 +10,7 @@ import { GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LogoIcon } from '@/components/logo-icon';
 
 type Role = 'student' | 'institution';
 
@@ -20,7 +21,7 @@ export default function RegisterPage() {
         <div className="container relative flex min-h-screen flex-col items-center justify-center py-10">
             <div className="absolute top-8 left-8">
                 <Link href="/" className="flex items-center gap-2 text-2xl font-bold">
-                    <GraduationCap className="h-8 w-8" />
+                    <LogoIcon />
                     <span className="font-headline">STUD'IN</span>
                 </Link>
             </div>

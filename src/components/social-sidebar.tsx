@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
+import { LogoIcon } from './logo-icon';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home, roles: ['student', 'institution', 'admin'] },
@@ -106,7 +107,7 @@ export default function SocialSidebar() {
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
           <div className="mb-8 px-2 pt-3">
              <Link href="/social" className="flex items-center gap-2 text-2xl font-bold">
-                <GraduationCap className="h-8 w-8" />
+                <LogoIcon />
                 <span className="font-headline">STUD'IN</span>
             </Link>
           </div>

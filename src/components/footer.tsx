@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { Button } from "./ui/button";
-import { GraduationCap } from "lucide-react";
+import { LogoIcon } from "./logo-icon";
 
 const footerLinks = {
     'Société': [
@@ -35,7 +35,7 @@ export default function Footer() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div className="col-span-2 md:col-span-1">
                         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-                           <GraduationCap className="h-8 w-8" />
+                           <LogoIcon />
                            <span className="font-headline">STUD'IN</span>
                         </Link>
                         <p className="text-muted-foreground text-sm mt-4">
