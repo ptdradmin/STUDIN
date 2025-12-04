@@ -34,8 +34,6 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
-  const formRef = useRef<HTMLFormElement>(null);
-
 
   const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
@@ -137,34 +135,40 @@ export default function LoginForm() {
     }
   };
   
-  const handleRecaptchaSubmit = async () => {
-      if (!email || !password) {
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
     setLoading('email');
-    (window as any).grecaptcha.enterprise.ready(async () => {
-        try {
-            const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', {action: 'LOGIN'});
-            
-            const recaptchaResult = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
-            if (!recaptchaResult.isVerified) {
-                throw new Error("reCAPTCHA failed");
-            }
-            
-            if (!auth) throw new Error("Auth service not available");
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            handleSuccess(userCredential.user);
-        } catch (error: any) {
-             if(error.message === 'reCAPTCHA failed') {
-                toast({ variant: "destructive", title: "Vérification échouée", description: "Activité suspecte détectée. Veuillez réessayer." });
-             } else {
-                handleError(error);
-             }
-        } finally {
-            setLoading('');
+
+    try {
+        if (!(window as any).grecaptcha || !(window as any).grecaptcha.enterprise) {
+            throw new Error("reCAPTCHA script not loaded");
         }
-    });
+
+        const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', {action: 'LOGIN'});
+        const recaptchaResult = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
+        
+        if (!recaptchaResult.isVerified) {
+            throw new Error("reCAPTCHA verification failed");
+        }
+        
+        if (!auth) throw new Error("Auth service not available");
+        
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        handleSuccess(userCredential.user);
+
+    } catch (error: any) {
+        if(error.message === 'reCAPTCHA verification failed') {
+            toast({ variant: "destructive", title: "Vérification échouée", description: "Activité suspecte détectée. Veuillez réessayer." });
+        } else {
+            handleError(error);
+        }
+    } finally {
+        setLoading('');
+    }
   }
 
   const servicesReady = !!auth && !!firestore && !isUserLoading;
@@ -183,7 +187,7 @@ export default function LoginForm() {
           </p>
         </div>
         <div className="grid gap-4">
-          <form ref={formRef} className="space-y-4">
+          <form onSubmit={handleEmailSignIn} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -226,7 +230,7 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="button" className="w-full" disabled={!!loading} onClick={handleRecaptchaSubmit}>
+            <Button type="submit" className="w-full" disabled={!!loading}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -255,5 +259,3 @@ export default function LoginForm() {
       </div>
   );
 }
-
-    
