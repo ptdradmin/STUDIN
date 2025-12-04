@@ -7,7 +7,6 @@ import type { Challenge } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/image-data';
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -20,7 +19,7 @@ export default function ChallengeCard({ challenge }: ChallengeCardProps) {
       difficile: { text: "Difficile", color: "bg-red-500" },
   };
 
-  const imageHint = PlaceHolderImages.find(p => p.imageUrl === challenge.imageUrl)?.imageHint || 'student challenge';
+  const imageHint = 'student challenge';
 
   return (
     <Link href={`/challenges/${challenge.id}`} className="block h-full group">
