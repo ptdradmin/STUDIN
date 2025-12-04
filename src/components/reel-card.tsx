@@ -178,7 +178,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                 </div>
             )}
             
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent z-10 pointer-events-none" />
+
+            <div className="absolute top-4 right-4 z-20">
                 <Button variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50" onClick={toggleMute}>
                     {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
                 </Button>
