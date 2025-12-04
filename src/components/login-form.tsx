@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -32,7 +31,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore } = useAuth();
+  const { auth, firestore, areServicesAvailable } = useAuth();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -59,6 +58,7 @@ export default function LoginForm() {
       if(error.code === 'auth/invalid-app-credential') {
         description = "Problème de configuration de sécurité (App Check)."
       }
+      console.error("Login Error: ", error);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
@@ -126,7 +126,7 @@ export default function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={!!loading}
+                disabled={!!loading || !areServicesAvailable}
               />
             </div>
             <div className="grid gap-2">
@@ -147,7 +147,7 @@ export default function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={!!loading}
+                  disabled={!!loading || !areServicesAvailable}
                   className="pr-10"
                 />
                 <button
@@ -159,7 +159,7 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading}>
+            <Button type="submit" className="w-full" disabled={!!loading || !areServicesAvailable}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -174,7 +174,7 @@ export default function LoginForm() {
                 </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading}>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !areServicesAvailable}>
                 {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 Se connecter avec Google
             </Button>

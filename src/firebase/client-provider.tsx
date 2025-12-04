@@ -9,7 +9,7 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from '@/firebase/config';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaV3Provider, AppCheck } from 'firebase/app-check';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -20,10 +20,11 @@ interface FirebaseServices {
   auth: Auth;
   firestore: Firestore;
   storage: FirebaseStorage;
+  appCheck: AppCheck;
 }
 
-// Lazy-loaded, singleton instance of Firebase services
 let firebaseServices: FirebaseServices | null = null;
+let appCheckInitialized = false;
 
 function getFirebaseServices(): FirebaseServices {
   if (firebaseServices) {
@@ -32,8 +33,8 @@ function getFirebaseServices(): FirebaseServices {
 
   const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
   
-  if (typeof window !== 'undefined') {
-    // Initialize App Check
+  if (typeof window !== 'undefined' && !appCheckInitialized) {
+    appCheckInitialized = true; // Set flag immediately
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
       isTokenAutoRefreshEnabled: true
@@ -43,11 +44,11 @@ function getFirebaseServices(): FirebaseServices {
   const auth = getAuth(app);
   const firestore = getFirestore(app);
   const storage = getStorage(app);
+  const appCheck = (globalThis as any)._firebaseAppCheck; // Access initialized AppCheck instance
 
-  firebaseServices = { app, auth, firestore, storage };
+  firebaseServices = { app, auth, firestore, storage, appCheck };
   return firebaseServices;
 }
-
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const [services, setServices] = useState<FirebaseServices | null>(null);
@@ -55,7 +56,6 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize services once on mount
     const s = getFirebaseServices();
     setServices(s);
 
@@ -79,7 +79,7 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
       storage={services?.storage || null}
       user={user}
       isUserLoading={isAuthLoading}
-      areServicesAvailable={!!services}
+      areServicesAvailable={!!services && !!services.appCheck} // Ensure AppCheck is also ready
     >
       <FirebaseErrorListener />
       {children}
