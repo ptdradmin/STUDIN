@@ -34,8 +34,9 @@ export default function Footer() {
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     <div className="col-span-2 md:col-span-1">
-                        <Link href="/" className="flex items-center gap-3">
-                           <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
+                        <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+                           <GraduationCap className="h-8 w-8" />
+                           <span className="font-headline">STUD'IN</span>
                         </Link>
                         <p className="text-muted-foreground text-sm mt-4">
                             Tout pour réussir, ensemble.

@@ -19,8 +19,9 @@ export default function RegisterPage() {
     return (
         <div className="container relative flex min-h-screen flex-col items-center justify-center py-10">
             <div className="absolute top-8 left-8">
-                <Link href="/" className="flex items-center gap-3">
-                    <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
+                <Link href="/" className="flex items-center gap-2 text-2xl font-bold">
+                    <GraduationCap className="h-8 w-8" />
+                    <span className="font-headline">STUD'IN</span>
                 </Link>
             </div>
             

@@ -77,7 +77,8 @@ export default function Navbar() {
           </SheetHeader>
         <div className="flex flex-col h-full px-6 pb-6">
             <Link href={user ? "/social" : "/"} className="flex items-center gap-2 mb-6" onClick={() => setIsSheetOpen(false)}>
-                <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
+                <GraduationCap className="h-8 w-8" />
+                <span className="font-bold text-xl font-headline">STUD'IN</span>
             </Link>
           <nav className="flex flex-col gap-4">
             {navLinks.map((link) => (
@@ -112,7 +113,8 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link href={user ? "/social" : "/"} className="flex items-center gap-3">
-            <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
+             <GraduationCap className="h-8 w-8" />
+             <span className="font-bold text-xl font-headline">STUD'IN</span>
         </Link>
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (

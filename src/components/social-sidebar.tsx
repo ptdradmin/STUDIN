@@ -105,8 +105,9 @@ export default function SocialSidebar() {
     return (
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
           <div className="mb-8 px-2 pt-3">
-             <Link href="/social" className="flex items-center gap-3">
-                <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
+             <Link href="/social" className="flex items-center gap-2 text-2xl font-bold">
+                <GraduationCap className="h-8 w-8" />
+                <span className="font-headline">STUD'IN</span>
             </Link>
           </div>
 

@@ -174,8 +174,9 @@ export default function LoginForm() {
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
         <div className="grid gap-2 text-center">
-             <Link href="/" className="flex items-center gap-3 justify-center mb-4">
-                <Image src="/logo.png" alt="STUD'IN Logo" width={180} height={48} />
+             <Link href="/" className="flex items-center gap-2 justify-center text-2xl font-bold mb-4">
+                <GraduationCap className="h-8 w-8" />
+                <span className="font-headline">STUD'IN</span>
             </Link>
           <h1 className="text-3xl font-bold">Connexion</h1>
           <p className="text-balance text-muted-foreground">
