@@ -9,6 +9,7 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
+// This is the only place Firebase is initialized.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -19,7 +20,6 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-
 interface FirebaseServices {
   firebaseApp: FirebaseApp;
   auth: Auth;
@@ -27,25 +27,21 @@ interface FirebaseServices {
   storage: FirebaseStorage;
 }
 
-// Singleton pattern to initialize Firebase services
-let firebaseServices: FirebaseServices | null = null;
-
-function initializeFirebaseClient(): FirebaseServices {
-  if (firebaseServices) {
-    return firebaseServices;
-  }
-
+// Simple function to initialize and get Firebase services
+function getFirebaseServices(): FirebaseServices {
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
   // Initialize App Check MUST be done right after app init and before other services
+  // This check ensures it only runs in the browser.
   if (typeof window !== 'undefined') {
+    // try-catch block to prevent crashes if App Check is already initialized
     try {
-      initializeAppCheck(app, {
+       initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
         isTokenAutoRefreshEnabled: true,
       });
     } catch (e) {
-      console.error("Failed to initialize App Check", e);
+      console.warn("App Check already initialized or failed to initialize:", e);
     }
   }
 
@@ -53,8 +49,7 @@ function initializeFirebaseClient(): FirebaseServices {
   const firestore = getFirestore(app);
   const storage = getStorage(app);
 
-  firebaseServices = { firebaseApp: app, auth, firestore, storage };
-  return firebaseServices;
+  return { firebaseApp: app, auth, firestore, storage };
 }
 
 interface FirebaseClientProviderProps {
@@ -62,9 +57,8 @@ interface FirebaseClientProviderProps {
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // useMemo ensures that initialization only happens once per render cycle,
-  // and the singleton pattern ensures it only happens once for the lifetime of the client app.
-  const services = useMemo(() => initializeFirebaseClient(), []);
+  // useMemo ensures that initialization only happens once per render cycle on the client.
+  const services = useMemo(() => getFirebaseServices(), []);
 
   return (
     <FirebaseProvider
