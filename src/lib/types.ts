@@ -142,7 +142,7 @@ export type Trip = {
     updatedAt: Timestamp;
 };
 
-export type Book = {
+export interface Book {
     id: string;
     title: string;
     author: string;
@@ -156,7 +156,7 @@ export type Book = {
     course?: string;
     university?: string;
     createdAt: Timestamp;
-};
+}
 
 export type CarpoolBooking = {
   id: string;

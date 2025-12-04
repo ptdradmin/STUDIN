@@ -17,6 +17,14 @@ if (!getApps().length) {
   firebaseApp = getApp();
 }
 
+// Initialize App Check immediately if on the client
+if (typeof window !== 'undefined') {
+  initializeAppCheck(firebaseApp, {
+    provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+    isTokenAutoRefreshEnabled: true,
+  });
+}
+
 const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
@@ -25,38 +33,8 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    const [isAppCheckInitialized, setIsAppCheckInitialized] = useState(false);
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && !isAppCheckInitialized) {
-            // Poll for the grecaptcha.ready function to be available.
-            const intervalId = setInterval(() => {
-                if ((window as any).grecaptcha?.ready) {
-                    clearInterval(intervalId); // Stop polling
-                    try {
-                        // Prevent re-initialization if it somehow runs again
-                        if (!(firebaseApp as any)._appCheck) {
-                          initializeAppCheck(firebaseApp, {
-                            provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                            isTokenAutoRefreshEnabled: true,
-                          });
-                        }
-                        setIsAppCheckInitialized(true);
-                    } catch (e: any) {
-                        console.error("Failed to initialize App Check:", e);
-                        setError(e);
-                    }
-                }
-            }, 100); // Check every 100ms
-
-            return () => clearInterval(intervalId); // Cleanup on unmount
-        }
-    }, [isAppCheckInitialized]);
-
-    useEffect(() => {
-        // We only start listening to auth changes after app check is initialized
-        if (!isAppCheckInitialized) return;
-
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsLoading(false);
@@ -67,7 +45,7 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         });
 
         return () => unsubscribe();
-    }, [isAppCheckInitialized]);
+    }, []);
 
     const contextValue: FirebaseContextState = useMemo(() => ({
         firebaseApp: firebaseApp,
@@ -75,12 +53,12 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         firestore: firestore,
         storage: storage,
         user,
-        isUserLoading: isLoading || !isAppCheckInitialized,
-        areServicesAvailable: isAppCheckInitialized,
+        isUserLoading: isLoading,
+        areServicesAvailable: true, // Assume services are available immediately
         userError: error,
-    }), [user, isLoading, error, isAppCheckInitialized]);
+    }), [user, isLoading, error]);
 
-    if (isLoading || !isAppCheckInitialized) {
+    if (isLoading) {
         return <PageSkeleton />;
     }
 
