@@ -60,19 +60,19 @@ export default function HomePage() {
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />
           <main className="flex-grow">
-                <section className="relative bg-gradient-to-br from-primary/10 via-background to-background text-center py-20 md:py-32">
+                <section className="relative bg-gradient-to-br from-purple-600 via-blue-500 to-orange-500 text-center py-20 md:py-32">
                     <div className="container mx-auto px-4 relative z-10">
-                        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-foreground">
+                        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-white">
                             L'écosystème qui simplifie votre vie étudiante.
                         </h1>
-                        <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground">
+                        <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-white/80">
                             Trouvez un logement, partagez un trajet, réussissez vos cours, relevez des défis et ne manquez aucun événement.
                         </p>
                         <div className="mt-8 flex justify-center items-center gap-4">
-                            <Button asChild size="lg">
+                            <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90">
                                 <Link href="/register">Rejoindre la communauté</Link>
                             </Button>
-                             <Button asChild size="lg" variant="outline">
+                             <Button asChild size="lg" variant="outline" className="text-white border-white/50 hover:bg-white/10 hover:text-white">
                                 <Link href="#features">Découvrir les services <ArrowRight className="ml-2 h-4 w-4" /></Link>
                             </Button>
                         </div>
