@@ -44,8 +44,6 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const isInView = useInView(containerRef, { amount: 0.5 });
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
 
@@ -76,30 +74,17 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
 
     useEffect(() => {
         if(isClient) {
-            setTimeAgo(formatDistanceToNow(getSafeDate(post.createdAt), { addSuffix: true, locale: fr }));
+            const date = getSafeDate(post.createdAt);
+            const update = () => setTimeAgo(formatDistanceToNow(date, { addSuffix: true, locale: fr }));
+            update();
+            const timer = setInterval(update, 60000);
+            return () => clearInterval(timer);
         }
     }, [isClient, post.createdAt, getSafeDate]);
 
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
-    
-    useEffect(() => {
-        const video = videoRef.current;
-        const audio = audioRef.current;
-        if (!video) return;
-
-        if (isInView) {
-            video.play().catch(() => {});
-            if(audio) audio.play().catch(() => {});
-            setIsPlaying(true);
-        } else {
-            video.pause();
-            if(audio) audio.pause();
-            setIsPlaying(false);
-        }
-    }, [isInView]);
-    
 
     const getInitials = (name: string) => {
         if (!name) return '??';
@@ -281,7 +266,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
 
 
     return (
-        <div ref={containerRef} className="w-full bg-card text-card-foreground border-b rounded-lg">
+        <div className="w-full bg-card text-card-foreground border-b rounded-lg">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -341,7 +326,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                     <>
                         <video ref={videoRef} src={post.videoUrl} loop className="w-full h-full object-cover bg-black" />
                         {post.audioUrl && <audio ref={audioRef} src={post.audioUrl} loop />}
-                        {!isPlaying && (
+                        {!isPlaying && isClient && (
                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
                                 <Play className="h-20 w-20 text-white/70 drop-shadow-lg" />
                             </div>
