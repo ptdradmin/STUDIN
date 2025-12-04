@@ -20,7 +20,6 @@ import ChallengeCard from '@/components/challenge-card';
 import { useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
 import { doc, collection, query } from 'firebase/firestore';
-import { staticChallenges } from '@/lib/static-data';
 import Navbar from '@/components/navbar';
 
 
@@ -41,9 +40,12 @@ export default function ChallengesPage() {
         setIsMounted(true);
     }, []);
 
-    // Use static challenges for now
-    const challenges = staticChallenges;
-    const areChallengesLoading = false;
+    const challengesQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'challenges'));
+    }, [firestore]);
+
+    const { data: challenges, isLoading: areChallengesLoading } = useCollection<Challenge>(challengesQuery);
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
