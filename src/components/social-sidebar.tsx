@@ -23,6 +23,7 @@ import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Fil
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
+import { useState, useEffect } from 'react';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home, roles: ['student', 'institution', 'admin'] },
@@ -63,6 +64,11 @@ export default function SocialSidebar() {
     const router = useRouter();
     const pathname = usePathname();
     const { toast } = useToast();
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -88,6 +94,10 @@ export default function SocialSidebar() {
             return nameParts[0][0] + nameParts[1][0];
         }
         return email.substring(0, 2).toUpperCase();
+    }
+    
+    if (!isMounted) {
+        return null;
     }
     
     // Hide sidebar on public pages if no user is logged in
