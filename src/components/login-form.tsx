@@ -22,7 +22,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const auth = useAuth();
+  const { auth } = useAuth();
   const { isUserLoading } = useUser();
   const { toast } = useToast();
 
