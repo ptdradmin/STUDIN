@@ -57,8 +57,8 @@ export default function LoginForm() {
        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
       }
-      if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid') {
-        description = "Problème de configuration de sécurité (App Check)."
+      if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
+        description = "Problème de configuration de sécurité. Veuillez réessayer."
       }
       console.error("Login Error: ", error.code, error.message);
       toast({
