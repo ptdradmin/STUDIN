@@ -7,10 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import FirebaseClientProvider from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
 import BottomNavbar from '@/components/bottom-navbar';
-import { usePathname } from 'next/navigation';
 import { Inter, Poppins, Source_Code_Pro } from 'next/font/google';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -24,42 +21,6 @@ const sourceCodePro = Source_Code_Pro({
   subsets: ['latin'],
   variable: '--font-source-code-pro',
 });
-
-function AppContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const publicPages = [
-    '/',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/about',
-    '/who-we-are',
-    '/press',
-    '/terms',
-    '/privacy',
-    '/help',
-    '/contact',
-    '/faq',
-    '/community-rules'
-  ];
-
-  const showBottomNav = !publicPages.some(page => pathname === page || (page !== '/' && pathname.startsWith(page)));
-  
-  return (
-    <>
-      {children}
-      <div className={cn(!isMounted || !showBottomNav ? 'hidden' : 'block')}>
-        <BottomNavbar />
-      </div>
-    </>
-  );
-}
 
 
 export default function RootLayout({
@@ -78,9 +39,8 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <LanguageProvider>
           <FirebaseClientProvider>
-            <AppContent>
-                {children}
-            </AppContent>
+            {children}
+            <BottomNavbar />
             <Toaster />
           </FirebaseClientProvider>
         </LanguageProvider>

@@ -17,7 +17,29 @@ export default function BottomNavbar() {
   const { user } = useUser();
   const [showCreatePost, setShowCreatePost] = useState(false);
 
-  if (!user) return null;
+  // Pages where the bottom navbar should be hidden
+  const publicPages = [
+    '/',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/about',
+    '/who-we-are',
+    '/press',
+    '/terms',
+    '/privacy',
+    '/help',
+    '/contact',
+    '/faq',
+    '/community-rules'
+  ];
+
+  const hideNavbar = !user || publicPages.some(page => pathname === page || (page !== '/' && pathname.startsWith(page)));
+
+  if (hideNavbar) {
+      return null;
+  }
+
 
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
