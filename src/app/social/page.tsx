@@ -16,6 +16,7 @@ import NotificationsDropdown from '@/components/notifications-dropdown';
 import GlobalSearch from '@/components/global-search';
 import SocialSidebar from '@/components/social-sidebar';
 import SuggestedUsersCarousel from '@/components/suggested-users-carousel';
+import SocialFeedSuggestions from '@/components/social-feed-suggestions';
 
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
@@ -87,9 +88,12 @@ export default function SocialPage() {
           </header>
           
           <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-             <div className="w-full max-w-[470px] mx-auto">
-                <SuggestedUsersCarousel />
-                <div className="space-y-4">
+             <div className="container mx-auto max-w-5xl py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12">
+                 {/* Main Feed */}
+                 <div className="space-y-4">
+                    <div className="lg:hidden">
+                        <SuggestedUsersCarousel />
+                    </div>
                      {isLoading ? (
                         Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                      ) : posts && posts.length > 0 ? (
@@ -108,6 +112,11 @@ export default function SocialPage() {
                         </div>
                     )}
                 </div>
+
+                 {/* Right Sidebar */}
+                 <aside className="hidden lg:block space-y-6">
+                    <SocialFeedSuggestions />
+                 </aside>
            </div>
           </main>
         </div>
