@@ -10,6 +10,7 @@ import BottomNavbar from '@/components/bottom-navbar';
 import { usePathname } from 'next/navigation';
 import { Inter, Poppins, Source_Code_Pro } from 'next/font/google';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -36,6 +37,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     '/',
     '/login',
     '/register',
+    '/forgot-password',
     '/about',
     '/who-we-are',
     '/press',
@@ -47,17 +49,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
     '/community-rules'
   ];
 
-  const showBottomNav = !publicPages.includes(pathname);
+  const showBottomNav = !publicPages.some(page => pathname === page || (page !== '/' && pathname.startsWith(page)));
   
-  if (!isMounted) {
-    return <>{children}</>;
-  }
-
-
   return (
     <>
       {children}
-      {showBottomNav && <BottomNavbar />}
+      <div className={cn(!isMounted || !showBottomNav ? 'hidden' : 'block')}>
+        <BottomNavbar />
+      </div>
     </>
   );
 }
