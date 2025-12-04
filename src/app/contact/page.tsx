@@ -30,7 +30,7 @@ export default function ContactPage() {
                         <div className="space-y-4 text-muted-foreground">
                             <div className="flex items-center gap-3">
                                 <Mail className="h-5 w-5 text-primary" />
-                                <span>contact@studin.online</span>
+                                <span>contact@stud-in.com</span>
                             </div>
                              <div className="flex items-center gap-3">
                                 <MapPin className="h-5 w-5 text-primary" />

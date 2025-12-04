@@ -31,7 +31,7 @@ export default function PressPage() {
 
                     <div className="text-center py-10 mt-10 bg-muted rounded-lg">
                         <h4 className="text-xl font-semibold">Contact Presse</h4>
-                        <p className="text-muted-foreground mt-2">Pour toute demande, veuillez nous contacter à <a href="mailto:presse@studin.online" className="text-primary hover:underline">presse@studin.online</a>.</p>
+                        <p className="text-muted-foreground mt-2">Pour toute demande, veuillez nous contacter à <a href="mailto:presse@stud-in.com" className="text-primary hover:underline">presse@stud-in.com</a>.</p>
                     </div>
                 </CardContent>
             </Card>

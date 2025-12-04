@@ -56,7 +56,7 @@ export default function TermsPage() {
                    
                     <div className="text-center py-10 mt-6 bg-muted rounded-lg">
                         <h4 className="text-xl font-semibold">Contact</h4>
-                        <p className="text-muted-foreground mt-2">Pour toute question concernant ces conditions, veuillez nous contacter à <a href="mailto:legal@studin.online" className="text-primary hover:underline">legal@studin.online</a>.</p>
+                        <p className="text-muted-foreground mt-2">Pour toute question concernant ces conditions, veuillez nous contacter à <a href="mailto:legal@stud-in.com" className="text-primary hover:underline">legal@stud-in.com</a>.</p>
                     </div>
                 </CardContent>
              </Card>

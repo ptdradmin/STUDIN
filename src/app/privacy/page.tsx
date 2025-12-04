@@ -21,7 +21,7 @@ export default function PrivacyPage() {
                     
                     <h2 className="mt-8 text-2xl font-semibold">1. Responsable du traitement</h2>
                     <p>STUD'IN, représenté par son fondateur Gui Doba, est le responsable du traitement de vos données personnelles.</p>
-                    <p>Pour toute question relative à cette politique ou pour exercer vos droits, veuillez nous contacter à l'adresse <a href="mailto:privacy@studin.online">privacy@studin.online</a>.</p>
+                    <p>Pour toute question relative à cette politique ou pour exercer vos droits, veuillez nous contacter à l'adresse <a href="mailto:privacy@stud-in.com">privacy@stud-in.com</a>.</p>
 
                     <h2 className="mt-6 text-2xl font-semibold">2. Données que nous collectons</h2>
                     <p>Nous collectons plusieurs types de données pour vous fournir et améliorer nos services :</p>
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
                          <li><strong>Droit à la portabilité des données :</strong> Vous pouvez demander à recevoir vos données dans un format structuré, couramment utilisé et lisible par machine.</li>
                          <li><strong>Droit d'opposition :</strong> Vous pouvez vous opposer au traitement de vos données, notamment à des fins de marketing direct.</li>
                     </ul>
-                    <p>Pour exercer ces droits, veuillez nous contacter à <a href="mailto:privacy@studin.online">privacy@studin.online</a>.</p>
+                    <p>Pour exercer ces droits, veuillez nous contacter à <a href="mailto:privacy@stud-in.com">privacy@stud-in.com</a>.</p>
 
                     <h2 className="mt-6 text-2xl font-semibold">6. Sécurité des données</h2>
                     <p>Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles appropriées, telles que le chiffrement des données en transit et au repos, et le contrôle strict des accès, pour protéger vos données personnelles contre la perte, l'utilisation abusive ou l'altération.</p>
