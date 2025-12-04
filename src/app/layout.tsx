@@ -38,6 +38,7 @@ export default function RootLayout({
             src="https://www.google.com/recaptcha/enterprise.js?render=6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS" 
             strategy="beforeInteractive" 
             async
+            defer
         />
       </head>
       <body className="font-body antialiased">

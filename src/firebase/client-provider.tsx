@@ -29,11 +29,11 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        // Initialize App Check inside useEffect to ensure it runs on the client
-        // after the window object is available.
+        // Initialize App Check inside useEffect to ensure it runs on the client.
         if (typeof window !== 'undefined') {
             try {
-                if (!(firebaseApp as any)._appCheck) {
+                // Ensure grecaptcha is ready before initializing App Check
+                if ((window as any).grecaptcha && !(firebaseApp as any)._appCheck) {
                   initializeAppCheck(firebaseApp, {
                     provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
                     isTokenAutoRefreshEnabled: true,
