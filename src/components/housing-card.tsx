@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from "next/image";
@@ -25,7 +26,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -117,10 +117,10 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
 
 
     return (
-        <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer">
-            <div className="relative aspect-[3/2] w-full bg-muted">
+        <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer group">
+            <div className="relative aspect-[4/3] w-full bg-muted">
                 {housing.imageUrl ? (
-                     <Image src={housing.imageUrl || '/placeholder.svg'} alt={housing.title} fill className="object-cover" data-ai-hint={housing.imageHint} />
+                     <Image src={housing.imageUrl || '/placeholder.svg'} alt={housing.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={housing.imageHint} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"/>
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <Bed className="h-12 w-12 text-muted-foreground" />
@@ -161,7 +161,7 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
                                             <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                            <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+                                            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
                                         </AlertDialogFooter>
                                     </AlertDialogContent>
                                 </AlertDialog>

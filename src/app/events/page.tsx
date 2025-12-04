@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -72,8 +73,8 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
                     recommendations.map(event => (
                         <Link href={`#event-${event.id}`} key={event.id} className="block h-full group">
                             <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-xl flex flex-col h-full">
-                                <div className="relative">
-                                    <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint={event.imageHint} />
+                                <div className="relative aspect-video">
+                                    <Image src={event.imageUrl} alt={event.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" data-ai-hint={event.imageHint} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"/>
                                     <Badge className="absolute top-3 right-3">{event.category}</Badge>
                                 </div>
                                 <CardContent className="p-4 flex flex-col flex-grow">
@@ -276,9 +277,9 @@ export default function EventsPage() {
               const isFavorited = favoritedIds.has(event.id);
               const isOwner = user?.uid === event.organizerId;
               return (
-                <Card key={event.id} id={`event-${event.id}`} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
-                    <div className="relative">
-                        <Image src={event.imageUrl} alt={event.title} width={600} height={400} className="aspect-video w-full object-cover" data-ai-hint={event.imageHint} />
+                <Card key={event.id} id={`event-${event.id}`} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col group">
+                    <div className="relative aspect-video">
+                        <Image src={event.imageUrl} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={event.imageHint} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                         <Badge className="absolute top-2 right-2">{event.category}</Badge>
                          {user && !isOwner && (
                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 left-2" onClick={() => handleFavoriteClick(event, isFavorited)}>

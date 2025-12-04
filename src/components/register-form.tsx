@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -70,6 +69,7 @@ export default function RegisterForm() {
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -404,7 +404,7 @@ export default function RegisterForm() {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
+              <Button type="submit" ref={submitButtonRef} className="w-full" disabled={!!loading || !servicesReady}>
                 {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
               </Button>
             </form>

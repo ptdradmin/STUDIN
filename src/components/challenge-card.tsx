@@ -43,7 +43,7 @@ export default function ChallengeCard({ challenge }: ChallengeCardProps) {
           </div>
         </div>
         <CardContent className="p-4 flex flex-col flex-grow">
-          <p className="text-sm text-muted-foreground mb-4 flex-grow">
+          <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
             {challenge.description}
           </p>
           <div className="flex justify-between items-center mt-auto text-sm">

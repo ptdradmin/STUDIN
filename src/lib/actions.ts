@@ -81,21 +81,21 @@ export const toggleFollowUser = (
 };
 
 /**
- * Creates a generic notification.
+ * Creates a generic notification. This is a non-blocking operation.
  * @param firestore - The Firestore instance.
  * @param notifData - The notification data.
  */
-export const createNotification = async (
+export const createNotification = (
     firestore: Firestore,
     notifData: Omit<Notification, 'id' | 'createdAt' | 'read' | 'senderProfile' | 'senderId'> & { senderId: string }
 ) => {
-    try {
-        const senderProfileSnap = await getDoc(doc(firestore, 'users', notifData.senderId));
+    getDoc(doc(firestore, 'users', notifData.senderId)).then(senderProfileSnap => {
         if (senderProfileSnap.exists()) {
             const senderProfile = senderProfileSnap.data() as UserProfile;
-            const notificationRef = collection(firestore, `users/${notifData.recipientId}/notifications`);
+            const notificationRef = doc(collection(firestore, `users/${notifData.recipientId}/notifications`));
             
             const finalNotifData = {
+                id: notificationRef.id,
                 ...notifData,
                 senderProfile: {
                     username: senderProfile.username,
@@ -104,22 +104,20 @@ export const createNotification = async (
                 read: false,
                 createdAt: serverTimestamp(),
             };
-            
-            const docRef = doc(notificationRef);
 
-            await setDoc(docRef, { ...finalNotifData, id: docRef.id });
-
+            setDoc(notificationRef, finalNotifData).catch(error => {
+                const permissionError = new FirestorePermissionError({
+                    path: notificationRef.path,
+                    operation: 'create',
+                    requestResourceData: finalNotifData
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
         }
-    } catch (serverError) {
-        const permissionError = new FirestorePermissionError({
-            path: `users/${notifData.recipientId}/notifications`,
-            operation: 'create',
-            requestResourceData: notifData
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-        console.error(`Erreur lors de la création de la notification de type ${notifData.type}:`, serverError);
-        throw serverError;
-    }
+    }).catch(error => {
+        // Handle error from getDoc if needed, e.g., sender profile not found.
+        console.error("Failed to fetch sender profile for notification:", error);
+    });
 };
 
 
@@ -184,4 +182,3 @@ export const toggleFavorite = async (
         });
     }
 };
-

@@ -10,11 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
 
@@ -34,7 +34,7 @@ const FormSection = ({ title, description, children }: { title: string, descript
 const challengeSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
   description: z.string().min(1, 'La description est requise'),
-  category: z.enum(['Exploration', 'Social', 'Créatif', 'Académique'], { required_error: 'La catégorie est requise' }),
+  category: z.enum(['Exploration', 'Social', 'Créatif', 'Académique', 'Sportif', 'Environnement'], { required_error: 'La catégorie est requise' }),
   difficulty: z.enum(['facile', 'moyen', 'difficile'], { required_error: 'La difficulté est requise' }),
   points: z.preprocess((val) => Number(val), z.number().min(1, 'Les points sont requis')),
   location: z.string().optional(),
@@ -76,36 +76,40 @@ export default function CreateChallengeForm({ onClose }: CreateChallengeFormProp
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
-    if (!imageFile) {
+    if (!imageFile || !previewUrl) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
         return;
     }
     setLoading(true);
     toast({ title: 'Création...', description: 'Votre défi est en cours de publication.' });
+    onClose();
 
-    try {
-        const newDocRef = doc(collection(firestore, 'challenges'));
+    const newDocRef = doc(collection(firestore, 'challenges'));
         
-        const imageRef = storageRef(storage, `challenges/${newDocRef.id}/${imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(snapshot.ref);
-        
-        const challengeData = {
-            ...data,
-            id: newDocRef.id,
-            creatorId: user.uid,
-            createdAt: serverTimestamp(),
-            imageUrl: imageUrl,
-        };
+    const challengeData = {
+        ...data,
+        id: newDocRef.id,
+        creatorId: user.uid,
+        createdAt: serverTimestamp(),
+        imageUrl: previewUrl, // optimistic
+    };
+    
+    setDocumentNonBlocking(newDocRef, challengeData);
 
-        await setDoc(newDocRef, challengeData);
+    const imageRef = storageRef(storage, `challenges/${newDocRef.id}/${imageFile.name}`);
+    const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
-        toast({ title: 'Succès', description: 'Défi créé !' });
-        onClose();
-    } catch(error: any) {
-        toast({ variant: 'destructive', title: 'Erreur', description: "Impossible de créer le défi." });
-        setLoading(false);
-    }
+    uploadTask.on('state_changed',
+      () => {},
+      (error) => {
+          updateDoc(newDocRef, { uploadError: true });
+          toast({ variant: "destructive", title: "Erreur d'envoi", description: "L'image n'a pas pu être envoyée."});
+      },
+      async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          updateDoc(newDocRef, { imageUrl: downloadURL });
+      }
+    );
   };
 
   return (
@@ -163,6 +167,8 @@ export default function CreateChallengeForm({ onClose }: CreateChallengeFormProp
                                     <SelectItem value="Social">Social</SelectItem>
                                     <SelectItem value="Créatif">Créatif</SelectItem>
                                     <SelectItem value="Académique">Académique</SelectItem>
+                                     <SelectItem value="Sportif">Sportif</SelectItem>
+                                      <SelectItem value="Environnement">Environnement</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}

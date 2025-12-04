@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { toggleFavorite } from '@/lib/actions';
 import Navbar from '@/components/navbar';
+import { cn } from '@/lib/utils';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -117,6 +118,7 @@ export default function TutoringPage() {
         return (
             <Card className="col-span-full text-center py-20">
                 <CardContent>
+                    <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" strokeWidth={1}/>
                     <h3 className="text-xl font-semibold">Aucun tuteur ne correspond à votre recherche</h3>
                     <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer vos services !</p>
                 </CardContent>
@@ -130,15 +132,16 @@ export default function TutoringPage() {
               const isFavorited = favoritedIds.has(tutor.id);
               const isOwner = user?.uid === tutor.tutorId;
               return (
-                  <Link href={`/tutoring/${tutor.id}`} key={tutor.id} className="block h-full">
-                    <Card className="flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full relative">
+                  <Link href={`/tutoring/${tutor.id}`} key={tutor.id} className="block h-full group">
+                    <Card className={cn("flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full relative", isOwner && "bg-muted/30")}>
                         {user && !isOwner && (
                             <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 right-2" onClick={(e) => handleFavoriteClick(e, tutor, isFavorited)}>
                                 <Bookmark className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
                             </Button>
                         )}
-                        <div className="flex-shrink-0">
-                        <Image src={tutor.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.username || "tuteur"} width={96} height={96} className="rounded-full" />
+                        <div className="relative flex-shrink-0">
+                           <Image src={tutor.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.username || "tuteur"} width={96} height={96} className="rounded-full" />
+                           {isOwner && <Badge className="absolute -bottom-1 -right-1">Vous</Badge>}
                         </div>
                         <div className="flex flex-col flex-grow mt-4">
                         <h3 className="text-xl font-bold">{tutor.username || 'Utilisateur'}</h3>
