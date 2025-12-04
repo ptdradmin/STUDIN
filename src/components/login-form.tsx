@@ -36,14 +36,14 @@ export default function LoginForm() {
   const { toast } = useToast();
 
   const getRecaptchaToken = useCallback(async (action: string) => {
-    if (!window.grecaptcha) {
+    if (!(window as any).grecaptcha) {
       console.error("reCAPTCHA script not loaded");
       toast({ variant: "destructive", title: "Erreur", description: "Le service de sécurité n'est pas disponible. Veuillez rafraîchir la page." });
       return null;
     }
     return new Promise<string>((resolve) => {
-      window.grecaptcha.enterprise.ready(async () => {
-        const token = await window.grecaptcha.enterprise.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action });
+      (window as any).grecaptcha.enterprise.ready(async () => {
+        const token = await (window as any).grecaptcha.enterprise.execute('6Ld46CAsAAAAAHk2HTOXIETvWVB0r_Qz_l7pS2gX', { action });
         resolve(token);
       });
     });
@@ -157,6 +157,19 @@ export default function LoginForm() {
     }
     setLoading('email');
     
+    const token = await getRecaptchaToken('LOGIN');
+    if (!token) {
+        setLoading('');
+        return;
+    }
+
+    const recaptchaResult = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
+    if (!recaptchaResult.isVerified) {
+        toast({ variant: "destructive", title: "Vérification échouée", description: "Activité suspecte détectée. Veuillez réessayer." });
+        setLoading('');
+        return;
+    }
+    
     if (!auth || !firestore) {
       toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
       setLoading('');
@@ -237,6 +250,16 @@ export default function LoginForm() {
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
             </form>
+            <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                    OU
+                </span>
+                </div>
+            </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading}>
                 {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 Se connecter avec Google

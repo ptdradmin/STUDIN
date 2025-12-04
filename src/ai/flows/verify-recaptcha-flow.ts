@@ -55,7 +55,7 @@ const verifyRecaptchaFlow = ai.defineFlow(
     
     const projectID = process.env.GOOGLE_CLOUD_PROJECT || "studio-4385357604-24c83";
     const apiKey = process.env.RECAPTCHA_ENTERPRISE_API_KEY;
-    const siteKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
+    const siteKey = "6Ld46CAsAAAAAHk2HTOXIETvWVB0r_Qz_l7pS2gX";
     
     if (!projectID || !apiKey || !siteKey) {
         console.error("reCAPTCHA environment variables are not fully configured.");
