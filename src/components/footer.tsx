@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from "next/link";
@@ -7,6 +6,7 @@ import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { Button } from "./ui/button";
 import { LogoIcon } from "./logo-icon";
+import { Instagram } from "lucide-react";
 
 const footerLinks = {
     'Société': [
@@ -41,7 +41,7 @@ export default function Footer() {
                         <p className="text-muted-foreground text-sm mt-4">
                             Tout pour réussir, ensemble.
                         </p>
-                        <div className="mt-4 flex gap-2">
+                        <div className="mt-4 flex items-center gap-2">
                              <Button
                                 size="sm"
                                 variant={language === 'fr' ? 'secondary' : 'ghost'}
@@ -56,6 +56,11 @@ export default function Footer() {
                               >
                                 🇬🇧 EN
                               </Button>
+                               <Button variant="ghost" size="icon" asChild>
+                                <Link href="https://www.instagram.com/stud_in_app/" target="_blank" rel="noopener noreferrer">
+                                    <Instagram className="h-5 w-5" />
+                                </Link>
+                            </Button>
                         </div>
                     </div>
 
