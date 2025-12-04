@@ -45,7 +45,6 @@
     "dotenv": "^16.4.5",
     "embla-carousel-react": "^8.1.7",
     "firebase": "^11.5.0",
-    "firebase-admin": "^12.2.0",
     "framer-motion": "^11.3.17",
     "genkit": "^1.24.0",
     "leaflet": "^1.9.4",
@@ -63,7 +62,7 @@
     "react-use": "^17.5.1",
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.4.0",
-    "tailwindcss-animate": "^1.0.0",
+    "tailwindcss-animate": "^1.0.7",
     "zod": "^3.23.8"
   },
   "devDependencies": {

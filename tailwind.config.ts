@@ -1,7 +1,7 @@
 
 import type {Config} from 'tailwindcss';
 
-function scrollbarHidePlugin({ addUtilities }: { addUtilities: (utilities: any) => void }) {
+const scrollbarHidePlugin = ({ addUtilities }: { addUtilities: (utilities: any) => void }) => {
   addUtilities({
     '.scrollbar-hide': {
       '&::-webkit-scrollbar': {
@@ -11,9 +11,9 @@ function scrollbarHidePlugin({ addUtilities }: { addUtilities: (utilities: any) 
       'scrollbar-width': 'none', /* Firefox */
     },
   });
-}
+};
 
-export default {
+const config: Config = {
   darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -121,4 +121,6 @@ export default {
     },
   },
   plugins: [require('tailwindcss-animate'), scrollbarHidePlugin],
-} satisfies Config;
+};
+
+export default config;
