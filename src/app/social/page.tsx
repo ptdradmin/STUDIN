@@ -68,13 +68,13 @@ export default function SocialPage() {
     const isLoading = postsLoading || favoritesLoading;
 
     return (
-       <div className="flex min-h-screen w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500">
+       <div className="flex h-screen w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500">
         <SocialSidebar />
         
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 h-screen">
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
           
-          <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-30 flex h-16 flex-shrink-0 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex-1 max-w-md">
                 <GlobalSearch />
             </div>
@@ -88,38 +88,40 @@ export default function SocialPage() {
             </div>
           </header>
           
-          <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-             <div className="container mx-auto max-w-5xl py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12">
-                 {/* Main Feed */}
-                 <div className="space-y-4">
-                    <div className="lg:hidden">
-                        <SuggestedUsersCarousel />
-                    </div>
-                     {isLoading ? (
-                        Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                     ) : posts && posts.length > 0 ? (
-                        posts.map(post => (
-                            <PostCard 
-                                key={post.id} 
-                                post={post}
-                                isInitiallySaved={savedPostMap.has(post.id)}
-                                initialFavoriteId={savedPostMap.get(post.id)}
-                            />
-                        ))
-                     ) : (
-                       <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
-                            <p className="text-lg font-semibold">Votre fil est vide</p>
-                            <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
-                        </div>
-                    )}
-                </div>
+          <div className="flex-1 overflow-hidden">
+            <div className="h-full overflow-y-auto pb-16 md:pb-0">
+               <div className="container mx-auto max-w-5xl py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12">
+                   {/* Main Feed */}
+                   <div className="space-y-4">
+                      <div className="lg:hidden">
+                          <SuggestedUsersCarousel />
+                      </div>
+                       {isLoading ? (
+                          Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
+                       ) : posts && posts.length > 0 ? (
+                          posts.map(post => (
+                              <PostCard 
+                                  key={post.id} 
+                                  post={post}
+                                  isInitiallySaved={savedPostMap.has(post.id)}
+                                  initialFavoriteId={savedPostMap.get(post.id)}
+                              />
+                          ))
+                       ) : (
+                         <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
+                              <p className="text-lg font-semibold">Votre fil est vide</p>
+                              <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
+                          </div>
+                      )}
+                  </div>
 
-                 {/* Right Sidebar */}
-                 <aside className="hidden lg:block space-y-6">
-                    <SocialFeedSuggestions />
-                 </aside>
-           </div>
-          </main>
+                   {/* Right Sidebar */}
+                   <aside className="hidden lg:block">
+                      <SocialFeedSuggestions />
+                   </aside>
+             </div>
+            </div>
+          </div>
         </div>
       </div>
     );
