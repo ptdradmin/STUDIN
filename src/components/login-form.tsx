@@ -36,14 +36,14 @@ export default function LoginForm() {
   const { toast } = useToast();
 
   const getRecaptchaToken = useCallback(async (action: string) => {
-    if (!(window as any).grecaptcha) {
-      console.error("reCAPTCHA script not loaded");
+    if (!(window as any).grecaptcha || !(window as any).grecaptcha.enterprise) {
+      console.error("reCAPTCHA script not loaded or ready");
       toast({ variant: "destructive", title: "Erreur", description: "Le service de sécurité n'est pas disponible. Veuillez rafraîchir la page." });
       return null;
     }
     return new Promise<string>((resolve) => {
       (window as any).grecaptcha.enterprise.ready(async () => {
-        const token = await (window as any).grecaptcha.enterprise.execute('6Ld46CAsAAAAAHk2HTOXIETvWVB0r_Qz_l7pS2gX', { action });
+        const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', { action });
         resolve(token);
       });
     });

@@ -61,7 +61,7 @@ export default function RootLayout({
     <html lang="fr" className={`${inter.variable} ${poppins.variable} ${sourceCodePro.variable}`}>
       <head>
           <Script 
-            src={`https://www.google.com/recaptcha/enterprise.js?render=6Ld46CAsAAAAAHk2HTOXIETvWVB0r_Qz_l7pS2gX`} 
+            src={`https://www.google.com/recaptcha/enterprise.js?render=6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS`} 
             strategy="beforeInteractive" 
           />
       </head>
