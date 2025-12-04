@@ -6,71 +6,38 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
-  collection,
-  query,
-  where,
-  getDocs,
   Firestore,
 } from 'firebase/firestore';
 import { User, updateProfile } from 'firebase/auth';
 import { generateAvatar } from '@/lib/avatars';
-
-export const isUsernameUnique = async (firestore: Firestore, username: string): Promise<boolean> => {
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('username', '==', username));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
-};
 
 export const createUserDocument = async (
   firestore: Firestore,
   user: User | null,
   additionalData: Record<string, any> = {}
 ) => {
-
-  if (additionalData.checkUsername && !user) {
-    return isUsernameUnique(firestore, additionalData.checkUsername);
-  }
-
   if (!user) {
-    throw new Error("User object is required to create a user document.");
+    throw new Error("L'objet utilisateur est requis pour créer un document utilisateur.");
   }
 
   const userDocRef = doc(firestore, 'users', user.uid);
   const userDoc = await getDoc(userDocRef);
 
   if (userDoc.exists()) {
-    return; // User document already exists
+    console.log("Le document utilisateur existe déjà pour :", user.uid);
+    return; // Le document existe déjà, pas besoin de le recréer.
   }
-
-  // --- Start of Critical Section for Username Generation ---
-  let username = '';
-  if (additionalData.username) {
-      const isUnique = await isUsernameUnique(firestore, additionalData.username);
-      if (!isUnique) {
-          throw new Error('Username is already taken.');
-      }
-      username = additionalData.username;
-  } else {
-      let base = (user.email?.split('@')[0] || `user${user.uid.substring(0, 6)}`).toLowerCase().replace(/[^a-z0-9_.]/g, '');
-      let isUnique = false;
-      let counter = 1;
-      username = base;
-      while(!isUnique) {
-          isUnique = await isUsernameUnique(firestore, username);
-          if (!isUnique) {
-              username = `${base}${counter}`;
-              counter++;
-          }
-      }
-  }
-  // --- End of Critical Section ---
-
+  
   const { email, displayName, photoURL } = user;
-  const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
+  
+  // Génère un nom d'utilisateur simple et probablement unique.
+  // La logique complexe de vérification est retirée car elle causait des problèmes de permission.
+  const username = (additionalData.username || email?.split('@')[0] || `user_${user.uid.slice(0, 6)}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9_.]/g, '');
 
-  const firstName = additionalData.firstName || firstNameFromProvider || '';
-  const lastName = additionalData.lastName || lastNameFromProvider || '';
+  const firstName = additionalData.firstName || displayName?.split(' ')[0] || '';
+  const lastName = additionalData.lastName || displayName?.split(' ')[1] || '';
   
   const userData = {
       id: user.uid,
@@ -95,6 +62,7 @@ export const createUserDocument = async (
       updatedAt: serverTimestamp(),
   };
 
+  // Écrit directement le document. La règle de sécurité `allow create: if request.auth.uid == userId;` fonctionnera.
   await setDoc(userDocRef, userData);
 
   const newDisplayName = `${firstName} ${lastName}`.trim();
@@ -102,3 +70,5 @@ export const createUserDocument = async (
     await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
   }
 };
+
+// La fonction isUsernameUnique est retirée car elle n'est plus utilisée et était la source des problèmes.

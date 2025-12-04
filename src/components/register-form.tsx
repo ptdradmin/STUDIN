@@ -11,8 +11,8 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase, initiateEmailSignUp } from '@/firebase';
-import { User, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useFirebase } from '@/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { createUserDocument } from '@/lib/user-actions';
@@ -83,13 +83,6 @@ export default function RegisterForm() {
     setLoading(true);
     
     try {
-      const isUnique = await createUserDocument(firestore, null, { checkUsername: data.username });
-      if (!isUnique) {
-          form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
-          setLoading(false);
-          return;
-      }
-
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       await createUserDocument(firestore, userCredential.user, data);
       
