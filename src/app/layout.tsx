@@ -1,4 +1,3 @@
-
 'use client';
 
 import './globals.css';
@@ -21,7 +20,6 @@ const sourceCodePro = Source_Code_Pro({
   subsets: ['latin'],
   variable: '--font-source-code-pro',
 });
-
 
 export default function RootLayout({
   children,
