@@ -1,7 +1,7 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
-import Providers from './providers';
+import { Providers } from './providers';
 import Script from 'next/script';
 
 
@@ -26,7 +26,6 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${poppins.variable}`}>
       <head>
-        <Script src="https://www.google.com/recaptcha/enterprise.js?render=6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS" async defer></Script>
       </head>
       <body className="font-body antialiased">
         <Providers>
