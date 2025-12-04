@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { Reel } from "@/lib/types";
@@ -47,24 +46,19 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         if (!name) return '??';
         return name.split(' ').map(n => n[0]).join('');
     };
-
-    const handlePlayPause = useCallback(async () => {
+    
+    const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
         const audio = audioRef.current;
         if (!video) return;
 
         if (video.paused) {
-            try {
-                await video.play();
-                if (audio) await audio.play();
-                setIsPlaying(true);
-            } catch (error) {
-                console.error("Play failed:", error);
-                setIsPlaying(false);
-            }
+            video.play().catch(e => console.error("Video play failed:", e));
+            if(audio) audio.play().catch(e => console.error("Audio play failed:", e));
+            setIsPlaying(true);
         } else {
             video.pause();
-            if (audio) audio.pause();
+            if(audio) audio.pause();
             setIsPlaying(false);
         }
     }, []);
@@ -74,11 +68,20 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         const audio = audioRef.current;
 
         if (!video) return;
-        
+
         if (isInView) {
-            video.play().catch(() => {});
-            if(audio) audio.play().catch(() => {});
-            setIsPlaying(true);
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    if (audio) {
+                        audio.play().catch(e => console.error("Audio play failed:", e));
+                    }
+                    setIsPlaying(true);
+                }).catch(e => {
+                    // Autoplay was prevented, user interaction needed.
+                    setIsPlaying(false);
+                });
+            }
         } else {
             video.pause();
             if (audio) audio.pause();
@@ -86,7 +89,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         }
     }, [isInView]);
 
-    
     const toggleMute = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         setIsMuted(prev => !prev);
@@ -97,8 +99,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             audioRef.current.muted = isMuted;
         }
         if (videoRef.current) {
-            // Mute the video element itself only if there's separate audio
-            // Otherwise, let its muted state be controlled by the user's action
             videoRef.current.muted = reel.audioUrl ? true : isMuted;
         }
     }, [isMuted, reel.audioUrl]);
@@ -239,5 +239,3 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         </div>
     );
 }
-
-    
