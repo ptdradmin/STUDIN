@@ -1,4 +1,3 @@
-
 import type { Timestamp } from 'firebase/firestore';
 
 export type Housing = {
@@ -189,31 +188,6 @@ export type UserProfile = {
     challengesCompleted?: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
-};
-
-export type ChatMessage = {
-    id: string;
-    text?: string;
-    senderId: string;
-    createdAt: Timestamp;
-    imageUrl?: string;
-    videoUrl?: string;
-    audioUrl?: string;
-    fileType?: 'image' | 'video' | 'audio';
-};
-
-export type Conversation = {
-    id:string;
-    participantIds: string[];
-    participants: { [key: string]: { username: string; profilePicture?: string } };
-    lastMessage?: {
-        text: string;
-        senderId: string;
-        timestamp: Timestamp;
-    };
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
-    unread?: boolean;
 };
 
 export type Notification = {
