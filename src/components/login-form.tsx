@@ -55,8 +55,6 @@ export default function LoginForm() {
         description = "La fenêtre de connexion a été fermée."
     } else if (error.code === 'auth/internal-error') {
         description = "Une erreur interne est survenue. Veuillez réessayer."
-    } else if (error.code === 'auth/firebase-app-check-token-is-invalid') {
-        description = "Problème de configuration de sécurité. Veuillez réessayer."
     }
     toast({
         variant: "destructive",
