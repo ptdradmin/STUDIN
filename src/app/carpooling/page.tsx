@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,25 +82,36 @@ export default function CarpoolingPage() {
   }, [firestore]);
 
   const {data: trips, isLoading } = useCollection<Trip>(tripsCollection);
+  
+  const [clientTrips, setClientTrips] = useState<Trip[] | null>(null);
+
+  useEffect(() => {
+    if (trips) {
+        // Generate random coordinates only on the client-side
+        const tripsWithArrivalCoords = trips.map(trip => ({
+            ...trip,
+            arrivalCoordinates: [
+              (trip.coordinates[0] || 50.46) + (Math.random() - 0.5) * 0.5,
+              (trip.coordinates[1] || 4.87) + (Math.random() - 0.5) * 0.5,
+            ]
+        }));
+        setClientTrips(tripsWithArrivalCoords);
+    } else {
+        setClientTrips(null);
+    }
+  }, [trips]);
+
 
   const filteredTrips = useMemo(() => {
-    if (!trips) return [];
+    if (!clientTrips) return [];
     
-    const tripsWithArrivalCoords = trips.map(trip => ({
-        ...trip,
-        arrivalCoordinates: [
-          (trip.coordinates[0] || 50.46) + (Math.random() - 0.5) * 0.5,
-          (trip.coordinates[1] || 4.87) + (Math.random() - 0.5) * 0.5,
-        ]
-    }));
-
-    return tripsWithArrivalCoords.filter(trip => {
+    return clientTrips.filter(trip => {
       const departureMatch = departureFilter ? trip.departureCity.toLowerCase().includes(departureFilter.toLowerCase()) : true;
       const arrivalMatch = arrivalFilter ? trip.arrivalCity.toLowerCase().includes(arrivalFilter.toLowerCase()) : true;
       const dateMatch = dateFilter ? new Date(trip.departureTime).toLocaleDateString() === new Date(dateFilter).toLocaleDateString() : true;
       return departureMatch && arrivalMatch && dateMatch;
     });
-  }, [trips, departureFilter, arrivalFilter, dateFilter]);
+  }, [clientTrips, departureFilter, arrivalFilter, dateFilter]);
 
   const handleContact = async (trip: Trip) => {
     if (isUserLoading) return;
