@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Film, PlusSquare, MessageSquare, User, Target, BookOpen } from 'lucide-react';
+import { Home, MessageSquare, PlusSquare, Target, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -16,11 +17,6 @@ export default function BottomNavbar() {
   const pathname = usePathname();
   const { user } = useUser();
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
@@ -39,17 +35,13 @@ export default function BottomNavbar() {
     { href: '/profile', isProfile: true },
   ];
 
-  if (!isMounted) {
-    return null;
-  }
-
   const publicPages = [
     '/', '/login', '/register', '/forgot-password', '/about',
     '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact',
     '/faq', '/community-rules'
   ];
-
-  const hideNavbar = !user || publicPages.some(page => pathname === page);
+  
+  const hideNavbar = !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
 
   return (
     <>

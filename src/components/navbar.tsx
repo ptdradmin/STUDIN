@@ -18,7 +18,7 @@ import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, Graduat
 import { useAuth, useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { generateAvatar } from "@/lib/avatars";
 import { LogoIcon } from "./logo-icon";

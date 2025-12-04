@@ -23,24 +23,15 @@ interface FirebaseServices {
   storage: FirebaseStorage;
 }
 
-// Store services in a module-level variable to ensure they are initialized only once.
 let firebaseServices: FirebaseServices | null = null;
 
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
 function initializeFirebase() {
   if (!getApps().length) {
-    // Important! initializeApp() is called without any arguments because Firebase App Hosting
-    // integrates with the initializeApp() function to provide the environment variables needed to
-    // populate the FirebaseOptions in production. It is critical that we attempt to call initializeApp()
-    // without arguments.
     let firebaseApp;
     try {
-      // Attempt to initialize via Firebase App Hosting environment variables
       firebaseApp = initializeApp();
     } catch (e) {
-      // Only warn in production because it's normal to use the firebaseConfig to initialize
-      // during development
       if (process.env.NODE_ENV === "production") {
         console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
       }
@@ -48,13 +39,8 @@ function initializeFirebase() {
     }
     
     if (typeof window !== 'undefined') {
-      // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
-      // key is the counterpart to the secret key you set in the Firebase console.
       initializeAppCheck(firebaseApp, {
         provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-
-        // Optional argument. If true, the SDK automatically refreshes App Check
-        // tokens as needed.
         isTokenAutoRefreshEnabled: true
       });
     }
@@ -63,7 +49,6 @@ function initializeFirebase() {
     return getSdks(firebaseApp);
   }
 
-  // If already initialized, return the SDKs with the already initialized App
   return getSdks(getApp());
 }
 
@@ -75,7 +60,6 @@ function getSdks(firebaseApp: FirebaseApp) {
     storage: getStorage(firebaseApp),
   };
 }
-
 
 function getFirebaseServices() {
     if (!firebaseServices) {
@@ -94,7 +78,6 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs only once on the client to set up the auth listener.
     const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
       setUser(firebaseUser);
       setIsAuthLoading(false);
@@ -106,7 +89,7 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
 
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this runs only once.
+  }, []);
 
   return (
     <FirebaseProvider
