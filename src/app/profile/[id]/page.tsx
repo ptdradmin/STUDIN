@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -11,7 +12,7 @@ import Image from 'next/image';
 import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Post, UserProfile, Housing, Trip, Tutor, Event } from '@/lib/types';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where } from 'firebase/firestore';
+import { collection, doc, query, where, limit } from 'firebase/firestore';
 import { toggleFollowUser } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
@@ -119,7 +120,7 @@ export default function UserProfilePage() {
 
   const userPostsQuery = useMemoFirebase(() => {
     if (!firestore || !profileId) return null;
-    return query(collection(firestore, 'posts'), where('userId', '==', profileId));
+    return query(collection(firestore, 'posts'), where('userId', '==', profileId), limit(30));
   }, [firestore, profileId]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
   

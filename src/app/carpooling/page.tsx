@@ -138,8 +138,7 @@ export default function CarpoolingPage() {
   };
 
  const handleReserve = async (trip: Trip) => {
-    if (isUserLoading) return;
-    if (!user || !firestore) {
+    if (isUserLoading || !user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
     }
@@ -217,7 +216,7 @@ export default function CarpoolingPage() {
                 passengerId: user?.uid,
                 clientError: e.message,
             }
-        });
+        } as SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
     }
   };

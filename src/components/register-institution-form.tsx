@@ -17,6 +17,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
+import { isUsernameUnique } from '@/lib/user-actions';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -53,14 +54,6 @@ export default function RegisterInstitutionForm() {
     },
   });
 
-  const isUsernameUnique = async (username: string): Promise<boolean> => {
-    if (!firestore) return false;
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('username', '==', username));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
-  };
-
   const createUserDocuments = async (user: User, data: RegisterFormValues) => {
     if (!firestore) return;
 
@@ -69,12 +62,12 @@ export default function RegisterInstitutionForm() {
     // 1. User Document
     const userDocRef = doc(firestore, 'users', user.uid);
     
-    let username = data.name.toLowerCase().replace(/\s+/g, '_').substring(0, 20);
-    let isUnique = await isUsernameUnique(username);
+    let username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20);
+    let isUnique = await isUsernameUnique(firestore, username);
     let counter = 1;
     while(!isUnique) {
         const newUsername = `${username}${counter}`;
-        isUnique = await isUsernameUnique(newUsername);
+        isUnique = await isUsernameUnique(firestore, newUsername);
         if (isUnique) {
             username = newUsername;
         }

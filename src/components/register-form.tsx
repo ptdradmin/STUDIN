@@ -16,7 +16,7 @@ import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
-import { createUserDocument } from '@/lib/user-actions';
+import { createUserDocument, isUsernameUnique } from '@/lib/user-actions';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -129,15 +129,14 @@ export default function RegisterForm() {
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
-    setLoading('email');
-    
     if (!auth || !firestore) {
         toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
-        setLoading('');
         return;
     }
 
-    const uniqueUsername = await createUserDocument(firestore, null, {checkUsername: data.username});
+    setLoading('email');
+    
+    const uniqueUsername = await isUsernameUnique(firestore, data.username);
     if (!uniqueUsername) {
         form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
         setLoading('');
@@ -356,5 +355,3 @@ export default function RegisterForm() {
     </>
   );
 }
-
-    

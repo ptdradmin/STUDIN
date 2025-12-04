@@ -186,8 +186,8 @@ export interface UserProfile {
     isVerified?: boolean;
     followerIds: string[];
     followingIds: string[];
-    points: number;
-    challengesCompleted: number;
+    points?: number;
+    challengesCompleted?: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 }

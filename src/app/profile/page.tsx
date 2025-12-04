@@ -15,7 +15,7 @@ import { signOut } from 'firebase/auth';
 import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event, Book } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where, documentId, getDocs } from 'firebase/firestore';
+import { collection, doc, query, where, documentId, getDocs, limit } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
@@ -207,13 +207,13 @@ export default function CurrentUserProfilePage() {
 
   const userPostsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(collection(firestore, 'posts'), where('userId', '==', user.uid));
+    return query(collection(firestore, 'posts'), where('userId', '==', user.uid), limit(30));
   }, [firestore, user]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
 
   const userFavoritesQuery = useMemoFirebase(() => {
       if (!user || !firestore) return null;
-      return query(collection(firestore, `users/${user.uid}/favorites`));
+      return query(collection(firestore, `users/${user.uid}/favorites`), limit(50));
   }, [user, firestore]);
   const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
 
