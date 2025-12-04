@@ -10,37 +10,53 @@ import { initializeAppCheck, ReCaptchaV3Provider, AppCheck } from 'firebase/app-
 import { FirebaseProvider } from '@/firebase/provider';
 import { firebaseConfig } from './config';
 
-function initializeServices() {
+interface FirebaseServices {
+    app: FirebaseApp;
+    auth: Auth;
+    firestore: Firestore;
+    storage: FirebaseStorage;
+    appCheck: AppCheck | null;
+}
+
+// This function is now designed to only be called once.
+function initializeFirebase(): FirebaseServices {
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    const auth = getAuth(app);
-    const firestore = getFirestore(app);
-    const storage = getStorage(app);
     
+    let appCheck: AppCheck | null = null;
     if (typeof window !== 'undefined') {
-        // This is the key change. By setting this debug token, App Check will be effectively
-        // bypassed in your local development environment, resolving the token validation errors.
+        // Crucial for local development to prevent internal auth errors.
         (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        
         try {
-           initializeAppCheck(app, {
+            appCheck = initializeAppCheck(app, {
                 provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
                 isTokenAutoRefreshEnabled: true,
             });
         } catch (e) {
-            console.warn("App Check initialization failed. This may happen in some environments.", e);
+            console.error("Firebase App Check initialization failed:", e);
         }
     }
-    return { app, auth, firestore, storage };
+
+    // Services are initialized after App Check setup.
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+    const storage = getStorage(app);
+    
+    return { app, auth, firestore, storage, appCheck };
 }
+
+// Memoize the initialization to ensure it runs only once.
+const firebaseServices = initializeFirebase();
 
 export default function FirebaseClientProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
-    
-    const services = useMemo(() => initializeServices(), []);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
+        const { auth } = firebaseServices;
+        
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsAuthLoading(false);
         }, (authError) => {
@@ -49,19 +65,22 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
             setIsAuthLoading(false);
         });
 
+        // Cleanup subscription on unmount
         return () => unsubscribe();
-    }, [services.auth]);
+    }, []);
 
+    // The context value is memoized to prevent unnecessary re-renders.
     const contextValue = useMemo(() => ({
-        firebaseApp: services.app,
-        auth: services.auth,
-        firestore: services.firestore,
-        storage: services.storage,
+        firebaseApp: firebaseServices.app,
+        auth: firebaseServices.auth,
+        firestore: firebaseServices.firestore,
+        storage: firebaseServices.storage,
         user,
         isUserLoading: isAuthLoading,
-        areServicesAvailable: !!services.auth && !!services.firestore && !!services.storage,
+        // Services are considered available if they have been initialized.
+        areServicesAvailable: !!(firebaseServices.auth && firebaseServices.firestore && firebaseServices.storage),
         userError: error,
-    }), [services, user, isAuthLoading, error]);
+    }), [user, isAuthLoading, error]);
 
     return (
         <FirebaseProvider value={contextValue}>
@@ -69,3 +88,5 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         </FirebaseProvider>
     );
 }
+
+    

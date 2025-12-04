@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -53,8 +54,8 @@ export default function LoginForm() {
         description = "Adresse e-mail ou mot de passe incorrect."
     } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
-    } else if (error.code === 'auth/internal-error') {
-        description = "Une erreur interne est survenue. Veuillez réessayer."
+    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential') {
+        description = "Une erreur interne est survenue. Le service est peut-être temporairement indisponible."
     }
     toast({
         variant: "destructive",
@@ -64,7 +65,7 @@ export default function LoginForm() {
 }
 
   const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) {
+    if (!areServicesAvailable || !auth || !firestore) {
       toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez patienter."});
       return;
     }
@@ -90,7 +91,7 @@ export default function LoginForm() {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
-    if (!auth) {
+    if (!areServicesAvailable || !auth) {
         toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
         return;
     }
@@ -189,3 +190,5 @@ export default function LoginForm() {
       </div>
   );
 }
+
+    
