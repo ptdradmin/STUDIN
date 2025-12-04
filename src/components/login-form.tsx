@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback } from 'react';
@@ -12,8 +13,6 @@ import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User }
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
-import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
-
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -34,19 +33,6 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
-
-  const getRecaptchaToken = useCallback(async (action: string) => {
-    if (!window.grecaptcha) {
-      console.error("reCAPTCHA script not loaded");
-      return null;
-    }
-    return new Promise<string>((resolve) => {
-      window.grecaptcha.enterprise.ready(async () => {
-        const token = await window.grecaptcha.enterprise.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action });
-        resolve(token);
-      });
-    });
-  }, []);
 
   const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
@@ -98,12 +84,15 @@ export default function LoginForm() {
         updatedAt: serverTimestamp(),
         followerIds: [],
         followingIds: [],
+        points: 0,
+        challengesCompleted: 0,
+        isVerified: false,
       };
       await setDoc(userDocRef, userData, { merge: true });
     }
   }
 
-  const handleSuccess = async (user: User) => {
+  const handleSuccess = (user: User) => {
       toast({
         title: "Connexion réussie",
         description: `Bienvenue, ${user.displayName || user.email} !`,
@@ -137,7 +126,7 @@ export default function LoginForm() {
     try {
       const result = await signInWithPopup(auth, provider);
       await createUserDocument(result.user);
-      await handleSuccess(result.user);
+      handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -153,20 +142,6 @@ export default function LoginForm() {
     }
     setLoading('email');
 
-    const token = await getRecaptchaToken('LOGIN');
-    if (!token) {
-        toast({ variant: "destructive", title: "Erreur reCAPTCHA", description: "Veuillez réessayer." });
-        setLoading('');
-        return;
-    }
-
-    const { isVerified, score } = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
-    if (!isVerified) {
-        toast({ variant: "destructive", title: "Vérification échouée", description: `Activité suspecte détectée (score: ${score}). Veuillez réessayer.` });
-        setLoading('');
-        return;
-    }
-
     if (!auth || !firestore) {
       toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
       setLoading('');
@@ -175,7 +150,7 @@ export default function LoginForm() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await handleSuccess(userCredential.user);
+      handleSuccess(userCredential.user);
     } catch (error: any) {
       handleError(error);
     } finally {
