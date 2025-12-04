@@ -14,11 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
-import { generateAvatar } from '@/lib/avatars';
-import { createUserDocument, isUsernameUnique } from '@/lib/user-actions';
+import { createUserDocument } from '@/lib/user-actions';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -101,7 +99,7 @@ export default function RegisterForm() {
       if (error.code === 'auth/email-already-in-use') {
           description = "Cet email est déjà utilisé. Essayez de vous connecter.";
       }
-       if (error.code === 'auth/popup-closed-by-user') {
+       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
       }
       toast({
@@ -116,6 +114,9 @@ export default function RegisterForm() {
     if (!auth || !firestore) return;
     setLoading('google');
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account' // Force account selection every time
+    });
     try {
       const result = await signInWithPopup(auth, provider);
       await createUserDocument(firestore, result.user);
@@ -136,7 +137,7 @@ export default function RegisterForm() {
         return;
     }
 
-    const uniqueUsername = await isUsernameUnique(firestore, data.username);
+    const uniqueUsername = await createUserDocument(firestore, null, {checkUsername: data.username});
     if (!uniqueUsername) {
         form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
         setLoading('');
@@ -166,7 +167,7 @@ export default function RegisterForm() {
         <div className="space-y-4">
            <div className="grid grid-cols-1 gap-4">
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
-                <GoogleIcon className="mr-2 h-4 w-4" />
+                {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 S'inscrire avec Google
               </Button>
            </div>
@@ -337,6 +338,7 @@ export default function RegisterForm() {
               />
 
               <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
+                {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                 {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
               </Button>
             </form>
@@ -354,3 +356,5 @@ export default function RegisterForm() {
     </>
   );
 }
+
+    

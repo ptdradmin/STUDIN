@@ -47,7 +47,7 @@ export default function LoginForm() {
       const from = searchParams.get('from') || '/social';
       
       router.push(from);
-      router.refresh();
+      router.refresh(); // Force a refresh to ensure all components get the new auth state
   }
 
   const handleError = (error: any) => {
@@ -56,7 +56,7 @@ export default function LoginForm() {
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Adresse e-mail ou mot de passe incorrect."
       }
-       if (error.code === 'auth/popup-closed-by-user') {
+       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
       }
       if(error.code === 'auth/invalid-app-credential') {
@@ -73,6 +73,9 @@ export default function LoginForm() {
     if (!auth || !firestore) return;
     setLoading('google');
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account' // Force account selection every time
+    });
     try {
       const result = await signInWithPopup(auth, provider);
       await createUserDocument(firestore, result.user);
@@ -188,3 +191,5 @@ export default function LoginForm() {
       </div>
   );
 }
+
+    

@@ -24,9 +24,19 @@ export const isUsernameUnique = async (firestore: Firestore, username: string): 
 
 export const createUserDocument = async (
   firestore: Firestore,
-  user: User,
+  user: User | null, // Can be null now for username check
   additionalData: Record<string, any> = {}
 ) => {
+
+  // If only a username check is needed
+  if (additionalData.checkUsername && !user) {
+    return isUsernameUnique(firestore, additionalData.checkUsername);
+  }
+
+  if (!user) {
+    throw new Error("User object is required to create a user document.");
+  }
+
   const userDocRef = doc(firestore, 'users', user.uid);
   const userDoc = await getDoc(userDocRef);
 
@@ -86,3 +96,5 @@ export const createUserDocument = async (
     await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
   }
 };
+
+    
