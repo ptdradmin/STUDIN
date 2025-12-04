@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -42,7 +43,9 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
 
     const videoRef = useRef<HTMLVideoElement>(null);
-    const isInView = useInView(videoRef, { amount: 0.5 });
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const isInView = useInView(containerRef, { amount: 0.5 });
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     
@@ -51,15 +54,20 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     }, [isInitiallySaved]);
 
     useEffect(() => {
-        if (videoRef.current) {
-            if (isInView && !isPlaying) {
-                videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
-            } else if (!isInView && isPlaying) {
-                videoRef.current.pause();
-                setIsPlaying(false);
-            }
+        const video = videoRef.current;
+        const audio = audioRef.current;
+        if (!video) return;
+
+        if (isInView) {
+            video.play().catch(() => {});
+            if(audio) audio.play().catch(() => {});
+            setIsPlaying(true);
+        } else {
+            video.pause();
+            if(audio) audio.pause();
+            setIsPlaying(false);
         }
-    }, [isInView, isPlaying]);
+    }, [isInView]);
     
 
     const getInitials = (name: string) => {
@@ -110,25 +118,33 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;
+        const audio = audioRef.current;
         if (!video) return;
 
         if (video.paused) {
             video.play().catch(() => {});
+            if(audio) audio.play().catch(() => {});
             setIsPlaying(true);
         } else {
             video.pause();
+            if(audio) audio.pause();
             setIsPlaying(false);
         }
     }, []);
 
      const toggleMute = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-        const video = videoRef.current;
-        if (video) {
-            video.muted = !video.muted;
-            setIsMuted(!video.muted);
+        setIsMuted(!isMuted);
+    }, [isMuted]);
+    
+    useEffect(() => {
+        if(audioRef.current) {
+            audioRef.current.muted = isMuted;
         }
-    }, []);
+        if (videoRef.current) {
+            videoRef.current.muted = post.audioUrl ? true : isMuted;
+        }
+    }, [isMuted, post.audioUrl]);
 
 
     const handleLike = async () => {
@@ -253,7 +269,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
 
 
     return (
-        <div className="w-full bg-card text-card-foreground border-b rounded-lg">
+        <div ref={containerRef} className="w-full bg-card text-card-foreground border-b rounded-lg">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -304,14 +320,15 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                 </DropdownMenu>
             </div>
             
-            <div className="relative aspect-square bg-muted cursor-pointer" onClick={handlePlayPause}>
+            <div className="relative aspect-square bg-muted cursor-pointer" onDoubleClick={handleLike} onClick={handlePlayPause}>
                 {post.isUploading ? (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
                     </div>
                 ) : post.fileType === 'video' && post.videoUrl ? (
                     <>
-                        <video ref={videoRef} src={post.videoUrl} loop muted className="w-full h-full object-cover bg-black" />
+                        <video ref={videoRef} src={post.videoUrl} loop className="w-full h-full object-cover bg-black" />
+                        {post.audioUrl && <audio ref={audioRef} src={post.audioUrl} loop />}
                         {!isPlaying && (
                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
                                 <Play className="h-20 w-20 text-white/70 drop-shadow-lg" />
@@ -411,3 +428,5 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         </div>
     );
 }
+
+    

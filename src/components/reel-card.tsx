@@ -6,7 +6,7 @@ import type { Reel } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Heart, MessageCircle, Send, MoreHorizontal, EyeOff, Link as LinkIcon, Trash2, Music, Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import Link from "next/link";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useInView } from 'framer-motion';
 
 interface ReelCardProps {
     reel: Reel;
@@ -33,8 +34,11 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const [isMuted, setIsMuted] = useState(true);
     const [isVisible, setIsVisible] = useState(true);
 
+    const containerRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const isInView = useInView(containerRef, { amount: 0.5 });
 
     const hasLiked = user && optimisticLikes.includes(user.uid);
     const isOwner = user?.uid === reel.userId;
@@ -44,7 +48,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         return name.split(' ').map(n => n[0]).join('');
     };
 
-    const handlePlayPause = async () => {
+    const handlePlayPause = useCallback(async () => {
         const video = videoRef.current;
         const audio = audioRef.current;
         if (!video) return;
@@ -52,32 +56,50 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         if (video.paused) {
             try {
                 await video.play();
-                setIsPlaying(true);
                 if (audio) await audio.play();
+                setIsPlaying(true);
             } catch (error) {
                 console.error("Play failed:", error);
                 setIsPlaying(false);
             }
         } else {
             video.pause();
-            setIsPlaying(false);
             if (audio) audio.pause();
+            setIsPlaying(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        const audio = audioRef.current;
+
+        if (!video) return;
+        
+        if (isInView) {
+            video.play().catch(() => {});
+            if(audio) audio.play().catch(() => {});
+            setIsPlaying(true);
+        } else {
+            video.pause();
+            if (audio) audio.pause();
+            setIsPlaying(false);
+        }
+    }, [isInView]);
+
     
-    const toggleMute = (e: React.MouseEvent) => {
+    const toggleMute = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         setIsMuted(prev => !prev);
-    };
+    }, []);
 
     useEffect(() => {
         if(audioRef.current) {
             audioRef.current.muted = isMuted;
         }
-        if (videoRef.current && reel.audioUrl) {
-            videoRef.current.muted = true;
-        } else if (videoRef.current) {
-            videoRef.current.muted = isMuted;
+        if (videoRef.current) {
+            // Mute the video element itself only if there's separate audio
+            // Otherwise, let its muted state be controlled by the user's action
+            videoRef.current.muted = reel.audioUrl ? true : isMuted;
         }
     }, [isMuted, reel.audioUrl]);
 
@@ -137,20 +159,18 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
             })
     }
     
-
     if (!isVisible) return null;
 
     return (
-        <div className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-lg group" onClick={handlePlayPause}>
+        <div ref={containerRef} className="relative h-full w-full max-w-sm aspect-[9/16] rounded-2xl overflow-hidden bg-black shadow-lg group" onClick={handlePlayPause}>
             <video
                 ref={videoRef}
                 src={reel.videoUrl}
                 playsInline
                 loop
-                muted={!!reel.audioUrl || isMuted}
                 className="h-full w-full object-cover"
             />
-            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop muted={isMuted} />}
+            {reel.audioUrl && <audio ref={audioRef} src={reel.audioUrl} loop />}
 
              {!isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
@@ -179,8 +199,8 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                     </div>
                     <p className="text-sm drop-shadow">{reel.caption}</p>
                      {reel.songTitle && (
-                        <div className="flex items-center gap-2 text-xs">
-                            <Music className="h-3 w-3" />
+                        <div className="flex items-center gap-2 text-xs animate-marquee">
+                            <Music className="h-3 w-3 flex-shrink-0" />
                             <p className="truncate">{reel.songTitle}</p>
                         </div>
                     )}
@@ -219,3 +239,5 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         </div>
     );
 }
+
+    

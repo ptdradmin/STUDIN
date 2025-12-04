@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -45,7 +46,7 @@ function NavLink({ item, pathname }: { item: { href?: string, label: string, ico
         variant={isActive ? "secondary" : "ghost"} 
         size="lg" 
         aria-label={label} 
-        className={`justify-start items-center gap-4 h-12 w-full text-base ${isActive ? 'font-bold' : 'font-normal text-muted-foreground'}`}
+        className={`justify-start items-center gap-4 h-12 w-full text-base ${isActive ? 'font-bold' : 'font-normal text-foreground/80 hover:text-foreground'}`}
       >
         <Icon className={`h-6 w-6`} strokeWidth={isActive ? 2.5 : 2} />
         <span className="truncate">{label}</span>
@@ -164,3 +165,5 @@ export default function SocialSidebar() {
         </aside>
     )
 }
+
+    

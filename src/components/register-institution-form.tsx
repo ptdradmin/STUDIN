@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +17,6 @@ import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, get
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
-import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
 import Link from 'next/link';
 
 const registerSchema = z.object({
@@ -54,19 +53,6 @@ export default function RegisterInstitutionForm() {
       confirmPassword: '',
     },
   });
-
-  const getRecaptchaToken = useCallback(async (action: string) => {
-    if (!(window as any).grecaptcha || !(window as any).grecaptcha.enterprise) {
-      console.error("reCAPTCHA script not loaded or ready");
-      return null;
-    }
-    return new Promise<string>((resolve) => {
-      (window as any).grecaptcha.enterprise.ready(async () => {
-        const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', { action });
-        resolve(token);
-      });
-    });
-  }, []);
 
   const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
@@ -165,20 +151,6 @@ export default function RegisterInstitutionForm() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
-
-    const token = await getRecaptchaToken('SIGNUP_INSTITUTION');
-    if (!token) {
-        toast({ variant: "destructive", title: "Erreur reCAPTCHA", description: "Veuillez réessayer." });
-        setLoading(false);
-        return;
-    }
-
-    const { isVerified, score } = await verifyRecaptcha({ token, expectedAction: 'SIGNUP_INSTITUTION' });
-    if (!isVerified) {
-        toast({ variant: "destructive", title: "Vérification échouée", description: `Activité suspecte détectée (score: ${score}). Veuillez réessayer.` });
-        setLoading(false);
-        return;
-    }
     
     if (!auth || !firestore) {
         toast({ variant: "destructive", title: "Erreur", description: "Service indisponible." });
@@ -318,3 +290,5 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+
+    

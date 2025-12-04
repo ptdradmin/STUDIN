@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
@@ -90,7 +91,7 @@ export default function SocialFeedSuggestions() {
             {suggestions.length > 0 && (
                  <div>
                     <h3 className="text-sm font-semibold text-muted-foreground mb-3">Suggestions pour vous</h3>
-                    <div className="max-h-60 overflow-y-auto space-y-4 pr-2">
+                    <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
                         {suggestions.map(profile => (
                              <UserCard key={profile.id} userProfile={profile} isSuggestion />
                         ))}
@@ -108,3 +109,5 @@ export default function SocialFeedSuggestions() {
         </div>
     )
 }
+
+    

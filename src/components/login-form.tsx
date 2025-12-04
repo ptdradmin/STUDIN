@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -144,28 +144,13 @@ export default function LoginForm() {
     setLoading('email');
 
     try {
-        if (!(window as any).grecaptcha || !(window as any).grecaptcha.enterprise) {
-            throw new Error("reCAPTCHA script not loaded");
-        }
-
-        const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', {action: 'LOGIN'});
-        const recaptchaResult = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
-        
-        if (!recaptchaResult.isVerified) {
-            throw new Error("reCAPTCHA verification failed");
-        }
-        
         if (!auth) throw new Error("Auth service not available");
         
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         handleSuccess(userCredential.user);
 
     } catch (error: any) {
-        if(error.message === 'reCAPTCHA verification failed') {
-            toast({ variant: "destructive", title: "Vérification échouée", description: "Activité suspecte détectée. Veuillez réessayer." });
-        } else {
-            handleError(error);
-        }
+        handleError(error);
     } finally {
         setLoading('');
     }
@@ -259,3 +244,5 @@ export default function LoginForm() {
       </div>
   );
 }
+
+    
