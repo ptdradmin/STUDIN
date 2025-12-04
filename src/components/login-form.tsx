@@ -1,19 +1,16 @@
-
-
 "use client";
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
-import { Eye, EyeOff, GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
 import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
 
@@ -34,6 +31,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(''); // can be 'google', 'email'
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
 
@@ -110,29 +108,10 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: `Bienvenue, ${user.displayName || user.email} !`,
       });
-
-      if (firestore) {
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-            const userProfile = userDocSnap.data();
-            switch (userProfile.role) {
-                case 'institution':
-                case 'admin':
-                    router.push('/dashboard');
-                    break;
-                case 'student':
-                default:
-                    router.push('/social');
-                    break;
-            }
-        } else {
-            // Default redirection if profile is not found (should be rare)
-             router.push('/social');
-        }
-      } else {
-        router.push('/social');
-      }
+      
+      const from = searchParams.get('from') || '/social';
+      
+      router.push(from);
       router.refresh();
   }
 
@@ -140,6 +119,9 @@ export default function LoginForm() {
       let description = "Une erreur est survenue.";
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Adresse e-mail ou mot de passe incorrect."
+      }
+       if (error.code === 'auth/popup-closed-by-user') {
+        description = "La fenêtre de connexion a été fermée."
       }
       toast({
         variant: "destructive",
@@ -165,6 +147,10 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !password) {
+        toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
+        return;
+    }
     setLoading('email');
 
     const token = await getRecaptchaToken('LOGIN');
@@ -182,18 +168,13 @@ export default function LoginForm() {
     }
 
     if (!auth || !firestore) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Le service d'authentification n'est pas disponible.",
-      });
+      toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
       setLoading('');
       return;
     }
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // No need to create doc, just log in. `createUserDocument` is for new sign-ups.
       await handleSuccess(userCredential.user);
     } catch (error: any) {
       handleError(error);
@@ -205,35 +186,21 @@ export default function LoginForm() {
   const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
-    <Card className="w-full max-w-md shadow-2xl">
-      <CardHeader className="text-center">
-         <Link href="/" className="flex items-center gap-3 justify-center">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                  <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-xl font-bold">STUD'IN</h1>
-          </Link>
-        <CardTitle className="text-2xl pt-4">Connexion</CardTitle>
-        <CardDescription>Accédez à votre compte STUD'IN</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-           <div className='grid grid-cols-1 gap-4'>
-                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
-                    <GoogleIcon className="mr-2 h-4 w-4" />
-                    Se connecter avec Google
-                </Button>
-           </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Ou continuer avec</span>
-            </div>
-          </div>
+    <div className="mx-auto grid w-full max-w-[350px] gap-6">
+        <div className="grid gap-2 text-center">
+             <Link href="/" className="flex items-center gap-3 justify-center mb-4">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
+                    <GraduationCap className="h-7 w-7 text-white" />
+                </div>
+            </Link>
+          <h1 className="text-3xl font-bold">Connexion</h1>
+          <p className="text-balance text-muted-foreground">
+            Accédez à votre compte pour continuer
+          </p>
+        </div>
+        <div className="grid gap-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+            <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -242,12 +209,20 @@ export default function LoginForm() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={!servicesReady}
+                disabled={!!loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <div className="relative">
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Mot de passe</Label>
+                <Link
+                  href="#"
+                  className="ml-auto inline-block text-sm underline"
+                >
+                  Mot de passe oublié?
+                </Link>
+              </div>
+               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -255,7 +230,7 @@ export default function LoginForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={!servicesReady}
+                  disabled={!!loading}
                   className="pr-10"
                 />
                 <button
@@ -267,24 +242,22 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
-              {!servicesReady
-                ? 'Chargement...'
-                : loading === 'email'
-                ? 'Connexion...'
-                : 'Se connecter'}
+            <Button type="submit" className="w-full" disabled={!!loading}>
+                {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
-          </form>
+            </form>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading}>
+                {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                Se connecter avec Google
+            </Button>
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-         <p className="text-sm text-muted-foreground">
-            Pas encore de compte ?{' '}
-            <Link href="/register" className="font-semibold text-primary hover:underline">
-              Inscrivez-vous
-            </Link>
-          </p>
-      </CardFooter>
-    </Card>
+        <div className="mt-4 text-center text-sm">
+          Pas encore de compte?{" "}
+          <Link href="/register" className="underline">
+            Inscrivez-vous
+          </Link>
+        </div>
+      </div>
   );
 }
