@@ -87,7 +87,7 @@ function ReviewCard({ review }: { review: TutoringReview }) {
 }
 
 export default function TutorProfilePage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   const params = useParams();
@@ -114,6 +114,7 @@ export default function TutorProfilePage() {
   }, []);
 
   const handleContact = async () => {
+    if (isUserLoading) return;
     if (!user || !firestore || !tutor) {
         router.push(`/login?from=/tutoring/${tutorId}`);
         return;
@@ -129,6 +130,15 @@ export default function TutorProfilePage() {
     } else {
         toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
     }
+  }
+  
+  const handleLeaveReview = () => {
+    if (isUserLoading) return;
+    if (!user) {
+        router.push(`/login?from=/tutoring/${tutorId}`);
+        return;
+    }
+    setShowReviewForm(true);
   }
 
   const isLoading = isTutorLoading || areReviewsLoading;
@@ -201,10 +211,10 @@ export default function TutorProfilePage() {
 
                                         {!isOwnProfile && (
                                             <div className="flex gap-2 pt-4">
-                                                <Button onClick={handleContact} className="w-full">
+                                                <Button onClick={handleContact} className="w-full" disabled={isUserLoading}>
                                                     <MessageSquare className="mr-2 h-4 w-4" /> Contacter
                                                 </Button>
-                                                <Button onClick={() => user ? setShowReviewForm(true) : router.push(`/login?from=/tutoring/${tutor.id}`)} variant="outline" className="w-full">
+                                                <Button onClick={handleLeaveReview} variant="outline" className="w-full" disabled={isUserLoading}>
                                                     <Star className="mr-2 h-4 w-4" /> Laisser un avis
                                                 </Button>
                                             </div>

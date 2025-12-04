@@ -97,7 +97,8 @@ export default function ReelsPage() {
     }
     
     const handleCreateClick = () => {
-        if (!isUserLoading && !user) {
+        if (isUserLoading) return;
+        if (!user) {
             router.push('/login?from=/reels');
             return;
         }

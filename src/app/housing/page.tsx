@@ -74,6 +74,7 @@ export default function HousingPage() {
   };
 
   const handleCreateClick = () => {
+    if (isUserLoading) return;
     if (!user) {
         router.push('/login?from=/housing');
         return;

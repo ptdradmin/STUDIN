@@ -69,6 +69,7 @@ export default function TutoringPage() {
   const handleFavoriteClick = async (e: React.MouseEvent, tutor: Tutor, isFavorited: boolean) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isUserLoading) return;
     if (!user || !firestore) {
       router.push('/login?from=/tutoring');
       return;
@@ -82,6 +83,7 @@ export default function TutoringPage() {
   };
 
   const handleCreateClick = () => {
+    if (isUserLoading) return;
     if (!user) {
         router.push('/login?from=/tutoring');
         return;

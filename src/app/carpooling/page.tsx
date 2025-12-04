@@ -102,6 +102,7 @@ export default function CarpoolingPage() {
   }, [trips, departureFilter, arrivalFilter, dateFilter]);
 
   const handleContact = async (trip: Trip) => {
+    if (isUserLoading) return;
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
@@ -120,6 +121,7 @@ export default function CarpoolingPage() {
   };
 
  const handleReserve = async (trip: Trip) => {
+    if (isUserLoading) return;
     if (!user || !firestore) {
         router.push('/login?from=/carpooling');
         return;
@@ -208,6 +210,15 @@ export default function CarpoolingPage() {
       setViewMode('map');
   }
 
+  const handleCreateClick = () => {
+    if (isUserLoading) return;
+    if (!user) {
+        router.push('/login?from=/carpooling');
+        return;
+    }
+    setShowCreateForm(true);
+  }
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       {user && <SocialSidebar />}
@@ -260,7 +271,7 @@ export default function CarpoolingPage() {
             <div className="flex justify-between items-center mb-4 gap-4">
               <h2 className="text-2xl font-bold tracking-tight">Trajets disponibles</h2>
               <div className="flex items-center gap-2">
-                <Button onClick={() => user ? setShowCreateForm(true) : router.push('/login?from=/carpooling')} disabled={isUserLoading}>
+                <Button onClick={handleCreateClick} disabled={isUserLoading}>
                   <Plus className="mr-2 h-4 w-4" /> Proposer un trajet
                 </Button>
                 <div className="flex items-center gap-1 rounded-md bg-muted p-1">

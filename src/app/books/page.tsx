@@ -102,6 +102,7 @@ export default function BookMarketPage() {
   }, [books, titleFilter, courseFilter, universityFilter]);
 
   const handleContactSeller = async (sellerId: string) => {
+    if (isUserLoading) return;
     if (!user || !firestore) {
         router.push('/login?from=/books');
         return;
@@ -120,6 +121,7 @@ export default function BookMarketPage() {
   };
 
   const handleCreateClick = () => {
+    if (isUserLoading) return;
     if (!user) {
         router.push('/login?from=/books');
         return;
