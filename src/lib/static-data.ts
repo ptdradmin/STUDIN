@@ -1,3 +1,4 @@
+
 import type { Challenge } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
