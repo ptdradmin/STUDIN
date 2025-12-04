@@ -297,10 +297,7 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
 
     // Remove existing route before adding a new one
     if (routeControlRef.current) {
-        // Check if the control is actually on the map before trying to remove it
-        if (map.hasLayer(routeControlRef.current)) {
-            map.removeControl(routeControlRef.current);
-        }
+        map.removeControl(routeControlRef.current);
         routeControlRef.current = null;
     }
 
@@ -312,11 +309,13 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
         Array.isArray(selectedItem.arrivalCoordinates) && selectedItem.arrivalCoordinates.length === 2;
 
     if (shouldDrawRoute) {
+        const waypoints = [
+            L.latLng(selectedItem.coordinates[0], selectedItem.coordinates[1]),
+            L.latLng(selectedItem.arrivalCoordinates[0], selectedItem.arrivalCoordinates[1])
+        ];
+        
         const route = L.Routing.control({
-            waypoints: [
-                L.latLng(selectedItem.coordinates[0], selectedItem.coordinates[1]),
-                L.latLng(selectedItem.arrivalCoordinates[0], selectedItem.arrivalCoordinates[1])
-            ],
+            waypoints,
             routeWhileDragging: false,
             show: false, // Hides the itinerary text panel
             addWaypoints: false, // Prevents users from adding more waypoints
@@ -324,6 +323,9 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
         }).addTo(map);
 
         routeControlRef.current = route;
+        
+        const bounds = L.latLngBounds(waypoints);
+        map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [selectedItem, itemType, isMounted]);
 

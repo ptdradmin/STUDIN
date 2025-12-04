@@ -12,7 +12,7 @@ import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp, doc, runTransaction, increment } from "firebase/firestore";
+import { collection, serverTimestamp, doc, runTransaction, increment, updateDoc, writeBatch } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -150,6 +150,10 @@ export default function CarpoolingPage() {
         toast({ title: "Déjà réservé", description: "Vous avez déjà une place pour ce trajet." });
         return;
     }
+    if (trip.seatsAvailable <= 0) {
+        toast({ variant: "destructive", title: "Complet", description: "Ce trajet est malheureusement complet." });
+        return;
+    }
 
     toast({
         title: "Réservation en cours...",
@@ -159,40 +163,26 @@ export default function CarpoolingPage() {
     const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
     const bookingRef = doc(collection(firestore, `carpoolings/${trip.id}/carpool_bookings`));
     
-    try {
-        await runTransaction(firestore, async (transaction) => {
-            const carpoolingDoc = await transaction.get(carpoolingRef);
-            if (!carpoolingDoc.exists()) {
-                throw new Error("Trajet non trouvé.");
-            }
+    const batch = writeBatch(firestore);
 
-            const currentData = carpoolingDoc.data() as Trip;
+    // Update carpooling document
+    batch.update(carpoolingRef, {
+        seatsAvailable: increment(-1),
+        passengerIds: [...(trip.passengerIds || []), user.uid]
+    });
 
-            if (currentData.seatsAvailable <= 0) {
-                throw new Error("Ce trajet est complet.");
-            }
-            
-            const newSeatsAvailable = currentData.seatsAvailable - 1;
-            const newPassengerIds = [...(currentData.passengerIds || []), user.uid];
-
-            const bookingData = {
-              id: bookingRef.id,
-              carpoolId: trip.id,
-              passengerId: user.uid,
-              seatsBooked: 1,
-              status: 'confirmed',
-              createdAt: serverTimestamp()
-            };
-
-            const carpoolingUpdateData = {
-                seatsAvailable: newSeatsAvailable,
-                passengerIds: newPassengerIds
-            };
-
-            transaction.update(carpoolingRef, carpoolingUpdateData);
-            transaction.set(bookingRef, bookingData);
-        });
-
+    // Create booking document
+    const bookingData = {
+        id: bookingRef.id,
+        carpoolId: trip.id,
+        passengerId: user.uid,
+        seatsBooked: 1,
+        status: 'confirmed',
+        createdAt: serverTimestamp()
+    };
+    batch.set(bookingRef, bookingData);
+    
+    batch.commit().then(async () => {
         await createNotification(firestore, {
             type: 'carpool_booking',
             senderId: user.uid,
@@ -200,15 +190,13 @@ export default function CarpoolingPage() {
             message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
             relatedId: trip.id,
         });
-
         toast({
             title: "Réservation confirmée !",
             description: "Votre place a été réservée avec succès.",
         });
-
-    } catch (e: any) {
+    }).catch(e => {
         const permissionError = new FirestorePermissionError({
-            path: `Transaction on carpoolings/${trip.id} and its subcollection`,
+            path: `Transaction on carpoolings/${trip.id}`,
             operation: 'write', 
             requestResourceData: { 
                 action: 'reserve_seat',
@@ -218,7 +206,12 @@ export default function CarpoolingPage() {
             }
         } as SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
-    }
+         toast({
+            variant: 'destructive',
+            title: 'Erreur de réservation',
+            description: e.message || 'Une erreur est survenue.',
+        });
+    })
   };
   
   const handleSelectTrip = (trip: Trip) => {
