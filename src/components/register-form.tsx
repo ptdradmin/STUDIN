@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase, initiateEmailSignUp } from '@/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { createUserDocument } from '@/lib/user-actions';
@@ -82,43 +82,36 @@ export default function RegisterForm() {
     }
     setLoading(true);
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        unsubscribe(); // Unsubscribe to prevent being called again on profile update
-        try {
-          await createUserDocument(firestore, user, data);
-          toast({
+    try {
+        const userCredential = await initiateEmailSignUp(auth, data.email, data.password);
+        const user = userCredential.user;
+        
+        await createUserDocument(firestore, user, data);
+        
+        const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
+        await updateProfile(user, { displayName: newDisplayName });
+
+        toast({
             title: "Inscription réussie!",
             description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
-          });
-          router.push('/social');
-          router.refresh();
-        } catch (docError: any) {
-          toast({
-            variant: "destructive",
-            title: "Erreur de profil",
-            description: `Votre compte a été créé mais une erreur est survenue lors de la création de votre profil. (${docError.message})`,
-          });
-          setLoading(false);
+        });
+        router.push('/social');
+        router.refresh();
+    } catch (error: any) {
+        let description = "Impossible de créer le compte.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "Cet email est déjà utilisé. Essayez de vous connecter.";
+        } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
+            description = "Problème de connexion ou de sécurité. Veuillez réessayer."
         }
-      }
-    }, (error) => {
-      unsubscribe();
-      let description = "Impossible de créer le compte.";
-      if (error.code === 'auth/email-already-in-use') {
-          description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-      } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
-          description = "Problème de connexion ou de sécurité. Veuillez réessayer."
-      }
-      toast({
-          variant: "destructive",
-          title: "Erreur d'inscription",
-          description,
-      });
-      setLoading(false);
-    });
-
-    initiateEmailSignUp(auth, data.email, data.password);
+         toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: description,
+        });
+    } finally {
+        setLoading(false);
+    }
   };
   
   const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
