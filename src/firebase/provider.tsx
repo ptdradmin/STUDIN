@@ -17,7 +17,7 @@ interface FirebaseContextState {
   storage: FirebaseStorage | null;
   user: User | null;
   isUserLoading: boolean;
-  areServicesAvailable: boolean; // Add this line
+  areServicesAvailable: boolean;
 }
 
 // Create the context with an undefined initial value
@@ -25,23 +25,21 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(u
 
 interface FirebaseProviderProps {
   children: ReactNode;
+  firebaseApp: FirebaseApp | null;
+  auth: Auth | null;
+  firestore: Firestore | null;
+  storage: FirebaseStorage | null;
 }
 
 /**
  * Provides Firebase services and user authentication state to the app.
  * This component should wrap the root of your application.
  */
-export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
+export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, firebaseApp, auth, firestore, storage }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
-    const [areServicesAvailable, setAreServicesAvailable] = useState(false);
     
-    // Services are initialized once and memoized.
-    const { firebaseApp, auth, firestore, storage } = useMemo(() => {
-        const services = initializeFirebase();
-        setAreServicesAvailable(true); // Services are available right after initialization
-        return services;
-    }, []);
+    const areServicesAvailable = !!(firebaseApp && auth && firestore && storage);
 
     useEffect(() => {
         if (!auth) {
@@ -67,7 +65,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         storage,
         user,
         isUserLoading,
-        areServicesAvailable, // Add this line
+        areServicesAvailable,
     }), [firebaseApp, auth, firestore, storage, user, isUserLoading, areServicesAvailable]);
 
     return (
