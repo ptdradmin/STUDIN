@@ -4,6 +4,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -173,9 +174,7 @@ export default function LoginForm() {
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
         <div className="grid gap-2 text-center">
              <Link href="/" className="flex items-center gap-3 justify-center mb-4">
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                    <GraduationCap className="h-7 w-7 text-white" />
-                </div>
+                <Image src="/logo.png" alt="STUD'IN Logo" width={180} height={48} />
             </Link>
           <h1 className="text-3xl font-bold">Connexion</h1>
           <p className="text-balance text-muted-foreground">

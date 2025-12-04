@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import RegisterForm from '@/components/register-form';
 import RegisterInstitutionForm from '@/components/register-institution-form';
 import { GraduationCap } from 'lucide-react';
@@ -18,10 +19,7 @@ export default function RegisterPage() {
         <div className="container relative flex min-h-screen flex-col items-center justify-center py-10">
             <div className="absolute top-8 left-8">
                 <Link href="/" className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                        <GraduationCap className="h-6 w-6 text-white" />
-                    </div>
-                    <h1 className="text-xl font-bold">STUD'IN</h1>
+                    <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
                 </Link>
             </div>
             

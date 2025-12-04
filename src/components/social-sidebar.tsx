@@ -3,6 +3,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -105,10 +106,7 @@ export default function SocialSidebar() {
         <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
           <div className="mb-8 px-2 pt-3">
              <Link href="/social" className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center">
-                    <GraduationCap className="h-6 w-6 text-white" />
-                </div>
-                <h1 className="text-xl font-bold">STUD'IN</h1>
+                <Image src="/logo.png" alt="STUD'IN Logo" width={120} height={32} />
             </Link>
           </div>
 
@@ -165,5 +163,3 @@ export default function SocialSidebar() {
         </aside>
     )
 }
-
-    
