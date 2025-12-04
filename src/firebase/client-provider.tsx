@@ -17,14 +17,6 @@ if (!getApps().length) {
   firebaseApp = getApp();
 }
 
-// Initialize App Check immediately if on the client
-if (typeof window !== 'undefined') {
-  initializeAppCheck(firebaseApp, {
-    provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-    isTokenAutoRefreshEnabled: true,
-  });
-}
-
 const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
@@ -33,6 +25,19 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+
+    // Initialize App Check inside a useEffect to ensure it runs on the client after mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            // Prevent re-initialization
+            if (!(firebaseApp as any)._appCheck) {
+              initializeAppCheck(firebaseApp, {
+                provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                isTokenAutoRefreshEnabled: true,
+              });
+            }
+        }
+    }, []);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -54,7 +59,7 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         storage: storage,
         user,
         isUserLoading: isLoading,
-        areServicesAvailable: true, // Assume services are available immediately
+        areServicesAvailable: !isLoading,
         userError: error,
     }), [user, isLoading, error]);
 
