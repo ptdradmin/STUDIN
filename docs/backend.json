@@ -4,7 +4,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the STUD'IN platform.",
+      "description": "Represents a user of the Stud'in platform.",
       "properties": {
         "id": {
           "type": "string",
@@ -41,8 +41,7 @@
         },
         "profilePicture": {
           "type": "string",
-          "description": "URL of the user's profile picture.",
-          "format": "uri"
+          "description": "URL of the user's profile picture."
         },
         "isVerified": {
           "type": "boolean",
@@ -50,12 +49,12 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the user was created.",
+          "description": "Timestamp indicating when the user was created.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp of when the user was last updated.",
+          "description": "Timestamp indicating when the user was last updated.",
           "format": "date-time"
         }
       },
@@ -70,11 +69,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Housing",
       "type": "object",
-      "description": "Represents a housing listing on the STUD'IN platform.",
+      "description": "Represents a housing listing on the Stud'in platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the housing entity."
+          "description": "Unique identifier for the housing listing."
         },
         "userId": {
           "type": "string",
@@ -94,7 +93,7 @@
         },
         "price": {
           "type": "number",
-          "description": "Price of the housing."
+          "description": "Price of the housing per month."
         },
         "address": {
           "type": "string",
@@ -110,11 +109,11 @@
         },
         "latitude": {
           "type": "number",
-          "description": "Latitude of the housing location."
+          "description": "Latitude coordinate of the housing."
         },
         "longitude": {
           "type": "number",
-          "description": "Longitude of the housing location."
+          "description": "Longitude coordinate of the housing."
         },
         "bedrooms": {
           "type": "number",
@@ -135,14 +134,14 @@
         },
         "photos": {
           "type": "array",
-          "description": "Array of URLs to photos of the housing.",
+          "description": "Array of URLs for photos of the housing.",
           "items": {
             "type": "string"
           }
         },
         "amenities": {
           "type": "array",
-          "description": "Array of amenities offered by the housing (e.g., wifi, parking, furnished).",
+          "description": "Array of amenities available in the housing (e.g., wifi, parking, furnished).",
           "items": {
             "type": "string"
           }
@@ -161,12 +160,12 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the housing listing was created.",
+          "description": "Timestamp indicating when the housing listing was created.",
           "format": "date-time"
         },
         "updatedAt": {
           "type": "string",
-          "description": "Timestamp of when the housing listing was last updated.",
+          "description": "Timestamp indicating when the housing listing was last updated.",
           "format": "date-time"
         }
       },
@@ -184,11 +183,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Carpooling",
       "type": "object",
-      "description": "Represents a carpooling offer on the STUD'IN platform.",
+      "description": "Represents a carpooling opportunity on the Stud'in platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the carpooling entity."
+          "description": "Unique identifier for the carpooling opportunity."
         },
         "driverId": {
           "type": "string",
@@ -200,7 +199,7 @@
         },
         "departureAddress": {
           "type": "string",
-          "description": "Departure address."
+          "description": "Address of departure."
         },
         "arrivalCity": {
           "type": "string",
@@ -208,11 +207,11 @@
         },
         "arrivalAddress": {
           "type": "string",
-          "description": "Arrival address."
+          "description": "Address of arrival."
         },
         "departureTime": {
           "type": "string",
-          "description": "Departure time.",
+          "description": "Date and time of departure.",
           "format": "date-time"
         },
         "seatsAvailable": {
@@ -225,26 +224,26 @@
         },
         "description": {
           "type": "string",
-          "description": "Description of the carpooling offer."
+          "description": "Description of the carpooling opportunity."
         },
         "carModel": {
           "type": "string",
-          "description": "Car model."
+          "description": "Car model being used for carpooling."
         },
         "preferences": {
           "type": "array",
-          "description": "Array of preferences (e.g., non-smoking, music, animals).",
+          "description": "Array of preferences for the carpooling (e.g., non-smoking, music, animals).",
           "items": {
             "type": "string"
           }
         },
         "isRecurring": {
           "type": "boolean",
-          "description": "Indicates if the carpooling is recurring."
+          "description": "Indicates if the carpooling is a recurring event."
         },
         "recurringDays": {
           "type": "array",
-          "description": "Array of recurring days (e.g., Monday, Wednesday).",
+          "description": "Array of days the carpooling recurs on (e.g., monday, wednesday).",
           "items": {
             "type": "string"
           }
@@ -255,7 +254,7 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the carpooling offer was created.",
+          "description": "Timestamp indicating when the carpooling opportunity was created.",
           "format": "date-time"
         }
       },
@@ -272,11 +271,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CarpoolBooking",
       "type": "object",
-      "description": "Represents a booking for a carpooling offer.",
+      "description": "Represents a booking for a carpooling opportunity.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the carpool booking entity."
+          "description": "Unique identifier for the carpool booking."
         },
         "carpoolId": {
           "type": "string",
@@ -296,7 +295,7 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the booking was created.",
+          "description": "Timestamp indicating when the booking was created.",
           "format": "date-time"
         }
       },
@@ -310,11 +309,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Tutoring",
       "type": "object",
-      "description": "Represents a tutoring offer on the STUD'IN platform.",
+      "description": "Represents a tutoring service offered on the Stud'in platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the tutoring entity."
+          "description": "Unique identifier for the tutoring service."
         },
         "tutorId": {
           "type": "string",
@@ -322,7 +321,7 @@
         },
         "subject": {
           "type": "string",
-          "description": "Subject of tutoring."
+          "description": "Subject being tutored."
         },
         "level": {
           "type": "string",
@@ -330,26 +329,26 @@
         },
         "description": {
           "type": "string",
-          "description": "Description of the tutoring offer."
+          "description": "Description of the tutoring service."
         },
         "pricePerHour": {
           "type": "number",
-          "description": "Price per hour for tutoring."
+          "description": "Price per hour for the tutoring service."
         },
         "locationType": {
           "type": "string",
-          "description": "Type of location (e.g., online, in-person, both)."
+          "description": "Type of location for tutoring (e.g., online, in-person, both)."
         },
         "availableLocations": {
           "type": "array",
-          "description": "Array of available locations (cities or campuses).",
+          "description": "Array of available locations for tutoring (cities or campuses).",
           "items": {
             "type": "string"
           }
         },
         "availability": {
           "type": "string",
-          "description": "Availability of the tutor (e.g., JSON format)."
+          "description": "Availability schedule for the tutor (JSON format)."
         },
         "rating": {
           "type": "number",
@@ -361,18 +360,18 @@
         },
         "qualifications": {
           "type": "array",
-          "description": "Array of qualifications of the tutor.",
+          "description": "Array of tutor's qualifications.",
           "items": {
             "type": "string"
           }
         },
         "isAvailable": {
           "type": "boolean",
-          "description": "Indicates if the tutor is currently available."
+          "description": "Indicates if the tutoring service is currently available."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the tutoring offer was created.",
+          "description": "Timestamp indicating when the tutoring service was created.",
           "format": "date-time"
         }
       },
@@ -387,11 +386,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "TutoringReview",
       "type": "object",
-      "description": "Represents a review for a tutoring offer.",
+      "description": "Represents a review for a tutoring service.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the tutoring review entity."
+          "description": "Unique identifier for the tutoring review."
         },
         "tutoringId": {
           "type": "string",
@@ -411,7 +410,7 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the review was created.",
+          "description": "Timestamp indicating when the review was created.",
           "format": "date-time"
         }
       },
@@ -426,11 +425,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Event",
       "type": "object",
-      "description": "Represents an event on the STUD'IN platform.",
+      "description": "Represents an event listed on the Stud'in platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the event entity."
+          "description": "Unique identifier for the event."
         },
         "organizerId": {
           "type": "string",
@@ -450,12 +449,12 @@
         },
         "startDate": {
           "type": "string",
-          "description": "Start date and time of the event.",
+          "description": "Date and time when the event starts.",
           "format": "date-time"
         },
         "endDate": {
           "type": "string",
-          "description": "End date and time of the event.",
+          "description": "Date and time when the event ends.",
           "format": "date-time"
         },
         "locationName": {
@@ -472,28 +471,27 @@
         },
         "latitude": {
           "type": "number",
-          "description": "Latitude of the event location."
+          "description": "Latitude coordinate of the event location."
         },
         "longitude": {
           "type": "number",
-          "description": "Longitude of the event location."
+          "description": "Longitude coordinate of the event location."
         },
         "price": {
           "type": "number",
-          "description": "Price of the event."
+          "description": "Price of attending the event."
         },
         "maxAttendees": {
           "type": "number",
-          "description": "Maximum number of attendees for the event."
+          "description": "Maximum number of attendees allowed."
         },
         "currentAttendees": {
           "type": "number",
-          "description": "Current number of attendees for the event."
+          "description": "Current number of attendees."
         },
         "imageUrl": {
           "type": "string",
-          "description": "URL of the event image.",
-          "format": "uri"
+          "description": "URL of the event image."
         },
         "university": {
           "type": "string",
@@ -512,7 +510,7 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the event was created.",
+          "description": "Timestamp indicating when the event was created.",
           "format": "date-time"
         }
       },
@@ -531,7 +529,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the event attendee entity."
+          "description": "Unique identifier for the event attendee record."
         },
         "eventId": {
           "type": "string",
@@ -543,11 +541,11 @@
         },
         "status": {
           "type": "string",
-          "description": "Status of attendance (e.g., attending, maybe, not_attending)."
+          "description": "Status of the user's attendance (e.g., attending, maybe, not_attending)."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the attendance was recorded.",
+          "description": "Timestamp indicating when the attendee record was created.",
           "format": "date-time"
         }
       },
@@ -561,19 +559,19 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Message",
       "type": "object",
-      "description": "Represents a message between two users.",
+      "description": "Represents a message sent between users on the Stud'in platform.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the message entity."
+          "description": "Unique identifier for the message."
         },
         "senderId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Message). ID of the user sending the message."
+          "description": "Reference to User. (Relationship: User 1:N Message (sender))"
         },
         "receiverId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Message). ID of the user receiving the message."
+          "description": "Reference to User. (Relationship: User 1:N Message (receiver))"
         },
         "content": {
           "type": "string",
@@ -585,7 +583,7 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the message was sent.",
+          "description": "Timestamp indicating when the message was created.",
           "format": "date-time"
         }
       },
@@ -604,7 +602,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the favorite entity."
+          "description": "Unique identifier for the favorite record."
         },
         "userId": {
           "type": "string",
@@ -612,15 +610,15 @@
         },
         "itemType": {
           "type": "string",
-          "description": "Type of item favorited (e.g., housing, tutoring, event)."
+          "description": "Type of the favorited item (e.g., housing, tutoring, event)."
         },
         "itemId": {
           "type": "string",
-          "description": "ID of the item favorited."
+          "description": "ID of the favorited item."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the item was favorited.",
+          "description": "Timestamp indicating when the favorite record was created.",
           "format": "date-time"
         }
       },
@@ -630,13 +628,47 @@
         "itemType",
         "itemId"
       ]
+    },
+    "OAuthProvider": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OAuthProvider",
+      "type": "object",
+      "description": "Represents an external OAuth authentication provider linked to a user account.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the OAuth provider link."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N OAuthProvider)"
+        },
+        "provider": {
+          "type": "string",
+          "description": "Name of the OAuth provider (e.g., 'google', 'facebook')."
+        },
+        "providerId": {
+          "type": "string",
+          "description": "Unique identifier for the user within the OAuth provider."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the OAuth provider link was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "provider",
+        "providerId"
+      ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous",
-      "google.com"
+      "anonymous"
     ]
   },
   "firestore": {
@@ -648,71 +680,107 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles.  Authorization is based on the 'userId' path parameter.",
+          "description": "Stores user profiles. Only the user can read/write their own profile.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
+              "description": "The unique identifier for the user."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/housing/{housingId}",
+        "path": "/users/{userId}/housings/{housingId}",
         "definition": {
           "entityName": "Housing",
           "schema": {
             "$ref": "#/backend/entities/Housing"
           },
-          "description": "Stores housing listings created by a user. Authorization is based on the 'userId' path parameter, ensuring only the user can manage their listings.",
+          "description": "Stores housing listings created by the user. Only the user can manage their own listings.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user who created the housing listing."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "housingId",
-              "description": "The unique identifier for the housing entity."
+              "description": "The unique identifier for the housing listing."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/carpooling/{carpoolingId}",
+        "path": "/users/{userId}/carpoolings/{carpoolingId}",
         "definition": {
           "entityName": "Carpooling",
           "schema": {
             "$ref": "#/backend/entities/Carpooling"
           },
-          "description": "Stores carpooling offers created by a user.  Authorization is based on the 'userId' path parameter, ensuring only the user can manage their carpooling offers.",
+          "description": "Stores carpooling opportunities created by the user. Only the user can manage their own carpooling listings.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user who created the carpooling offer."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "carpoolingId",
-              "description": "The unique identifier for the carpooling entity."
+              "description": "The unique identifier for the carpooling listing."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/tutoring/{tutoringId}",
+        "path": "/users/{userId}/carpoolBookings/{carpoolBookingId}",
+        "definition": {
+          "entityName": "CarpoolBooking",
+          "schema": {
+            "$ref": "#/backend/entities/CarpoolBooking"
+          },
+          "description": "Stores carpool bookings created by the user. Only the user can manage their own carpool bookings.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "carpoolBookingId",
+              "description": "The unique identifier for the carpool booking."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tutorings/{tutoringId}",
         "definition": {
           "entityName": "Tutoring",
           "schema": {
             "$ref": "#/backend/entities/Tutoring"
           },
-          "description": "Stores tutoring offers created by a user. Authorization is based on the 'userId' path parameter, ensuring only the user can manage their tutoring offers.",
+          "description": "Stores tutoring services offered by the user. Only the user can manage their own tutoring services.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user who created the tutoring offer."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "tutoringId",
-              "description": "The unique identifier for the tutoring entity."
+              "description": "The unique identifier for the tutoring service."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tutoringsReviews/{tutoringReviewId}",
+        "definition": {
+          "entityName": "TutoringReview",
+          "schema": {
+            "$ref": "#/backend/entities/TutoringReview"
+          },
+          "description": "Stores reviews for tutoring services. Any authenticated user can write a review for a tutoring service.",
+          "params": [
+            {
+              "name": "tutoringReviewId",
+              "description": "The unique identifier for the tutoring review."
             }
           ]
         }
@@ -724,35 +792,31 @@
           "schema": {
             "$ref": "#/backend/entities/Event"
           },
-          "description": "Stores events created by a user. Authorization is based on the 'userId' path parameter, ensuring only the user can manage their events.",
+          "description": "Stores events created by the user. Only the user can manage their own events.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user who created the event."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "eventId",
-              "description": "The unique identifier for the event entity."
+              "description": "The unique identifier for the event."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/eventAttendees/{eventAttendeeId}",
+        "path": "/eventsAttendees/{eventAttendeeId}",
         "definition": {
           "entityName": "EventAttendee",
           "schema": {
             "$ref": "#/backend/entities/EventAttendee"
           },
-          "description": "Stores event attendance records for a user. Authorization is based on the 'userId' path parameter, ensuring only the user can manage their event attendance records.",
+          "description": "Stores events attended by a given user. ",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier of the user who is attending the event."
-            },
-            {
               "name": "eventAttendeeId",
-              "description": "The unique identifier for the event attendee entity."
+              "description": "The unique identifier for the event attendee."
             }
           ]
         }
@@ -764,36 +828,48 @@
           "schema": {
             "$ref": "#/backend/entities/Message"
           },
-          "description": "Stores messages between users. Security rules will enforce that either senderId or receiverId must match request.auth.uid.",
+          "description": "Stores messages between users. Any authenticated user can read his messages.",
           "params": [
             {
               "name": "messageId",
-              "description": "The unique identifier for the message entity."
+              "description": "The unique identifier for the message."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/favorites/{favoriteId}",
+        "path": "/favorites/{favoriteId}",
         "definition": {
           "entityName": "Favorite",
           "schema": {
             "$ref": "#/backend/entities/Favorite"
           },
-          "description": "Stores a user's favorite items (housing, tutoring, event). Authorization is based on the 'userId' path parameter, ensuring only the user can manage their favorites.",
+          "description": "Stores a user's favorite items (housing, tutoring, event). Only the user can manage their own favorites.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier of the user who created the favorite."
-            },
-            {
               "name": "favoriteId",
-              "description": "The unique identifier for the favorite entity."
+              "description": "The unique identifier for the favorite item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/oauthProviders/{oAuthProviderId}",
+        "definition": {
+          "entityName": "OAuthProvider",
+          "schema": {
+            "$ref": "#/backend/entities/OAuthProvider"
+          },
+          "description": "Stores OAuth provider details for user authentication. Only the user can manage their own OAuth providers.",
+          "params": [
+            {
+              "name": "oAuthProviderId",
+              "description": "The unique identifier for the OAuth provider."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to ensure security, scalability, and ease of debugging, adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). It leverages denormalization for authorization independence, structural segregation for homogeneous security postures, and consistent access modeling.\n\nAuthorization Independence is achieved by denormalizing authorization-related data directly into the documents where it's needed. For instance, the `Housing` documents are stored within the user's document (`/users/{userId}/housing/{housingId}`), making it easy to verify ownership and permissions without needing to perform expensive `get()` calls to parent documents.\n\nStructural Segregation is applied by storing user-owned data (housing, carpooling offers, tutoring offers, events, favorites) as subcollections of the user document (`/users/{userId}/housing`, `/users/{userId}/carpooling`, etc.). This ensures that all documents within a collection have the same security requirements, simplifying security rules and avoiding the need for complex logic to differentiate access.\n\nAccess Modeling follows consistent patterns: User-owned data uses hierarchical paths, collaborative data (if any) would use Membership Maps, and global roles (if any) would use dedicated collections. The current schema focuses on user-owned data, which is best represented through hierarchical paths.  Messages are stored in a top-level collection `/messages` because they represent communication between users, and security is enforced based on the `senderId` and `receiverId` fields.\n\nQAPs (Rules are not Filters) are supported through structural segregation. Listing operations can be secured by scoping queries to a user's subcollections or by using equality checks on denormalized fields."
+    "reasoning": "The Firestore data structure is designed to ensure security, scalability, and ease of debugging, adhering to the principles of Authorization Independence and Structural Segregation.\n\n*   **Authorization Independence:** Authorization data is denormalized to avoid `get()` calls in security rules. For example, `Housing`, `Carpooling`, `Tutoring`, and `Event` documents are stored under the respective user's document (`/users/{userId}`).\n*   **Structural Segregation:** Each collection contains documents with similar access requirements. User profiles are stored under `/users/{userId}`, ensuring that only the user can access their data. Public events are stored in the `/events` collection.\n*   **QAPs (Rules Are Not Filters):** The structure supports secure `list` operations by segregating data based on ownership and access control requirements. Path-based ownership (e.g., `/users/{userId}/housings/{housingId}`) allows for efficient and secure listing of user-owned resources.\n\nThis design facilitates simple, robust, and easily debuggable security rules, avoiding complex hierarchical dependencies and ensuring data integrity."
   }
 }

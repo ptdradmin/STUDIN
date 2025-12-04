@@ -1,43 +1,37 @@
 /**
- * Core Philosophy: This ruleset enforces a strict user-ownership model for all
- * write operations. A user can only create, update, or delete their own data.
- * Publicly browsable content (like housing, carpooling, tutoring, and events)
- * is publicly readable to allow for discovery, while personal data (like user
- * profiles, favorites, and event attendance) is kept private.
+ * Core Philosophy: This ruleset enforces a strict user-ownership model. The vast
+ * majority of data is nested within a user's private data tree, ensuring that users
+ * can only access and manage their own information.
  *
- * Data Structure: The data is organized hierarchically. Most data is stored in
- * subcollections under the `/users/{userId}` path. This structure inherently
- * links data to its owner, simplifying security rules. A top-level `/messages`
- * collection is used for direct messages, with security based on internal fields.
+ * Data Structure: The primary data organization is /users/{userId}/{subcollection},
+ * which structurally isolates each user's data. Several top-level collections exist
+ * for public or shared data, such as /tutoringsReviews (public reads) and /messages
+ * (shared between participants).
  *
  * Key Security Decisions:
- * - User Profile (`/users/{userId}`): A user can only manage their own profile.
- *   Profiles can be read by any signed-in user to facilitate interaction (e.g.,
- *   viewing a housing lister's profile), but user enumeration via `list` is disabled.
- * - Public Listings (`housing`, `carpooling`, `tutoring`, `events`): These
- *   collections are publicly readable (`get`, `list`) to allow any user or
- *   visitor to browse them. However, write access (`create`, `update`, `delete`)
- *   is strictly limited to the user who owns the data. This is enforced using
- *   the `userId` in the path.
- * - Private User Data (`favorites`, `eventAttendees`): These subcollections
- *   are considered private. Both read and write access are restricted to the
- *   data owner.
- * - Messages (`/messages`): Messages are private and can only be read by the
- *   sender or receiver. They are immutable; updates and deletes are disallowed.
- *   Listing the entire `messages` collection is disabled for security and
- *   performance reasons.
+ * - Default Deny: All paths are closed by default. Access is only granted explicitly.
+ * - Strict Ownership: For all data under /users/{userId}, only the authenticated
+ *   user matching {userId} has any access. This includes their own profile, which
+ *   is not publicly readable by other users as per the IR's description.
+ * - No Public User Listing: Listing documents in the top-level `/users` collection is
+ *   disabled to protect user privacy.
+ * - Secure Queries: List operations on top-level collections containing private data
+ *   (e.g., /favorites, /messages) are disabled. The data structure does not support
+ *   a secure rule to guarantee users can only query their own documents. The
+ *   recommended pattern for this data is to place it in a user-specific subcollection
+ *   (e.g., /users/{userId}/favorites).
  *
- * Denormalization for Authorization: Authorization relies on path-based security
- * (e.g., `isOwner(userId)` checks the path) and denormalized ownership fields
- * within documents (e.g., `resource.data.organizerId`). For user-owned
- * subcollections, we validate on creation that the internal ownership ID (e.g.,
- * `userId`, `tutorId`) matches the `userId` from the path, ensuring relational
- * integrity.
+ * Denormalization for Authorization: This ruleset relies on denormalized owner IDs
+ * (e.g., `userId`, `driverId`, `organizerId`) on documents to perform fast and secure
+ * authorization checks without needing costly `get()` calls to other documents.
+ * For example, a rule on `/eventsAttendees/{id}` can directly check the `userId` field
+ * on the document itself.
  *
- * Structural Segregation: User-specific data is segregated into distinct
- * subcollections under `/users/{userId}`. This creates homogenous security
- * boundaries, where all documents in a collection share the same access control
- * rules, making the ruleset simpler and more secure.
+ * Structural Segregation: User-private data (e.g., `housings`, `events`) is stored
+ * in subcollections under `/users/{userId}`. This separation is more secure and
+ * performant than using a single collection with a boolean flag, especially for list
+ * operations. Publicly readable data like `/tutoringsReviews` is kept in a separate
+ * top-level collection.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -48,216 +42,229 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
 
     /**
-     * Returns true if the user is signed in.
+     * Checks if a user is authenticated.
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /**
-     * Returns true if the requesting user's UID matches the provided userId.
-     * This is the primary function for checking document ownership.
+     * Checks if the currently authenticated user is the owner of a document
+     * based on the provided userId.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
+    
     /**
-     * Returns true if the user is the owner and the document already exists.
-     * Used for safe update and delete operations.
+     * For state-changing operations (update, delete), ensures the document
+     * already exists and the user is the owner.
      */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
     /**
-     * Validates that the owner ID field in a new document matches the owner's UID.
-     * Enforces relational integrity on create.
-     * @param data The incoming request resource data.
-     * @param ownerField The name of the field containing the owner's UID (e.g., 'userId', 'driverId').
+     * On create, validates that an ownership field in the new document data
+     * matches the authenticated user's ID.
      */
-    function isCorrectOwnerOnCreate(data, ownerField) {
-        return data[ownerField] == request.auth.uid;
+    function incomingDataIsOwnedBy(ownerField) {
+      return request.resource.data[ownerField] == request.auth.uid;
+    }
+    
+    /**
+     * On create, validates that an ownership field in the new document data
+     * matches the userId from the document path.
+     */
+    function incomingDataMatchesUserPath(userId, ownerField) {
+      return request.resource.data[ownerField] == userId;
     }
 
     /**
-     * Validates that an owner ID field has not been changed during an update.
-     * Enforces immutability of ownership.
-     * @param ownerField The name of the field containing the owner's UID.
+     * On update, ensures that a critical ownership or relational ID field
+     * cannot be changed.
      */
-    function isOwnerFieldImmutable(ownerField) {
-        return request.resource.data[ownerField] == resource.data[ownerField];
+    function isFieldImmutable(fieldName) {
+      return request.resource.data[fieldName] == resource.data[fieldName];
     }
 
     // -------------------------------------------------------------------------
-    // User Profiles (/users/{userId})
+    // User Data
     // -------------------------------------------------------------------------
 
     /**
-     * @description Manages user profiles. A user can create, update, and delete
-     *   their own profile. Any signed-in user can view a profile, but listing
-     *   all users is disallowed to prevent user enumeration.
-     * @path /users/{userId}
-     * @allow (get) Any signed-in user viewing another user's profile.
-     * @allow (create) A new user signing up and creating their own profile document. `auth.uid` must match `{userId}`.
-     * @deny (list) An anonymous or signed-in user trying to list all users.
-     * @deny (update) A user trying to modify another user's profile.
-     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     * @description Stores user profile data. A user can create their own profile,
+     *              and can only read or write their own document afterwards.
+     * @path        /users/{userId}
+     * @allow       (create) A new user creates their own profile document: `/users/user123` where auth.uid is `user123`.
+     * @deny        (get) A different user tries to read a profile: `/users/user456` where auth.uid is `user123`.
+     * @principle   Enforces strict self-access for a user's own profile document.
      */
     match /users/{userId} {
-      allow get: if isSignedIn();
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'id');
-      allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('id');
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && isFieldImmutable('id');
       allow delete: if isExistingOwner(userId);
 
-      // -----------------------------------------------------------------------
-      // Housing Listings (/users/{userId}/housing/{housingId})
-      // -----------------------------------------------------------------------
-
       /**
-       * @description Manages housing listings. Listings are public to read for
-       *   all users to allow browsing. Only the user who created the listing
-       *   can create, update, or delete it.
-       * @path /users/{userId}/housing/{housingId}
-       * @allow (get, list) Any user, signed-in or not, viewing housing listings.
-       * @allow (create) A signed-in user creating a new housing listing under their own user ID.
-       * @deny (update) A user trying to modify a housing listing they do not own.
-       * @principle Enforces public read access with strict document ownership for writes.
+       * @description A user's housing listings. Only the owner can manage them.
+       * @path        /users/{userId}/housings/{housingId}
+       * @allow       (create) User `user123` creates a new housing listing under their own path.
+       * @deny        (list) User `user456` tries to list housings for `user123`.
+       * @principle   Restricts access to a user's own data tree (Ownership).
        */
-      match /housing/{housingId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'userId');
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('userId');
+      match /housings/{housingId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && incomingDataMatchesUserPath(userId, 'userId');
+        allow update: if isExistingOwner(userId) && isFieldImmutable('userId');
         allow delete: if isExistingOwner(userId);
       }
 
-      // -----------------------------------------------------------------------
-      // Carpooling Offers (/users/{userId}/carpooling/{carpoolingId})
-      // -----------------------------------------------------------------------
-
       /**
-       * @description Manages carpooling offers. Offers are public to read for
-       *   all users. Only the driver (owner) can create, update, or delete their offers.
-       * @path /users/{userId}/carpooling/{carpoolingId}
-       * @allow (get, list) Any user browsing available carpooling trips.
-       * @allow (create) A signed-in user (driver) posting a new trip under their own ID.
-       * @deny (delete) A user trying to cancel a trip they are not the driver of.
-       * @principle Enforces public read access with strict document ownership for writes.
+       * @description A user's carpooling offers. Only the owner can manage them.
+       * @path        /users/{userId}/carpoolings/{carpoolingId}
+       * @allow       (get) User `user123` reads one of their carpooling offers.
+       * @deny        (delete) User `user456` tries to delete a carpooling offer from `user123`.
+       * @principle   Restricts access to a user's own data tree (Ownership).
        */
-      match /carpooling/{carpoolingId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'driverId');
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('driverId');
+      match /carpoolings/{carpoolingId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && incomingDataMatchesUserPath(userId, 'driverId');
+        allow update: if isExistingOwner(userId) && isFieldImmutable('driverId');
         allow delete: if isExistingOwner(userId);
       }
 
-      // -----------------------------------------------------------------------
-      // Tutoring Offers (/users/{userId}/tutoring/{tutoringId})
-      // -----------------------------------------------------------------------
-
       /**
-       * @description Manages tutoring offers. Offers are public to read for
-       *   all users. Only the tutor (owner) can create, update, or delete their offers.
-       * @path /users/{userId}/tutoring/{tutoringId}
-       * @allow (get, list) Any user browsing available tutors.
-       * @allow (create) A signed-in tutor creating a new offer under their own ID.
-       * @deny (update) A user trying to change the details of another tutor's offer.
-       * @principle Enforces public read access with strict document ownership for writes.
+       * @description A user's carpool bookings. Only the owner can manage them.
+       * @path        /users/{userId}/carpoolBookings/{carpoolBookingId}
+       * @allow       (create) User `user123` books a carpool, creating a booking record for themselves.
+       * @deny        (update) User `user456` tries to update a booking made by `user123`.
+       * @principle   Restricts access to a user's own data tree (Ownership).
        */
-      match /tutoring/{tutoringId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'tutorId');
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('tutorId');
+      match /carpoolBookings/{carpoolBookingId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && incomingDataMatchesUserPath(userId, 'passengerId');
+        allow update: if isExistingOwner(userId) && isFieldImmutable('passengerId');
         allow delete: if isExistingOwner(userId);
       }
 
-      // -----------------------------------------------------------------------
-      // Events (/users/{userId}/events/{eventId})
-      // -----------------------------------------------------------------------
+      /**
+       * @description A user's tutoring services. Only the owner can manage them.
+       * @path        /users/{userId}/tutorings/{tutoringId}
+       * @allow       (list) User `user123` lists all tutoring services they offer.
+       * @deny        (create) User `user456` tries to create a tutoring service under `user123`'s path.
+       * @principle   Restricts access to a user's own data tree (Ownership).
+       */
+      match /tutorings/{tutoringId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && incomingDataMatchesUserPath(userId, 'tutorId');
+        allow update: if isExistingOwner(userId) && isFieldImmutable('tutorId');
+        allow delete: if isExistingOwner(userId);
+      }
 
       /**
-       * @description Manages user-created events. Events are public to read for
-       *   all users. Only the event organizer (owner) can create, update, or delete their events.
-       * @path /users/{userId}/events/{eventId}
-       * @allow (get, list) Any user browsing upcoming events.
-       * @allow (create) A signed-in user creating a new event under their own ID.
-       * @deny (update) A user trying to modify an event they did not organize.
-       * @principle Enforces public read access with strict document ownership for writes.
+       * @description A user's created events. Only the owner can manage them.
+       * @path        /users/{userId}/events/{eventId}
+       * @allow       (update) User `user123` updates an event they organized.
+       * @deny        (get) User `user456` tries to read event data directly from `user123`'s private collection.
+       * @principle   Restricts access to a user's own data tree (Ownership).
        */
       match /events/{eventId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'organizerId');
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('organizerId');
-        allow delete: if isExistingOwner(userId);
-      }
-
-      // -----------------------------------------------------------------------
-      // Event Attendees (/users/{userId}/eventAttendees/{eventAttendeeId})
-      // -----------------------------------------------------------------------
-
-      /**
-       * @description Manages a user's attendance status for events. This data is
-       *   private and can only be accessed by the user themselves.
-       * @path /users/{userId}/eventAttendees/{eventAttendeeId}
-       * @allow (get, list, create) A signed-in user viewing or managing their own event attendance.
-       * @deny (get) A user trying to see if another user is attending an event.
-       * @principle Restricts access to a user's own private data.
-       */
-      match /eventAttendees/{eventAttendeeId} {
         allow get: if isOwner(userId);
         allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'userId');
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('userId');
-        allow delete: if isExistingOwner(userId);
-      }
-
-      // -----------------------------------------------------------------------
-      // Favorites (/users/{userId}/favorites/{favoriteId})
-      // -----------------------------------------------------------------------
-
-      /**
-       * @description Manages a user's list of favorite items. This data is
-       *   private and can only be accessed by the user themselves.
-       * @path /users/{userId}/favorites/{favoriteId}
-       * @allow (get, list, create, delete) A signed-in user managing their own list of favorites.
-       * @deny (get) A user trying to view another user's favorites.
-       * @principle Restricts access to a user's own private data.
-       */
-      match /favorites/{favoriteId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && isCorrectOwnerOnCreate(request.resource.data, 'userId');
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable('userId');
+        allow create: if isOwner(userId) && incomingDataMatchesUserPath(userId, 'organizerId');
+        allow update: if isExistingOwner(userId) && isFieldImmutable('organizerId');
         allow delete: if isExistingOwner(userId);
       }
     }
-
+    
     // -------------------------------------------------------------------------
-    // Messages (/messages/{messageId})
+    // Top-Level Collections
     // -------------------------------------------------------------------------
-
+    
     /**
-     * @description Manages direct messages between users. A message can only be
-     *   read by its sender or receiver. Only the sender can create a message.
-     *   Messages are immutable (no updates or deletes). Listing is disabled.
-     * @path /messages/{messageId}
-     * @allow (get) The sender or receiver of the message reading it.
-     * @allow (create) The sender creating a new message.
-     * @deny (get) A third-party user trying to read a private conversation.
-     * @deny (list) Any user trying to list all messages in the database.
-     * @principle Enforces access control for data shared between specific users.
+     * @description Stores reviews for tutoring services. Reads are public, but
+     *              only the authenticated author can create, update, or delete their own review.
+     * @path        /tutoringsReviews/{tutoringReviewId}
+     * @allow       (create) Any authenticated user creates a review, setting `studentId` to their own UID.
+     * @deny        (update) User `user456` tries to change a review written by `user123`.
+     * @principle   Public read access, but writes are restricted to the document owner (`studentId`).
+     */
+    match /tutoringsReviews/{tutoringReviewId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && incomingDataIsOwnedBy('studentId');
+      allow update: if isExistingOwner(resource.data.studentId) && isFieldImmutable('studentId');
+      allow delete: if isExistingOwner(resource.data.studentId);
+    }
+    
+    /**
+     * @description Stores records of users attending events. Reads are public, but
+     *              only the user themselves can create or delete their attendance record.
+     * @path        /eventsAttendees/{eventAttendeeId}
+     * @allow       (create) User `user123` creates an attendance record with `userId` set to their own UID.
+     * @deny        (delete) User `user456` tries to remove `user123` from an event's attendee list.
+     * @principle   Public read access, but writes are restricted to the document owner (`userId`).
+     */
+    match /eventsAttendees/{eventAttendeeId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && incomingDataIsOwnedBy('userId');
+      allow update: if isExistingOwner(resource.data.userId) && isFieldImmutable('userId');
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+    
+    /**
+     * @description Stores private messages. Only the sender or receiver can read a message.
+     *              Only the sender can create, update or delete it. Listing is disallowed for security.
+     * @path        /messages/{messageId}
+     * @allow       (get) User `user456` (the receiver) reads a message sent by `user123`.
+     * @deny        (list) Any user tries to list all messages in the collection.
+     * @principle   Restricts access to participants of a conversation.
      */
     match /messages/{messageId} {
-      allow get: if isSignedIn() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId);
+      allow get: if isSignedIn() && resource != null && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId);
+      allow list: if false; // List is denied for security; client should query based on senderId or receiverId.
+      allow create: if isSignedIn() && incomingDataIsOwnedBy('senderId');
+      allow update: if isExistingOwner(resource.data.senderId) && isFieldImmutable('senderId') && isFieldImmutable('receiverId');
+      allow delete: if isExistingOwner(resource.data.senderId);
+    }
+    
+    /**
+     * @description Stores a user's favorite items. This is private data; only the
+     *              user can manage and view their own favorites.
+     * @path        /favorites/{favoriteId}
+     * @allow       (create) User `user123` creates a new favorite, setting `userId` to their own UID.
+     * @deny        (get) User `user456` tries to read one of `user123`'s favorites.
+     * @principle   Enforces strict document ownership for all operations on sensitive user data.
+     */
+    match /favorites/{favoriteId} {
+      allow get: if isExistingOwner(resource.data.userId);
+      allow list: if false; // List is denied. This structure is not secure for list queries. Use a user subcollection instead.
+      allow create: if isSignedIn() && incomingDataIsOwnedBy('userId');
+      allow update: if isExistingOwner(resource.data.userId) && isFieldImmutable('userId');
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    /**
+     * @description Stores OAuth provider links for user accounts. This is highly sensitive
+     *              and strictly limited to the user who owns the link.
+     * @path        /oauthProviders/{oAuthProviderId}
+     * @allow       (create) User `user123` links their Google account, creating a provider document owned by them.
+     * @deny        (list) Any user tries to list all OAuth provider links in the system.
+     * @principle   Enforces strict ownership for sensitive authentication data.
+     */
+    match /oauthProviders/{oAuthProviderId} {
+      allow get: if isExistingOwner(resource.data.userId);
       allow list: if false;
-      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-      allow update: if false;
-      allow delete: if false;
+      allow create: if isSignedIn() && incomingDataIsOwnedBy('userId');
+      allow update: if isExistingOwner(resource.data.userId) && isFieldImmutable('userId');
+      allow delete: if isExistingOwner(resource.data.userId);
     }
   }
 }
