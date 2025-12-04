@@ -1,14 +1,11 @@
 
 'use client';
-import { LanguageProvider } from '@/contexts/language-context';
 import FirebaseClientProvider from '@/firebase/client-provider';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <LanguageProvider>
-            <FirebaseClientProvider>
-                {children}
-            </FirebaseClientProvider>
-        </LanguageProvider>
+        <FirebaseClientProvider>
+            {children}
+        </FirebaseClientProvider>
     );
 }
