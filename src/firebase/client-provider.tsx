@@ -18,7 +18,6 @@ if (!getApps().length) {
   firebaseApp = getApp();
 }
 
-// Initialize services immediately
 const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
@@ -26,25 +25,42 @@ const storage = getStorage(firebaseApp);
 export default function FirebaseClientProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
+    const [isAppCheckReady, setIsAppCheckReady] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        // Initialize App Check inside useEffect to ensure it runs on the client.
+        // This effect handles App Check initialization.
+        // It polls until the reCAPTCHA script is ready.
         if (typeof window !== 'undefined') {
-            try {
-                // Ensure grecaptcha is ready before initializing App Check
-                if ((window as any).grecaptcha && !(firebaseApp as any)._appCheck) {
-                  initializeAppCheck(firebaseApp, {
-                    provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                    isTokenAutoRefreshEnabled: true,
-                  });
-                }
-            } catch (e) {
-                console.error("App Check initialization error:", e);
-                setError(e as Error);
+            if ((firebaseApp as any)._appCheck) {
+                setIsAppCheckReady(true);
+                return;
             }
-        }
 
+            const intervalId = setInterval(() => {
+                // Check if grecaptcha.ready is available
+                if ((window as any).grecaptcha?.ready) {
+                    clearInterval(intervalId);
+                    try {
+                        initializeAppCheck(firebaseApp, {
+                            provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                            isTokenAutoRefreshEnabled: true,
+                        });
+                        setIsAppCheckReady(true);
+                    } catch (e) {
+                        console.error("App Check initialization error:", e);
+                        setError(e as Error);
+                        setIsAppCheckReady(true); // Proceed even if App Check fails
+                    }
+                }
+            }, 100); // Check every 100ms
+
+            return () => clearInterval(intervalId); // Cleanup interval on unmount
+        }
+    }, []);
+
+    useEffect(() => {
+        // This effect handles user authentication state.
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsUserLoading(false);
@@ -63,12 +79,13 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         firestore: firestore,
         storage: storage,
         user,
-        isUserLoading: isUserLoading,
-        areServicesAvailable: !isUserLoading,
+        isUserLoading: isUserLoading || !isAppCheckReady,
+        areServicesAvailable: !isUserLoading && isAppCheckReady,
         userError: error,
-    }), [user, isUserLoading, error]);
-
-    if (isUserLoading) {
+    }), [user, isUserLoading, isAppCheckReady, error]);
+    
+    // Show a loading skeleton until both user and App Check are ready
+    if (isUserLoading || !isAppCheckReady) {
         return <PageSkeleton />;
     }
 
