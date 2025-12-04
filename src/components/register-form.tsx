@@ -76,17 +76,19 @@ export default function RegisterForm() {
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
-    if (!auth || !firestore) {
-        toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
+    setLoading(true);
+    
+    // Ensure services are available before proceeding
+    if (!auth || !firestore || !areServicesAvailable) {
+        toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez réessayer." });
+        setLoading(false);
         return;
     }
-    setLoading(true);
 
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
         
-        // This now happens immediately after user creation.
         await createUserDocument(firestore, user, data);
         
         const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
