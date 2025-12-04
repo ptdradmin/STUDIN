@@ -108,7 +108,7 @@ export default function LoginForm() {
   const handleSuccess = async (user: User) => {
       toast({
         title: "Connexion réussie",
-        description: "Bienvenue sur STUD'IN!",
+        description: `Bienvenue, ${user.displayName || user.email} !`,
       });
 
       if (firestore) {
@@ -221,7 +221,7 @@ export default function LoginForm() {
            <div className='grid grid-cols-1 gap-4'>
                 <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
                     <GoogleIcon className="mr-2 h-4 w-4" />
-                    Google
+                    Se connecter avec Google
                 </Button>
            </div>
           <div className="relative">

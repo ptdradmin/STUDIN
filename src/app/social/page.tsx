@@ -68,7 +68,7 @@ export default function SocialPage() {
     const isLoading = postsLoading || favoritesLoading;
 
     return (
-       <div className="flex h-screen w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500">
+       <div className="flex h-screen w-full bg-background">
         <SocialSidebar />
         
         <div className="flex flex-col flex-1 h-screen">
@@ -90,7 +90,7 @@ export default function SocialPage() {
           
           <div className="flex-1 overflow-hidden">
             <div className="h-full overflow-y-auto pb-16 md:pb-0">
-               <div className="container mx-auto max-w-5xl py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12">
+               <div className="container mx-auto max-w-lg py-6 grid grid-cols-1 gap-12">
                    {/* Main Feed */}
                    <div className="space-y-4">
                       <div className="lg:hidden">
@@ -114,11 +114,6 @@ export default function SocialPage() {
                           </div>
                       )}
                   </div>
-
-                   {/* Right Sidebar */}
-                   <aside className="hidden lg:block">
-                      <SocialFeedSuggestions />
-                   </aside>
              </div>
             </div>
           </div>

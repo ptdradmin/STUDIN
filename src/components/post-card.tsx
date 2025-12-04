@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Image from "next/image";
@@ -7,7 +6,7 @@ import type { Post } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2 } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
@@ -19,10 +18,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toggleFavorite, createNotification } from "@/lib/actions";
+import { useInView } from "framer-motion";
 
 
 interface PostCardProps {
@@ -40,10 +40,26 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     const [optimisticComments, setOptimisticComments] = useState(post.comments || []);
     const [showAllComments, setShowAllComments] = useState(false);
     const [isSaved, setIsSaved] = useState(isInitiallySaved);
+
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const isInView = useInView(videoRef, { amount: 0.5 });
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
     
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
+
+    useEffect(() => {
+        if (videoRef.current) {
+            if (isInView && !isPlaying) {
+                videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+            } else if (!isInView && isPlaying) {
+                videoRef.current.pause();
+                setIsPlaying(false);
+            }
+        }
+    }, [isInView, isPlaying]);
     
 
     const getInitials = (name: string) => {
@@ -92,6 +108,28 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         });
     };
     
+    const handlePlayPause = useCallback(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (video.paused) {
+            video.play().catch(() => {});
+            setIsPlaying(true);
+        } else {
+            video.pause();
+            setIsPlaying(false);
+        }
+    }, []);
+
+     const toggleMute = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const video = videoRef.current;
+        if (video) {
+            video.muted = !video.muted;
+            setIsMuted(!video.muted);
+        }
+    }, []);
+
 
     const handleLike = async () => {
         if (!user || !firestore) {
@@ -215,7 +253,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
 
 
     return (
-        <div className="w-full bg-card text-card-foreground border-b">
+        <div className="w-full bg-card text-card-foreground border-b rounded-lg">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -266,13 +304,23 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                 </DropdownMenu>
             </div>
             
-            <div className="relative aspect-square bg-muted">
+            <div className="relative aspect-square bg-muted cursor-pointer" onClick={handlePlayPause}>
                 {post.isUploading ? (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
                     </div>
                 ) : post.fileType === 'video' && post.videoUrl ? (
-                    <video src={post.videoUrl} controls className="w-full h-full object-cover bg-black" />
+                    <>
+                        <video ref={videoRef} src={post.videoUrl} loop muted className="w-full h-full object-cover bg-black" />
+                        {!isPlaying && (
+                             <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+                                <Play className="h-20 w-20 text-white/70 drop-shadow-lg" />
+                            </div>
+                        )}
+                         <Button variant="ghost" size="icon" className="absolute bottom-4 right-4 z-10 text-white bg-black/30 hover:bg-black/50" onClick={toggleMute}>
+                            {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        </Button>
+                    </>
                 ) : post.imageUrl ? (
                     <Image
                         src={post.imageUrl}
@@ -280,6 +328,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                         fill
                         className="object-cover"
                         data-ai-hint="social media post"
+                        priority
                     />
                 ) : null}
             </div>
