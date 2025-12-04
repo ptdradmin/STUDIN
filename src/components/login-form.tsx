@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -31,7 +32,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, areServicesAvailable } = useAuth();
+  const { auth, firestore } = useAuth();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -158,7 +159,7 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading || !areServicesAvailable}>
+            <Button type="submit" className="w-full" disabled={!!loading}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -173,7 +174,7 @@ export default function LoginForm() {
                 </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !areServicesAvailable}>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading}>
                 {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 Se connecter avec Google
             </Button>

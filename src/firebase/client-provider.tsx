@@ -11,7 +11,6 @@ import { firebaseConfig } from '@/firebase/config';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
-
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
@@ -23,62 +22,42 @@ interface FirebaseServices {
   storage: FirebaseStorage;
 }
 
+// Lazy-loaded, singleton instance of Firebase services
 let firebaseServices: FirebaseServices | null = null;
 
-
-function initializeFirebase() {
-  if (getApps().length > 0) {
-    return getSdks(getApp());
-  }
-
-  const app = initializeApp(firebaseConfig);
-  
-  if (typeof window !== 'undefined') {
-    // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
-    // key is the counterpart to the secret key you set in the Firebase console.
-    initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-
-      // Optional argument. If true, the SDK automatically refreshes App Check
-      // tokens as needed.
-      isTokenAutoRefreshEnabled: true
-    });
-  }
-
-  return getSdks(app);
-}
-
-
-function getSdks(firebaseApp: FirebaseApp) {
-  return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp),
-  };
-}
-
-function getFirebaseServices() {
-    if (!firebaseServices) {
-        const { firebaseApp, auth, firestore, storage } = initializeFirebase();
-        firebaseServices = { app: firebaseApp, auth, firestore, storage };
-    }
+function getFirebaseServices(): FirebaseServices {
+  if (firebaseServices) {
     return firebaseServices;
+  }
+
+  if (getApps().length === 0) {
+    const app = initializeApp(firebaseConfig);
+    if (typeof window !== 'undefined') {
+      // Initialize App Check
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+        isTokenAutoRefreshEnabled: true
+      });
+    }
+  }
+  
+  const app = getApp();
+  const auth = getAuth(app);
+  const firestore = getFirestore(app);
+  const storage = getStorage(app);
+
+  firebaseServices = { app, auth, firestore, storage };
+  return firebaseServices;
 }
 
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const [services, setServices] = useState<FirebaseServices | null>(null);
+  const services = getFirebaseServices();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [areServicesAvailable, setAreServicesAvailable] = useState(false);
 
   useEffect(() => {
-    const initializedServices = getFirebaseServices();
-    setServices(initializedServices);
-    setAreServicesAvailable(true);
-
-    const unsubscribe = onAuthStateChanged(initializedServices.auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
       setUser(firebaseUser);
       setIsAuthLoading(false);
     }, (error) => {
@@ -88,21 +67,20 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [services.auth]);
 
   return (
     <FirebaseProvider
-      firebaseApp={services?.app ?? null}
-      auth={services?.auth ?? null}
-      firestore={services?.firestore ?? null}
-      storage={services?.storage ?? null}
+      firebaseApp={services.app}
+      auth={services.auth}
+      firestore={services.firestore}
+      storage={services.storage}
       user={user}
       isUserLoading={isAuthLoading}
-      areServicesAvailable={areServicesAvailable}
+      areServicesAvailable={true} // Services are always available with this setup
     >
       <FirebaseErrorListener />
       {children}
     </FirebaseProvider>
   );
 }
-
