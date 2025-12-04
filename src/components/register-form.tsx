@@ -11,7 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useUser, useFirestore } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -66,9 +66,7 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState('');
   const router = useRouter();
-  const { isUserLoading } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
+  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -100,11 +98,9 @@ export default function RegisterForm() {
       let description = "Impossible de créer le compte.";
       if (error.code === 'auth/email-already-in-use') {
           description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-      }
-       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
-      }
-       if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
+      } else if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
         description = "Problème de configuration de sécurité. Veuillez réessayer."
       }
       toast({
@@ -158,7 +154,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = !!loading || isUserLoading;
+  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
 
   return (
     <>
@@ -172,7 +168,7 @@ export default function RegisterForm() {
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
                  {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                 {!isUserLoading && (loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />)}
-                {isUserLoading ? 'Chargement...' : (loading === 'google' ? 'Inscription...' : "S'inscrire avec Google")}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'google' ? 'Inscription...' : "S'inscrire avec Google")}
               </Button>
            </div>
           <div className="relative">
@@ -343,7 +339,7 @@ export default function RegisterForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading ? 'Chargement...' : (loading === 'email' ? 'Inscription en cours...' : "S'inscrire")}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'email' ? 'Inscription en cours...' : "S'inscrire")}
               </Button>
             </form>
           </Form>

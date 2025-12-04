@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useUser, useFirestore } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
@@ -32,9 +32,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isUserLoading } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
+  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -54,14 +52,11 @@ export default function LoginForm() {
       let description = "Une erreur est survenue.";
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Adresse e-mail ou mot de passe incorrect."
-      }
-       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
-      }
-      if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
+      } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
         description = "Problème de configuration de sécurité. Veuillez réessayer."
       }
-      console.error("Login Error: ", error.code, error.message);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
@@ -107,7 +102,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading;
+  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -167,7 +162,7 @@ export default function LoginForm() {
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading ? 'Chargement...' : (loading === 'email' ? 'Connexion...' : 'Se connecter')}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'email' ? 'Connexion...' : 'Se connecter')}
             </Button>
             </form>
             <div className="relative">
@@ -181,9 +176,9 @@ export default function LoginForm() {
                 </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
-                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
                 {!isUserLoading && (loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />)}
-                {isUserLoading ? 'Chargement...' : (loading === 'google' ? 'Connexion...' : 'Se connecter avec Google')}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'google' ? 'Connexion...' : 'Se connecter avec Google')}
             </Button>
         </div>
         <div className="mt-4 text-center text-sm">
@@ -195,6 +190,3 @@ export default function LoginForm() {
       </div>
   );
 }
-    
-
-    
