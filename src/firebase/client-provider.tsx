@@ -33,16 +33,15 @@ function initializeFirebaseClient(): FirebaseServices {
 
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
+    if (typeof window !== 'undefined') {
+      // Pass the reCAPTCHA Enterprise site key you created in the Google Cloud console.
+      initializeAppCheck(firebaseApp, {
+          provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+          isTokenAutoRefreshEnabled: true
+      });
+    }
   } else {
     firebaseApp = getApp();
-  }
-  
-  if (typeof window !== 'undefined') {
-    // Pass the reCAPTCHA Enterprise site key you created in the Google Cloud console.
-    initializeAppCheck(firebaseApp, {
-        provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-        isTokenAutoRefreshEnabled: true
-    });
   }
 
   return {
