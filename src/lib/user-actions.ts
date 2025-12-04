@@ -101,4 +101,3 @@ export const createUserDocument = async (
     await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
   }
 };
-    
