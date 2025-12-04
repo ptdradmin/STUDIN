@@ -54,8 +54,8 @@ export default function LoginForm() {
         description = "Adresse e-mail ou mot de passe incorrect."
       } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
-      } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
-        description = `Une erreur est survenue. (${error.code}).`
+      } else if (error.code === 'auth/internal-error') {
+        description = "Une erreur interne est survenue. Veuillez réessayer."
       }
       toast({
         variant: "destructive",

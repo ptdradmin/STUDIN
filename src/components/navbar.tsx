@@ -33,12 +33,12 @@ const navLinks = [
 
 export default function Navbar() {
   const { user } = useUser();
-  const { auth } = useFirebase();
+  const { auth, areServicesAvailable } = useFirebase();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
 
   const handleLogout = async () => {
-    if (auth) {
+    if (auth && areServicesAvailable) {
       await signOut(auth);
     }
   };
