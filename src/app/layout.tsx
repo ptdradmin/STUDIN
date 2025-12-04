@@ -1,7 +1,6 @@
 'use client';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import dynamic from 'next/dynamic';
 import { Inter, Poppins } from 'next/font/google';
 import Providers from './providers';
 import Script from 'next/script';
@@ -19,12 +18,6 @@ const poppins = Poppins({
   variable: '--font-poppins',
   display: 'swap',
 });
-
-// Charge BottomNavbar uniquement côté client
-const BottomNavbar = dynamic(
-  () => import('@/components/bottom-navbar'),
-  { ssr: false }
-);
 
 export default function RootLayout({
   children,
@@ -44,7 +37,6 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <Providers>
             {children}
-            <BottomNavbar />
             <Toaster />
         </Providers>
       </body>

@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, ReactNode, useMemo } from 'react';
@@ -22,45 +21,29 @@ const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 
+// This function initializes App Check and is designed to be called only once.
+const initializeFirebaseServices = () => {
+    try {
+        if (typeof window !== 'undefined' && !(firebaseApp as any)._appCheck) {
+            initializeAppCheck(firebaseApp, {
+                provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                isTokenAutoRefreshEnabled: true,
+            });
+        }
+    } catch (e) {
+        console.error("App Check initialization error:", e);
+    }
+};
+
 export default function FirebaseClientProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
-    const [isAppCheckReady, setIsAppCheckReady] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        // This effect handles App Check initialization.
-        // It polls until the reCAPTCHA script is ready.
-        if (typeof window !== 'undefined') {
-            if ((firebaseApp as any)._appCheck) {
-                setIsAppCheckReady(true);
-                return;
-            }
-
-            const intervalId = setInterval(() => {
-                // Check if grecaptcha.ready is available
-                if ((window as any).grecaptcha?.ready) {
-                    clearInterval(intervalId);
-                    try {
-                        initializeAppCheck(firebaseApp, {
-                            provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                            isTokenAutoRefreshEnabled: true,
-                        });
-                        setIsAppCheckReady(true);
-                    } catch (e) {
-                        console.error("App Check initialization error:", e);
-                        setError(e as Error);
-                        setIsAppCheckReady(true); // Proceed even if App Check fails
-                    }
-                }
-            }, 100); // Check every 100ms
-
-            return () => clearInterval(intervalId); // Cleanup interval on unmount
-        }
-    }, []);
-
-    useEffect(() => {
-        // This effect handles user authentication state.
+        // Initialize App Check once when the component mounts on the client.
+        initializeFirebaseServices();
+        
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsUserLoading(false);
@@ -79,13 +62,12 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         firestore: firestore,
         storage: storage,
         user,
-        isUserLoading: isUserLoading || !isAppCheckReady,
-        areServicesAvailable: !isUserLoading && isAppCheckReady,
+        isUserLoading: isUserLoading,
+        areServicesAvailable: !isUserLoading,
         userError: error,
-    }), [user, isUserLoading, isAppCheckReady, error]);
+    }), [user, isUserLoading, error]);
     
-    // Show a loading skeleton until both user and App Check are ready
-    if (isUserLoading || !isAppCheckReady) {
+    if (isUserLoading) {
         return <PageSkeleton />;
     }
 
