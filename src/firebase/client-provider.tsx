@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, ReactNode, useMemo } from 'react';
@@ -29,19 +30,34 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
 
     useEffect(() => {
         if (typeof window !== 'undefined' && !isAppCheckInitialized) {
-            try {
-                // Prevent re-initialization
-                if (!(firebaseApp as any)._appCheck) {
-                  initializeAppCheck(firebaseApp, {
-                    provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                    isTokenAutoRefreshEnabled: true,
-                  });
+            const initialize = () => {
+                try {
+                    // Check if grecaptcha is available
+                    if ((window as any).grecaptcha) {
+                        // Prevent re-initialization
+                        if (!(firebaseApp as any)._appCheck) {
+                          initializeAppCheck(firebaseApp, {
+                            provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                            isTokenAutoRefreshEnabled: true,
+                          });
+                        }
+                        setIsAppCheckInitialized(true);
+                        // Stop checking once initialized
+                        clearInterval(intervalId);
+                    }
+                } catch (e: any) {
+                    console.error("Failed to initialize App Check:", e);
+                    setError(e);
+                    // Stop checking on error
+                    clearInterval(intervalId);
                 }
-                setIsAppCheckInitialized(true);
-            } catch (e: any) {
-                console.error("Failed to initialize App Check:", e);
-                setError(e);
-            }
+            };
+            
+            // Poll for grecaptcha object
+            const intervalId = setInterval(initialize, 100);
+
+            // Cleanup interval on unmount
+            return () => clearInterval(intervalId);
         }
     }, [isAppCheckInitialized]);
 
