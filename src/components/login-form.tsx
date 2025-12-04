@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
@@ -32,8 +32,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, isUserLoading } = useAuth();
-  const firestore = useFirestore();
+  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -69,7 +68,10 @@ export default function LoginForm() {
   }
 
   const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
+    if (!auth || !firestore || !areServicesAvailable) {
+      toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas encore prêt. Veuillez patienter un instant."});
+      return;
+    }
     setLoading('google');
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
@@ -92,8 +94,8 @@ export default function LoginForm() {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
-    if (!auth) {
-        toast({variant: "destructive", title: "Erreur", description: "Service d'authentification indisponible."});
+    if (!auth || !areServicesAvailable) {
+        toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
         return;
     }
     
@@ -103,7 +105,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading;
+  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
