@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
