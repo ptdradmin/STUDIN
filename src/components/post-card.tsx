@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2, Play, Pause, Volume2, VolumeX } from "lucide-react";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, updateDoc, arrayUnion, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
@@ -48,10 +48,20 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     const isInView = useInView(containerRef, { amount: 0.5 });
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
-    
+
+    const [timeAgo, setTimeAgo] = useState(() => {
+        const date = getSafeDate(post.createdAt);
+        return format(date, 'PP', { locale: fr });
+    });
+
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
+    
+    useEffect(() => {
+        const date = getSafeDate(post.createdAt);
+        setTimeAgo(formatDistanceToNow(date, { addSuffix: true, locale: fr }));
+    }, [post.createdAt]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -95,9 +105,6 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
       }
       return new Date();
     }
-
-    const createdAtDate = getSafeDate(post.createdAt);
-    const timeAgo = formatDistanceToNow(createdAtDate, { addSuffix: true, locale: fr });
 
     const isOwner = user && user.uid === post.userId;
     const hasLiked = user && optimisticLikes.includes(user.uid);
@@ -428,5 +435,3 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         </div>
     );
 }
-
-    
