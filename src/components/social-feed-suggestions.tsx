@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
@@ -74,29 +73,39 @@ export default function SocialFeedSuggestions() {
 
     const isLoading = isProfileLoading || isLoadingSuggestions;
 
-    if (isLoading) {
-        return (
-            <div className="sticky top-24 space-y-6">
-                <SuggestionsSkeleton />
-            </div>
-        )
-    }
-
-    if (!currentUserProfile) return null;
+    if (!currentUserProfile && !isLoading) return null;
 
     return (
         <div className="sticky top-24 space-y-6">
-            <UserCard userProfile={currentUserProfile} />
-
-            {suggestions.length > 0 && (
-                 <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-3">Suggestions pour vous</h3>
-                    <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
-                        {suggestions.map(profile => (
-                             <UserCard key={profile.id} userProfile={profile} isSuggestion />
-                        ))}
+            {isLoading ? (
+                <>
+                    <div className="flex items-center gap-3">
+                         <Skeleton className="h-14 w-14 rounded-full" />
+                         <div className="flex-grow space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-32" />
+                        </div>
                     </div>
-                </div>
+                    <SuggestionsSkeleton />
+                </>
+            ) : currentUserProfile && (
+                 <>
+                    <UserCard userProfile={currentUserProfile} />
+
+                    {suggestions.length > 0 && (
+                         <div>
+                            <div className="flex justify-between items-center mb-3">
+                                <h3 className="text-sm font-semibold text-muted-foreground">Suggestions pour vous</h3>
+                                <Link href="/search" className="text-xs font-semibold hover:underline">Voir tout</Link>
+                            </div>
+                            <div className="max-h-96 overflow-y-auto space-y-4">
+                                {suggestions.map(profile => (
+                                     <UserCard key={profile.id} userProfile={profile} isSuggestion />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                 </>
             )}
             
             <footer className="text-xs text-muted-foreground space-x-2">
@@ -109,5 +118,3 @@ export default function SocialFeedSuggestions() {
         </div>
     )
 }
-
-    

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where } from 'firebase/firestore';
 import type { Post, Favorite } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
@@ -36,7 +36,7 @@ export default function SocialPage() {
     
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
-        return query(collection(firestore, `users/${user.uid}/favorites`));
+        return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
     }, [firestore, user]);
 
 
@@ -46,9 +46,7 @@ export default function SocialPage() {
         const map = new Map<string, string>();
         if (favoriteItems) {
             favoriteItems.forEach(fav => {
-                if (fav.itemType === 'post') {
-                    map.set(fav.itemId, fav.id);
-                }
+                map.set(fav.itemId, fav.id);
             });
         }
         return map;
@@ -89,7 +87,7 @@ export default function SocialPage() {
           
           <div className="flex-1 overflow-hidden">
             <div className="h-full overflow-y-auto pb-16 md:pb-0">
-               <div className="container mx-auto max-w-lg py-6 grid grid-cols-1 gap-12">
+               <div className="container mx-auto max-w-6xl p-0 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] lg:gap-10">
                    {/* Main Feed */}
                    <div className="space-y-4">
                       <div className="lg:hidden">
@@ -103,7 +101,6 @@ export default function SocialPage() {
                                   key={post.id} 
                                   post={post}
                                   isInitiallySaved={savedPostMap.has(post.id)}
-                                  initialFavoriteId={savedPostMap.get(post.id)}
                               />
                           ))
                        ) : (
@@ -113,6 +110,11 @@ export default function SocialPage() {
                           </div>
                       )}
                   </div>
+
+                  {/* Right Sidebar */}
+                  <aside className="hidden lg:block">
+                       <SocialFeedSuggestions />
+                  </aside>
              </div>
             </div>
           </div>
