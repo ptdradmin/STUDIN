@@ -36,7 +36,7 @@ const services = [
         description: "Achetez ou vendez vos livres de cours d'occasion.",
         icon: <BookOpen className="h-6 w-6"/>,
         href: "/books",
-        image: PlaceHolderImages.find(p => p.id === 'service-tutoring')?.imageUrl || ''
+        image: PlaceHolderImages.find(p => p.id === 'service-books')?.imageUrl || ''
     },
      {
         name: "Événements",
