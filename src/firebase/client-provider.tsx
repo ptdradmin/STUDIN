@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, ReactNode, useMemo } from 'react';
@@ -11,25 +10,11 @@ import { FirebaseProvider, FirebaseContextState } from '@/firebase/provider';
 import { firebaseConfig } from './config';
 import { PageSkeleton } from '@/components/page-skeleton';
 
-interface FirebaseServices {
-    app: FirebaseApp;
-    auth: Auth;
-    firestore: Firestore;
-    storage: FirebaseStorage;
-}
-
 let firebaseApp: FirebaseApp;
 if (!getApps().length) {
   firebaseApp = initializeApp(firebaseConfig);
 } else {
   firebaseApp = getApp();
-}
-
-if (typeof window !== 'undefined') {
-  initializeAppCheck(firebaseApp, {
-    provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-    isTokenAutoRefreshEnabled: true,
-  });
 }
 
 const auth = getAuth(firebaseApp);
@@ -40,8 +25,30 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+    const [isAppCheckInitialized, setIsAppCheckInitialized] = useState(false);
 
     useEffect(() => {
+        if (typeof window !== 'undefined' && !isAppCheckInitialized) {
+            try {
+                // Prevent re-initialization
+                if (!(firebaseApp as any)._appCheck) {
+                  initializeAppCheck(firebaseApp, {
+                    provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                    isTokenAutoRefreshEnabled: true,
+                  });
+                }
+                setIsAppCheckInitialized(true);
+            } catch (e: any) {
+                console.error("Failed to initialize App Check:", e);
+                setError(e);
+            }
+        }
+    }, [isAppCheckInitialized]);
+
+    useEffect(() => {
+        // We only start listening to auth changes after app check is initialized
+        if (!isAppCheckInitialized) return;
+
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsLoading(false);
@@ -52,7 +59,7 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [isAppCheckInitialized]);
 
     const contextValue: FirebaseContextState = useMemo(() => ({
         firebaseApp: firebaseApp,
@@ -60,12 +67,12 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         firestore: firestore,
         storage: storage,
         user,
-        isUserLoading: isLoading,
-        areServicesAvailable: true, // Services are initialized globally now
+        isUserLoading: isLoading || !isAppCheckInitialized,
+        areServicesAvailable: isAppCheckInitialized,
         userError: error,
-    }), [user, isLoading, error]);
+    }), [user, isLoading, error, isAppCheckInitialized]);
 
-    if (isLoading) {
+    if (isLoading || !isAppCheckInitialized) {
         return <PageSkeleton />;
     }
 
