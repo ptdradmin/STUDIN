@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, type ReactNode } from 'react';
@@ -9,7 +8,7 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from '@/firebase/config';
 import FirebaseErrorListener from '@/components/FirebaseErrorListener';
-import { initializeAppCheck, ReCaptchaV3Provider, AppCheck } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -23,21 +22,38 @@ interface FirebaseServices {
 }
 
 let firebaseServices: FirebaseServices | null = null;
-let appCheckInitialized = false;
+let appCheckInitializationPromise: Promise<void> | null = null;
 
-function getFirebaseServices(): FirebaseServices {
-  if (firebaseServices) {
-    return firebaseServices;
+function getFirebaseServices(): { services: FirebaseServices | null, appCheckPromise: Promise<void> | null } {
+  if (typeof window === 'undefined') {
+    return { services: null, appCheckPromise: null };
   }
 
-  const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  
-  const auth = getAuth(app);
-  const firestore = getFirestore(app);
-  const storage = getStorage(app);
+  if (!firebaseServices) {
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+    const storage = getStorage(app);
+    firebaseServices = { app, auth, firestore, storage };
 
-  firebaseServices = { app, auth, firestore, storage };
-  return firebaseServices;
+    // Initialize App Check only once
+    appCheckInitializationPromise = new Promise((resolve, reject) => {
+       try {
+         const appCheck = initializeAppCheck(app, {
+           provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+           isTokenAutoRefreshEnabled: true
+         });
+         // The promise resolves when app check is ready.
+         // We don't have a direct hook, but initialization itself is the goal.
+         resolve();
+       } catch (error) {
+         console.error("App Check initialization failed:", error);
+         reject(error);
+       }
+    });
+  }
+  
+  return { services: firebaseServices, appCheckPromise: appCheckInitializationPromise };
 }
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
@@ -46,40 +62,28 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const s = getFirebaseServices();
-    setServices(s);
-
-    const initializeAuthListener = () => {
-      const unsubscribe = onAuthStateChanged(s.auth, (firebaseUser) => {
-        setUser(firebaseUser);
-        setIsAuthLoading(false);
-      }, (error) => {
-        console.error("Firebase auth state error:", error);
-        setUser(null);
+    const { services: s, appCheckPromise } = getFirebaseServices();
+    
+    if (s && appCheckPromise) {
+      setServices(s);
+      
+      appCheckPromise.then(() => {
+        const unsubscribe = onAuthStateChanged(s.auth, (firebaseUser) => {
+          setUser(firebaseUser);
+          setIsAuthLoading(false);
+        }, (error) => {
+          console.error("Firebase auth state error:", error);
+          setUser(null);
+          setIsAuthLoading(false);
+        });
+        return unsubscribe;
+      }).catch(error => {
+        console.error("App Check promise rejected, auth listener not set up.", error);
         setIsAuthLoading(false);
       });
-      return unsubscribe;
-    };
-    
-    if (typeof window !== 'undefined' && !appCheckInitialized) {
-        appCheckInitialized = true; // Set flag immediately to prevent re-initialization
-        try {
-            const appCheck = initializeAppCheck(s.app, {
-              provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-              isTokenAutoRefreshEnabled: true
-            });
-            // App Check is initialized, now set up auth listener.
-            const unsubscribe = initializeAuthListener();
-            return () => unsubscribe();
-        } catch(error) {
-            console.error("App Check initialization failed:", error);
-            setIsAuthLoading(false); // Stop loading on App Check failure
-        }
     } else {
-        const unsubscribe = initializeAuthListener();
-        return () => unsubscribe();
+        setIsAuthLoading(false);
     }
-
   }, []);
 
   return (

@@ -58,7 +58,7 @@ export default function LoginForm() {
       if(error.code === 'auth/invalid-app-credential') {
         description = "Problème de configuration de sécurité (App Check)."
       }
-      console.error("Login Error: ", error);
+      console.error("Login Error: ", error.code, error.message);
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
