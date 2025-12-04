@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -12,6 +11,7 @@ import { useState, useEffect } from 'react';
 import CreatePostForm from './create-post-form';
 import { generateAvatar } from '@/lib/avatars';
 import { cn } from '@/lib/utils';
+import { Skeleton } from './ui/skeleton';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
@@ -30,10 +30,6 @@ export default function BottomNavbar() {
   ];
 
   const hideNavbar = !user || publicPages.some(page => pathname === page);
-
-  if (!isMounted) {
-    return null; 
-  }
 
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
@@ -57,7 +53,7 @@ export default function BottomNavbar() {
       {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
       <div className={cn(
         "fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40 transition-transform duration-300",
-        hideNavbar ? "translate-y-full" : "translate-y-0"
+        hideNavbar || !isMounted ? "translate-y-full" : "translate-y-0"
       )}>
         <div className="flex justify-around items-center h-full">
           {navItems.map((item, index) => {
@@ -70,12 +66,15 @@ export default function BottomNavbar() {
             }
 
             if (item.isProfile) {
+              if (!user) {
+                return <Skeleton key={index} className="h-7 w-7 rounded-full" />;
+              }
               const isActive = pathname === item.href || pathname.startsWith('/profile/');
               return (
                 <Link href={item.href || '#'} key={index}>
                   <Avatar className={`h-7 w-7 transition-all ${isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}>
-                    <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user!.uid)} />
-                    <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
+                    <AvatarImage src={user.photoURL || generateAvatar(user.email || user.uid)} />
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                   </Avatar>
                 </Link>
               );
