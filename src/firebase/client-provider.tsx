@@ -27,29 +27,27 @@ let firebaseServices: FirebaseServices | null = null;
 
 
 function initializeFirebase() {
-  if (getApps().length) {
+  if (getApps().length > 0) {
     return getSdks(getApp());
   }
-  
-  let firebaseApp;
-  try {
-    firebaseApp = initializeApp();
-  } catch (e) {
-    if (process.env.NODE_ENV === "production") {
-      console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-    }
-    firebaseApp = initializeApp(firebaseConfig);
-  }
+
+  const app = initializeApp(firebaseConfig);
   
   if (typeof window !== 'undefined') {
-    initializeAppCheck(firebaseApp, {
+    // Pass your reCAPTCHA v3 site key (public key) to activate(). Make sure this
+    // key is the counterpart to the secret key you set in the Firebase console.
+    initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+
+      // Optional argument. If true, the SDK automatically refreshes App Check
+      // tokens as needed.
       isTokenAutoRefreshEnabled: true
     });
   }
 
-  return getSdks(firebaseApp);
+  return getSdks(app);
 }
+
 
 function getSdks(firebaseApp: FirebaseApp) {
   return {
@@ -73,10 +71,12 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
   const [services, setServices] = useState<FirebaseServices | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [areServicesAvailable, setAreServicesAvailable] = useState(false);
 
   useEffect(() => {
     const initializedServices = getFirebaseServices();
     setServices(initializedServices);
+    setAreServicesAvailable(true);
 
     const unsubscribe = onAuthStateChanged(initializedServices.auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -90,22 +90,19 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
     return () => unsubscribe();
   }, []);
 
-  if (!services) {
-    // Services are still being initialized. You can return a global loader here if needed.
-    return null; 
-  }
-
   return (
     <FirebaseProvider
-      firebaseApp={services.app}
-      auth={services.auth}
-      firestore={services.firestore}
-      storage={services.storage}
+      firebaseApp={services?.app ?? null}
+      auth={services?.auth ?? null}
+      firestore={services?.firestore ?? null}
+      storage={services?.storage ?? null}
       user={user}
       isUserLoading={isAuthLoading}
+      areServicesAvailable={areServicesAvailable}
     >
       <FirebaseErrorListener />
       {children}
     </FirebaseProvider>
   );
 }
+

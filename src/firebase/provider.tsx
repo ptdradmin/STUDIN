@@ -20,6 +20,7 @@ export interface FirebaseContextState {
 
 // Return type for useFirebase() and other hooks
 export interface FirebaseServicesAndUser {
+  areServicesAvailable: boolean;
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null;
@@ -30,12 +31,13 @@ export interface FirebaseServicesAndUser {
 
 interface FirebaseProviderProps {
   children: ReactNode;
-  firebaseApp: FirebaseApp;
-  firestore: Firestore;
-  auth: Auth;
-  storage: FirebaseStorage;
+  firebaseApp: FirebaseApp | null;
+  firestore: Firestore | null;
+  auth: Auth | null;
+  storage: FirebaseStorage | null;
   user: User | null;
   isUserLoading: boolean;
+  areServicesAvailable: boolean;
 }
 
 // React Context
@@ -52,20 +54,20 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   storage,
   user,
   isUserLoading,
+  areServicesAvailable,
 }) => {
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
-    const servicesAvailable = !!(firebaseApp && firestore && auth && storage);
     return {
-      areServicesAvailable: servicesAvailable,
-      firebaseApp: servicesAvailable ? firebaseApp : null,
-      firestore: servicesAvailable ? firestore : null,
-      auth: servicesAvailable ? auth : null,
-      storage: servicesAvailable ? storage : null,
+      areServicesAvailable,
+      firebaseApp,
+      firestore,
+      auth,
+      storage,
       user,
       isUserLoading,
     };
-  }, [firebaseApp, firestore, auth, storage, user, isUserLoading]);
+  }, [firebaseApp, firestore, auth, storage, user, isUserLoading, areServicesAvailable]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -86,6 +88,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   }
 
   return {
+    areServicesAvailable: context.areServicesAvailable,
     firebaseApp: context.firebaseApp,
     firestore: context.firestore,
     auth: context.auth,
