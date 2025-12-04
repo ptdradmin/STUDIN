@@ -8,7 +8,7 @@ import { Skeleton } from './ui/skeleton';
 import { useRouter } from 'next/navigation';
 
 interface HousingListingsProps {
-    housings: Housing[];
+    housings: Housing[] | null;
     isLoading: boolean;
     onEdit: (housing: Housing) => void;
     favoritedIds: Set<string>;
@@ -38,28 +38,27 @@ export default function HousingListings({ housings, isLoading, onEdit, favorited
     )
   }
 
+  if (!housings || housings.length === 0) {
+      return (
+        <Card className="text-center py-20 col-span-full">
+            <CardContent>
+                <h3 className="text-xl font-semibold">Aucun logement ne correspond à votre recherche</h3>
+                <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères de recherche.</p>
+            </CardContent>
+        </Card>
+      )
+  }
+
   return (
-    <div>
-        {housings.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {housings.map(housing => (
-                    <HousingCard 
-                        key={housing.id} 
-                        housing={housing}
-                        onEdit={onEdit} 
-                        onClick={() => router.push(`/housing/${housing.id}`)}
-                        isFavorited={favoritedIds.has(housing.id)}
-                    />
-                ))}
-            </div>
-        ) : (
-            <Card className="text-center py-20">
-                <CardContent>
-                    <h3 className="text-xl font-semibold">Aucun logement ne correspond à votre recherche</h3>
-                    <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères de recherche.</p>
-                </CardContent>
-            </Card>
-        )}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {housings.map(housing => (
+            <HousingCard 
+                key={housing.id} 
+                housing={housing}
+                onEdit={onEdit} 
+                isFavorited={favoritedIds.has(housing.id)}
+            />
+        ))}
     </div>
   );
 }

@@ -7,8 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon, Bookmark, MessageSquare } from "lucide-react";
-import { useUser, useFirestore } from "@/firebase";
-import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { useUser, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -37,11 +36,10 @@ import Link from 'next/link';
 interface HousingCardProps {
     housing: Housing;
     onEdit: (housing: Housing) => void;
-    onClick: (housing: Housing) => void;
     isFavorited?: boolean;
 }
 
-export default function HousingCard({ housing, onEdit, onClick, isFavorited = false }: HousingCardProps) {
+export default function HousingCard({ housing, onEdit, isFavorited = false }: HousingCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -72,10 +70,11 @@ export default function HousingCard({ housing, onEdit, onClick, isFavorited = fa
 
     const handleCardClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
-        if (target.closest('[data-radix-dropdown-menu-trigger]') || target.closest('button')) {
+        // Prevent navigation if a button or dropdown is clicked
+        if (target.closest('button, [role="menu"], [role="dialog"]')) {
             return;
         }
-        onClick(housing);
+        router.push(`/housing/${housing.id}`);
     }
     
     const handleContact = async (e: React.MouseEvent) => {

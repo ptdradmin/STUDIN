@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
@@ -126,14 +126,14 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     if (isEditing && housingToEdit) {
       const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl: previewUrl, coordinates: newCoords };
       
-      setDocumentNonBlocking(housingRef, dataToUpdate, { merge: true });
+      updateDocumentNonBlocking(housingRef, dataToUpdate);
 
       if (imageFile) {
         const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
         const uploadTask = uploadBytesResumable(imageRef, imageFile);
         uploadTask.on('state_changed', null, null, async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDoc(housingRef, { imageUrl: downloadURL });
+          updateDocumentNonBlocking(housingRef, { imageUrl: downloadURL });
         });
       }
 
@@ -150,14 +150,14 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
           imageHint: "student room",
           imageUrl: previewUrl,
       };
-      setDocumentNonBlocking(housingRef, dataToCreate);
+      setDocumentNonBlocking(housingRef, dataToCreate, { merge: false });
 
       if (imageFile) {
         const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
         const uploadTask = uploadBytesResumable(imageRef, imageFile);
         uploadTask.on('state_changed', null, null, async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDoc(housingRef, { imageUrl: downloadURL });
+          updateDocumentNonBlocking(housingRef, { imageUrl: downloadURL });
         });
       }
     }

@@ -82,10 +82,6 @@ export default function HousingPage() {
     setEditingHousing(null);
     setShowCreateForm(true);
   }
-  
-  const handleMarkerClick = (housing: Housing) => {
-    router.push(`/housing/${housing.id}`);
-  }
 
 
   return (
@@ -182,7 +178,7 @@ export default function HousingPage() {
                 <Card>
                     <CardContent className="p-2">
                     <div className="h-[600px] w-full rounded-md overflow-hidden">
-                        <MapView items={filteredHousings} itemType="housing" onMarkerClick={handleMarkerClick} />
+                        <MapView items={filteredHousings} itemType="housing" onMarkerClick={(item) => router.push(`/housing/${item.id}`)} />
                     </div>
                     </CardContent>
                 </Card>
