@@ -170,8 +170,9 @@ export default function RegisterForm() {
         <div className="space-y-4">
            <div className="grid grid-cols-1 gap-4">
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
-                {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <GoogleIcon className="mr-2 h-4 w-4" />}
-                S'inscrire avec Google
+                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {!isUserLoading && (loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />)}
+                {isUserLoading ? 'Chargement...' : (loading === 'google' ? 'Inscription...' : "S'inscrire avec Google")}
               </Button>
            </div>
           <div className="relative">
@@ -341,9 +342,8 @@ export default function RegisterForm() {
               />
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading && 'Initialisation...'}
-                {!isUserLoading && (loading === 'email' ? 'Inscription en cours...' : "S'inscrire")}
+                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {isUserLoading ? 'Chargement...' : (loading === 'email' ? 'Inscription en cours...' : "S'inscrire")}
               </Button>
             </form>
           </Form>
@@ -360,3 +360,5 @@ export default function RegisterForm() {
     </>
   );
 }
+
+    

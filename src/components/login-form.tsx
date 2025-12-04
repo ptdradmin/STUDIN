@@ -71,7 +71,7 @@ export default function LoginForm() {
 
   const handleGoogleSignIn = async () => {
     if (!auth || !firestore) {
-      toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas encore prêt. Veuillez patienter un instant."});
+      toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez patienter."});
       return;
     }
     setLoading('google');
@@ -166,9 +166,8 @@ export default function LoginForm() {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading && 'Initialisation...'}
-                {!isUserLoading && (loading === 'email' ? 'Connexion...' : 'Se connecter')}
+                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUserLoading ? 'Chargement...' : (loading === 'email' ? 'Connexion...' : 'Se connecter')}
             </Button>
             </form>
             <div className="relative">
@@ -182,10 +181,9 @@ export default function LoginForm() {
                 </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
-                {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                 {isUserLoading && '...'}
-                {!isUserLoading && (loading === 'google' ? '...' : <GoogleIcon className="mr-2 h-4 w-4" />)}
-                Se connecter avec Google
+                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {!isUserLoading && (loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />)}
+                {isUserLoading ? 'Chargement...' : (loading === 'google' ? 'Connexion...' : 'Se connecter avec Google')}
             </Button>
         </div>
         <div className="mt-4 text-center text-sm">
@@ -197,4 +195,6 @@ export default function LoginForm() {
       </div>
   );
 }
+    
+
     

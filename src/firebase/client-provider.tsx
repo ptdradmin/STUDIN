@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
+import React, { useEffect, useState, ReactNode, useMemo } from 'react';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
@@ -10,7 +10,6 @@ import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { FirebaseProvider, FirebaseContextState } from '@/firebase/provider';
 import { firebaseConfig } from './config';
 
-// Define a type for our services to ensure consistency
 interface FirebaseServices {
     firebaseApp: FirebaseApp;
     auth: Auth;
@@ -18,41 +17,40 @@ interface FirebaseServices {
     storage: FirebaseStorage;
 }
 
-// Singleton pattern for Firebase services to prevent re-initialization
 let firebaseServices: FirebaseServices | null = null;
+let appCheckPromise: Promise<void> | null = null;
 
 async function getFirebaseServices(): Promise<FirebaseServices> {
     if (firebaseServices) {
+        if (appCheckPromise) await appCheckPromise;
         return firebaseServices;
     }
 
-    if (getApps().length === 0) {
-        const firebaseApp = initializeApp(firebaseConfig);
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-        // Initialize App Check only on the client
-        if (typeof window !== 'undefined') {
-            try {
-                initializeAppCheck(firebaseApp, {
-                    provider: new ReCaptchaV3Provider('6Ld-9PUpAAAAAKj3A22-EclMhTuA2vo-A9g5tYy8'),
-                    isTokenAutoRefreshEnabled: true
-                });
-            } catch (error) {
-                console.error("Firebase App Check initialization error:", error);
-            }
+    if (typeof window !== 'undefined') {
+        if (!appCheckPromise) {
+            appCheckPromise = new Promise<void>((resolve, reject) => {
+                try {
+                    const recaptchaProvider = new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS');
+                    initializeAppCheck(app, {
+                        provider: recaptchaProvider,
+                        isTokenAutoRefreshEnabled: true,
+                    });
+                    resolve();
+                } catch (error) {
+                    console.error("Firebase App Check initialization error:", error);
+                    reject(error);
+                }
+            });
         }
-        
-        const auth = getAuth(firebaseApp);
-        const firestore = getFirestore(firebaseApp);
-        const storage = getStorage(firebaseApp);
-        firebaseServices = { firebaseApp, auth, firestore, storage };
-
-    } else {
-        const firebaseApp = getApp();
-        const auth = getAuth(firebaseApp);
-        const firestore = getFirestore(firebaseApp);
-        const storage = getStorage(firebaseApp);
-        firebaseServices = { firebaseApp, auth, firestore, storage };
+        await appCheckPromise;
     }
+    
+    const auth = getAuth(app);
+    const firestore = getFirestore(app);
+    const storage = getStorage(app);
+    firebaseServices = { firebaseApp: app, auth, firestore, storage };
 
     return firebaseServices;
 }
@@ -68,6 +66,9 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
             const unsubscribe = onAuthStateChanged(loadedServices.auth, (firebaseUser) => {
                 setUser(firebaseUser);
                 setIsAuthLoading(false);
+            }, (error) => {
+                console.error("Auth state change error:", error);
+                setIsAuthLoading(false);
             });
             return () => unsubscribe();
         }).catch(error => {
@@ -76,14 +77,19 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         });
     }, []);
 
-    const contextValue = useMemo(() => ({
+    const contextValue = useMemo(() => {
+      const areServicesAvailable = !!services;
+      return {
         firebaseApp: services?.firebaseApp || null,
         auth: services?.auth || null,
         firestore: services?.firestore || null,
         storage: services?.storage || null,
         user,
-        isUserLoading: isAuthLoading || !services,
-    }), [services, user, isAuthLoading]);
+        isUserLoading: isAuthLoading || !areServicesAvailable,
+        areServicesAvailable,
+        userError: null,
+      };
+    }, [services, user, isAuthLoading]);
 
     return (
         <FirebaseProvider value={contextValue as FirebaseContextState}>
