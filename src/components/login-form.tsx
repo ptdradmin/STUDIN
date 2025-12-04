@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -48,21 +47,23 @@ export default function LoginForm() {
   }
 
   const handleError = (error: any) => {
-      setLoading('');
-      let description = `Une erreur est survenue. (${error.code})`;
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+    setLoading('');
+    let description = `Une erreur est survenue. (${error.code})`;
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Adresse e-mail ou mot de passe incorrect."
-      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+    } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
-      } else if (error.code === 'auth/internal-error') {
+    } else if (error.code === 'auth/internal-error') {
         description = "Une erreur interne est survenue. Veuillez réessayer."
-      }
-      toast({
+    } else if (error.code === 'auth/firebase-app-check-token-is-invalid') {
+        description = "Problème de configuration de sécurité. Veuillez réessayer."
+    }
+    toast({
         variant: "destructive",
         title: "Erreur de connexion",
-        description,
-      });
-  }
+        description: description,
+    });
+}
 
   const handleGoogleSignIn = async () => {
     if (!auth || !firestore) {
