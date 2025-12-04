@@ -6,7 +6,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-// import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -31,16 +31,16 @@ function initializeFirebaseClient(): FirebaseServices {
 
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
-    // if (typeof window !== 'undefined') {
-    //     try {
-    //         initializeAppCheck(firebaseApp, {
-    //             provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-    //             isTokenAutoRefreshEnabled: true
-    //         });
-    //     } catch(e) {
-    //         console.error("Failed to initialize App Check", e);
-    //     }
-    // }
+    if (typeof window !== 'undefined') {
+        try {
+            initializeAppCheck(firebaseApp, {
+                provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                isTokenAutoRefreshEnabled: true
+            });
+        } catch(e) {
+            console.error("Failed to initialize App Check", e);
+        }
+    }
   } else {
     firebaseApp = getApp();
   }
