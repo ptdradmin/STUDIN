@@ -50,7 +50,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn();
       allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.id == request.auth.uid;
+      allow create: if request.auth.uid == userId;
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']) ||
