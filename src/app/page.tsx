@@ -60,7 +60,7 @@ export default function HomePage() {
         <div className="flex flex-col min-h-screen dark:bg-background">
           <Navbar />
           <main className="flex-grow">
-                <section className="relative bg-gradient-to-br from-purple-600 via-blue-500 to-orange-500 text-center py-20 md:py-32">
+                <section className="relative bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 text-center py-20 md:py-32">
                     <div className="container mx-auto px-4 relative z-10">
                         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter text-white">
                             L'écosystème qui simplifie votre vie étudiante.
