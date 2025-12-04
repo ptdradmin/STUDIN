@@ -48,6 +48,11 @@ export default function ChallengeDetailPage() {
     const [challenge, setChallenge] = useState<Challenge | null>(null);
     const [isChallengeLoading, setIsChallengeLoading] = useState(true);
     
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+    
     useEffect(() => {
         setIsChallengeLoading(true);
         const foundChallenge = staticChallenges.find(c => c.id === challengeId);
@@ -292,7 +297,7 @@ export default function ChallengeDetailPage() {
                                     </CardContent>
                                 </Card>
                                 
-                                {hasLocation && (
+                                {hasLocation && isClient && (
                                    <Card>
                                       <CardHeader>
                                         <CardTitle className="text-base">Emplacement du Défi</CardTitle>
@@ -306,7 +311,7 @@ export default function ChallengeDetailPage() {
                                 )}
 
                                 <Card>
-                                    {!isParticipating && !isChallengeCreator ? (
+                                    {!isParticipating && !isChallengeCreator && isClient ? (
                                         <CardContent className="p-6 text-center">
                                             <h3 className="font-bold">Prêt à relever le défi ?</h3>
                                             <p className="text-sm text-muted-foreground mt-2 mb-4">Rejoignez pour débloquer la soumission de preuve.</p>
@@ -314,7 +319,7 @@ export default function ChallengeDetailPage() {
                                                 <Play className="mr-2 h-4 w-4" /> Participer au défi
                                             </Button>
                                         </CardContent>
-                                    ) : !isChallengeCreator && (
+                                    ) : !isChallengeCreator && isClient && (
                                         <>
                                             <CardHeader>
                                                 <CardTitle className="text-base flex items-center gap-2">
@@ -413,5 +418,3 @@ export default function ChallengeDetailPage() {
         </div>
     )
 }
-
-    

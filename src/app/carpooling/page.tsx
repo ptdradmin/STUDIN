@@ -84,9 +84,14 @@ export default function CarpoolingPage() {
   const {data: trips, isLoading } = useCollection<Trip>(tripsCollection);
   
   const [clientTrips, setClientTrips] = useState<Trip[] | null>(null);
+  
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
-    if (trips) {
+    if (trips && isClient) {
         // Generate random coordinates only on the client-side
         const tripsWithArrivalCoords = trips.map(trip => ({
             ...trip,
@@ -97,9 +102,9 @@ export default function CarpoolingPage() {
         }));
         setClientTrips(tripsWithArrivalCoords);
     } else {
-        setClientTrips(null);
+        setClientTrips(trips);
     }
-  }, [trips]);
+  }, [trips, isClient]);
 
 
   const filteredTrips = useMemo(() => {
@@ -310,7 +315,7 @@ export default function CarpoolingPage() {
             {viewMode === 'list' ? (
                 <div className="space-y-4">
                   {isLoading && <TripListSkeleton />}
-                  {!isLoading && filteredTrips.map(trip => {
+                  {!isLoading && filteredTrips && filteredTrips.map(trip => {
                     const isPassenger = user && (trip.passengerIds || []).includes(user.uid);
                     return (
                       <Card key={trip.id} className={cn("transition-shadow hover:shadow-md cursor-pointer", selectedTrip?.id === trip.id && "ring-2 ring-primary")} onClick={() => handleSelectTrip(trip)}>
@@ -374,7 +379,7 @@ export default function CarpoolingPage() {
                           </CardContent>
                       </Card>
                   )})}
-                  {!isLoading && filteredTrips.length === 0 && (
+                  {!isLoading && filteredTrips && filteredTrips.length === 0 && (
                     <Card className="text-center py-20">
                       <CardContent>
                         <h3 className="text-xl font-semibold">Aucun trajet ne correspond à votre recherche</h3>
@@ -386,9 +391,9 @@ export default function CarpoolingPage() {
             ) : (
               <Card>
                 <CardContent className="p-2">
-                  <div className="h-[600px] w-full rounded-md overflow-hidden">
-                      <MapView items={filteredTrips} itemType="trip" selectedItem={selectedTrip} onMarkerClick={setSelectedTrip} />
-                  </div>
+                  {isClient && <div className="h-[600px] w-full rounded-md overflow-hidden">
+                      <MapView items={filteredTrips || []} itemType="trip" selectedItem={selectedTrip} onMarkerClick={setSelectedTrip} />
+                  </div>}
                 </CardContent>
               </Card>
             )}

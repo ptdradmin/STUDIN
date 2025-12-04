@@ -9,7 +9,7 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
 import 'leaflet.markercluster';
@@ -131,9 +131,14 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.MarkerClusterGroup | null>(null);
   const routeControlRef = useRef<L.Routing.Control | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (mapContainerRef.current && !mapInstanceRef.current) {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && mapContainerRef.current && !mapInstanceRef.current) {
       const map = L.map(mapContainerRef.current, {
         center: [50.5, 4.75], // Centered on Belgium
         zoom: 8,
@@ -218,7 +223,7 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [isMounted]);
   
   const handlePopupClick = (e: L.LeafletMouseEvent) => {
       const popup = e.target.getPopup();
@@ -245,7 +250,7 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
     const markers = markersRef.current;
     const map = mapInstanceRef.current;
 
-    if (!markers || !map) return;
+    if (!markers || !map || !isMounted) return;
 
     markers.clearLayers();
     map.off('popupopen', handlePopupClick);
@@ -283,12 +288,12 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
         }
     }
 
-  }, [items, itemType, onMarkerClick, selectedItem]);
+  }, [items, itemType, onMarkerClick, selectedItem, isMounted]);
   
   
    useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map) return;
+    if (!map || !isMounted) return;
 
     // Remove existing route before adding a new one
     if (routeControlRef.current) {
@@ -320,7 +325,7 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
 
         routeControlRef.current = route;
     }
-  }, [selectedItem, itemType]);
+  }, [selectedItem, itemType, isMounted]);
 
   return (
     <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} className="rounded-lg overflow-hidden" />

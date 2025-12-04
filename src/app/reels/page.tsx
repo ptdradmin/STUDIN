@@ -97,7 +97,6 @@ export default function ReelsPage() {
     }
     
     const handleCreateClick = () => {
-        if (isUserLoading) return;
         if (!user) {
             router.push('/login?from=/reels');
             return;
@@ -111,7 +110,7 @@ export default function ReelsPage() {
              {showCreateReel && <CreateReelForm onClose={() => setShowCreateReel(false)} />}
             <div className="flex-1 flex flex-col justify-center items-center overflow-hidden">
                 <div className="absolute top-4 right-4 z-10">
-                     <Button onClick={handleCreateClick} disabled={isUserLoading}>
+                     <Button onClick={handleCreateClick}>
                         <Plus className="mr-2 h-4 w-4" /> Créer un Reel
                     </Button>
                 </div>

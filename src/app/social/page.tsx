@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { collection, query, orderBy, limit } from 'firebase/firestore';
@@ -80,7 +79,7 @@ export default function SocialPage() {
             </div>
 
             <div className="flex items-center gap-2">
-                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2" disabled={isUserLoading || !user}>
+                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     Créer
                 </Button>
