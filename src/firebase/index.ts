@@ -4,6 +4,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 interface FirebaseServices {
   firebaseApp: FirebaseApp;
@@ -31,6 +32,13 @@ export function initializeFirebase(): FirebaseServices {
   } else {
     firebaseApp = getApp();
   }
+  
+  if (typeof window !== 'undefined') {
+    initializeAppCheck(firebaseApp, {
+        provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+        isTokenAutoRefreshEnabled: true
+    });
+  }
 
   return {
     firebaseApp,
@@ -49,4 +57,3 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
-
