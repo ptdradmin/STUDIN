@@ -49,20 +49,41 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
 
-    const [timeAgo, setTimeAgo] = useState(() => {
-        const date = getSafeDate(post.createdAt);
-        return format(date, 'PP', { locale: fr });
-    });
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    const getSafeDate = useCallback((dateValue: any): Date => {
+      if (!dateValue) return new Date();
+      if (dateValue instanceof Timestamp) {
+        return dateValue.toDate();
+      }
+      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+        return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+      }
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+          return date;
+        }
+      }
+      return new Date();
+    }, []);
+
+    const [timeAgo, setTimeAgo] = useState(() => format(getSafeDate(post.createdAt), 'PP', { locale: fr }));
+
+    useEffect(() => {
+        if(isClient) {
+            setTimeAgo(formatDistanceToNow(getSafeDate(post.createdAt), { addSuffix: true, locale: fr }));
+        }
+    }, [isClient, post.createdAt, getSafeDate]);
 
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
     
-    useEffect(() => {
-        const date = getSafeDate(post.createdAt);
-        setTimeAgo(formatDistanceToNow(date, { addSuffix: true, locale: fr }));
-    }, [post.createdAt]);
-
     useEffect(() => {
         const video = videoRef.current;
         const audio = audioRef.current;
@@ -89,22 +110,6 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         return name.substring(0, 2).toUpperCase();
     }
     
-    const getSafeDate = (dateValue: any): Date => {
-      if (!dateValue) return new Date();
-      if (dateValue instanceof Timestamp) {
-        return dateValue.toDate();
-      }
-      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
-        return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
-      }
-      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
-        const date = new Date(dateValue);
-        if (!isNaN(date.getTime())) {
-          return date;
-        }
-      }
-      return new Date();
-    }
 
     const isOwner = user && user.uid === post.userId;
     const hasLiked = user && optimisticLikes.includes(user.uid);

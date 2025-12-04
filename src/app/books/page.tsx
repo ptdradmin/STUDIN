@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -182,7 +183,7 @@ export default function BookMarketPage() {
             <div className="flex justify-between items-center mb-4 gap-4">
               <h2 className="text-2xl font-bold tracking-tight">Livres disponibles</h2>
               <div className="flex items-center gap-2">
-                <Button onClick={handleCreateClick} disabled={isUserLoading}>
+                <Button onClick={handleCreateClick}>
                   <Plus className="mr-2 h-4 w-4" /> Vendre un livre
                 </Button>
               </div>

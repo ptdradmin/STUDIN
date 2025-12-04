@@ -8,38 +8,32 @@ import { Home, Film, PlusSquare, MessageSquare, User, Target, BookOpen } from 'l
 import { Button } from './ui/button';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CreatePostForm from './create-post-form';
 import { generateAvatar } from '@/lib/avatars';
+import { cn } from '@/lib/utils';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
   const { user } = useUser();
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Pages where the bottom navbar should be hidden
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const publicPages = [
-    '/',
-    '/login',
-    '/register',
-    '/forgot-password',
-    '/about',
-    '/who-we-are',
-    '/press',
-    '/terms',
-    '/privacy',
-    '/help',
-    '/contact',
-    '/faq',
-    '/community-rules'
+    '/', '/login', '/register', '/forgot-password', '/about',
+    '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact',
+    '/faq', '/community-rules'
   ];
 
-  const hideNavbar = !user || publicPages.some(page => pathname === page || (page !== '/' && pathname.startsWith(page)));
+  const hideNavbar = !user || publicPages.some(page => pathname === page);
 
-  if (hideNavbar) {
-      return null;
+  if (!isMounted) {
+    return null; 
   }
-
 
   const getInitials = (email?: string | null) => {
     if (!email) return '..';
@@ -61,7 +55,10 @@ export default function BottomNavbar() {
   return (
     <>
       {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40">
+      <div className={cn(
+        "fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40 transition-transform duration-300",
+        hideNavbar ? "translate-y-full" : "translate-y-0"
+      )}>
         <div className="flex justify-around items-center h-full">
           {navItems.map((item, index) => {
             if (item.isAction) {
@@ -77,7 +74,7 @@ export default function BottomNavbar() {
               return (
                 <Link href={item.href || '#'} key={index}>
                   <Avatar className={`h-7 w-7 transition-all ${isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}`}>
-                    <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user.uid)} />
+                    <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user!.uid)} />
                     <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                   </Avatar>
                 </Link>

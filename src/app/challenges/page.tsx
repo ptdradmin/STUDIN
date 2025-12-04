@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +35,11 @@ export default function ChallengesPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     // Use static challenges for now
     const challenges = staticChallenges;
@@ -46,7 +52,9 @@ export default function ChallengesPage() {
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const challengesWithCoords = challenges?.filter(c => c.latitude && c.longitude) || [];
-    const canCreateChallenge = !isUserLoading && !profileLoading && !!userProfile && (userProfile.role === 'institution' || userProfile.role === 'admin');
+    
+    // Defer check until mounted on client
+    const canCreateChallenge = isMounted && !isUserLoading && !profileLoading && !!userProfile && (userProfile.role === 'institution' || userProfile.role === 'admin');
 
     return (
         <div className="flex min-h-screen w-full bg-background">
