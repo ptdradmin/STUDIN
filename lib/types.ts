@@ -2,7 +2,7 @@
 
 import type { Timestamp } from 'firebase/firestore';
 
-export interface Housing {
+export type Housing = {
   id: string;
   userId: string;
   username: string;
@@ -20,15 +20,17 @@ export interface Housing {
   coordinates: [number, number];
   createdAt: Timestamp;
   updatedAt: Timestamp;
-}
+};
 
-export interface Post {
+export type Post = {
     id: string;
     userId: string;
     username: string;
     userAvatarUrl?: string;
     caption: string;
     imageUrl?: string;
+    videoUrl?: string;
+    fileType?: 'image' | 'video';
     location?: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;
@@ -40,9 +42,13 @@ export interface Post {
         text: string;
         createdAt: string;
     }[];
-}
+    isUploading?: boolean;
+    uploadError?: boolean;
+    songTitle?: string;
+    audioUrl?: string;
+};
 
-export interface Reel {
+export type Reel = {
     id: string;
     userId: string;
     username: string;
@@ -59,9 +65,11 @@ export interface Reel {
         text: string;
         createdAt: string;
     }[];
-}
+    songTitle?: string;
+    audioUrl?: string;
+};
 
-export interface Event {
+export type Event = {
     id: string;
     organizerId: string;
     username: string;
@@ -85,9 +93,9 @@ export interface Event {
     university?: string;
     maxAttendees?: number;
     attendeeIds?: string[];
-}
+};
 
-export interface Tutor {
+export type Tutor = {
     id: string;
     tutorId: string;
     username: string;
@@ -102,9 +110,9 @@ export interface Tutor {
     locationType: 'online' | 'in-person' | 'both';
     createdAt: Timestamp;
     updatedAt: Timestamp;
-}
+};
 
-export interface TutoringReview {
+export type TutoringReview = {
   id: string;
   tutoringId: string;
   studentId: string;
@@ -113,9 +121,9 @@ export interface TutoringReview {
   rating: number;
   comment: string;
   createdAt: Timestamp;
-}
+};
 
-export interface Trip {
+export type Trip = {
     id: string;
     driverId: string;
     username: string;
@@ -133,18 +141,34 @@ export interface Trip {
     description: string;
     createdAt: Timestamp;
     updatedAt: Timestamp;
+};
+
+export interface Book {
+    id: string;
+    title: string;
+    author: string;
+    description?: string;
+    condition: 'Neuf' | 'Très bon' | 'Bon' | 'Acceptable';
+    price: number;
+    imageUrl: string;
+    sellerId: string;
+    sellerName: string;
+    sellerAvatarUrl?: string;
+    course?: string;
+    university?: string;
+    createdAt: Timestamp;
 }
 
-export interface CarpoolBooking {
+export type CarpoolBooking = {
   id: string;
   carpoolId: string;
   passengerId: string;
   seatsBooked: number;
   status: string;
   createdAt: Timestamp;
-}
+};
 
-export interface UserProfile {
+export type UserProfile = {
     id: string;
     role: 'student' | 'institution' | 'admin';
     username: string;
@@ -166,9 +190,9 @@ export interface UserProfile {
     challengesCompleted?: number;
     createdAt: Timestamp;
     updatedAt: Timestamp;
-}
+};
 
-export interface ChatMessage {
+export type ChatMessage = {
     id: string;
     text?: string;
     senderId: string;
@@ -177,9 +201,9 @@ export interface ChatMessage {
     videoUrl?: string;
     audioUrl?: string;
     fileType?: 'image' | 'video' | 'audio';
-}
+};
 
-export interface Conversation {
+export type Conversation = {
     id:string;
     participantIds: string[];
     participants: { [key: string]: { username: string; profilePicture?: string } };
@@ -191,9 +215,9 @@ export interface Conversation {
     createdAt: Timestamp;
     updatedAt: Timestamp;
     unread?: boolean;
-}
+};
 
-export interface Notification {
+export type Notification = {
   id: string;
   type: 'new_follower' | 'like' | 'comment' | 'new_message' | 'carpool_booking' | 'event_attendance';
   senderId: string;
@@ -206,22 +230,22 @@ export interface Notification {
   message?: string;
   read: boolean;
   createdAt: Timestamp;
-}
+};
 
-export interface Favorite {
+export type Favorite = {
     id: string;
     userId: string;
     itemId: string;
-    itemType: 'post' | 'housing' | 'event' | 'tutor';
+    itemType: 'post' | 'housing' | 'event' | 'tutor' | 'book';
     createdAt: Timestamp;
-}
+};
 
-export interface Challenge {
+export type Challenge = {
     id: string;
     creatorId: string;
     title: string;
     description: string;
-    category: 'Exploration' | 'Social' | 'Créatif' | 'Académique';
+    category: 'Exploration' | 'Social' | 'Créatif' | 'Académique' | 'Environnement' | 'Sportif';
     difficulty: 'facile' | 'moyen' | 'difficile';
     points: number;
     imageUrl: string;
@@ -229,9 +253,9 @@ export interface Challenge {
     latitude?: number;
     longitude?: number;
     createdAt: Timestamp;
-}
+};
 
-export interface ChallengeSubmission {
+export type ChallengeSubmission = {
     id: string;
     challengeId: string;
     userId: string;
@@ -242,4 +266,4 @@ export interface ChallengeSubmission {
     proofUrl: string;
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
-}
+};
