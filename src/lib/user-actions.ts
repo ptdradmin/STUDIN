@@ -7,13 +7,24 @@ import {
   setDoc,
   serverTimestamp,
   Firestore,
+  query,
+  collection,
+  where,
+  getDocs,
+  WriteBatch
 } from 'firebase/firestore';
 import { User, updateProfile } from 'firebase/auth';
 import { generateAvatar } from '@/lib/avatars';
 
+export const isUsernameUnique = async (firestore: Firestore, username: string): Promise<boolean> => {
+    const q = query(collection(firestore, "users"), where("username", "==", username));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty;
+};
+
 export const createUserDocument = async (
   firestore: Firestore,
-  user: User | null,
+  user: User,
   additionalData: Record<string, any> = {}
 ) => {
   if (!user) {
@@ -25,13 +36,11 @@ export const createUserDocument = async (
 
   if (userDoc.exists()) {
     console.log("Le document utilisateur existe déjà pour :", user.uid);
-    return; // Le document existe déjà, pas besoin de le recréer.
+    return;
   }
   
   const { email, displayName, photoURL } = user;
   
-  // Génère un nom d'utilisateur simple et probablement unique.
-  // La logique complexe de vérification est retirée car elle causait des problèmes de permission.
   const username = (additionalData.username || email?.split('@')[0] || `user_${user.uid.slice(0, 6)}`)
     .toLowerCase()
     .replace(/[^a-z0-9_.]/g, '');
@@ -62,7 +71,7 @@ export const createUserDocument = async (
       updatedAt: serverTimestamp(),
   };
 
-  // Écrit directement le document. La règle de sécurité `allow create: if request.auth.uid == userId;` fonctionnera.
+  // La règle de sécurité `allow create: if request.auth.uid == userId;` fonctionnera ici.
   await setDoc(userDocRef, userData);
 
   const newDisplayName = `${firstName} ${lastName}`.trim();
@@ -70,5 +79,3 @@ export const createUserDocument = async (
     await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
   }
 };
-
-// La fonction isUsernameUnique est retirée car elle n'est plus utilisée et était la source des problèmes.

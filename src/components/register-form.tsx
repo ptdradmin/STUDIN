@@ -11,8 +11,8 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase, initiateEmailSignUp } from '@/firebase';
-import { onAuthStateChanged, User, updateProfile } from 'firebase/auth';
+import { useFirebase } from '@/firebase';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { createUserDocument } from '@/lib/user-actions';
@@ -83,9 +83,10 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-        const userCredential = await initiateEmailSignUp(auth, data.email, data.password);
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
         
+        // This now happens immediately after user creation.
         await createUserDocument(firestore, user, data);
         
         const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
