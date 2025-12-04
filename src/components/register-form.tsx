@@ -14,11 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
-import { LogoIcon } from './logo-icon';
+import { createUserDocument, isUsernameUnique } from '@/lib/user-actions';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -70,7 +70,6 @@ export default function RegisterForm() {
   const router = useRouter();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
-  const submitButtonRef = useRef<HTMLButtonElement>(null);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -88,78 +87,6 @@ export default function RegisterForm() {
     },
   });
 
-  const isUsernameUnique = async (username: string): Promise<boolean> => {
-    if (!firestore) return false;
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('username', '==', username));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
-  };
-
-  const createUserDocument = async (user: User, additionalData: Partial<RegisterFormValues> = {}) => {
-      if (!firestore) return;
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      // Only create a new document if one doesn't already exist
-      if (userDoc.exists()) {
-          console.log("User document already exists, skipping creation.");
-          return;
-      }
-
-      const { email, displayName, photoURL } = user;
-      const [firstNameFromProvider, lastNameFromProvider] = displayName?.split(' ') || ['', ''];
-
-      const firstName = additionalData.firstName || firstNameFromProvider || '';
-      const lastName = additionalData.lastName || lastNameFromProvider || '';
-      
-      let username = additionalData.username || '';
-      if (!username) {
-          let base = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
-          username = base.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-          let isUnique = await isUsernameUnique(username);
-          let counter = 1;
-          while(!isUnique) {
-              const newUsername = `${username}${counter}`;
-              isUnique = await isUsernameUnique(newUsername);
-              if (isUnique) {
-                  username = newUsername;
-              }
-              counter++;
-          }
-      }
-
-      const userData = {
-          id: user.uid,
-          role: 'student',
-          email,
-          username,
-          firstName,
-          lastName,
-          postalCode: additionalData.postalCode || '',
-          city: additionalData.city || '',
-          university: additionalData.university || '',
-          fieldOfStudy: additionalData.fieldOfStudy || '',
-          bio: '',
-          website: '',
-          profilePicture: photoURL || generateAvatar(user.email || user.uid),
-          followerIds: [],
-          followingIds: [],
-          isVerified: false,
-          points: 0,
-          challengesCompleted: 0,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-      };
-      
-      await setDoc(userDocRef, userData);
-
-      const newDisplayName = `${firstName} ${lastName}`.trim();
-      if(user && (user.displayName !== newDisplayName || user.photoURL !== userData.profilePicture)) {
-        await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
-      }
-  }
-
   const handleSuccess = (user: User) => {
      toast({
         title: "Inscription réussie!",
@@ -173,6 +100,9 @@ export default function RegisterForm() {
       let description = "Impossible de créer le compte.";
       if (error.code === 'auth/email-already-in-use') {
           description = "Cet email est déjà utilisé. Essayez de vous connecter.";
+      }
+       if (error.code === 'auth/popup-closed-by-user') {
+        description = "La fenêtre de connexion a été fermée."
       }
       toast({
           variant: "destructive",
@@ -188,7 +118,7 @@ export default function RegisterForm() {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      await createUserDocument(result.user);
+      await createUserDocument(firestore, result.user);
       handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
@@ -206,7 +136,7 @@ export default function RegisterForm() {
         return;
     }
 
-    const uniqueUsername = await isUsernameUnique(data.username);
+    const uniqueUsername = await isUsernameUnique(firestore, data.username);
     if (!uniqueUsername) {
         form.setError('username', { type: 'manual', message: "Ce nom d'utilisateur est déjà pris." });
         setLoading('');
@@ -215,7 +145,7 @@ export default function RegisterForm() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      await createUserDocument(userCredential.user, data);
+      await createUserDocument(firestore, userCredential.user, data);
       handleSuccess(userCredential.user);
     } catch (error: any) {
         handleError(error);
@@ -406,7 +336,7 @@ export default function RegisterForm() {
                 )}
               />
 
-              <Button type="submit" ref={submitButtonRef} className="w-full" disabled={!!loading || !servicesReady}>
+              <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
                 {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
               </Button>
             </form>

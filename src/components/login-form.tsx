@@ -15,6 +15,8 @@ import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs
 import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
+import { createUserDocument } from '@/lib/user-actions';
+
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -35,63 +37,6 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
-
-  const isUsernameUnique = async (username: string): Promise<boolean> => {
-    if (!firestore) return false;
-    const usersRef = collection(firestore, 'users');
-    const q = query(usersRef, where('username', '==', username));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
-  };
-
-  const createUserDocument = async (user: User) => {
-    if (!firestore) return;
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-      const { email, displayName, photoURL } = user;
-      const [firstName, lastName] = displayName?.split(' ') || ['', ''];
-      
-      let username = email?.split('@')[0] || `user${user.uid.substring(0,6)}`;
-      username = username.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-      
-      let isUnique = await isUsernameUnique(username);
-      let counter = 1;
-      while(!isUnique) {
-          const newUsername = `${username}${counter}`;
-          isUnique = await isUsernameUnique(newUsername);
-          if (isUnique) {
-              username = newUsername;
-          }
-          counter++;
-      }
-
-      const userData = {
-        id: user.uid,
-        email,
-        username,
-        role: 'student',
-        firstName: firstName || '',
-        lastName: lastName || '',
-        university: '',
-        fieldOfStudy: '',
-        postalCode: '',
-        city: '',
-        bio: '',
-        website: '',
-        profilePicture: photoURL || generateAvatar(user.email || user.uid),
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        followerIds: [],
-        followingIds: [],
-        points: 0,
-        challengesCompleted: 0,
-        isVerified: false,
-      };
-      await setDoc(userDocRef, userData, { merge: true });
-    }
-  }
 
   const handleSuccess = (user: User) => {
       toast({
@@ -130,7 +75,7 @@ export default function LoginForm() {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      await createUserDocument(result.user);
+      await createUserDocument(firestore, result.user);
       handleSuccess(result.user);
     } catch (error: any) {
       handleError(error);
