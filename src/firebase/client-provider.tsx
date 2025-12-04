@@ -70,13 +70,15 @@ function getFirebaseServices() {
 
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const services = getFirebaseServices();
-
+  const [services, setServices] = useState<FirebaseServices | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
+    const initializedServices = getFirebaseServices();
+    setServices(initializedServices);
+
+    const unsubscribe = onAuthStateChanged(initializedServices.auth, (firebaseUser) => {
       setUser(firebaseUser);
       setIsAuthLoading(false);
     }, (error) => {
@@ -86,7 +88,12 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
     });
 
     return () => unsubscribe();
-  }, [services.auth]);
+  }, []);
+
+  if (!services) {
+    // Services are still being initialized. You can return a global loader here if needed.
+    return null; 
+  }
 
   return (
     <FirebaseProvider

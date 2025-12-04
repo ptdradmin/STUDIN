@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -15,7 +14,7 @@ import { Skeleton } from './ui/skeleton';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const [showCreatePost, setShowCreatePost] = useState(false);
 
   const getInitials = (email?: string | null) => {
@@ -41,8 +40,23 @@ export default function BottomNavbar() {
     '/faq', '/community-rules'
   ];
   
-  const hideNavbar = !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
+  const hideNavbar = isUserLoading || !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
   
+  // Render a placeholder or nothing if auth state is loading to prevent hydration mismatch
+  if (isUserLoading) {
+    return (
+        <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40">
+            <div className="flex justify-around items-center h-full">
+                <Skeleton className="h-6 w-6" />
+                <Skeleton className="h-6 w-6" />
+                <Skeleton className="h-6 w-6" />
+                <Skeleton className="h-6 w-6" />
+                <Skeleton className="h-7 w-7 rounded-full" />
+            </div>
+        </div>
+    );
+  }
+
   return (
     <>
       {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
@@ -64,7 +78,7 @@ export default function BottomNavbar() {
 
             if (item.isProfile) {
               if (!user) {
-                return <Skeleton key={index} className="h-7 w-7 rounded-full" />;
+                return null;
               }
               const isActive = pathname === item.href || pathname.startsWith('/profile/');
               return (

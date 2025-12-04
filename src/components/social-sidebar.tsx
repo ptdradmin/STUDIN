@@ -1,9 +1,6 @@
-
-
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
@@ -19,11 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { GraduationCap, Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard } from 'lucide-react';
+import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
 import { useState, useEffect } from 'react';
+import { Skeleton } from './ui/skeleton';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home, roles: ['student', 'institution', 'admin'] },
@@ -58,18 +56,38 @@ function NavLink({ item, pathname }: { item: { href?: string, label: string, ico
   );
 }
 
+function SidebarSkeleton() {
+    return (
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
+            <div className="mb-8 px-2 pt-3">
+                <Skeleton className="h-8 w-32" />
+            </div>
+            <nav className="flex flex-col gap-2 flex-grow">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 p-3">
+                        <Skeleton className="h-6 w-6" />
+                        <Skeleton className="h-5 w-32" />
+                    </div>
+                ))}
+            </nav>
+            <div className="flex items-center gap-3 p-2">
+                <Skeleton className="h-9 w-9 rounded-full" />
+                <div className="flex-grow space-y-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-16" />
+                </div>
+            </div>
+        </aside>
+    );
+}
+
 export default function SocialSidebar() {
     const { user, isUserLoading } = useUser();
     const { auth, firestore } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
     const { toast } = useToast();
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
+    
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
@@ -96,18 +114,13 @@ export default function SocialSidebar() {
         return email.substring(0, 2).toUpperCase();
     }
     
-    if (!isMounted) {
-        return null;
-    }
-    
-    // Hide sidebar on public pages if no user is logged in
-    if (!user && !isUserLoading) {
-        const publicPages = ['/', '/login', '/register', '/about', '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact', '/faq', '/community-rules'];
-        if (publicPages.includes(pathname)) {
-            return null;
-        }
+    if (isUserLoading || profileLoading) {
+        return <SidebarSkeleton />;
     }
 
+    if (!user) {
+        return null;
+    }
 
     const userRole = userProfile?.role || 'student';
     const visibleNavItems = mainNavItems.filter(item => item.roles.includes(userRole));
