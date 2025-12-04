@@ -18,6 +18,7 @@ import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, getDoc
 import { Eye, EyeOff } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
+import { LogoIcon } from './logo-icon';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -102,6 +103,7 @@ export default function RegisterForm() {
 
       // Only create a new document if one doesn't already exist
       if (userDoc.exists()) {
+          console.log("User document already exists, skipping creation.");
           return;
       }
 
@@ -129,7 +131,7 @@ export default function RegisterForm() {
 
       const userData = {
           id: user.uid,
-          role: 'student', // Set role to student
+          role: 'student',
           email,
           username,
           firstName,
@@ -152,7 +154,7 @@ export default function RegisterForm() {
       
       await setDoc(userDocRef, userData);
 
-      const newDisplayName = `${firstName} ${lastName}`;
+      const newDisplayName = `${firstName} ${lastName}`.trim();
       if(user && (user.displayName !== newDisplayName || user.photoURL !== userData.profilePicture)) {
         await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
       }

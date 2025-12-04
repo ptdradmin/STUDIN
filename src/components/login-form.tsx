@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
@@ -11,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, initiateEmailSignIn } from '@/firebase';
-import { signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider, User, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
@@ -107,12 +106,16 @@ export default function LoginForm() {
   }
 
   const handleError = (error: any) => {
+      setLoading('');
       let description = "Une erreur est survenue.";
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Adresse e-mail ou mot de passe incorrect."
       }
        if (error.code === 'auth/popup-closed-by-user') {
         description = "La fenêtre de connexion a été fermée."
+      }
+      if(error.code === 'auth/invalid-app-credential') {
+        description = "Problème de configuration de sécurité (App Check)."
       }
       toast({
         variant: "destructive",
@@ -148,27 +151,10 @@ export default function LoginForm() {
     }
     
     setLoading('email');
-
-    // Use non-blocking sign-in
-    initiateEmailSignIn(auth, email, password);
-    // The onAuthStateChanged listener will handle success/error and navigation.
-    // To give feedback, we can optimistically show a toast, or wait for the listener.
-    // For now, we let the global listener handle it.
+    signInWithEmailAndPassword(auth, email, password)
+      .then(userCredential => handleSuccess(userCredential.user))
+      .catch(error => handleError(error));
   }
-
-  // Effect to handle loading state from non-blocking sign-in
-  useEffect(() => {
-    if (isUserLoading && loading === 'email') {
-      // Still loading, do nothing
-    } else if (!isUserLoading && loading === 'email') {
-      // Loading finished, check if we have a user
-      if (!auth.currentUser) {
-        // if no user, it means sign in failed. The global listener might not catch this specific UI state.
-        handleError({code: 'auth/invalid-credential'});
-      }
-      setLoading('');
-    }
-  }, [isUserLoading, loading, auth]);
 
   const servicesReady = !!auth && !!firestore;
 
@@ -229,8 +215,8 @@ export default function LoginForm() {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={!!loading || !servicesReady || isUserLoading}>
-                {loading === 'email' || (isUserLoading && loading === 'email') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {loading === 'email' || (isUserLoading && loading === 'email') ? 'Connexion...' : 'Se connecter'}
+                {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
             </form>
             <div className="relative">
