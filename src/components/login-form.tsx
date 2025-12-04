@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -54,7 +55,7 @@ export default function LoginForm() {
       } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
       } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/internal-error') {
-        description = `Problème de configuration (${error.code}). Veuillez réessayer.`
+        description = `Une erreur est survenue. (${error.code}).`
       }
       toast({
         variant: "destructive",
