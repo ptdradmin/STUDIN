@@ -30,18 +30,16 @@ function getFirebaseServices(): FirebaseServices {
     return firebaseServices;
   }
 
-  if (getApps().length === 0) {
-    const app = initializeApp(firebaseConfig);
-    if (typeof window !== 'undefined') {
-      // Initialize App Check
-      initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-        isTokenAutoRefreshEnabled: true
-      });
-    }
+  const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  
+  if (typeof window !== 'undefined') {
+    // Initialize App Check
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+      isTokenAutoRefreshEnabled: true
+    });
   }
   
-  const app = getApp();
   const auth = getAuth(app);
   const firestore = getFirestore(app);
   const storage = getStorage(app);
@@ -52,12 +50,16 @@ function getFirebaseServices(): FirebaseServices {
 
 
 export default function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const services = getFirebaseServices();
+  const [services, setServices] = useState<FirebaseServices | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
+    // Initialize services once on mount
+    const s = getFirebaseServices();
+    setServices(s);
+
+    const unsubscribe = onAuthStateChanged(s.auth, (firebaseUser) => {
       setUser(firebaseUser);
       setIsAuthLoading(false);
     }, (error) => {
@@ -67,17 +69,17 @@ export default function FirebaseClientProvider({ children }: FirebaseClientProvi
     });
 
     return () => unsubscribe();
-  }, [services.auth]);
+  }, []);
 
   return (
     <FirebaseProvider
-      firebaseApp={services.app}
-      auth={services.auth}
-      firestore={services.firestore}
-      storage={services.storage}
+      firebaseApp={services?.app || null}
+      auth={services?.auth || null}
+      firestore={services?.firestore || null}
+      storage={services?.storage || null}
       user={user}
       isUserLoading={isAuthLoading}
-      areServicesAvailable={true} // Services are always available with this setup
+      areServicesAvailable={!!services}
     >
       <FirebaseErrorListener />
       {children}
