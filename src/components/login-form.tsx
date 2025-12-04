@@ -8,11 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
-import { User, signInWithEmailAndPassword } from 'firebase/auth';
+import { useFirebase, initiateEmailSignIn } from '@/firebase';
+import { User, onAuthStateChanged } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
-import { createUserDocument } from '@/lib/user-actions';
 
 
 export default function LoginForm() {
@@ -42,7 +41,7 @@ export default function LoginForm() {
     let description = `Une erreur est survenue. (${error.code})`;
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
         description = "Adresse e-mail ou mot de passe incorrect."
-    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed') {
+    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed' || error.code === 'auth/firebase-app-check-token-is-invalid') {
         description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
     }
     toast({
@@ -65,9 +64,28 @@ export default function LoginForm() {
     }
     
     setLoading('email');
-    signInWithEmailAndPassword(auth, email, password)
-      .then(userCredential => handleSuccess(userCredential.user))
-      .catch(error => handleError(error));
+
+    // Non-blocking call
+    initiateEmailSignIn(auth, email, password);
+
+    // Listen for the result
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        if (user) {
+            unsubscribe(); // Stop listening
+            handleSuccess(user);
+        }
+    }, (error) => {
+        unsubscribe(); // Stop listening on error
+        handleError(error);
+    });
+
+    // Timeout to prevent hanging state
+    setTimeout(() => {
+        unsubscribe();
+        if (loading) {
+            handleError({ code: 'auth/timeout' });
+        }
+    }, 10000);
   }
 
   const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
