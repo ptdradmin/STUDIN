@@ -56,13 +56,13 @@ export default function RegisterInstitutionForm() {
   });
 
   const getRecaptchaToken = useCallback(async (action: string) => {
-    if (!window.grecaptcha) {
-      console.error("reCAPTCHA script not loaded");
+    if (!(window as any).grecaptcha || !(window as any).grecaptcha.enterprise) {
+      console.error("reCAPTCHA script not loaded or ready");
       return null;
     }
     return new Promise<string>((resolve) => {
-      window.grecaptcha.enterprise.ready(async () => {
-        const token = await window.grecaptcha.enterprise.execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action });
+      (window as any).grecaptcha.enterprise.ready(async () => {
+        const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', { action });
         resolve(token);
       });
     });
