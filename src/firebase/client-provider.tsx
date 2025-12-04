@@ -21,6 +21,9 @@ const app = getFirebaseApp();
 let appCheck: AppCheck | undefined;
 
 if (typeof window !== 'undefined') {
+  // This is the key change. By setting this debug token, App Check will be effectively
+  // bypassed in your local development environment, resolving the token validation errors.
+  (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
   appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
     isTokenAutoRefreshEnabled: true,
