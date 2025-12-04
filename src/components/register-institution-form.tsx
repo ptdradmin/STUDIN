@@ -63,11 +63,16 @@ export default function RegisterInstitutionForm() {
     // 1. User Document
     const userDocRef = doc(firestore, 'users', user.uid);
     
-    let username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20);
+    let baseUsername = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20);
+    if (!baseUsername) {
+        baseUsername = `institution_${user.uid.substring(0,6)}`;
+    }
+    
+    let username = baseUsername;
     let isUnique = await isUsernameUnique(firestore, username);
     let counter = 1;
     while(!isUnique) {
-        const newUsername = `${username}${counter}`;
+        const newUsername = `${baseUsername}${counter}`;
         isUnique = await isUsernameUnique(firestore, newUsername);
         if (isUnique) {
             username = newUsername;
