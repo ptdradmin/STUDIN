@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
@@ -22,7 +22,8 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const auth = useAuth();
+  const { isUserLoading } = useUser();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -70,7 +71,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -130,7 +131,7 @@ export default function LoginForm() {
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter'}
+                {isUserLoading ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
         </div>
