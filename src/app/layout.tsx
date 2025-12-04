@@ -9,6 +9,7 @@ import { LanguageProvider } from '@/contexts/language-context';
 import BottomNavbar from '@/components/bottom-navbar';
 import { usePathname } from 'next/navigation';
 import { Inter, Poppins, Source_Code_Pro } from 'next/font/google';
+import { useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -25,6 +26,11 @@ const sourceCodePro = Source_Code_Pro({
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const publicPages = [
     '/',
@@ -42,6 +48,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
   ];
 
   const showBottomNav = !publicPages.includes(pathname);
+  
+  if (!isMounted) {
+    return <>{children}</>;
+  }
+
 
   return (
     <>
