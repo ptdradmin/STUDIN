@@ -11,7 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useUser, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -66,7 +66,8 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState('');
   const router = useRouter();
-  const { auth, isUserLoading } = useAuth();
+  const { isUserLoading } = useUser();
+  const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -340,8 +341,9 @@ export default function RegisterForm() {
               />
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                {loading === 'email' ? 'Inscription en cours...' : "S'inscrire"}
+                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {isUserLoading && 'Initialisation...'}
+                {!isUserLoading && (loading === 'email' ? 'Inscription en cours...' : "S'inscrire")}
               </Button>
             </form>
           </Form>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth, useUser, useFirestore } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider, User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
@@ -32,7 +32,9 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const { isUserLoading } = useUser();
+  const auth = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -68,7 +70,7 @@ export default function LoginForm() {
   }
 
   const handleGoogleSignIn = async () => {
-    if (!auth || !firestore || !areServicesAvailable) {
+    if (!auth || !firestore) {
       toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas encore prêt. Veuillez patienter un instant."});
       return;
     }
@@ -94,7 +96,7 @@ export default function LoginForm() {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
-    if (!auth || !areServicesAvailable) {
+    if (!auth) {
         toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
         return;
     }
@@ -105,7 +107,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -164,8 +166,9 @@ export default function LoginForm() {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {loading === 'email' ? 'Connexion...' : 'Se connecter'}
+                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUserLoading && 'Initialisation...'}
+                {!isUserLoading && (loading === 'email' ? 'Connexion...' : 'Se connecter')}
             </Button>
             </form>
             <div className="relative">
@@ -179,7 +182,9 @@ export default function LoginForm() {
                 </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
-                {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
+                {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                 {isUserLoading && '...'}
+                {!isUserLoading && (loading === 'google' ? '...' : <GoogleIcon className="mr-2 h-4 w-4" />)}
                 Se connecter avec Google
             </Button>
         </div>
