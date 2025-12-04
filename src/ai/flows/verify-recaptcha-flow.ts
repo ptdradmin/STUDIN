@@ -85,9 +85,10 @@ const verifyRecaptchaFlow = ai.defineFlow(
       }
 
       // Business logic: check if the score is high enough.
-      // For this example, we use a threshold of 0.5.
       const score = response.riskAnalysis?.score ?? 0;
-      const isVerified = score >= 0.7; // Use a slightly higher threshold for login.
+      // You can adjust this threshold based on your risk tolerance.
+      // 0.7 is a good starting point for important actions.
+      const isVerified = score >= 0.7;
 
       return {
         isVerified,
@@ -101,5 +102,3 @@ const verifyRecaptchaFlow = ai.defineFlow(
     }
   }
 );
-
-    

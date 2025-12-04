@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User }
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
-import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
+import { verifyRecaptcha, type VerifyRecaptchaOutput } from '@/ai/flows/verify-recaptcha-flow';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -141,11 +141,14 @@ export default function LoginForm() {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
+    if (!auth) {
+        toast({variant: "destructive", title: "Erreur", description: "Service d'authentification indisponible."});
+        return;
+    }
+    
     setLoading('email');
 
     try {
-        if (!auth) throw new Error("Auth service not available");
-        
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         handleSuccess(userCredential.user);
 
@@ -215,7 +218,7 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading}>
+            <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -230,7 +233,7 @@ export default function LoginForm() {
                 </span>
                 </div>
             </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading}>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={!!loading || !servicesReady}>
                 {loading === 'google' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon className="mr-2 h-4 w-4" />}
                 Se connecter avec Google
             </Button>
@@ -244,5 +247,3 @@ export default function LoginForm() {
       </div>
   );
 }
-
-    
