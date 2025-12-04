@@ -9,48 +9,53 @@ import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 
+const getImageByHint = (hint: string) => {
+    const image = PlaceHolderImages.find(p => p.imageHint.includes(hint));
+    return image?.imageUrl || PlaceHolderImages[0]?.imageUrl || '';
+}
+
 const services = [
     {
         name: "Logements",
         description: "Trouvez le kot ou studio parfait près de votre campus.",
         icon: <Bed className="h-6 w-6"/>,
         href: "/housing",
-        image: PlaceHolderImages.find(p => p.id === 'service-housing')?.imageUrl || ''
+        image: getImageByHint('intérieur salon')
     },
     {
         name: "Covoiturage",
         description: "Partagez vos trajets pour économiser et faire des rencontres.",
         icon: <Car className="h-6 w-6"/>,
         href: "/carpooling",
-        image: PlaceHolderImages.find(p => p.id === 'service-carpooling')?.imageUrl || ''
+        image: getImageByHint('voiture route')
     },
      {
         name: "Tutorat",
         description: "Obtenez de l'aide pour réussir ou proposez vos compétences.",
         icon: <BookOpen className="h-6 w-6"/>,
         href: "/tutoring",
-        image: PlaceHolderImages.find(p => p.id === 'service-tutoring')?.imageUrl || ''
+        image: getImageByHint('salle classe')
     },
     {
         name: "Marché aux Livres",
         description: "Achetez ou vendez vos livres de cours d'occasion.",
         icon: <BookOpen className="h-6 w-6"/>,
         href: "/books",
-        image: PlaceHolderImages.find(p => p.id === 'service-books')?.imageUrl || ''
+        image: getImageByHint('bibliothèque livres')
     },
      {
         name: "Événements",
         description: "Découvrez les meilleures soirées et activités étudiantes.",
         icon: <PartyPopper className="h-6 w-6"/>,
         href: "/events",
-        image: PlaceHolderImages.find(p => p.id === 'service-events')?.imageUrl || ''
+        image: getImageByHint('festival lumières')
     },
     {
         name: "Défis",
         description: "Relevez des défis, gagnez des points et explorez votre ville.",
         icon: <Target className="h-6 w-6" />,
         href: "/challenges",
-        image: PlaceHolderImages.find(p => p.id === 'service-challenges')?.imageUrl || ''
+        image: getImageByHint('groupe amis')
     },
 ]
 
