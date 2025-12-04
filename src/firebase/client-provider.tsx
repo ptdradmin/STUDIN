@@ -21,29 +21,34 @@ const auth = getAuth(firebaseApp);
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 
-// This function initializes App Check and is designed to be called only once.
-const initializeFirebaseServices = () => {
-    try {
-        if (typeof window !== 'undefined' && !(firebaseApp as any)._appCheck) {
-            initializeAppCheck(firebaseApp, {
-                provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                isTokenAutoRefreshEnabled: true,
-            });
-        }
-    } catch (e) {
-        console.error("App Check initialization error:", e);
-    }
-};
-
 export default function FirebaseClientProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
+    const [isAppCheckReady, setIsAppCheckReady] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        // Initialize App Check once when the component mounts on the client.
-        initializeFirebaseServices();
-        
+        // Poll for grecaptcha to be ready
+        const intervalId = setInterval(() => {
+            if (typeof window !== 'undefined' && (window as any).grecaptcha?.ready) {
+                clearInterval(intervalId);
+                (window as any).grecaptcha.ready(() => {
+                    try {
+                        if (!(firebaseApp as any)._appCheck) {
+                            initializeAppCheck(firebaseApp, {
+                                provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                                isTokenAutoRefreshEnabled: true,
+                            });
+                        }
+                    } catch (e) {
+                        console.error("App Check initialization error:", e);
+                    } finally {
+                        setIsAppCheckReady(true);
+                    }
+                });
+            }
+        }, 100);
+
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsUserLoading(false);
@@ -53,7 +58,10 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
             setIsUserLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            clearInterval(intervalId);
+            unsubscribe();
+        };
     }, []);
 
     const contextValue: FirebaseContextState = useMemo(() => ({
@@ -62,12 +70,12 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         firestore: firestore,
         storage: storage,
         user,
-        isUserLoading: isUserLoading,
-        areServicesAvailable: !isUserLoading,
+        isUserLoading: isUserLoading || !isAppCheckReady,
+        areServicesAvailable: !isUserLoading && isAppCheckReady,
         userError: error,
-    }), [user, isUserLoading, error]);
+    }), [user, isUserLoading, isAppCheckReady, error]);
     
-    if (isUserLoading) {
+    if (isUserLoading || !isAppCheckReady) {
         return <PageSkeleton />;
     }
 
