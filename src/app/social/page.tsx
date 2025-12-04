@@ -2,8 +2,8 @@
 'use client';
 
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
-import type { Post, Favorite } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import type { Post, Favorite, UserProfile } from '@/lib/types';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { useMemo, useState, useEffect } from 'react';
@@ -16,6 +16,7 @@ import GlobalSearch from '@/components/global-search';
 import SocialSidebar from '@/components/social-sidebar';
 import SuggestedUsersCarousel from '@/components/suggested-users-carousel';
 import SocialFeedSuggestions from '@/components/social-feed-suggestions';
+import { doc } from 'firebase/firestore';
 
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
@@ -23,14 +24,25 @@ export default function SocialPage() {
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
+    const userProfileRef = useMemoFirebase(() => {
+        if (!firestore || !user) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [firestore, user]);
+
+    const { data: currentUserProfile } = useDoc<UserProfile>(userProfileRef);
+
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
+        if (!firestore || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) return null;
+        
+        const followedIds = [...currentUserProfile.followingIds, user?.uid].slice(0, 10);
+        
         return query(
           collection(firestore, 'posts'), 
+          where('userId', 'in', followedIds),
           orderBy('createdAt', 'desc'),
           limit(50)
         );
-      }, [firestore]);
+      }, [firestore, currentUserProfile?.followingIds, user?.uid]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -106,7 +118,7 @@ export default function SocialPage() {
                        ) : (
                          <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
                               <p className="text-lg font-semibold">Votre fil est vide</p>
-                              <p className="text-sm">Suivez des personnes pour voir leurs publications ici.</p>
+                              <p className="text-sm">Suivez des personnes pour voir leurs publications ici, ou publiez votre première photo !</p>
                           </div>
                       )}
                   </div>
