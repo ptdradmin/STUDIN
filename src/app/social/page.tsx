@@ -7,7 +7,7 @@ import type { Post, Favorite } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -54,13 +54,14 @@ export default function SocialPage() {
         }
         return map;
     }, [favoriteItems]);
-    
-    if (!user && !isUserLoading) {
+
+    useEffect(() => {
+      if (!isUserLoading && !user) {
         router.push('/login?from=/social');
-        return <PageSkeleton />;
-    }
+      }
+    }, [isUserLoading, user, router]);
     
-    if (isUserLoading) {
+    if (isUserLoading || !user) {
       return <PageSkeleton />;
     }
 
