@@ -1,6 +1,4 @@
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
-# By removing the customDomain and runConfig, we allow App Hosting to use
-# the default deployment path which doesn't require a GitHub repository import.
 runConfig:
   minInstances: 0
