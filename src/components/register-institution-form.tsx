@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, useFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
@@ -39,8 +39,7 @@ export default function RegisterInstitutionForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, isUserLoading } = useAuth();
-  const firestore = useFirestore();
+  const { auth, firestore, isUserLoading } = useFirebase();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -140,8 +139,8 @@ export default function RegisterInstitutionForm() {
       if (error.code === 'auth/email-already-in-use') {
           description = "Cet email est déjà utilisé pour un autre compte.";
       }
-       if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid') {
-        description = "Problème de configuration de sécurité (App Check)."
+       if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
+        description = "Problème de connexion ou de sécurité. Veuillez réessayer."
       }
       toast({
           variant: "destructive",
@@ -275,7 +274,8 @@ export default function RegisterInstitutionForm() {
               </div>
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading ? "Création du compte..." : "S'inscrire"}
+                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {isUserLoading ? 'Chargement...' : 'S\'inscrire'}
               </Button>
             </form>
           </Form>
@@ -291,3 +291,4 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+

@@ -54,8 +54,8 @@ export default function LoginForm() {
         description = "Adresse e-mail ou mot de passe incorrect."
     } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
-    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential') {
-        description = "Une erreur interne est survenue. Le service est peut-être temporairement indisponible."
+    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed') {
+        description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
     }
     toast({
         variant: "destructive",
@@ -102,7 +102,7 @@ export default function LoginForm() {
       .catch(error => handleError(error));
   }
 
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -161,8 +161,8 @@ export default function LoginForm() {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'email' ? 'Connexion...' : 'Se connecter')}
+                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUserLoading ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
             <div className="relative">
@@ -176,9 +176,9 @@ export default function LoginForm() {
                 </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
-                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {!isUserLoading && (loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />)}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'google' ? 'Connexion...' : 'Se connecter avec Google')}
+                {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />}
+                {isUserLoading ? 'Chargement...' : 'Se connecter avec Google'}
             </Button>
         </div>
         <div className="mt-4 text-center text-sm">

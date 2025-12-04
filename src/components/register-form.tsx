@@ -101,8 +101,8 @@ export default function RegisterForm() {
         description = "Cet email est déjà utilisé. Essayez de vous connecter.";
     } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
       description = "La fenêtre de connexion a été fermée."
-    } else if(error.code === 'auth/internal-error') {
-      description = `Une erreur interne est survenue. Veuillez réessayer.`
+    } else if(error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed') {
+      description = `Une erreur de connexion est survenue. Veuillez vérifier votre connexion et réessayer.`
     }
     toast({
         variant: "destructive",
@@ -113,7 +113,10 @@ export default function RegisterForm() {
 
 
   const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
+    if (!areServicesAvailable || !auth || !firestore) {
+      toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez patienter."});
+      return;
+    }
     setLoading('google');
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({
@@ -131,7 +134,7 @@ export default function RegisterForm() {
   };
 
   const onSubmit = async (data: RegisterFormValues) => {
-    if (!auth || !firestore) {
+    if (!areServicesAvailable || !auth || !firestore) {
         toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
         return;
     }
@@ -155,7 +158,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = !!loading || isUserLoading;
 
   return (
     <>
@@ -167,9 +170,9 @@ export default function RegisterForm() {
         <div className="space-y-4">
            <div className="grid grid-cols-1 gap-4">
               <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={buttonsDisabled}>
-                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {!isUserLoading && (loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />)}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'google' ? 'Inscription...' : "S'inscrire avec Google")}
+                 {loading === 'google' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {loading !== 'google' && <GoogleIcon className="mr-2 h-4 w-4" />}
+                {isUserLoading ? 'Chargement...' : 'S\'inscrire avec Google'}
               </Button>
            </div>
           <div className="relative">
@@ -339,8 +342,8 @@ export default function RegisterForm() {
               />
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : (loading === 'email' ? 'Inscription en cours...' : "S'inscrire")}
+                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {isUserLoading ? 'Chargement...' : "S'inscrire"}
               </Button>
             </form>
           </Form>
@@ -357,3 +360,4 @@ export default function RegisterForm() {
     </>
   );
 }
+
