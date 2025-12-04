@@ -8,7 +8,6 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
-// This is safe to be in a client component.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -27,29 +26,31 @@ interface FirebaseServices {
   storage: FirebaseStorage;
 }
 
-// IMPORTANT: This function should only be called ONCE per client session.
 function initializeFirebaseClient(): FirebaseServices {
   let firebaseApp: FirebaseApp;
 
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
     if (typeof window !== 'undefined') {
-      // Pass the reCAPTCHA Enterprise site key you created in the Google Cloud console.
-      initializeAppCheck(firebaseApp, {
-          provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-          isTokenAutoRefreshEnabled: true
-      });
+        try {
+            // Pass the reCAPTCHA Enterprise site key you created in the Google Cloud console.
+            initializeAppCheck(firebaseApp, {
+                provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+                isTokenAutoRefreshEnabled: true
+            });
+        } catch(e) {
+            console.error("Failed to initialize App Check", e);
+        }
     }
   } else {
     firebaseApp = getApp();
   }
 
-  return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp),
-  };
+  const auth = getAuth(firebaseApp);
+  const firestore = getFirestore(firebaseApp);
+  const storage = getStorage(firebaseApp);
+
+  return { firebaseApp, auth, firestore, storage };
 }
 
 interface FirebaseClientProviderProps {
@@ -57,7 +58,6 @@ interface FirebaseClientProviderProps {
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // `useMemo` ensures Firebase is only initialized once per client session.
   const firebaseServices = useMemo(() => {
     return initializeFirebaseClient();
   }, []); 
