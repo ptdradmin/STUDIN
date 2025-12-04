@@ -67,7 +67,7 @@ export default function SocialPage() {
     const isLoading = postsLoading || favoritesLoading;
 
     return (
-       <div className="flex min-h-screen w-full bg-background">
+       <div className="flex min-h-screen w-full bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500">
         <SocialSidebar />
         
         <div className="flex flex-col flex-1">
