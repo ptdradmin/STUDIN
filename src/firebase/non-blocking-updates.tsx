@@ -1,4 +1,3 @@
-
 'use client';
     
 import {
@@ -9,8 +8,6 @@ import {
   CollectionReference,
   DocumentReference,
   SetOptions,
-  WriteBatch,
-  writeBatch,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import {FirestorePermissionError} from '@/firebase/errors';
@@ -19,14 +16,13 @@ import {FirestorePermissionError} from '@/firebase/errors';
  * Initiates a setDoc operation for a document reference.
  * Does NOT await the write operation internally.
  */
-export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options?: SetOptions) {
-  const operation = options && 'merge' in options ? 'update' : 'create';
-  setDoc(docRef, data, options || {}).catch(error => {
+export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options: SetOptions) {
+  setDoc(docRef, data, options).catch(error => {
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
         path: docRef.path,
-        operation: operation, 
+        operation: 'write', // or 'create'/'update' based on options
         requestResourceData: data,
       })
     )
@@ -89,24 +85,5 @@ export function deleteDocumentNonBlocking(docRef: DocumentReference) {
           operation: 'delete',
         })
       )
-    });
-}
-
-/**
- * Initiates a batch write operation.
- * Does NOT await the commit operation internally.
- */
-export function commitBatchNonBlocking(batch: WriteBatch, context: { operation: 'update' | 'create' | 'delete' | 'write', path: string, requestResourceData?: any }) {
-    batch.commit().catch(error => {
-         errorEmitter.emit(
-            'permission-error',
-            new FirestorePermissionError({
-                path: context.path,
-                operation: context.operation,
-                requestResourceData: context.requestResourceData,
-            })
-        );
-        // Re-throw the original error to allow individual promise rejections to be caught if needed.
-        throw error;
     });
 }

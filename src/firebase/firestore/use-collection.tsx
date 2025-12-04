@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -43,8 +42,8 @@ export interface InternalQuery extends Query<DocumentData> {
  * Handles nullable references/queries.
  * 
  *
- * IMPORTANT! YOU MUST MEMOIZE the inputted targetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemoFirebase to memoize it per React guidence.  Also make sure that it's dependencies are stable
+ * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
+ * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
  * references
  *  
  * @template T Optional type for document data. Defaults to any.
@@ -53,19 +52,17 @@ export interface InternalQuery extends Query<DocumentData> {
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
-    targetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>))  | null | undefined,
+    memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
-    // If the query is null or undefined, reset state and do nothing.
-    // This is an intentional state for when a query depends on data that is not yet available.
-    if (!targetRefOrQuery) {
+    if (!memoizedTargetRefOrQuery) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -75,28 +72,24 @@ export function useCollection<T = any>(
     setIsLoading(true);
     setError(null);
 
+    // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
     const unsubscribe = onSnapshot(
-      targetRefOrQuery,
+      memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
         const results: ResultItemType[] = [];
-        snapshot.forEach((doc) => {
+        for (const doc of snapshot.docs) {
           results.push({ ...(doc.data() as T), id: doc.id });
-        });
+        }
         setData(results);
         setError(null);
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        let path = 'unknown_path';
-        try {
-            if ('path' in targetRefOrQuery && typeof (targetRefOrQuery as CollectionReference).path === 'string') {
-                path = (targetRefOrQuery as CollectionReference).path;
-            } else if ('_query' in targetRefOrQuery && (targetRefOrQuery as InternalQuery)._query.path) {
-                path = (targetRefOrQuery as InternalQuery)._query.path.canonicalString();
-            }
-        } catch (e) {
-            console.error("Could not extract path from query/ref for error reporting.", e);
-        }
+        // This logic extracts the path from either a ref or a query
+        const path: string =
+          memoizedTargetRefOrQuery.type === 'collection'
+            ? (memoizedTargetRefOrQuery as CollectionReference).path
+            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -107,12 +100,15 @@ export function useCollection<T = any>(
         setData(null)
         setIsLoading(false)
 
+        // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
       }
     );
 
     return () => unsubscribe();
-  }, [targetRefOrQuery]);
-
+  }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+  if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
+    throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
+  }
   return { data, isLoading, error };
 }
