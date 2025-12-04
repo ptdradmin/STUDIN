@@ -18,12 +18,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toggleFavorite, createNotification } from "@/lib/actions";
 import { useInView } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 
 interface PostCardProps {
@@ -31,6 +33,9 @@ interface PostCardProps {
     isInitiallySaved?: boolean;
     initialFavoriteId?: string | null;
 }
+
+const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mN8/w8AAusB/2+B2XAAAAAASUVORK5CYII=";
+
 
 export default function PostCard({ post, isInitiallySaved = false }: PostCardProps) {
     const { user } = useUser();
@@ -46,8 +51,12 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
+    const [showLikeAnimation, setShowLikeAnimation] = useState(false);
 
     const [isClient, setIsClient] = useState(false);
+    const cardRef = useRef<HTMLDivElement>(null);
+    const isInView = useInView(cardRef, { amount: 0.5 });
+
 
     useEffect(() => {
         setIsClient(true);
@@ -85,6 +94,30 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     useEffect(() => {
         setIsSaved(isInitiallySaved);
     }, [isInitiallySaved]);
+    
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        if (isInView && !isPlaying) {
+            video.play().catch(() => {}); // Autoplay might be blocked
+        } else if (!isInView && isPlaying) {
+            video.pause();
+        }
+
+        const handlePlay = () => setIsPlaying(true);
+        const handlePause = () => setIsPlaying(false);
+
+        video.addEventListener('play', handlePlay);
+        video.addEventListener('pause', handlePause);
+        
+        return () => {
+            video.removeEventListener('play', handlePlay);
+            video.removeEventListener('pause', handlePause);
+        };
+
+    }, [isInView, isPlaying]);
+
 
     const getInitials = (name: string) => {
         if (!name) return '??';
@@ -121,11 +154,9 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         if (video.paused) {
             video.play().catch(() => {});
             if(audio) audio.play().catch(() => {});
-            setIsPlaying(true);
         } else {
             video.pause();
             if(audio) audio.pause();
-            setIsPlaying(false);
         }
     }, []);
 
@@ -163,6 +194,11 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
             : currentLikes.filter(uid => uid !== user.uid);
 
         setOptimisticLikes(newLikes);
+
+        if (isLiking) {
+            setShowLikeAnimation(true);
+            setTimeout(() => setShowLikeAnimation(false), 800);
+        }
 
         try {
             await updateDoc(postRef, { likes: newLikes });
@@ -266,7 +302,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
 
 
     return (
-        <div className="w-full bg-card text-card-foreground border-b rounded-lg">
+        <div ref={cardRef} className="w-full bg-card text-card-foreground border-b rounded-lg">
             <div className="flex items-center justify-between p-3">
                 <div className="flex items-center gap-3">
                     <Link href={`/profile/${post.userId}`}>
@@ -317,14 +353,19 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                 </DropdownMenu>
             </div>
             
-            <div className="relative aspect-square bg-muted cursor-pointer" onDoubleClick={handleLike} onClick={handlePlayPause}>
+            <div className="relative aspect-square bg-muted" onDoubleClick={handleLike}>
+                 {showLikeAnimation && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                        <Heart className="h-24 w-24 text-white/90 drop-shadow-lg animate-in fade-in zoom-in-125" />
+                    </div>
+                )}
                 {post.isUploading ? (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground"/>
                     </div>
                 ) : post.fileType === 'video' && post.videoUrl ? (
                     <>
-                        <video ref={videoRef} src={post.videoUrl} loop className="w-full h-full object-cover bg-black" />
+                        <video ref={videoRef} src={post.videoUrl} loop playsInline className="w-full h-full object-cover bg-black" onClick={handlePlayPause} />
                         {post.audioUrl && <audio ref={audioRef} src={post.audioUrl} loop />}
                         {!isPlaying && isClient && (
                              <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
@@ -342,6 +383,8 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                         fill
                         className="object-cover"
                         data-ai-hint="social media post"
+                        placeholder="blur"
+                        blurDataURL={BLUR_DATA_URL}
                         priority
                     />
                 ) : null}
@@ -404,7 +447,17 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                         Masquer les commentaires
                     </Button>
                 )}
-                 <p className="text-xs text-muted-foreground uppercase mt-2 px-2">{timeAgo}</p>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <p className="text-xs text-muted-foreground uppercase mt-2 px-2 cursor-default">{timeAgo}</p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{format(getSafeDate(post.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: fr })}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
             </div>
              {user && (
                 <div className="border-t px-3 py-1">
