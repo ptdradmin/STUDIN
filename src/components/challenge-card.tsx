@@ -7,7 +7,7 @@ import type { Challenge } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { placeholderImages as PlaceHolderImages } from '@/lib/placeholder-images.json';
 
 interface ChallengeCardProps {
   challenge: Challenge;

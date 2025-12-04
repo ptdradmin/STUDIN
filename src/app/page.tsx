@@ -5,7 +5,7 @@ import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { placeholderImages as PlaceHolderImages } from '@/lib/placeholder-images.json';
 import Image from 'next/image';
 
 const getImageByHint = (hint: string) => {
