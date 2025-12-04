@@ -5,7 +5,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 import { FirebaseProvider, FirebaseContextState } from '@/firebase/provider';
 import { firebaseConfig } from './config';
 import { PageSkeleton } from '@/components/page-skeleton';
@@ -24,31 +23,9 @@ const storage = getStorage(firebaseApp);
 export default function FirebaseClientProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
-    const [isAppCheckReady, setIsAppCheckReady] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
-        // Poll for grecaptcha to be ready
-        const intervalId = setInterval(() => {
-            if (typeof window !== 'undefined' && (window as any).grecaptcha?.ready) {
-                clearInterval(intervalId);
-                (window as any).grecaptcha.ready(() => {
-                    try {
-                        if (!(firebaseApp as any)._appCheck) {
-                            initializeAppCheck(firebaseApp, {
-                                provider: new ReCaptchaV3Provider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                                isTokenAutoRefreshEnabled: true,
-                            });
-                        }
-                    } catch (e) {
-                        console.error("App Check initialization error:", e);
-                    } finally {
-                        setIsAppCheckReady(true);
-                    }
-                });
-            }
-        }, 100);
-
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsUserLoading(false);
@@ -58,10 +35,7 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
             setIsUserLoading(false);
         });
 
-        return () => {
-            clearInterval(intervalId);
-            unsubscribe();
-        };
+        return () => unsubscribe();
     }, []);
 
     const contextValue: FirebaseContextState = useMemo(() => ({
@@ -70,12 +44,12 @@ export default function FirebaseClientProvider({ children }: { children: ReactNo
         firestore: firestore,
         storage: storage,
         user,
-        isUserLoading: isUserLoading || !isAppCheckReady,
-        areServicesAvailable: !isUserLoading && isAppCheckReady,
+        isUserLoading: isUserLoading,
+        areServicesAvailable: !isUserLoading,
         userError: error,
-    }), [user, isUserLoading, isAppCheckReady, error]);
+    }), [user, isUserLoading, error]);
     
-    if (isUserLoading || !isAppCheckReady) {
+    if (isUserLoading) {
         return <PageSkeleton />;
     }
 
