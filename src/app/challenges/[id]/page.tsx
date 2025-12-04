@@ -18,9 +18,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, setDocumentNonBlocking, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { doc, collection, query, where, addDoc, serverTimestamp, updateDoc, runTransaction, increment, setDoc } from 'firebase/firestore';
+import { doc, collection, query, where, serverTimestamp, runTransaction, increment, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useStorage } from '@/firebase/provider';
 import { staticChallenges } from '@/lib/static-data';
@@ -75,33 +75,26 @@ export default function ChallengeDetailPage() {
         const submissionRef = doc(firestore, 'challenges', challenge.id, 'submissions', submission.id);
         const userRef = doc(firestore, 'users', submission.userId);
 
-        try {
-             await runTransaction(firestore, async (transaction) => {
-                const userDoc = await transaction.get(userRef);
-                if (!userDoc.exists()) {
-                    throw "User not found!";
-                }
+        updateDocumentNonBlocking(submissionRef, { status: action });
+        toast({
+            title: `Participation ${action === 'approve' ? 'approuvée' : 'rejetée'}`,
+            description: action === 'approve' ? `Les points ont été ajoutés à ${submission.userProfile.username}.` : undefined,
+        });
 
-                transaction.update(submissionRef, { status: action });
-                
-                if(action === 'approve') {
-                    transaction.update(userRef, { 
+        if (action === 'approve') {
+             try {
+                const userDoc = await getDoc(userRef);
+                if (userDoc.exists()) {
+                     updateDocumentNonBlocking(userRef, { 
                         points: increment(challenge.points),
                         challengesCompleted: increment(1)
                     });
                 }
-            });
-
-            toast({
-                title: `Participation ${action === 'approve' ? 'approuvée' : 'rejetée'}`,
-                description: action === 'approve' ? `Les points ont été ajoutés à ${submission.userProfile.username}.` : undefined,
-            });
-        } catch (error) {
-             toast({
-                variant: 'destructive',
-                title: 'Erreur',
-                description: `Impossible de mettre à jour la participation.`,
-            });
+            } catch(e) {
+                console.error("Failed to update user points for challenge:", e);
+                 // The UI has already updated, so we just log the error here.
+                 // A more robust system would use Cloud Functions for this.
+            }
         }
     };
 
@@ -182,15 +175,14 @@ export default function ChallengeDetailPage() {
 
                     const userRef = doc(firestore, 'users', user.uid);
                     
-                    await runTransaction(firestore, async (transaction) => {
-                         transaction.set(submissionRef, submissionData);
-                         if (isVerified) {
-                             transaction.update(userRef, {
-                                 points: increment(challenge.points),
-                                 challengesCompleted: increment(1)
-                             });
-                         }
-                    });
+                    setDocumentNonBlocking(submissionRef, submissionData, { merge: false });
+                    
+                    if(isVerified) {
+                        updateDocumentNonBlocking(userRef, {
+                             points: increment(challenge.points),
+                             challengesCompleted: increment(1)
+                         });
+                    }
 
                     setUploadProgress(100);
                      setTimeout(() => {

@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
-import { collection, serverTimestamp, doc, runTransaction } from 'firebase/firestore';
+import { useAuth, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc, runTransaction, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
 import { Tutor } from '@/lib/types';
@@ -61,38 +61,36 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
         ...data,
         createdAt: serverTimestamp(),
     };
+    
+    // Non-blocking write for the review
+    setDocumentNonBlocking(reviewRef, reviewData, { merge: false });
 
-    runTransaction(firestore, async (transaction) => {
-        const tutorDoc = await transaction.get(tutorRef);
-        if (!tutorDoc.exists()) {
-            throw "Le profil du tuteur n'existe pas !";
+    // In a real-world scenario, the aggregation of ratings
+    // would ideally be handled by a Cloud Function for robustness.
+    // Here, we do it client-side for simplicity.
+    try {
+        const tutorDoc = await getDoc(tutorRef);
+        if (tutorDoc.exists()) {
+            const oldTotalReviews = tutorDoc.data().totalReviews || 0;
+            const oldAverageRating = tutorDoc.data().rating || 0;
+
+            const newTotalReviews = oldTotalReviews + 1;
+            const newAverageRating = ((oldAverageRating * oldTotalReviews) + data.rating) / newTotalReviews;
+
+            updateDocumentNonBlocking(tutorRef, {
+                totalReviews: newTotalReviews,
+                rating: newAverageRating,
+            });
         }
-
-        const oldTotalReviews = tutorDoc.data().totalReviews || 0;
-        const oldAverageRating = tutorDoc.data().rating || 0;
-
-        const newTotalReviews = oldTotalReviews + 1;
-        const newAverageRating = ((oldAverageRating * oldTotalReviews) + data.rating) / newTotalReviews;
-
-        transaction.set(reviewRef, reviewData);
-        transaction.update(tutorRef, { 
-            totalReviews: newTotalReviews,
-            rating: newAverageRating,
-        });
-    }).then(() => {
-        toast({ title: 'Succès', description: 'Avis publié !' });
-        onReviewSubmitted();
-        onClose();
-    }).catch((error) => {
-         const permissionError = new FirestorePermissionError({
-            path: `tutoring_reviews ou tutorings/${tutor.id}`,
-            operation: 'write', // 'write' covers set and update in a transaction
-            requestResourceData: { review: data, tutorId: tutor.id },
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    }).finally(() => {
-        setLoading(false);
-    });
+    } catch(e) {
+        // This part can fail silently without blocking UI, but we log the error.
+        console.error("Failed to update tutor average rating:", e);
+    }
+    
+    toast({ title: 'Succès', description: 'Avis publié !' });
+    onReviewSubmitted();
+    onClose();
+    setLoading(false);
   };
 
   return (
