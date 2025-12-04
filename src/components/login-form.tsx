@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,12 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { useAuth, useFirestore, initiateEmailSignIn } from '@/firebase';
+import { signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, GraduationCap, Loader2 } from 'lucide-react';
 import { generateAvatar } from '@/lib/avatars';
-import { verifyRecaptcha, type VerifyRecaptchaOutput } from '@/ai/flows/verify-recaptcha-flow';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" {...props}>
@@ -29,7 +28,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(''); // can be 'google', 'email'
+  const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
@@ -42,7 +41,6 @@ export default function LoginForm() {
     const querySnapshot = await getDocs(q);
     return querySnapshot.empty;
   };
-
 
   const createUserDocument = async (user: User) => {
     if (!firestore) return;
@@ -148,18 +146,28 @@ export default function LoginForm() {
     
     setLoading('email');
 
-    try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        handleSuccess(userCredential.user);
-
-    } catch (error: any) {
-        handleError(error);
-    } finally {
-        setLoading('');
-    }
+    // Use non-blocking sign-in
+    initiateEmailSignIn(auth, email, password);
+    // The onAuthStateChanged listener will handle success/error and navigation.
+    // To give feedback, we can optimistically show a toast, or wait for the listener.
+    // For now, we let the global listener handle it.
   }
 
-  const servicesReady = !!auth && !!firestore && !isUserLoading;
+  // Effect to handle loading state from non-blocking sign-in
+  useEffect(() => {
+    if (isUserLoading && loading === 'email') {
+      // Still loading, do nothing
+    } else if (!isUserLoading && loading === 'email') {
+      // Loading finished, check if we have a user
+      if (!auth.currentUser) {
+        // if no user, it means sign in failed. The global listener might not catch this specific UI state.
+        handleError({code: 'auth/invalid-credential'});
+      }
+      setLoading('');
+    }
+  }, [isUserLoading, loading, auth]);
+
+  const servicesReady = !!auth && !!firestore;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -218,9 +226,9 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading || !servicesReady}>
-                {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {loading === 'email' ? 'Connexion...' : 'Se connecter'}
+            <Button type="submit" className="w-full" disabled={!!loading || !servicesReady || isUserLoading}>
+                {loading === 'email' || (isUserLoading && loading === 'email') ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {loading === 'email' || (isUserLoading && loading === 'email') ? 'Connexion...' : 'Se connecter'}
             </Button>
             </form>
             <div className="relative">
