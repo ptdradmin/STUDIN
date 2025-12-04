@@ -2,8 +2,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
 import { Providers } from './providers';
-import Script from 'next/script';
-
 
 const inter = Inter({
   subsets: ['latin'],

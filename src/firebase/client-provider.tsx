@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, type ReactNode } from 'react';
@@ -26,30 +27,34 @@ interface FirebaseServices {
   storage: FirebaseStorage;
 }
 
-function initializeFirebaseClient(): FirebaseServices {
-  let firebaseApp: FirebaseApp;
+// Singleton pattern to initialize Firebase services
+let firebaseServices: FirebaseServices | null = null;
 
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-    if (typeof window !== 'undefined') {
-        try {
-            initializeAppCheck(firebaseApp, {
-                provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-                isTokenAutoRefreshEnabled: true
-            });
-        } catch(e) {
-            console.error("Failed to initialize App Check", e);
-        }
-    }
-  } else {
-    firebaseApp = getApp();
+function initializeFirebaseClient(): FirebaseServices {
+  if (firebaseServices) {
+    return firebaseServices;
   }
 
-  const auth = getAuth(firebaseApp);
-  const firestore = getFirestore(firebaseApp);
-  const storage = getStorage(firebaseApp);
+  const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-  return { firebaseApp, auth, firestore, storage };
+  // Initialize App Check MUST be done right after app init and before other services
+  if (typeof window !== 'undefined') {
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (e) {
+      console.error("Failed to initialize App Check", e);
+    }
+  }
+
+  const auth = getAuth(app);
+  const firestore = getFirestore(app);
+  const storage = getStorage(app);
+
+  firebaseServices = { firebaseApp: app, auth, firestore, storage };
+  return firebaseServices;
 }
 
 interface FirebaseClientProviderProps {
@@ -57,16 +62,16 @@ interface FirebaseClientProviderProps {
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  const firebaseServices = useMemo(() => {
-    return initializeFirebaseClient();
-  }, []); 
+  // useMemo ensures that initialization only happens once per render cycle,
+  // and the singleton pattern ensures it only happens once for the lifetime of the client app.
+  const services = useMemo(() => initializeFirebaseClient(), []);
 
   return (
     <FirebaseProvider
-      firebaseApp={firebaseServices.firebaseApp}
-      auth={firebaseServices.auth}
-      firestore={firebaseServices.firestore}
-      storage={firebaseServices.storage}
+      firebaseApp={services.firebaseApp}
+      auth={services.auth}
+      firestore={services.firestore}
+      storage={services.storage}
     >
       {children}
     </FirebaseProvider>
