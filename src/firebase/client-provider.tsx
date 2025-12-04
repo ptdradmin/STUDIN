@@ -41,7 +41,8 @@ function getFirebaseServices(): FirebaseServices {
         isTokenAutoRefreshEnabled: true,
       });
     } catch (e) {
-      console.warn("App Check already initialized or failed to initialize:", e);
+      // App Check may already be initialized, which is fine.
+      console.warn("App Check initialization caught an error (this may be safe to ignore on hot reloads):", e);
     }
   }
 
