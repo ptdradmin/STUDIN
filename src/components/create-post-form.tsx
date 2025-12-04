@@ -16,10 +16,11 @@ import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import Image from 'next/image';
-import { Image as ImageIcon, ArrowLeft, Music, Play, Pause, Search, Video } from 'lucide-react';
+import { Image as ImageIcon, ArrowLeft, Music, Play, Pause, Search, Video, Sparkles, Loader2 } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserProfile } from '@/lib/types';
+import { generateCaption } from '@/ai/flows/generate-caption-flow';
 
 
 const postSchema = z.object({
@@ -204,6 +205,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const [fileType, setFileType] = useState<'image' | 'video' | null>(null);
   const [showMusicSelection, setShowMusicSelection] = useState(false);
   const [selectedSong, setSelectedSong] = useState<{title: string, url: string} | null>(null);
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
 
 
   const getInitials = (name?: string | null) => {
@@ -235,6 +237,32 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
       setValue('audioUrl', song.url);
       setShowMusicSelection(false);
   };
+  
+  const handleGenerateCaption = async () => {
+    if (!previewUrl) {
+      toast({
+        variant: 'destructive',
+        title: 'Aucune image',
+        description: "Veuillez sélectionner une image avant de générer une légende.",
+      });
+      return;
+    }
+    setIsGeneratingCaption(true);
+    try {
+      const result = await generateCaption({ photoDataUri: previewUrl });
+      setValue('caption', result.caption);
+    } catch (error) {
+      console.error('Failed to generate caption:', error);
+      toast({
+        variant: 'destructive',
+        title: "Erreur de l'IA",
+        description: "Impossible de générer une légende pour le moment.",
+      });
+    } finally {
+      setIsGeneratingCaption(false);
+    }
+  };
+
 
   const onSubmit: SubmitHandler<PostFormInputs> = (data) => {
     if (isUserLoading || isProfileLoading || !userProfile || !firestore || !storage || !user) {
@@ -362,12 +390,31 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                       )}
                     </div>
                     <div className="flex-grow overflow-y-auto p-4 space-y-4">
-                      <Textarea
-                          id="caption"
-                          {...register('caption')}
-                          placeholder="Écrivez une légende..."
-                          className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none flex-grow min-h-[100px]"
-                      />
+                      <div className="relative">
+                        <Textarea
+                            id="caption"
+                            {...register('caption')}
+                            placeholder="Écrivez une légende..."
+                            className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none flex-grow min-h-[100px]"
+                        />
+                         {fileType === 'image' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              type="button"
+                              onClick={handleGenerateCaption}
+                              disabled={isGeneratingCaption}
+                              className="absolute bottom-1 right-1"
+                            >
+                              {isGeneratingCaption ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Sparkles className="mr-2 h-4 w-4" />
+                              )}
+                              Générer
+                            </Button>
+                          )}
+                      </div>
                       {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
                       <div className="border-t pt-4">
                         <Input 
