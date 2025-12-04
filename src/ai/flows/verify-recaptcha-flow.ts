@@ -48,16 +48,10 @@ const verifyRecaptchaFlow = ai.defineFlow(
   },
   async ({ token, expectedAction }) => {
     
-    // IMPORTANT: Make sure the following environment variables are set:
-    // - GOOGLE_CLOUD_PROJECT: Your Google Cloud project ID (e.g., "studio-4385357604-24c83")
-    // - RECAPTCHA_ENTERPRISE_API_KEY: An API key with reCAPTCHA Enterprise permissions
-    // - NEXT_PUBLIC_RECAPTCHA_SITE_KEY: The site key used on the client-side
-    
     const projectID = process.env.GOOGLE_CLOUD_PROJECT || "studio-4385357604-24c83";
-    const apiKey = process.env.RECAPTCHA_ENTERPRISE_API_KEY;
     const siteKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
     
-    if (!projectID || !apiKey || !siteKey) {
+    if (!projectID || !siteKey) {
         console.error("reCAPTCHA environment variables are not fully configured.");
         return { isVerified: false, score: 0, reasons: ["Server configuration error."] };
     }
@@ -70,11 +64,13 @@ const verifyRecaptchaFlow = ai.defineFlow(
         event: {
           token: token,
           siteKey: siteKey,
-          expectedAction: expectedAction,
         },
       },
       parent: projectPath,
     };
+    
+    // The API request now omits expectedAction, as recommended for score-based keys.
+    // The action is still verified from the token properties in the response.
 
     try {
       const [response] = await client.createAssessment(request);
@@ -84,13 +80,14 @@ const verifyRecaptchaFlow = ai.defineFlow(
       }
 
       if (response.tokenProperties.action !== expectedAction) {
+        console.warn(`Action mismatch. Expected: ${expectedAction}, Got: ${response.tokenProperties.action}`);
         return { isVerified: false, score: response.riskAnalysis?.score || 0, reasons: ["Action mismatch."] };
       }
 
       // Business logic: check if the score is high enough.
       // For this example, we use a threshold of 0.5.
       const score = response.riskAnalysis?.score ?? 0;
-      const isVerified = score >= 0.5;
+      const isVerified = score >= 0.7; // Use a slightly higher threshold for login.
 
       return {
         isVerified,
@@ -104,3 +101,5 @@ const verifyRecaptchaFlow = ai.defineFlow(
     }
   }
 );
+
+    

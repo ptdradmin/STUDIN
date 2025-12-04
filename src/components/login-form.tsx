@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -34,20 +34,8 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const { auth, firestore, isUserLoading } = useAuth();
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const getRecaptchaToken = useCallback(async (action: string) => {
-    if (!(window as any).grecaptcha || !(window as any).grecaptcha.enterprise) {
-      console.error("reCAPTCHA script not loaded or ready");
-      toast({ variant: "destructive", title: "Erreur", description: "Le service de sécurité n'est pas disponible. Veuillez rafraîchir la page." });
-      return null;
-    }
-    return new Promise<string>((resolve) => {
-      (window as any).grecaptcha.enterprise.ready(async () => {
-        const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', { action });
-        resolve(token);
-      });
-    });
-  }, [toast]);
 
   const isUsernameUnique = async (username: string): Promise<boolean> => {
     if (!firestore) return false;
@@ -148,44 +136,37 @@ export default function LoginForm() {
       setLoading('');
     }
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
+  
+  const handleRecaptchaSubmit = async () => {
+      if (!email || !password) {
         toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
         return;
     }
     setLoading('email');
-    
-    const token = await getRecaptchaToken('LOGIN');
-    if (!token) {
-        setLoading('');
-        return;
-    }
+    (window as any).grecaptcha.enterprise.ready(async () => {
+        try {
+            const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', {action: 'LOGIN'});
+            
+            const recaptchaResult = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
+            if (!recaptchaResult.isVerified) {
+                throw new Error("reCAPTCHA failed");
+            }
+            
+            if (!auth) throw new Error("Auth service not available");
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            handleSuccess(userCredential.user);
+        } catch (error: any) {
+             if(error.message === 'reCAPTCHA failed') {
+                toast({ variant: "destructive", title: "Vérification échouée", description: "Activité suspecte détectée. Veuillez réessayer." });
+             } else {
+                handleError(error);
+             }
+        } finally {
+            setLoading('');
+        }
+    });
+  }
 
-    const recaptchaResult = await verifyRecaptcha({ token, expectedAction: 'LOGIN' });
-    if (!recaptchaResult.isVerified) {
-        toast({ variant: "destructive", title: "Vérification échouée", description: "Activité suspecte détectée. Veuillez réessayer." });
-        setLoading('');
-        return;
-    }
-    
-    if (!auth || !firestore) {
-      toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible." });
-      setLoading('');
-      return;
-    }
-    
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      handleSuccess(userCredential.user);
-    } catch (error: any) {
-      handleError(error);
-    } finally {
-      setLoading('');
-    }
-  };
-  
   const servicesReady = !!auth && !!firestore && !isUserLoading;
 
   return (
@@ -202,7 +183,7 @@ export default function LoginForm() {
           </p>
         </div>
         <div className="grid gap-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -245,7 +226,7 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={!!loading}>
+            <Button type="button" className="w-full" disabled={!!loading} onClick={handleRecaptchaSubmit}>
                 {loading === 'email' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {loading === 'email' ? 'Connexion...' : 'Se connecter'}
             </Button>
@@ -274,3 +255,5 @@ export default function LoginForm() {
       </div>
   );
 }
+
+    
