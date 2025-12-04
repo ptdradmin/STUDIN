@@ -47,13 +47,17 @@ export default function BottomNavbar() {
     { href: "/messages", icon: MessageSquare },
     { href: "/profile", isProfile: true },
   ];
+  
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>
       {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
       <div className={cn(
         "fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40 transition-transform duration-300",
-        hideNavbar || !isMounted ? "translate-y-full" : "translate-y-0"
+        hideNavbar ? "translate-y-full" : "translate-y-0"
       )}>
         <div className="flex justify-around items-center h-full">
           {navItems.map((item, index) => {
