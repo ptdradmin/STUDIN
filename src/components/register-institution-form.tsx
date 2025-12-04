@@ -39,7 +39,8 @@ export default function RegisterInstitutionForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, firestore, isUserLoading } = useAuth();
+  const { auth, isUserLoading } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -134,6 +135,9 @@ export default function RegisterInstitutionForm() {
       if (error.code === 'auth/email-already-in-use') {
           description = "Cet email est déjà utilisé pour un autre compte.";
       }
+       if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid') {
+        description = "Problème de configuration de sécurité (App Check)."
+      }
       toast({
           variant: "destructive",
           title: "Erreur d'inscription",
@@ -161,7 +165,7 @@ export default function RegisterInstitutionForm() {
     }
   };
 
-  const servicesReady = !!auth && !!firestore && !isUserLoading;
+  const buttonsDisabled = loading || isUserLoading;
 
   return (
     <>
@@ -179,7 +183,7 @@ export default function RegisterInstitutionForm() {
                     <FormItem>
                       <FormLabel>Nom de l'institution</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Ville de Bruxelles, ASBL..." {...field} disabled={!servicesReady} />
+                        <Input placeholder="Ex: Ville de Bruxelles, ASBL..." {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -193,7 +197,7 @@ export default function RegisterInstitutionForm() {
                     <FormItem>
                       <FormLabel>Code Postal</FormLabel>
                       <FormControl>
-                        <Input placeholder="1000" {...field} disabled={!servicesReady} />
+                        <Input placeholder="1000" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -206,7 +210,7 @@ export default function RegisterInstitutionForm() {
                     <FormItem>
                       <FormLabel>Ville</FormLabel>
                       <FormControl>
-                        <Input placeholder="Bruxelles" {...field} disabled={!servicesReady} />
+                        <Input placeholder="Bruxelles" {...field} disabled={buttonsDisabled} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -220,7 +224,7 @@ export default function RegisterInstitutionForm() {
                   <FormItem>
                     <FormLabel>Email de contact</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="contact@votreinstitution.org" {...field} disabled={!servicesReady} />
+                      <Input type="email" placeholder="contact@votreinstitution.org" {...field} disabled={buttonsDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -235,7 +239,7 @@ export default function RegisterInstitutionForm() {
                       <FormLabel>Mot de passe</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type={showPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={!servicesReady} className="pr-10"/>
+                          <Input type={showPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={buttonsDisabled} className="pr-10"/>
                           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
@@ -253,7 +257,7 @@ export default function RegisterInstitutionForm() {
                       <FormLabel>Confirmer le mot de passe</FormLabel>
                       <FormControl>
                         <div className="relative">
-                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={!servicesReady} className="pr-10"/>
+                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={buttonsDisabled} className="pr-10"/>
                            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
                             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
@@ -265,7 +269,7 @@ export default function RegisterInstitutionForm() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading || !servicesReady}>
+              <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading ? "Création du compte..." : "S'inscrire"}
               </Button>
             </form>

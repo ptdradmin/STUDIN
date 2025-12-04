@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,7 +25,7 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const { auth } = useAuth();
+  const { auth, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<ForgotPasswordFormValues>({
@@ -54,6 +55,8 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   };
+  
+  const buttonsDisabled = loading || isUserLoading;
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center py-12 px-4">
@@ -88,7 +91,7 @@ export default function ForgotPasswordPage() {
                                 <FormItem>
                                   <FormLabel>Email</FormLabel>
                                   <FormControl>
-                                    <Input type="email" placeholder="votre.email@example.com" {...field} />
+                                    <Input type="email" placeholder="votre.email@example.com" {...field} disabled={buttonsDisabled} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -96,7 +99,7 @@ export default function ForgotPasswordPage() {
                             />
                         </CardContent>
                         <CardFooter className="flex flex-col gap-4">
-                            <Button type="submit" className="w-full" disabled={loading}>
+                            <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {loading ? 'Envoi...' : 'Envoyer le lien'}
                             </Button>

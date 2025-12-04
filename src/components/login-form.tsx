@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -31,7 +32,8 @@ export default function LoginForm() {
   const [loading, setLoading] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, isUserLoading } = useAuth();
+  const { auth, isUserLoading } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -55,7 +57,7 @@ export default function LoginForm() {
        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
       }
-      if(error.code === 'auth/invalid-app-credential') {
+      if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid') {
         description = "Problème de configuration de sécurité (App Check)."
       }
       console.error("Login Error: ", error.code, error.message);

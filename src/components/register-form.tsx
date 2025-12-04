@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -65,7 +66,8 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState('');
   const router = useRouter();
-  const { auth, firestore, isUserLoading } = useAuth();
+  const { auth, isUserLoading } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -100,6 +102,9 @@ export default function RegisterForm() {
       }
        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         description = "La fenêtre de connexion a été fermée."
+      }
+       if(error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid') {
+        description = "Problème de configuration de sécurité (App Check)."
       }
       toast({
           variant: "destructive",
