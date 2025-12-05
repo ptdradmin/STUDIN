@@ -75,7 +75,8 @@ service cloud.firestore {
     // =====================================================================
     match /institutions/{institutionId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // Allow creation if the user is authenticated and is creating their own institution document
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.auth.uid == institutionId;
       allow update, delete: if isOwner(resource.data.userId);
     }
     
