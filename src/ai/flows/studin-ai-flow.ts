@@ -104,7 +104,7 @@ const studinAiFlow = ai.defineFlow(
     
     // 3. Standard Text & Audio Response with History
     const { text: textResponse } = await ai.generate({
-        model: googleAI.model('gemini-2.5-flash-preview'),
+        model: googleAI.model('gemini-2.5-pro'),
         system: studinAiSystemPrompt,
         history: (history || []).map(m => ({
           role: m.role,
