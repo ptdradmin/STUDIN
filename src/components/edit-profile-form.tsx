@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -26,12 +25,13 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { schoolsList } from '@/lib/static-data';
+import FormSection from './form-section';
 
 
 const studentProfileSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
-  username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
+  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères.").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides").transform(val => val.toLowerCase()),
   university: z.string().min(1, "L'établissement est requis"),
   fieldOfStudy: z.string().min(1, "Le domaine d'études est requis"),
   postalCode: z.string().min(4, 'Code postal invalide'),
@@ -44,7 +44,7 @@ const studentProfileSchema = z.object({
 const institutionProfileSchema = z.object({
     // 'firstName' on UserProfile is the institution name
     firstName: z.string().min(1, "Le nom de l'institution est requis"),
-    username: z.string().min(1, "Le nom d'utilisateur est requis").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides"),
+    username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères.").regex(/^[a-zA-Z0-9_.]+$/, "Caractères non valides").transform(val => val.toLowerCase()),
     postalCode: z.string().min(4, 'Code postal invalide'),
     city: z.string().min(1, 'La ville est requise'),
     bio: z.string().max(150, "La bio ne peut pas dépasser 150 caractères").optional(),
@@ -62,18 +62,6 @@ interface EditProfileFormProps {
   userProfile: UserProfile;
   onClose: () => void;
 }
-
-const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
-        <div className="md:col-span-1">
-            <h3 className="font-semibold text-base">{title}</h3>
-            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
-        </div>
-        <div className="md:col-span-2 space-y-4">
-            {children}
-        </div>
-    </div>
-);
 
 const avatarStyles = [
   'micah',

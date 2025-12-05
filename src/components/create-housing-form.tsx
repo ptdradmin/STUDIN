@@ -19,6 +19,8 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebas
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
 import { staticChallenges } from '@/lib/static-data';
+import FormSection from './form-section';
+
 
 const housingSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
@@ -37,18 +39,6 @@ interface CreateHousingFormProps {
   onClose: () => void;
   housingToEdit?: Housing | null;
 }
-
-const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
-        <div className="md:col-span-1">
-            <h3 className="font-semibold text-base">{title}</h3>
-            {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
-        </div>
-        <div className="md:col-span-2 space-y-4">
-            {children}
-        </div>
-    </div>
-);
 
 
 export default function CreateHousingForm({ onClose, housingToEdit }: CreateHousingFormProps) {
@@ -80,6 +70,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     if (housingToEdit) {
       reset({
           ...housingToEdit,
+          surfaceArea: housingToEdit.surfaceArea,
       });
       setPreviewUrl(housingToEdit.imageUrl);
     }
@@ -123,7 +114,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     ];
 
     if (isEditing && housingToEdit) {
-      const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl: previewUrl, coordinates: newCoords };
+      const dataToUpdate = { ...data, surfaceArea: data.surfaceArea, updatedAt: serverTimestamp(), imageUrl: previewUrl, coordinates: newCoords };
       
       updateDocumentNonBlocking(housingRef, dataToUpdate);
 
@@ -139,6 +130,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     } else {
       const dataToCreate: Omit<Housing, 'userId'> & { userId: string } = {
           ...data,
+          surfaceArea: data.surfaceArea,
           id: housingId,
           userId: user.uid,
           createdAt: serverTimestamp() as any,

@@ -30,26 +30,6 @@ service cloud.firestore {
     }
     
     // ============================================
-    // POSTS - Public read, Owner write
-    // ============================================
-    match /posts/{postId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    // ============================================
-    // REELS - Public read, Owner write
-    // ============================================
-     match /reels/{reelId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
-    }
-    
-    // ============================================
     // HOUSINGS - Public read, Owner write
     // ============================================
     match /housings/{housingId} {
