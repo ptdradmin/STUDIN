@@ -1,7 +1,10 @@
+
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
-import { Providers } from './providers';
+import { FirebaseProvider } from '@/firebase/provider';
+import { LanguageProvider } from '@/contexts/language-context';
+import type { Metadata } from 'next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -16,6 +19,17 @@ const poppins = Poppins({
   display: 'swap',
 });
 
+export const metadata: Metadata = {
+  metadataBase: new URL('https://stud-in.com'),
+  title: "STUD'IN",
+  description: "La plateforme qui simplifie la vie étudiante.",
+  icons: {
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -23,13 +37,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${inter.variable} ${poppins.variable}`}>
-      <head>
-      </head>
       <body className="font-body antialiased">
-        <Providers>
+        <FirebaseProvider>
+          <LanguageProvider>
             {children}
-            <Toaster />
-        </Providers>
+          </LanguageProvider>
+          <Toaster />
+        </FirebaseProvider>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Navbar from '@/components/navbar';
@@ -101,7 +102,7 @@ export default function HomePage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             {services.map(service => (
-                                <Link href={service.href} key={service.name} className="block group">
+                                <Link href={service.href || '#'} key={service.name} className="block group">
                                     <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg h-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
                                         <Image
                                             src={service.image}

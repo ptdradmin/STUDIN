@@ -11,12 +11,14 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
-import { createUserDocument } from '@/lib/user-actions';
 import Link from 'next/link';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { generateAvatar } from '@/lib/avatars';
+import { isUsernameUnique } from '@/lib/user-actions';
 
 const schoolsList = [
   'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -56,7 +58,8 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const { auth } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -78,21 +81,53 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
 
-    // Ensure services are available before proceeding
-    if (!auth || !firestore || !areServicesAvailable) {
-      toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez réessayer." });
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible. Veuillez réessayer.' });
       setLoading(false);
       return;
     }
 
     try {
+      const usernameIsUnique = await isUsernameUnique(firestore, data.username);
+      if (!usernameIsUnique) {
+        form.setError("username", {
+          type: "manual",
+          message: "Ce nom d'utilisateur est déjà pris.",
+        });
+        setLoading(false);
+        return;
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      await createUserDocument(firestore, user, data);
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userData = {
+        id: user.uid,
+        role: 'student' as const,
+        email: data.email,
+        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        postalCode: data.postalCode,
+        city: data.city,
+        university: data.university,
+        fieldOfStudy: data.fieldOfStudy,
+        bio: '',
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: false,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await setDoc(userDocRef, userData);
 
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
-      await updateProfile(user, { displayName: newDisplayName });
+      await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
 
       toast({
         title: "Inscription réussie!",
@@ -100,17 +135,18 @@ export default function RegisterForm() {
       });
       router.push('/social');
       router.refresh();
+
     } catch (error: any) {
       console.error("Registration error:", error);
       let description = "Impossible de créer le compte.";
       if (error.code === 'auth/email-already-in-use') {
         description = "Cet email est déjà utilisé. Essayez de vous connecter.";
       } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
-        description = "Problème de connexion ou de sécurité. Veuillez réessayer."
+        description = "Problème de connexion ou de sécurité. Veuillez réessayer.";
       } else {
-        // DEBUG: Show specific error for diagnosis
         description = `Erreur: ${error.code} - ${error.message}`;
       }
+
       toast({
         variant: "destructive",
         title: "Erreur d'inscription",
@@ -121,7 +157,7 @@ export default function RegisterForm() {
     }
   };
 
-  const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = loading;
 
   return (
     <>
@@ -291,7 +327,7 @@ export default function RegisterForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading ? 'Chargement...' : "S'inscrire"}
+                {loading ? 'Inscription...' : "S'inscrire"}
               </Button>
             </form>
           </Form>

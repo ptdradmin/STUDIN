@@ -1,5 +1,7 @@
-# Firebase Studio
+# STUD'IN
 
-This is a NextJS starter in Firebase Studio.
+Bienvenue sur le projet STUD'IN.
 
-To get started, take a look at src/app/page.tsx.
+Cette application est une plateforme complète conçue pour les étudiants, développée avec Next.js et Firebase.
+
+Pour commencer, jetez un œil au fichier `src/app/page.tsx`.

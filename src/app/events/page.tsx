@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Event, Favorite, UserProfile } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useMemoFirebase, FirestorePermissionError, errorEmitter, useDoc } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { collection, doc, writeBatch, arrayUnion, serverTimestamp, query, where } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
@@ -195,16 +195,13 @@ export default function EventsPage() {
         title: 'Inscription réussie !',
         description: `Vous participez à l'événement : ${event.title}.`,
       });
-    } catch (error) {
-       const permissionError = new FirestorePermissionError({
-          path: `events/${event.id} and event_attendees subcollection`,
-          operation: 'write',
-          requestResourceData: { 
-              eventUpdate: { attendeeIds: arrayUnion(user.uid) },
-              attendeeCreation: attendeeData,
-          }
-      });
-      errorEmitter.emit('permission-error', permissionError);
+    } catch (error: any) {
+        console.error("Error attending event:", error);
+       toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: error.message || "Une erreur est survenue lors de l'inscription.",
+       });
     }
   };
 

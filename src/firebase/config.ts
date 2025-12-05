@@ -1,14 +1,13 @@
 
-'use client';
+// This file is the single source of truth for Firebase initialization.
+// It is designed to be used in a client-side context.
 
-import React, { useMemo, type ReactNode } from 'react';
-import { FirebaseProvider } from '@/firebase/provider';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
-// This is the only place Firebase is initialized.
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -19,16 +18,28 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-interface FirebaseServices {
+export interface FirebaseServices {
   firebaseApp: FirebaseApp;
   auth: Auth;
   firestore: Firestore;
   storage: FirebaseStorage;
 }
 
-// Simple function to initialize and get Firebase services
-function getFirebaseServices(): FirebaseServices {
+let services: FirebaseServices | null = null;
+
+
+/**
+ * Initializes and gets the Firebase services. This function ensures that
+ * Firebase is initialized only once.
+ * @returns An object containing the initialized Firebase services.
+ */
+export function getFirebaseServices(): FirebaseServices {
+  if (services) {
+    return services;
+  }
+
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
 
 
 
@@ -36,25 +47,7 @@ function getFirebaseServices(): FirebaseServices {
   const firestore = getFirestore(app);
   const storage = getStorage(app);
 
-  return { firebaseApp: app, auth, firestore, storage };
-}
+  services = { firebaseApp: app, auth, firestore, storage };
 
-interface FirebaseClientProviderProps {
-  children: ReactNode;
-}
-
-export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // useMemo ensures that initialization only happens once per render cycle on the client.
-  const services = useMemo(() => getFirebaseServices(), []);
-
-  return (
-    <FirebaseProvider
-      firebaseApp={services.firebaseApp}
-      auth={services.auth}
-      firestore={services.firestore}
-      storage={services.storage}
-    >
-      {children}
-    </FirebaseProvider>
-  );
+  return services;
 }

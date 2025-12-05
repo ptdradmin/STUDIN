@@ -55,9 +55,10 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { user, isUserLoading } = useAuth();
+  const { auth, isUserLoading } = useAuth();
   const firestore = useFirestore();
   const storage = useStorage();
+  const {user} = useAuth();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 

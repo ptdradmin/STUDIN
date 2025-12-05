@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useFirebase } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
+import { useAuth, useFirestore } from '@/firebase';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -39,7 +39,8 @@ export default function RegisterInstitutionForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const { auth } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -54,129 +55,98 @@ export default function RegisterInstitutionForm() {
     },
   });
 
-  const createUserDocuments = async (user: User, data: RegisterFormValues) => {
-    if (!firestore) return;
-
-    const batch = writeBatch(firestore);
-
-    // 1. User Document
-    const userDocRef = doc(firestore, 'users', user.uid);
-
-    let baseUsername = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20);
-    if (!baseUsername) {
-      baseUsername = `institution_${user.uid.substring(0, 6)}`;
-    }
-
-    let username = baseUsername;
-    let isUnique = await isUsernameUnique(firestore, username);
-    let counter = 1;
-    while (!isUnique) {
-      const newUsername = `${baseUsername}${counter}`;
-      isUnique = await isUsernameUnique(firestore, newUsername);
-      if (isUnique) {
-        username = newUsername;
-      }
-      counter++;
-    }
-
-    const userData = {
-      id: user.uid,
-      role: 'institution',
-      username: username,
-      email: data.email,
-      firstName: data.name, // Use institution name as firstName for consistency
-      lastName: '', // No last name for institution
-      university: '', // Not applicable
-      fieldOfStudy: '', // Not applicable
-      postalCode: data.postalCode,
-      city: data.city,
-      bio: `Compte officiel de ${data.name}.`,
-      website: '',
-      profilePicture: generateAvatar(user.email || user.uid),
-      followerIds: [],
-      followingIds: [],
-      isVerified: true, // Institutions are auto-verified for now
-      points: 0,
-      challengesCompleted: 0,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    batch.set(userDocRef, userData);
-
-    // 2. Institution Document
-    const institutionDocRef = doc(firestore, 'institutions', user.uid);
-    const institutionData = {
-      id: user.uid,
-      userId: user.uid,
-      name: data.name,
-      postalCode: data.postalCode,
-      city: data.city,
-      email: data.email,
-      role: 'institution',
-      createdAt: serverTimestamp(),
-    };
-    batch.set(institutionDocRef, institutionData);
-
-    await batch.commit();
-
-    // 3. Update Auth Profile
-    if (user) {
-      await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
-    }
-  };
-
-  const handleSuccess = () => {
-    toast({
-      title: "Inscription réussie !",
-      description: "Votre compte partenaire a été créé.",
-    });
-    router.push('/dashboard');
-    router.refresh();
-  };
-
-  const handleError = (error: any) => {
-    console.error("Institution Registration Error:", error);
-    let description = "Impossible de créer le compte.";
-
-    if (error.code === 'auth/email-already-in-use') {
-      description = "Cet email est déjà utilisé pour un autre compte.";
-    } else if (error.code === 'auth/weak-password') {
-      description = "Le mot de passe est trop faible.";
-    } else if (error.code === 'permission-denied') {
-      description = "Permission refusée. Vérifiez les règles Firestore.";
-    } else {
-      // Show technical error for debugging
-      description = `Erreur (${error.code || 'unknown'}): ${error.message}`;
-    }
-
-    toast({
-      variant: "destructive",
-      title: "Erreur d'inscription",
-      description,
-    });
-  };
-
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
-
     if (!auth || !firestore) {
-      toast({ variant: "destructive", title: "Erreur", description: "Service indisponible." });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Service indisponible. Veuillez réessayer.' });
       setLoading(false);
       return;
     }
 
     try {
+      const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
+
+      const usernameIsUnique = await isUsernameUnique(firestore, username);
+      if (!usernameIsUnique) {
+        form.setError("name", {
+          type: "manual",
+          message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
+        });
+        setLoading(false);
+        return;
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      await createUserDocuments(userCredential.user, data);
-      handleSuccess();
+      const user = userCredential.user;
+
+      const batch = writeBatch(firestore);
+      const userDocRef = doc(firestore, 'users', user.uid);
+
+      const userData = {
+        id: user.uid,
+        role: 'institution',
+        username: username,
+        email: data.email,
+        firstName: data.name,
+        lastName: '',
+        university: '',
+        fieldOfStudy: '',
+        postalCode: data.postalCode,
+        city: data.city,
+        bio: `Compte officiel de ${data.name}.`,
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: true,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      batch.set(userDocRef, userData);
+
+      const institutionDocRef = doc(firestore, 'institutions', user.uid);
+      const institutionData = {
+        id: user.uid,
+        userId: user.uid,
+        name: data.name,
+        postalCode: data.postalCode,
+        city: data.city,
+        email: data.email,
+        role: 'institution',
+        createdAt: serverTimestamp(),
+      };
+      batch.set(institutionDocRef, institutionData);
+
+      await batch.commit();
+
+      await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
+
+      toast({
+        title: "Inscription réussie !",
+        description: "Votre compte partenaire a été créé.",
+      });
+      router.push('/dashboard');
+      router.refresh();
+
     } catch (error: any) {
-      handleError(error);
+      console.error("Registration error:", error);
+      let description = "Impossible de créer le compte.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "Cet email est déjà utilisé pour un autre compte.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = loading;
 
   return (
     <>
@@ -282,7 +252,7 @@ export default function RegisterInstitutionForm() {
 
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
               {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'S\'inscrire'}
+              {loading ? "Création du compte..." : 'S\'inscrire'}
             </Button>
           </form>
         </Form>

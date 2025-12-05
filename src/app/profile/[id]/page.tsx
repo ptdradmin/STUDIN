@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -150,8 +151,8 @@ export default function UserProfilePage() {
     try {
         await toggleFollowUser(firestore, user.uid, userProfile.id, wasFollowing);
         toast({ title: wasFollowing ? "Ne plus suivre" : "Suivi", description: `Vous ${wasFollowing ? 'ne suivez plus' : 'suivez maintenant'} ${userProfile.username}.`})
-    } catch(error) {
-        toast({ title: "Erreur", description: "Une erreur est survenue lors de la tentative de suivi.", variant: "destructive"})
+    } catch(error: any) {
+        toast({ title: "Erreur", description: error.message || "Une erreur est survenue.", variant: "destructive"})
     }
   }
 
@@ -180,7 +181,7 @@ export default function UserProfilePage() {
     return firstName.substring(0, 2).toUpperCase();
   }
 
-  const loading = isUserLoading || profileLoading || postsLoading || l1 || l2 || l3 || l4;
+  const isLoading = isUserLoading || profileLoading;
   const isCurrentUserProfile = user && user.uid === profileId;
 
   if (isCurrentUserProfile && !isUserLoading) {
@@ -217,7 +218,7 @@ export default function UserProfilePage() {
             </header>
             <main className="flex-1 overflow-y-auto">
                 <div className="container mx-auto px-4 py-8">
-                    {loading || !userProfile ? <ProfilePageSkeleton /> : (
+                    {isLoading || !userProfile ? <ProfilePageSkeleton /> : (
                         <div className="mx-auto max-w-4xl">
                             <div className="p-4 md:p-6">
                                 <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">

@@ -21,8 +21,6 @@ import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
 import { createNotification } from "@/lib/actions";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { getOrCreateConversation } from "@/lib/conversations";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -195,17 +193,7 @@ export default function CarpoolingPage() {
             description: "Votre place a été réservée avec succès.",
         });
     }).catch(e => {
-        const permissionError = new FirestorePermissionError({
-            path: `Transaction on carpoolings/${trip.id}`,
-            operation: 'write', 
-            requestResourceData: { 
-                action: 'reserve_seat',
-                carpoolId: trip.id,
-                passengerId: user?.uid,
-                clientError: e.message,
-            }
-        } as SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
+        console.error("Error reserving carpool:", e);
          toast({
             variant: 'destructive',
             title: 'Erreur de réservation',

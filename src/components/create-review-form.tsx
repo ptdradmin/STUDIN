@@ -14,7 +14,6 @@ import { collection, serverTimestamp, doc, runTransaction, getDoc } from 'fireba
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
 import { Tutor } from '@/lib/types';
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const reviewSchema = z.object({
   rating: z.number().min(1, 'La note est requise').max(5),

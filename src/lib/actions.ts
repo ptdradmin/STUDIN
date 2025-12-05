@@ -18,8 +18,6 @@ import {
   deleteDoc,
   WriteBatch,
 } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import type { UserProfile, Notification, Favorite } from './types';
 
 
@@ -31,7 +29,7 @@ import type { UserProfile, Notification, Favorite } from './types';
  * @param targetUserId - L'ID de l'utilisateur à suivre ou à ne plus suivre.
  * @param isCurrentlyFollowing - Un booléen indiquant si l'utilisateur actuel suit déjà l'utilisateur cible.
  */
-export const toggleFollowUser = (
+export const toggleFollowUser = async (
   firestore: Firestore,
   currentUserId: string,
   targetUserId: string,
@@ -52,32 +50,17 @@ export const toggleFollowUser = (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  // Use a non-blocking commit with a .catch() block for error handling
-  batch.commit()
-    .then(() => {
-        if (!isCurrentlyFollowing) {
-          // Create notification only on follow, this is also a non-blocking operation
-          createNotification(firestore, {
-              type: 'new_follower',
-              senderId: currentUserId,
-              recipientId: targetUserId,
-              message: `a commencé à vous suivre.`
-          });
-        }
-    })
-    .catch((serverError) => {
-      // Create the rich, contextual error asynchronously.
-      const permissionError = new FirestorePermissionError({
-        path: `users/${currentUserId} and users/${targetUserId}`,
-        operation: 'update',
-        requestResourceData: {
-          action: isCurrentlyFollowing ? 'unfollow' : 'follow',
-          currentUserId,
-          targetUserId,
-        },
-      });
-      errorEmitter.emit('permission-error', permissionError);
+  await batch.commit();
+
+  if (!isCurrentlyFollowing) {
+    // Create notification only on follow
+    await createNotification(firestore, {
+        type: 'new_follower',
+        senderId: currentUserId,
+        recipientId: targetUserId,
+        message: `a commencé à vous suivre.`
     });
+  }
 };
 
 /**
@@ -106,12 +89,7 @@ export const createNotification = (
             };
 
             setDoc(notificationRef, finalNotifData).catch(error => {
-                const permissionError = new FirestorePermissionError({
-                    path: notificationRef.path,
-                    operation: 'create',
-                    requestResourceData: finalNotifData
-                });
-                errorEmitter.emit('permission-error', permissionError);
+                console.error("Failed to create notification:", error);
             });
         }
     }).catch(error => {
@@ -154,11 +132,7 @@ export const toggleFavorite = async (
         if (!querySnapshot.empty) {
             const favDoc = querySnapshot.docs[0];
             await deleteDoc(favDoc.ref).catch((error) => {
-                const permissionError = new FirestorePermissionError({
-                    path: favDoc.ref.path,
-                    operation: 'delete',
-                });
-                errorEmitter.emit('permission-error', permissionError);
+                console.error("Failed to delete favorite:", error);
                 throw error;
             });
         }
@@ -172,12 +146,7 @@ export const toggleFavorite = async (
         };
         const newDocRef = doc(favoritesColRef);
         await setDoc(newDocRef, {...newFavData, id: newDocRef.id }).catch((error) => {
-            const permissionError = new FirestorePermissionError({
-                path: newDocRef.path,
-                operation: 'create',
-                requestResourceData: newFavData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+            console.error("Failed to create favorite:", error);
             throw error;
         });
     }

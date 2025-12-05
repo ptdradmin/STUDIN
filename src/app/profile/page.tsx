@@ -192,7 +192,8 @@ function ProfilePageSkeleton() {
 
 export default function CurrentUserProfilePage() {
     const { user, isUserLoading } = useUser();
-    const { auth, firestore } = useAuth();
+    const { auth } = useAuth();
+    const firestore = useFirestore();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -346,6 +347,7 @@ export default function CurrentUserProfilePage() {
             </div>
         )
     }
+
 
     return (
         <div className="flex min-h-screen w-full bg-background">

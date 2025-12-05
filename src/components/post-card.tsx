@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { formatDistanceToNow, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { doc, updateDoc, arrayUnion, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import {
     DropdownMenu,
@@ -26,6 +26,8 @@ import { deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { toggleFavorite, createNotification } from "@/lib/actions";
 import { useInView } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 
 interface PostCardProps {

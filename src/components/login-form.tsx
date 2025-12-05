@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase, initiateEmailSignIn } from '@/firebase';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { useAuth, useFirebase } from '@/firebase';
+import { User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
 
@@ -18,10 +18,10 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const { auth, isUserLoading, areServicesAvailable } = useFirebase();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -37,13 +37,16 @@ export default function LoginForm() {
   }
 
   const handleError = (error: any) => {
-    setLoading('');
+    setLoading(false);
     let description = `Une erreur est survenue. (${error.code})`;
     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
       description = "Adresse e-mail ou mot de passe incorrect."
     } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed' || error.code === 'auth/firebase-app-check-token-is-invalid') {
       description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
+    } else if (error.code === 'auth/too-many-requests') {
+      description = "Trop de tentatives. Veuillez réessayer plus tard.";
     }
+
     toast({
       variant: "destructive",
       title: "Erreur de connexion",
@@ -63,28 +66,19 @@ export default function LoginForm() {
       return;
     }
 
-    setLoading('email');
+    setLoading(true);
 
     try {
-      await initiateEmailSignIn(auth, email, password);
-      // Success is handled by onAuthStateChanged or we can handle it here.
-      // onAuthStateChanged will still fire and can handle the redirect to be safe.
-      // But we can also manually check user.
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      handleSuccess(userCredential.user);
     } catch (error: any) {
       handleError(error);
     } finally {
-      // If we want to clear loading state only on error, we can do it in catch.
-      // But if onAuthStateChanged handles success redirect, component might unmount.
-      // If we stay, we should clear loading.
-      if (auth.currentUser) {
-        handleSuccess(auth.currentUser);
-      } else {
-        setLoading('');
-      }
+      setLoading(false);
     }
   }
 
-  const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = loading || isUserLoading || !auth;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -97,6 +91,7 @@ export default function LoginForm() {
         <p className="text-balance text-muted-foreground">
           Accédez à votre compte pour continuer
         </p>
+
       </div>
       <div className="grid gap-4">
         <form onSubmit={handleEmailSignIn} className="space-y-4">
@@ -143,7 +138,7 @@ export default function LoginForm() {
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-            {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter'}
           </Button>
         </form>

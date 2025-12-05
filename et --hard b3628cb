@@ -1,0 +1,956 @@
+[33mcd62a3d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{0}: reset: moving to origin/main
+[33mb3628cb[m HEAD@{1}: commit: comment la deployer sur run et cloud
+[33m3c3f9e4[m HEAD@{2}: commit: je te laisse et j'aimerais que demain soi déferrent d'aujourd'hui ; docu
+[33md6ec985[m HEAD@{3}: commit: les images de covoiturage et évènement ne s'affiche pas
+[33m5ff429a[m HEAD@{4}: commit: les images de covoiturage et évènement ne s'affiche pas
+[33m66cd2ea[m HEAD@{5}: commit: les images de covoiturage et évènement ne s'affiche pas
+[33meb5464d[m HEAD@{6}: commit: l'image du milieux ne s'affiche pas
+[33meaf6e5d[m HEAD@{7}: commit: l'image du milieux ne s'affiche pas
+[33mb182d5b[m HEAD@{8}: commit: l'image du milieux ne s'affiche pas
+[33m548a002[m HEAD@{9}: commit: l'image du milieux ne s'affiche pas
+[33m3f0230b[m HEAD@{10}: commit: l'image du milieux ne s'affiche pas
+[33m33631e4[m HEAD@{11}: commit: l'iamge du milieux ne s'affiche pas
+[33mb7836db[m HEAD@{12}: commit: je ne peux pas creer de compte
+[33md8c1be1[m HEAD@{13}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33m7a47b99[m HEAD@{14}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33m150d1c4[m HEAD@{15}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33mf076823[m HEAD@{16}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33m819de3d[m HEAD@{17}: commit: erreur d'inscription impossible de creer le compte
+[33m25e15e3[m HEAD@{18}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33m68d6095[m HEAD@{19}: commit: erreur d'inscription impossible de creer le compte
+[33m396a9c3[m HEAD@{20}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33md3624c5[m HEAD@{21}: commit: Try fixing this error: `Unhandled Runtime Error: FirebaseError: Firebase
+[33m1a9377b[m HEAD@{22}: commit: analyse tout l app , code par code , ficher par ficher et regle se probl
+[33me15c0ff[m HEAD@{23}: commit: auth/firebase-app-check-toekn-is-invalid
+[33mc99e9aa[m HEAD@{24}: commit: permission-denied
+[33m34c3545[m HEAD@{25}: commit: pour il parle de permission
+[33m4bbb6df[m HEAD@{26}: commit: je ne peux pas me creer un compte ,
+[33macafd31[m HEAD@{27}: commit: tu voir je ne peux pas me creer un compte
+[33mf583f39[m HEAD@{28}: commit: active la connexion
+[33med0dbd6[m HEAD@{29}: commit: maintenant concentre toi , et activer la connexion avec mail et password
+[33m1631645[m HEAD@{30}: commit: supprime tout ce qui est en rapport avec la connexion avec google ( Gmai
+[33m432d5c7[m HEAD@{31}: commit: supprime tout ce qui est en rapport avec la connexion avec google ( Gmai
+[33mfd99294[m HEAD@{32}: commit: supprime tout ce qui est en rapport avec la connexion avec google ( gmai
+[33m7ddbf31[m HEAD@{33}: commit: supprime la connexion , avec gmail , et concentre juste sur la connexion
+[33m415f904[m HEAD@{34}: commit: analyse
+[33m92d77e5[m HEAD@{35}: commit: si je ne peux pas activer la page de connexion cette app ne sert a rien.
+[33md53f1b2[m HEAD@{36}: commit: Try fixing this error: `Unhandled Runtime Error: ReferenceError: useUser
+[33m50aa242[m HEAD@{37}: commit: pour quoi tu ne peux pas activer la connexion avec Gmail et la connexio
+[33m4bce789[m HEAD@{38}: commit: tout ce que tu fais ne change rien , la connexion manuel et avec gmail
+[33m05201fa[m HEAD@{39}: commit: tu a desactiver la connexion manuel et avec gmail
+[33m5fa5538[m HEAD@{40}: commit: tu a desactiver la connexion manuel et avec gmail
+[33medff817[m HEAD@{41}: commit: tu a desactiver la connexion manuel et avec gmail
+[33maf5aecc[m HEAD@{42}: commit: Try fixing this error: `Unhandled Runtime Error: Error: Element type is
+[33m5c1b9e5[m HEAD@{43}: commit: I see this error with the app, reported by NextJS, please fix it. The er
+[33m856436b[m HEAD@{44}: commit: Set up a Firebase backend
+[33me34e191[m HEAD@{45}: commit: je veux juste avoir acces a mon app , est ce qu ça c'est aussi imposbile
+[33ma98df54[m HEAD@{46}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33m8df2d55[m HEAD@{47}: commit: je ne vois pas l app
+[33mdf0601b[m HEAD@{48}: commit: je ne vois pas l app
+[33m404fb96[m HEAD@{49}: commit: je ne vois pas l app
+[33m808769f[m HEAD@{50}: commit: je ne vois pas l app
+[33m758e984[m HEAD@{51}: commit: pour l'app ne s'affiche pas
+[33me40810a[m HEAD@{52}: commit: l app n'est pas afficher
+[33m3dbe396[m HEAD@{53}: commit: pour quoi l app a disparu
+[33meba5335[m HEAD@{54}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33m592b781[m HEAD@{55}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33m11fa6ec[m HEAD@{56}: commit: l'app n'affcihe pas et je ne peux pas me connecter , analyse l app
+[33mfc4a4ad[m HEAD@{57}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33mfda1f31[m HEAD@{58}: commit: je ne vois pas l app , je n'est pas acces a mon app , et la tu me dis qu
+[33m82fe32e[m HEAD@{59}: commit: Failed to publish app
+[33m66dc760[m HEAD@{60}: commit: je n'est pas l'app sur git hub
+[33ma60082a[m HEAD@{61}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33m79ded8c[m HEAD@{62}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33mbb18042[m HEAD@{63}: commit: l'app ne s'affiche plus
+[33m03229b2[m HEAD@{64}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33m03842d1[m HEAD@{65}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33m6550d47[m HEAD@{66}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: grecaptcha.r
+[33mc17de4a[m HEAD@{67}: commit: je t'es demander si y'avais pas de probleme c'est une question ?
+[33m015cd58[m HEAD@{68}: commit: analyse
+[33m6848f1a[m HEAD@{69}: commit: L'image que vous m'avez envoyée montre les enregistrements DNS de votre
+[33mb2d871b[m HEAD@{70}: commit: mis ajour de l app et maintenant regle le probleme de connexion gmail e
+[33m2f4c0fc[m HEAD@{71}: commit: change les avec celui ci contact@stud-in.com mais je n'es pas encord cre
+[33m8e55ac8[m HEAD@{72}: commit: analyse
+[33m4c3f2e8[m HEAD@{73}: commit: la connexion
+[33m4cac6ae[m HEAD@{74}: commit: la connexion
+[33mff21e10[m HEAD@{75}: commit: n'ajoute pas la langue en l'anglais pour l'instant , laisse comme il est
+[33md958a58[m HEAD@{76}: commit: continue
+[33mf131c40[m HEAD@{77}: commit: continue
+[33m19ed067[m HEAD@{78}: commit: continue
+[33m25fa49c[m HEAD@{79}: commit: continue
+[33m78d2a9d[m HEAD@{80}: commit: continue
+[33m98e348e[m HEAD@{81}: commit: continue
+[33m8160b0d[m HEAD@{82}: commit: continue
+[33mb9077d9[m HEAD@{83}: commit: continue
+[33m4565631[m HEAD@{84}: commit: continue
+[33mf88e6ab[m HEAD@{85}: commit: continue
+[33mc601e62[m HEAD@{86}: commit: le son de la musique , vidéos ,les message audio ; les publication plus
+[33m66b2484[m HEAD@{87}: commit: AJOUTE UN IA EVOLUTIF ET QUI APPREND , qui s'ameliore
+[33m8f23db6[m HEAD@{88}: commit: tu a jouter l IA A L APP
+[33m9603b83[m HEAD@{89}: commit: cela ne passe pas aussi
+[33m0498357[m HEAD@{90}: commit: y'a pas un commande , ou un truc que tu peux ajouter pour que se problem
+[33m7eaee8c[m HEAD@{91}: commit: la
+[33mf2c03e8[m HEAD@{92}: commit: la
+[33m99e63cc[m HEAD@{93}: commit: et la
+[33m4141b01[m HEAD@{94}: commit: c'est quoi le probleme
+[33mbbe3d87[m HEAD@{95}: commit: I see this error with the app, reported by NextJS, please fix it. The er
+[33m6bf7aae[m HEAD@{96}: commit: I see this error with the app, reported by NextJS, please fix it. The er
+[33m0f6e817[m HEAD@{97}: commit: Try fixing this error: `Console Error: Login Error: "auth/internal-error
+[33m4b852ba[m HEAD@{98}: commit: quand je me connecte avec un adresse mail de façon normale on me dis err
+[33m860c3f7[m HEAD@{99}: commit: quand je me connecte avec un adresse mail de façon normale on me dis err
+[33m483e709[m HEAD@{100}: commit: je ne peux pas me connecte avec gmail
+[33m8aaef09[m HEAD@{101}: commit: I see this error with the app, reported by NextJS, please fix it. The er
+[33m4470e6e[m HEAD@{102}: commit: Set up a Firebase backend
+[33m2fc2d7c[m HEAD@{103}: commit: Try fixing this error: `Console Error: Login Error: "auth/firebase-app-c
+[33m5d28f6d[m HEAD@{104}: commit: Try fixing this error: `Console Error: Login Error: "auth/internal-error
+[33mad01a57[m HEAD@{105}: commit: Try fixing this error: `Unhandled Runtime Error: FirebaseError: Firebase
+[33m9c83ec9[m HEAD@{106}: commit: voici l'Instagram de l app : https://www.instagram.com/stud_in_app/ ajou
+[33mc45a929[m HEAD@{107}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: appCheckProm
+[33m6996b7d[m HEAD@{108}: commit: essayer de reconfigurer la connexion avec Gmail et celle manuellement
+[33m34a2df6[m HEAD@{109}: commit: je ne peux pas toujours me connecter de façon manuel en entrant mon mail
+[33m2bc5418[m HEAD@{110}: commit: je t'es dis que tu pouvais utliser a 100 % l'avanatage que j'ai avec bla
+[33mab19c68[m HEAD@{111}: commit: je ne peux pas toujour me connecter de façon manuel en entrant mon mail
+[33maed1838[m HEAD@{112}: commit: tu voir quand je me connecte de façon manuel
+[33m7dc3674[m HEAD@{113}: commit: il ne vas pas sur gmail , regarde
+[33m03fd982[m HEAD@{114}: commit: Error: There was an error while hydrating but React was able to recover
+[33m7450100[m HEAD@{115}: commit: toujours pareil , profite des avantage que j ai avec blaze pour évite ce
+[33m1894d82[m HEAD@{116}: commit: Try fixing this error: `Unhandled Runtime Error: Error: There was an err
+[33m2e030b2[m HEAD@{117}: commit: toujour pareil , profitife des avantage que j ai avec blaze pour evite c
+[33m7f87a00[m HEAD@{118}: commit: ameliore le reel , et tu vois l image y'a des partie ou voir bien l imag
+[33m83aa5d4[m HEAD@{119}: commit: ameliore les image , les publication
+[33m29147fc[m HEAD@{120}: commit: continue
+[33md3d7a29[m HEAD@{121}: commit: ameliore le visuel , les publication les audio , les sons pour les musiq
+[33m8d63b90[m HEAD@{122}: commit: ajoute les Accès aux Fonctionnalités Cloud Avancées : Le plan Blaze déve
+[33me0c9ab2[m HEAD@{123}: commit: une mis a jour complet de tout l app , et en détailler ficher par ficher
+[33m59394ab[m HEAD@{124}: commit: une mis a jour complet de tout l app , et en détailler ficher par ficher
+[33m06397ab[m HEAD@{125}: commit: Modifier app/layout.tsx
+[33mfb6062f[m HEAD@{126}: commit: Try fixing this error: `Unhandled Runtime Error: Error: There was an err
+[33m2f1c298[m HEAD@{127}: commit: Error: There was an error while hydrating but React was able to recover
+[33m697b5f6[m HEAD@{128}: commit: Try fixing this error: `Unhandled Runtime Error: Error: There was an err
+[33m242e820[m HEAD@{129}: commit: Error: There was an error while hydrating but React was able to recover
+[33me66dc78[m HEAD@{130}: commit: Try fixing this error: `Unhandled Runtime Error: Error: There was an err
+[33mae0eb2d[m HEAD@{131}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: Cannot read
+[33me77ec24[m HEAD@{132}: commit: une mis a jour complet de tout l app , et en detailler pour trouver et i
+[33mb381724[m HEAD@{133}: commit: fais ue mise a jour
+[33mb6084a5[m HEAD@{134}: commit: je ne peux pas me connecte de façon manuel et aussi avec mon gmail .et q
+[33m8f57310[m HEAD@{135}: commit: Error: There was an error while hydrating but React was able to recover
+[33m9dae97c[m HEAD@{136}: commit: Try fixing this error: `Unhandled Runtime Error: Error: There was an err
+[33m1ff045a[m HEAD@{137}: commit: ameliore la connexion gmail et la connexion manuel ,
+[33me95952c[m HEAD@{138}: commit: Error: There was an error while hydrating but React was able to recover
+[33m6f01b8c[m HEAD@{139}: commit: Error: There was an error while hydrating but React was able to recover
+[33mb8e13b3[m HEAD@{140}: commit: Error: There was an error while hydrating but React was able to recover
+[33m180298a[m HEAD@{141}: commit: Error: There was an error while hydrating but React was able to recover
+[33m72c45fa[m HEAD@{142}: commit: j'ai pas encor crée de mail dédier a cette app pour l instant , donc le
+[33mc4152b2[m HEAD@{143}: commit: créer une page pour cette fonction Mot de passe oublié?
+[33mab6e224[m HEAD@{144}: commit: Try fixing this error: `Unhandled Runtime Error: Error: There was an err
+[33m2c14879[m HEAD@{145}: commit: tu voir erreyr de cnnexion
+[33meb109aa[m HEAD@{146}: commit: FirebaseError: Firebase: Error (auth/firebase-app-check-token-is-invalid
+[33mae26603[m HEAD@{147}: commit: améliore le fais pas d'erreur sur ça
+[33m9fb6e92[m HEAD@{148}: commit: ameliore le fais pas d'erreur sur ça
+[33mec5b07c[m HEAD@{149}: commit: je veux que ce logo soi visible quand tu est dans ton navigateur , comme
+[33md67e5c4[m HEAD@{150}: commit: l'image du logo ne s'affichepas
+[33mfefc649[m HEAD@{151}: commit: l'image du logo ne s'affichepas
+[33m2c95fed[m HEAD@{152}: commit: l'image du logo ne s'affichepas
+[33m41ac352[m HEAD@{153}: commit: utilise ce logo
+[33m6f98e8b[m HEAD@{154}: commit: la connexion gmail et manuel ameliore la
+[33m8173d2b[m HEAD@{155}: commit: la connexion gmail et manuel ameliore la
+[33ma2e7478[m HEAD@{156}: commit: continue , mais ne creer plus quel que chose ameliore juste ce qui est d
+[33m521157b[m HEAD@{157}: commit: continue
+[33mcfe8269[m HEAD@{158}: commit: ameliore la connexion avec gmail , et manuellement , ameliore le visuel
+[33m1a75a5d[m HEAD@{159}: commit: parce que j'ai telecharger l app firebase studio et la je suis actuel su
+[33med8e65e[m HEAD@{160}: commit: voici ce que dis quand le cliquer sur configration incmplet : Ajouter re
+[33m19914d1[m HEAD@{161}: commit: mon app est maintenant associer a mon domaine , donc je peux maintenant
+[33m048a717[m HEAD@{162}: commit: Try fixing this error: `Unhandled Runtime Error: Error: Invalid site key
+[33m5dbd878[m HEAD@{163}: commit: ça
+[33m4941981[m HEAD@{164}: commit: https://stud-in.com domaine acheté
+[33mec8dc39[m HEAD@{165}: commit: 6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS <head>
+[33m5b2f574[m HEAD@{166}: commit: améliore le visuel de la page d'accueil principal , et que le image dess
+[33m61cb01c[m HEAD@{167}: commit: la connexion avec Gmail ne passe pas et la connexion manuel et lente et
+[33mc6f1f22[m HEAD@{168}: commit: améliore la page de connexion , le visuel et la connectivité
+[33m23ff310[m HEAD@{169}: commit: améliore la connexion avec google Gmail , la je ne peux plus me connecte
+[33m1c43581[m HEAD@{170}: commit: ameliore la connexion avec google gmail
+[33m38c5519[m HEAD@{171}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33m2acc275[m HEAD@{172}: commit: quand tu est dans la page fil social ou y'a le menu des optio ne dois pa
+[33m1e48e95[m HEAD@{173}: commit: À propos·Aide·Conditions·Confidentialité
+[33me7b1eec[m HEAD@{174}: commit: Try fixing this error: `Console Error: Cannot update a component (`Route
+[33mcf91884[m HEAD@{175}: commit: non le fond d'ecrain de la page d'accueil fil social est toujour noir
+[33m41b5d6a[m HEAD@{176}: commit: c'est ces couler je veux
+[33mc5d2d94[m HEAD@{177}: commit: la tu a mis le fond d'ecrain de la page d'accueil en noir hor c'est pas
+[33m4e4d632[m HEAD@{178}: commit: je veux que les couleur du fond soi pareil que celle de cette image ,
+[33m804255c[m HEAD@{179}: commit: ameliore le visuel de la page d'accueil (fil socail )
+[33mcad7805[m HEAD@{180}: commit: analyse l app
+[33ma972b15[m HEAD@{181}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33me900677[m HEAD@{182}: commit: Je souhaite effectuer une mise à jour complète de l’application, incluan
+[33mfc9d494[m HEAD@{183}: commit: Unhandled Runtime Error
+[33mcdf4f84[m HEAD@{184}: commit: Try fixing this error: `Unhandled Runtime Error: ReferenceError: Button
+[33m730d397[m HEAD@{185}: commit: Try fixing this error: `Unhandled Runtime Error: Error: Rendered more ho
+[33me522769[m HEAD@{186}: commit: fais une mis a jour de tout l app et qui sois coherent
+[33mbf4e4e7[m HEAD@{187}: commit: la musique ne joue pas et je ne peux pas voir la vidéos, améliore la pag
+[33mcb05f32[m HEAD@{188}: commit: la musique ne joue pas et je ne peux pas voir la vidéos, améliore la pa
+[33m0563c23[m HEAD@{189}: commit: Créer une nouvelle publication
+[33m1a3808d[m HEAD@{190}: commit: 1 of 2 errors
+[33me5e588b[m HEAD@{191}: commit: la publication est lente et encror je n'est pas de son , quand je veux j
+[33me03bd25[m HEAD@{192}: commit: la musique ne joue pas , je ne peux pas apppuie sur play car il refuse ,
+[33mdb9c50d[m HEAD@{193}: commit: la musique ne joue pas , je ne peux pas apppuie sur play car il reffuse
+[33m6cc64c9[m HEAD@{194}: commit: pour quoi tu ne peux pas activer le son niveau video et musique
+[33md1fc909[m HEAD@{195}: commit: pour quoi avoir couper les son de musique et aussi de video , la mainten
+[33m6b822e9[m HEAD@{196}: commit: la video joue mais j'ai pas le son et la musique refuse de jouer et j'ai
+[33m9a5aa05[m HEAD@{197}: commit: améliore le son de la musique et les vidéos
+[33m67a2c2d[m HEAD@{198}: commit: améliore le son de la musique et les vidéos
+[33m52c7ae8[m HEAD@{199}: commit: active le son pour ma musique et les video qui seron publier
+[33mbeb8d56[m HEAD@{200}: commit: Unhandled Runtime Error
+[33mec2064e[m HEAD@{201}: commit: et ajoute plusieurs son, rap , hip hop , reggae, trap , électro , techno
+[33m99e8e4c[m HEAD@{202}: commit: ameliore le
+[33mb031681[m HEAD@{203}: commit: ajoute pixabay : musique , effet sonore
+[33meacb697[m HEAD@{204}: commit: Unhandled Runtime Error
+[33mba22094[m HEAD@{205}: commit: Unhandled Runtime Error
+[33m7e91cf3[m HEAD@{206}: commit: Unhandled Runtime Error
+[33m453bffa[m HEAD@{207}: commit: l musique ne joue pas
+[33m0828665[m HEAD@{208}: commit: y'a pas d'app gartuit que tu peux ajouter a mon l'application
+[33m46e2193[m HEAD@{209}: commit: ajoute un app de musique qui est gratuit , pour la playlist
+[33mc277571[m HEAD@{210}: commit: et ajoute plusieurs son, rap , hip hop , reggae, trap , electro , techn
+[33ma234905[m HEAD@{211}: commit: ya pas de son pour la musique
+[33mc7d4eb2[m HEAD@{212}: commit: ajouter aussi la musique sur les publication et ausi les reel
+[33m9369476[m HEAD@{213}: commit: LA PUBLICATION EST TOUJOUR LENTE , elle prend trop de temps pour être pu
+[33m7fd3dc6[m HEAD@{214}: commit: CONTINUE
+[33me39a6f1[m HEAD@{215}: commit: CONTINUE
+[33mc007c81[m HEAD@{216}: commit: CONTINUE
+[33m78c4699[m HEAD@{217}: commit: reste très concentrer y'a 3 rôle : administrateur , compte partenaire et
+[33mca276bf[m HEAD@{218}: commit: Je souhaite effectuer une mise à jour complète de l’application, incluan
+[33m314a3a5[m HEAD@{219}: commit: quand tu chosir de reserver, de contacter , etc ... tu dois avoir l 'apo
+[33m8984d30[m HEAD@{220}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: Cannot read
+[33mcb3fa42[m HEAD@{221}: commit: le lieux , les adresse , dois être cohérence avec ce que la Mapp affiche
+[33mb35f19a[m HEAD@{222}: commit: les images et photo Défis Logements Tutorat Marché aux livres Événements
+[33mc946480[m HEAD@{223}: commit: les images et photo Défis
+[33m6b41e43[m HEAD@{224}: commit: Try fixing this error: `Unhandled Runtime Error: ReferenceError: cn is n
+[33m7aa8e7f[m HEAD@{225}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m54ccbb2[m HEAD@{226}: commit: Marché aux livres est devenir un active majeur de l app don il dois etre
+[33mb4d4102[m HEAD@{227}: commit: AJOUT LE MARCHE AUW LIVRES DANS TOUT L APP : À propos
+[33mdfaa133[m HEAD@{228}: commit: continue
+[33m626fb9a[m HEAD@{229}: commit: continue
+[33mfa2405e[m HEAD@{230}: commit: continue
+[33mfe9d0e1[m HEAD@{231}: commit: continue
+[33mc1db64b[m HEAD@{232}: commit: continue
+[33m4483b25[m HEAD@{233}: commit: continue
+[33macdc1eb[m HEAD@{234}: commit: continue
+[33m5c4d40f[m HEAD@{235}: commit: ajoute aussi l IA pour permet a identifier et vérifier les image lord de
+[33m9788062[m HEAD@{236}: commit: image ne s'affiche toujours pas, quand je publie un publication avec des
+[33m520f2cb[m HEAD@{237}: commit: image ne s'affiche toujours pas, quand je publie un publication avec des
+[33ma679caf[m HEAD@{238}: commit: iamge ne s'affiche toujour pas
+[33m2d919d3[m HEAD@{239}: commit: Défi non trouvé.
+[33m6e9f7bf[m HEAD@{240}: commit: Défi non trouvé.
+[33mfbe4d07[m HEAD@{241}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m688267e[m HEAD@{242}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mf085827[m HEAD@{243}: commit: Try fixing this error: `Unhandled Runtime Error: ReferenceError: useMemo
+[33mb273b53[m HEAD@{244}: commit: supprime le mots UrbanQuest dans tout l'app , remplace le par Défi
+[33m6803dbc[m HEAD@{245}: commit: je ne vois rien dans le defi
+[33m867c984[m HEAD@{246}: commit: comment je vie a namur , je veux que tu creer des defis , sportif , deco
+[33m6b1a9bd[m HEAD@{247}: commit: supprime les chifre et nom qui son dans le clasement , car y'a personne
+[33me7f3448[m HEAD@{248}: commit: ameliore le message et message audio et aussi le button d'envooie
+[33m4716573[m HEAD@{249}: commit: avant je pouvais ecoute ce que le message audio a enregistre mais la , j
+[33mc215d88[m HEAD@{250}: commit: quand je lance le message audio , il enregistre mais ne l'enoyer pas , m
+[33mb1a5068[m HEAD@{251}: commit: je ne peux pas envoyer de message
+[33m2601627[m HEAD@{252}: commit: pour je ne peux pas envoyer un message audio
+[33m918be04[m HEAD@{253}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: _barrel_opti
+[33mb0d1489[m HEAD@{254}: commit: Try fixing this error: `Unhandled Runtime Error: TypeError: _barrel_opti
+[33mb62c066[m HEAD@{255}: commit: Try fixing this error: `Unhandled Runtime Error: ReferenceError: useDoc
+[33me63e85e[m HEAD@{256}: commit: continue
+[33m4dcc7ab[m HEAD@{257}: commit: continue
+[33m910b20e[m HEAD@{258}: commit: continue
+[33mcf10e42[m HEAD@{259}: commit: continue
+[33m4b886fc[m HEAD@{260}: commit: continue
+[33m7a6e21e[m HEAD@{261}: commit: continue
+[33m13879f0[m HEAD@{262}: commit: continue
+[33ma5f9af3[m HEAD@{263}: commit: change rien , supprime rien , fais juste une mis a jour et améliore l ap
+[33maf6376b[m HEAD@{264}: commit: continue la mis a jour
+[33mfcb3539[m HEAD@{265}: commit: continue la mis a jour
+[33m23952da[m HEAD@{266}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33m7798867[m HEAD@{267}: commit: Je souhaite effectuer une mise à jour complète de l’application, incluan
+[33m4ff4825[m HEAD@{268}: commit: je ne vois plus la photo ou image que je veux publier
+[33mf7bebfe[m HEAD@{269}: commit: je ne vois plus la photo ou image que je veux publier
+[33m3a8af17[m HEAD@{270}: commit: je ne vois pas tout les flitres et je ne vois pas ou ecris la legend et
+[33m3676fd3[m HEAD@{271}: commit: ou est la legende et ou on met le lieux et aussi ou je dois cliquer pour
+[33m81000b4[m HEAD@{272}: commit: La fenêtre de prévisualisation applique automatiquement un ratio fixe po
+[33mdf663b8[m HEAD@{273}: commit: y'a un probleme ,
+[33m82e3815[m HEAD@{274}: commit: y'a un proble
+[33m60d2b05[m HEAD@{275}: commit: le formulaire de publication pose problme analyse l iamge envoyer pour
+[33m6e8eb0d[m HEAD@{276}: commit: y'a un probleme au niveau du viseul
+[33m4b286ae[m HEAD@{277}: commit: analyse les publication ,le code pour que la publication soi visble et m
+[33m8b34c59[m HEAD@{278}: commit: analyse les publication ,le code pour que la publication soi visble et m
+[33ma00b911[m HEAD@{279}: commit: la publication est toujours lente et elle ne s'affiche toujours pas
+[33m3ec0b2f[m HEAD@{280}: commit: la publication est toujours lente et elle ne s'affiche toujours pas
+[33m1f7e7bb[m HEAD@{281}: commit: la publication est toujours lente et elle ne s'affiche toujour pas
+[33m5e49074[m HEAD@{282}: commit: ajoute plus d'avatar et plus de filtre
+[33m859d91d[m HEAD@{283}: commit: cela fais 3 min je suis sur cette affiche et rien d'autre
+[33m221f9f8[m HEAD@{284}: commit: la publication est toujours lente et elle ne s'affiche toujour pas
+[33mbc37b10[m HEAD@{285}: commit: i est lent et je ne vois toujour pas la publication
+[33md668f0b[m HEAD@{286}: commit: cela fais 10 min que l ecran affiche ça ,
+[33mcb0638a[m HEAD@{287}: commit: la tu voir la publication est lente et elle ne s'affiche pas
+[33mb901c9e[m HEAD@{288}: commit: ajouter 3 point ou on pourra cliquer dessus pour supprimer un utilisateu
+[33m33a9a1a[m HEAD@{289}: commit: je ne peux toujour pas supprimer un utilisateur du cote message
+[33m245cff2[m HEAD@{290}: commit: je ne peux toujour pas voir la publication que je fais de façon normale
+[33m483b563[m HEAD@{291}: commit: on peux changer la photo et aussi changer l 'avatar , donc ajoute aussi
+[33mf684ab4[m HEAD@{292}: commit: je ne peux toujour pas voir la publication que je fais de façon normale
+[33m34edd66[m HEAD@{293}: commit: je ne peux toujour pas voir la publication que je fais de façon normale
+[33m19733e1[m HEAD@{294}: commit: la possiblite de supprime , des message , des utilisateur
+[33m919e430[m HEAD@{295}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m89c5d80[m HEAD@{296}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33mfd65afe[m HEAD@{297}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m33fcc71[m HEAD@{298}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mdb9cba4[m HEAD@{299}: commit: Les secrets de la base de données sont actuellement obsolètes et utilise
+[33m4d75832[m HEAD@{300}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m8fcf2ff[m HEAD@{301}: commit: ssocie l app a tout les fonctionnalite de firebase : Authentication
+[33mb7ba14f[m HEAD@{302}: commit: associe l app a tout les fonctionnalite de firebase : Catégories de prod
+[33m145f485[m HEAD@{303}: commit: non je parle de ça :
+[33m5bc8fb3[m HEAD@{304}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m9f3de49[m HEAD@{305}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mba9b693[m HEAD@{306}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33me5ad4f0[m HEAD@{307}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m4a8120a[m HEAD@{308}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m1ae3846[m HEAD@{309}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m6e19398[m HEAD@{310}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33md59059d[m HEAD@{311}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m78aa4db[m HEAD@{312}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m0286859[m HEAD@{313}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mc3b9fe7[m HEAD@{314}: commit: Je souhaiterais procéder à une mise à jour intégrale de l’application. L
+[33mce21349[m HEAD@{315}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m965e3a4[m HEAD@{316}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m69fb7d2[m HEAD@{317}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m450ed9a[m HEAD@{318}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m2b51a21[m HEAD@{319}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m849ad67[m HEAD@{320}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mc8a1389[m HEAD@{321}: commit: Try fixing this error: `Unhandled Runtime Error: ReferenceError: doc is
+[33m03e7264[m HEAD@{322}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33med85f55[m HEAD@{323}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m18287f9[m HEAD@{324}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m7a034a5[m HEAD@{325}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m4f3da18[m HEAD@{326}: commit: Try fixing this error: `Unhandled Runtime Error: FirebaseError: Missing
+[33m9c81a4d[m HEAD@{327}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33md9e8006[m HEAD@{328}: commit: y'a toujours des error
+[33m9c520bd[m HEAD@{329}: commit: je veux que tu recherche dans tout les bibliothèque , ligne de commande
+[33m672c0a3[m HEAD@{330}: commit: je veux que tu recherche dans tout les bibliothèque , ligne de commande
+[33mbc54091[m HEAD@{331}: commit: ConsoleError: FirebaseError: Missing or insufficient permissions: The fo
+[33m7e0372e[m HEAD@{332}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m2adc78e[m HEAD@{333}: commit: Try fixing this error: `Console Error: Cannot update a component (`Route
+[33m038dbdd[m HEAD@{334}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m5f2d061[m HEAD@{335}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m3c5cf35[m HEAD@{336}: commit: quand je publier une publication normale je ne la voir pas , car elle ne
+[33mbc68da6[m HEAD@{337}: commit: fais la mis a jour firebase
+[33mf37b3d9[m HEAD@{338}: commit: l app est lente
+[33mffb63f2[m HEAD@{339}: commit: quand je publier une publication normale je ne la voir pas , car elle ne
+[33m482bbef[m HEAD@{340}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33mbbabc2b[m HEAD@{341}: commit: Je souhaiterais procéder à une mise à jour intégrale de l’application.
+[33m7550408[m HEAD@{342}: commit: on peux aussi trouve des utilisateur dans la barre de recherche et tout
+[33mb33b49e[m HEAD@{343}: commit: ameliorer ces pages : Reels
+[33m7d6b620[m HEAD@{344}: commit: il peuvent ceer les evement la tu a mis que la gestion
+[33m3b117b1[m HEAD@{345}: commit: créer une page de validation et une page évènement ajoute aussi les reel
+[33m4130554[m HEAD@{346}: commit: crer une page de validation et une page evenement
+[33m4b2b60c[m HEAD@{347}: commit: est ce que c'es une bonne idée de laisser Covoiturage
+[33m0e23507[m HEAD@{348}: commit: le compte partenaire a le droit de valider les défis que les utilisateur
+[33m8dfffd7[m HEAD@{349}: commit: pas besoins d'avoir un deuxième logo a cote de la barre de recherche
+[33m68e2f96[m HEAD@{350}: commit: pas besoisn d'avoir un deuxième logo a cote de la bare de recherche
+[33m80c2fba[m HEAD@{351}: commit: le compte partenaire ne dois pas apparaitre dans le classement dois y'a
+[33me546d69[m HEAD@{352}: commit: y'a trois 3 role , utilisateur , partenaire ( institution ) et l'adminis
+[33m63dca51[m HEAD@{353}: commit: dans le classement le compte partenanire ne particpe pas au defis , ilsl
+[33m009565e[m HEAD@{354}: commit: le formulaire de Modifier le profil
+[33mf24015e[m HEAD@{355}: commit: mais le je suis connecter en tant que compte partenaire mais je n'est pa
+[33m32545b7[m HEAD@{356}: commit: et aussi voir le classement de tout les utilisateurs qui participe a leu
+[33m870d97a[m HEAD@{357}: commit: le compte partenaire peux creer des defis et superviser leur defis qui'
+[33mc677098[m HEAD@{358}: commit: toujour le meme probleme
+[33m3d44ef5[m HEAD@{359}: commit: mais pour quoi ça met que le mail est déjà utiliser par un autre compts
+[33ma385c67[m HEAD@{360}: commit: pour c'est imposible de se connecter en tant que Compte Partenaire
+[33mcd8ac55[m HEAD@{361}: commit: tu ne parle pas de defis ni Centre d'aide
+[33mbbbba55[m HEAD@{362}: commit: pour quoi tu ne fais pas ce que je te demander depuis tout a l heur
+[33m34674df[m HEAD@{363}: commit: tu n'a pas parler de defis dans tout ces changement que tu viens de fair
+[33m9be5003[m HEAD@{364}: reset: moving to 9be5003
+[33mbd58492[m HEAD@{365}: reset: moving to bd58492
+[33mbd58492[m HEAD@{366}: reset: moving to bd58492
+[33m9be5003[m HEAD@{367}: commit: analyse tu ne parle pas de DEFIS: Conditions d'Utilisation
+[33mbd58492[m HEAD@{368}: commit: analyse tu ne parle pas de DEFIS: Politique de Confidentialité
+[33m0bfdecf[m HEAD@{369}: commit: y'a pas défis dans Conditions
+[33mf5ebcb0[m HEAD@{370}: commit: y'a pas defis dans qui somme-nous
+[33mc091346[m HEAD@{371}: commit: tu n'a toujour pas liste defis dans ces option
+[33md6f7703[m HEAD@{372}: commit: mis a jour de ces option :
+[33medb98d5[m HEAD@{373}: commit: améliore le visuel de la page Logement
+[33m5e498e6[m HEAD@{374}: commit: et quand un utilisateur choisir un défi a faire il dois participer pour
+[33m6527c52[m HEAD@{375}: commit: quand je suis sur un service de l'app , le logo qui me permet de fais un
+[33m48324fa[m HEAD@{376}: commit: y'a pas le logo quand je rentre dans les service ,
+[33md93bec0[m HEAD@{377}: commit: met le logo de l 'app pour revenir en arrière quand tu est dans Logement
+[33m225033d[m HEAD@{378}: commit: quand je clique sur ces option dans la page d'accueil principale: Logeme
+[33m54734a7[m HEAD@{379}: commit: Try fixing this error: `Build Error: Failed to compile. Error source: ./
+[33ma7bf7c9[m HEAD@{380}: commit: fais une mis a jour de la page d'acceuil principale pour qu'elle sois en
+[33m7f6cbc7[m HEAD@{381}: commit: Compte Partenaire
+[33m439080c[m HEAD@{382}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33mda413d5[m HEAD@{383}: commit: seul les administrateur etles institutions (partenaires, écoles). peuven
+[33md686308[m HEAD@{384}: commit: trois rôle utilisateur , administrateur , et institution ( partenaire et
+[33m4b841bd[m HEAD@{385}: commit: Je souhaiterais procéder à une mise à jour intégrale de l’application.
+[33m77cf10b[m HEAD@{386}: commit: améliore le visuel de la page défis
+[33m0b5f374[m HEAD@{387}: commit: améliore le visuel de la page défis
+[33m95db0dc[m HEAD@{388}: commit: améliore les image et photos: Défis,
+[33m909e92e[m HEAD@{389}: commit: création de plusieurs avatar comme tu la fais la , enregistre tout ces a
+[33mfaab9a1[m HEAD@{390}: commit: y'a des defil et lieux ou les utilisateur auront besoisn d'une maps , tr
+[33m1f53204[m HEAD@{391}: commit: ReferenceError: React is not defined
+[33m371d170[m HEAD@{392}: commit: le lieu et défis secret n auront pas de trajets
+[33ma617efb[m HEAD@{393}: commit: la map les intinerair en live , les trajets
+[33m9c55331[m HEAD@{394}: commit: continue
+[33m3de1976[m HEAD@{395}: commit: continue
+[33m1c1b69c[m HEAD@{396}: commit: continue
+[33md66442c[m HEAD@{397}: commit: comment l ajouter ?
+[33m5372818[m HEAD@{398}: commit: Try fixing this error: `Build Error: Export CheckBadge doesn't exist in
+[33ma1528a0[m HEAD@{399}: commit: ajouter des certificaton sur certain profil d'utilisateur qui aurons con
+[33ma916767[m HEAD@{400}: commit: la publication est lente ,
+[33me790f36[m HEAD@{401}: commit: Try fixing this error: `Build Error: Module not found: Can't resolve '@r
+[33m0549be0[m HEAD@{402}: commit: ameliore le formulaire de création de publications
+[33md331319[m HEAD@{403}: commit: ReferenceError: DropdownMenu is not defined
+[33mae34825[m HEAD@{404}: commit: améliore +creer pour les publication nomale qui n'on rien a avoir avec
+[33md00b184[m HEAD@{405}: commit: ameliore le message audio
+[33mb6f58e7[m HEAD@{406}: commit: ajoute la possibilite de fais de message audio
+[33m9a9be22[m HEAD@{407}: commit: AMELIORE LE reels , le message
+[33m178559d[m HEAD@{408}: commit: AMELIORE LE FORMULAIRE Devenir Tuteur ET Créer un Événements et covoitur
+[33m27880e2[m HEAD@{409}: commit: AMELIORE LE FORMULAIRE Créer une annonce de logement et covoiturage
+[33m68be173[m HEAD@{410}: commit: AMELIORE LE FORMULAIRE Devenir Tuteur ET Créer un Événements
+[33m1efb9ad[m HEAD@{411}: commit: AMELIORE LE FORMULAIRE Créer une annonce de logement
+[33mdc95382[m HEAD@{412}: commit: AMELIORE LE FORMULAIRE Créer une annonce de logement
+[33me98daf7[m HEAD@{413}: commit: Amélioration Visuelle DE CETTE 3D
+[33me89444c[m HEAD@{414}: commit: Amélioration Visuelle DE CETTE 3D
+[33m1f00009[m HEAD@{415}: commit: AMEILOIRE LA 3D
+[33m0567366[m HEAD@{416}: commit: AMELIORE LE
+[33mcf4754e[m HEAD@{417}: commit: ameliore le formulaire de création de convoiturage
+[33m79e1433[m HEAD@{418}: commit: ameliore le formulaire Créer une annonce de logement
+[33m46e56fe[m HEAD@{419}: commit: ameliore le formulaire de création d'événements
+[33m3d63242[m HEAD@{420}: commit: ameliore la page evenement surtout ou l on creer l'evenement , ameiloire
+[33m6c9c8c3[m HEAD@{421}: commit: Try fixing this error: `Build Error: Module not found: Can't resolve '@/
+[33mac81c0e[m HEAD@{422}: commit: ameliore la page du logements
+[33m229ed89[m HEAD@{423}: commit: ameilore la page d'evenements
+[33ma06384c[m HEAD@{424}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m0d9a6bf[m HEAD@{425}: commit: je ne vois rien du cote tutorat
+[33md63279f[m HEAD@{426}: commit: améliorer la page profil et je ne vois pas comment rentrer en contact
+[33mb52d06d[m HEAD@{427}: commit: améliorer les pages Logements Covoiturage Tutorat Événements et aussi la
+[33md84299f[m HEAD@{428}: commit: quand tu veux publier un video elle va s'affiche et impose un nombre de
+[33mac4068f[m HEAD@{429}: commit: améliorer les pages Logements Covoiturage Tutorat Événements
+[33me7a3ea8[m HEAD@{430}: commit: ameliorer les pages Logements Covoiturage Tutorat Événements
+[33mb136f10[m HEAD@{431}: commit: y'a pas de moyen de donner son avis sur les publication ou rentrer en co
+[33ma514c4b[m HEAD@{432}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mfea10fa[m HEAD@{433}: commit: FirebaseError: Missing or insufficient permissions.
+[33m78c0bce[m HEAD@{434}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33med34f6e[m HEAD@{435}: commit: Try fixing this error: `Console Error: An empty string ("") was passed t
+[33m865173e[m HEAD@{436}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m4e329b2[m HEAD@{437}: commit: ajouter de filtre pour les photos et video
+[33mb72541e[m HEAD@{438}: commit: ameliore les plus : message , image , video , audio ,
+[33m4a923b6[m HEAD@{439}: commit: Try fixing this error: `Runtime Error: Error: A "use server" file can on
+[33mc6bf72e[m HEAD@{440}: commit: ameliore le plus
+[33m4a43cff[m HEAD@{441}: commit: les photo lors des publication d'annonce ne s'affiche pas
+[33m34af1ce[m HEAD@{442}: commit: ameiloire le encord plus
+[33mf419755[m HEAD@{443}: commit: quand je cherche quelqu'un dans la barre de recherche je ne le trouve pa
+[33mfd771b6[m HEAD@{444}: commit: ameliore la barre de recherche
+[33mb2be7c1[m HEAD@{445}: commit: ajoute les
+[33m732232c[m HEAD@{446}: commit: tu n' a pas changer la Version de l’application
+[33m5327361[m HEAD@{447}: commit: je t'avais dis de ne rien coder en ce qui concerne reCAPTCHA
+[33m4f16b14[m HEAD@{448}: commit: Try fixing this error: `Runtime Error: Error: Missing required parameter
+[33m1c9bef4[m HEAD@{449}: commit: je ne peux pas me connecter avec gmail , ni ecris mon email et mot de pa
+[33md4edfe2[m HEAD@{450}: commit: QUAND je suis sur email le symbole de la souris change en en un symbole
+[33mf799171[m HEAD@{451}: commit: JE NE PEUX PAS ME CONNECTER
+[33mab7e9e9[m HEAD@{452}: commit: ACTIVE LA PAGE DE CONNEXION DE L INSCRIPTION
+[33m776b2be[m HEAD@{453}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33m9c4e981[m HEAD@{454}: commit: je veux ajouter un recaptcha
+[33md9533f1[m HEAD@{455}: commit: ameliore le reels
+[33m04f42f6[m HEAD@{456}: commit: ce qu'on peux pas sur un reels ON PEUX COMMENTER , liker , partager , i
+[33m07124b4[m HEAD@{457}: commit: COMMENT PUBLIER UN REELS
+[33m8d9414d[m HEAD@{458}: commit: AMELIORE LE REELS
+[33m195e48c[m HEAD@{459}: commit: CONTINUE
+[33m47e1863[m HEAD@{460}: commit: AJOUTER LE 4 OPTION
+[33mfd22f85[m HEAD@{461}: commit: le probleme persite et je veux que tu trouve une solution ou ajoute un e
+[33m78faed4[m HEAD@{462}: commit: le probleme persite toujours
+[33m4ddf4e2[m HEAD@{463}: commit: FirebaseError: Missing or insufficient permissions.
+[33m038d9a5[m HEAD@{464}: commit: le problme est toujour la : FirebaseError: Missing or insufficient permi
+[33m0ab09a2[m HEAD@{465}: commit: Tu es un expert en Firebase (Firestore, Auth, Storage, Hosting, rules).
+[33m3cf5117[m HEAD@{466}: commit: FirebaseError: Missing or insufficient permissions.
+[33m212ee89[m HEAD@{467}: commit: OKI CONTINUE REGLE LE PROBLEME LIER A LA PERMISSSION
+[33md3a6093[m HEAD@{468}: commit: analyse tout , et en detaille chaque ligne de commande , code , ficher d
+[33me23516c[m HEAD@{469}: commit: le probleme est toujour la
+[33mc770031[m HEAD@{470}: commit: analyse tout , et en detaille chaque ligne de commande , code , ficher
+[33me52ce74[m HEAD@{471}: commit: FirebaseError: Missing or insufficient permissions.
+[33m5e0a433[m HEAD@{472}: commit: FirebaseError: Missing or insufficient permissions.
+[33mc85045b[m HEAD@{473}: commit: FirebaseError: Missing or insufficient permissions.
+[33m660a0cd[m HEAD@{474}: commit: FirebaseError: Missing or insufficient permissions.
+[33m1073987[m HEAD@{475}: commit: FirebaseError: Missing or insufficient permissions.
+[33m5ee30c0[m HEAD@{476}: commit: FirebaseError: Missing or insufficient permissions.
+[33m9cab596[m HEAD@{477}: commit: FirebaseError: Missing or insufficient permissions.
+[33m8c8bccf[m HEAD@{478}: commit: FirebaseError: Missing or insufficient permissions.
+[33m72a1d79[m HEAD@{479}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m2b903bb[m HEAD@{480}: commit: FirebaseError: Missing or insufficient permissions.
+[33me84839b[m HEAD@{481}: commit: FirebaseError: Missing or insufficient permissions.
+[33m5bb0154[m HEAD@{482}: commit: FirebaseError: Missing or insufficient permissions.
+[33mfc95956[m HEAD@{483}: commit: FirebaseError: Missing or insufficient permissions.
+[33m3659a85[m HEAD@{484}: commit: FirebaseError: Missing or insufficient permissions.
+[33m54c0987[m HEAD@{485}: commit: FirebaseError: Missing or insufficient permissions.
+[33m0d9e5a9[m HEAD@{486}: commit: FirebaseError: Missing or insufficient permissions.
+[33m4c171ab[m HEAD@{487}: commit: FirebaseError: Missing or insufficient permissions.
+[33mdfb21b7[m HEAD@{488}: commit: FirebaseError: Missing or insufficient permissions.
+[33m7b28146[m HEAD@{489}: commit: FirebaseError: Missing or insufficient permissions.
+[33m0e76acf[m HEAD@{490}: commit: FirebaseError: Missing or insufficient permissions.
+[33me775c83[m HEAD@{491}: commit: FirebaseError: Missing or insufficient permissions.
+[33m081939d[m HEAD@{492}: commit: FirebaseError: Missing or insufficient permissions.
+[33m4df10c7[m HEAD@{493}: commit: FirebaseError: Missing or insufficient permissions.
+[33mad0b678[m HEAD@{494}: commit: FirebaseError: Missing or insufficient permissions.
+[33mf0770e5[m HEAD@{495}: commit: FirebaseError: Missing or insufficient permissions.
+[33mef95620[m HEAD@{496}: commit: FirebaseError: Missing or insufficient permissions.
+[33m3e61588[m HEAD@{497}: commit: FirebaseError: Missing or insufficient permissions.
+[33m180769a[m HEAD@{498}: commit: FirebaseError: Missing or insufficient permissions.
+[33m2a4f3d8[m HEAD@{499}: commit: FirebaseError: Missing or insufficient permissions.
+[33m9424590[m HEAD@{500}: commit: FirebaseError: Missing or insufficient permissions.
+[33m2acaf7a[m HEAD@{501}: commit: FirebaseError: Missing or insufficient permissions.
+[33m211147d[m HEAD@{502}: commit: FirebaseError: Missing or insufficient permissions.
+[33ma70451b[m HEAD@{503}: commit: FirebaseError: Missing or insufficient permissions.
+[33m603299e[m HEAD@{504}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m87cf3fc[m HEAD@{505}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m6244fa8[m HEAD@{506}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mdaf55fa[m HEAD@{507}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mfe7ca10[m HEAD@{508}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m5e9a688[m HEAD@{509}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33ma524fd1[m HEAD@{510}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m1cd9f31[m HEAD@{511}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mca5bdfd[m HEAD@{512}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m4b4248a[m HEAD@{513}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m6086a89[m HEAD@{514}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m75a8db6[m HEAD@{515}: commit: FirebaseError: Missing or insufficient permissions.
+[33m49f58c9[m HEAD@{516}: commit: continue
+[33m5523415[m HEAD@{517}: commit: continue
+[33me1a120b[m HEAD@{518}: commit: continue
+[33me659757[m HEAD@{519}: commit: continue
+[33m9523299[m HEAD@{520}: commit: fais une mis a jour complète de l app pour changer sa version et l'améli
+[33m636fe42[m HEAD@{521}: commit: ajoute encord d autre version
+[33m424ddc0[m HEAD@{522}: commit: ajoute dans la map la version street
+[33m6f4f2de[m HEAD@{523}: commit: fais une mis a jour complète de l app pour changer sa version et l'améli
+[33m1459d76[m HEAD@{524}: commit: c'est toujour lent
+[33m6a389e4[m HEAD@{525}: commit: la creation d'annonce est lente pour se mettre en ligne
+[33m7c92e66[m HEAD@{526}: commit: continue
+[33ma43a1c2[m HEAD@{527}: commit: continue
+[33mb972e6d[m HEAD@{528}: commit: continue
+[33m09af5d5[m HEAD@{529}: commit: Finalisation des sections "Annonces" et "Activités" sur le profil : Pour
+[33md78286a[m HEAD@{530}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m20ad939[m HEAD@{531}: commit: que manque a cette app et pour quoi les erreur de perrmission se reprodu
+[33m325d4db[m HEAD@{532}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m29fdc09[m HEAD@{533}: commit: ajoute gemini 2.5
+[33mf72eb58[m HEAD@{534}: commit: npm i --save @genkit-ai/firebaseInstallez le plug-in @genkit-ai/firebase
+[33m72ab4e4[m HEAD@{535}: commit: BJho75K3Sh3qu_7g7euWNwqKRao9rLkTQmjcBNhBNGM4T5SlPyHurSZsKKKzAmgDMYd2KaQo
+[33ma9b76cf[m HEAD@{536}: commit: ameliore la carte
+[33m2c7e85c[m HEAD@{537}: commit: Try fixing this error: `Runtime Error: Error: React is not defined. Erro
+[33m5255510[m HEAD@{538}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m1cf7f6a[m HEAD@{539}: commit: Try fixing this error: `Runtime Error: Error: User is not defined. Error
+[33m12077bd[m HEAD@{540}: commit: ameliore la map
+[33m27e4017[m HEAD@{541}: commit: ameliore la map
+[33m695f09c[m HEAD@{542}: commit: FirebaseError: Missing or insufficient permissions.
+[33m4823d19[m HEAD@{543}: commit: FirebaseError: Missing or insufficient permissions.
+[33m03d08cb[m HEAD@{544}: commit: FirebaseError: Missing or insufficient permissions.
+[33maf99cc9[m HEAD@{545}: commit: FirebaseError: Missing or insufficient permissions.
+[33m9a72a83[m HEAD@{546}: commit: FirebaseError: Missing or insufficient permissions.
+[33mdc64aec[m HEAD@{547}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33mc454f97[m HEAD@{548}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33mf5a9a3d[m HEAD@{549}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m741e294[m HEAD@{550}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m5fbe8de[m HEAD@{551}: commit: FirebaseError: Missing or insufficient permissions.
+[33m2910645[m HEAD@{552}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m00cec75[m HEAD@{553}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m415e5c1[m HEAD@{554}: commit: améliore, Reels
+[33ma6ea6bd[m HEAD@{555}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m95ec30c[m HEAD@{556}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m337f702[m HEAD@{557}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33md487874[m HEAD@{558}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m720b72e[m HEAD@{559}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33me6373df[m HEAD@{560}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mbd356b3[m HEAD@{561}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mef7850d[m HEAD@{562}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m1f06a21[m HEAD@{563}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33ma5b26a7[m HEAD@{564}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m0d5b9f6[m HEAD@{565}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m054656d[m HEAD@{566}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mac554a2[m HEAD@{567}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33meb4efde[m HEAD@{568}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m244a61a[m HEAD@{569}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33me76c7cc[m HEAD@{570}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m3393a24[m HEAD@{571}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m22bd016[m HEAD@{572}: commit: ajout
+[33m1858db6[m HEAD@{573}: commit: QUE MANQUE A CETTE APP
+[33m6a2eff5[m HEAD@{574}: commit: Analyse tout l'app : code par code , ficher par ficher , ligne de code p
+[33m681f3f0[m HEAD@{575}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33mb8d19f2[m HEAD@{576}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m44bfd3e[m HEAD@{577}: commit: qaund je me connect manuellement il refuse
+[33ma3a7286[m HEAD@{578}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33ma8cbed7[m HEAD@{579}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mb0b0eaf[m HEAD@{580}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33ma6266f1[m HEAD@{581}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m74a11be[m HEAD@{582}: commit: # 🔒 Résoudre l'erreur "Missing or insufficient permissions"
+[33m046b60d[m HEAD@{583}: commit: rules_version = '2';
+[33mf31f783[m HEAD@{584}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mbce500f[m HEAD@{585}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mf6de215[m HEAD@{586}: commit: continue
+[33m94d3f0a[m HEAD@{587}: commit: analyse Une architecture applicative de cette app et dis ce qui manque
+[33m84a81f0[m HEAD@{588}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33maebf829[m HEAD@{589}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m0ac4ac5[m HEAD@{590}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m4e03b0b[m HEAD@{591}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m4a3d808[m HEAD@{592}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33ma60c36f[m HEAD@{593}: commit: FirebaseError: Missing or insufficient permissions.
+[33m07e0804[m HEAD@{594}: commit: FirebaseError: Missing or insufficient permissions.
+[33m194ba2e[m HEAD@{595}: commit: FirebaseError: Missing or insufficient permissions.
+[33m94fb9ea[m HEAD@{596}: commit: la connexion est lente , : Inscription en cours... et il est très lent
+[33m44bcfdd[m HEAD@{597}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m5248dc1[m HEAD@{598}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mdcf1984[m HEAD@{599}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mec9921e[m HEAD@{600}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m4f573f1[m HEAD@{601}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33md4dfc5e[m HEAD@{602}: commit: la disposition de la page de profil dois etre pareil pour tout les utlis
+[33m4d27387[m HEAD@{603}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m5ea41ae[m HEAD@{604}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m8138979[m HEAD@{605}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33md7e3bb5[m HEAD@{606}: commit: Analyse tout l'app : code par code , ficher par ficher , ligne de code p
+[33m798cade[m HEAD@{607}: commit: fais un mis a jou de tout l app et ajoute le ici : Version de l’applicat
+[33mc83c55c[m HEAD@{608}: commit: Analyse tout l'app : code par code , ficher par ficher , ligne de code p
+[33m40286fc[m HEAD@{609}: commit: améliorer Reels Messages Logements Covoiturage Tutorat Événements
+[33mfb90d02[m HEAD@{610}: commit: améliorer Reels Messages Logements Covoiturage Tutorat Événements
+[33me2f4a8a[m HEAD@{611}: commit: améliorer Reels
+[33m98d58c5[m HEAD@{612}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33m4ab0e31[m HEAD@{613}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33mfd06eb0[m HEAD@{614}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33mb5c7edb[m HEAD@{615}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33me479b37[m HEAD@{616}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33m9505ba2[m HEAD@{617}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33m49f4810[m HEAD@{618}: commit: Parfait, continuons. Comme nous l'avons évoqué,
+[33mc19ac71[m HEAD@{619}: commit: Try fixing this error: `Runtime Error: Error: Invalid src prop (https://
+[33md0f78b6[m HEAD@{620}: commit: Parfait, continuons. Comme nous l'avons évoqué
+[33m8a26789[m HEAD@{621}: commit: Try fixing this error: `Build Error: Export useMemoFirebase doesn't exis
+[33me257f86[m HEAD@{622}: commit: continue
+[33meed0c8f[m HEAD@{623}: commit: ajoute les toutes
+[33ma9caa57[m HEAD@{624}: commit: Analyse tout l'app : code par code , ficher par ficher , ligne de code p
+[33mb3932ea[m HEAD@{625}: commit: ajout la section message et je veux quelle sois vide
+[33m9093df3[m HEAD@{626}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m879622d[m HEAD@{627}: commit: Analyse tout l'app : code par code , ficher par ficher , ligne de code p
+[33ma0ecb51[m HEAD@{628}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m198da09[m HEAD@{629}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m1757bc7[m HEAD@{630}: commit: ajout des Reels
+[33mf0f81a7[m HEAD@{631}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33macaa135[m HEAD@{632}: commit: actualise ces section : Logements
+[33m38ad633[m HEAD@{633}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m0c7b8ee[m HEAD@{634}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mb262c09[m HEAD@{635}: commit: analyse tout l'app : code par code , ficher par ficher , ligne de code p
+[33m4bef5a9[m HEAD@{636}: commit: les écoles Helmo, Code Postal (Optionnel), Ville (Optionnel),Établisseme
+[33m6f95fc3[m HEAD@{637}: commit: ecole art et metier , les campu provincial etc ..... les promotion socia
+[33m7197653[m HEAD@{638}: commit: ecole insdustriel et comercial et bien d'autre
+[33mc29c630[m HEAD@{639}: commit: oui ajouter les
+[33m2c85d26[m HEAD@{640}: commit: supprime tout ce qui est en rapport avec les services de Microsoft
+[33mbb95158[m HEAD@{641}: commit: Try fixing this error: `Console Error: `DialogContent` requires a `Dialo
+[33m8e67ec2[m HEAD@{642}: commit: étails du dépannage
+[33m97be419[m HEAD@{643}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33m7584f91[m HEAD@{644}: commit: This page could not be found.
+[33m1c7b4c8[m HEAD@{645}: commit: This page could not be found.
+[33m8907c48[m HEAD@{646}: commit: je ne t'es pas dis de supprime l app mais juste la section message
+[33mddbf2a9[m HEAD@{647}: commit: tu a toujour garder les messages : Messages
+[33mdd88867[m HEAD@{648}: commit: pour tu a garder les message qui sont dans l'ancienne version de la sect
+[33m9ec8f17[m HEAD@{649}: commit: supprime la section message et reinstalle le
+[33mb6f366c[m HEAD@{650}: commit: Try fixing this error: `Console Error: Error: The default Firebase app d
+[33ma4e34d0[m HEAD@{651}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m38927f5[m HEAD@{652}: commit: les utilisateur peux aimer , commentaire , partager et enregistrer , la
+[33mea68ae0[m HEAD@{653}: commit: je ne peux pas supprime un utilisateur ni supprimer un message dans la s
+[33m4130f12[m HEAD@{654}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33me9b2bd0[m HEAD@{655}: commit: FirebaseError: Missing or insufficient permissions.
+[33m92a423c[m HEAD@{656}: commit: la section profil et paramètre dois etre coherent avec la fil d'actualit
+[33m11e6425[m HEAD@{657}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m905c706[m HEAD@{658}: commit: tout les section : Messages
+[33m58b87f2[m HEAD@{659}: commit: analyse la section message : on peux supprime un utilisateur , supprimer
+[33me4c2ab4[m HEAD@{660}: commit: Try fixing this error: `Runtime Error: TypeError: Cannot read properties
+[33m827d5ae[m HEAD@{661}: commit: Try fixing this error: `Console Error: Error: Attempted to call initiali
+[33m03246cf[m HEAD@{662}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33m8b22c73[m HEAD@{663}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m0c94b91[m HEAD@{664}: commit: la page de fil d'actualite dois etre dans un autre onglet
+[33m37345db[m HEAD@{665}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33mad89738[m HEAD@{666}: commit: toujour rien
+[33m96c22fd[m HEAD@{667}: commit: la page social n'est pas afficher
+[33m491bad3[m HEAD@{668}: commit: je ne vois pas
+[33m4a11545[m HEAD@{669}: commit: il est toujours blanc
+[33m6bf6644[m HEAD@{670}: commit: Try fixing this error: `Build Error: Export CardSkeleton doesn't exist i
+[33m3d96cbc[m HEAD@{671}: commit: il est blanc
+[33m082850f[m HEAD@{672}: commit: analyse tout l app, ligne par ligne , ficher pas fchier code par code po
+[33md538a7a[m HEAD@{673}: commit: elle est toujour absente
+[33m119aa6b[m HEAD@{674}: commit: je me connecte mais je ne voir pas la page
+[33ma32e489[m HEAD@{675}: commit: ajoute la page d'actualité : c'est la page que l'utilisateur a accès qu
+[33md0f196a[m HEAD@{676}: commit: il dois avoir le logo de l app pour pouvoir revenir e arrière quand tu e
+[33ma60f5b0[m HEAD@{677}: commit: ANALYSE TOUT LE CODE
+[33mf2383e6[m HEAD@{678}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33mf221337[m HEAD@{679}: commit: TOUJOUR PAREIL ? IL EST OU LA PAGE D ACTUALITE
+[33mbac6651[m HEAD@{680}: commit: TOUJOUR PAREIL ? IL EST OU LA PAGE D ACTUALITE
+[33mac2a05f[m HEAD@{681}: commit: TOUJOUR PAREIL ? IL EST OU LA PAGE D ACTUALITE
+[33m61eaa9f[m HEAD@{682}: commit: TOUJOUR PAREIL ? IL EST OU LA PAGE D ACTUALITE
+[33m7c5855e[m HEAD@{683}: commit: TOUJOUR PAREIL ? IL EST OU LA PAGE D ACTUALITE
+[33m4b305fa[m HEAD@{684}: commit: TOUJOUR PAREIL ? IL EST OU LA PAGE D ACTUALITE
+[33m5ebbdfe[m HEAD@{685}: commit: JE NE LE VOIS TOUJOUR PAS
+[33m38af763[m HEAD@{686}: commit: il est ou alord pare que quand je me connecter je n'est pas acces a ça
+[33m82980dd[m HEAD@{687}: commit: quand je me connecter je dois allez sur la page de fil d'actualite
+[33m72db032[m HEAD@{688}: commit: je ne peux pas me connecter
+[33m65945a3[m HEAD@{689}: commit: arret de presente tes excuse et regle mon problleme normalement
+[33m426fd28[m HEAD@{690}: commit: la maintenant que je me connecte : je n'est pas acces a la page fil d'ac
+[33m5f51353[m HEAD@{691}: commit: quand je suis sur cette page : Connexion
+[33m7a3eaac[m HEAD@{692}: commit: je ne vois pas la page d'accueil
+[33m03b9894[m HEAD@{693}: commit: ou est ma page d'accueil principale
+[33m522015b[m HEAD@{694}: commit: ou est ma page d'accueil principale
+[33m3315eb2[m HEAD@{695}: commit: ou est ma page d'accueil principale
+[33mc57e019[m HEAD@{696}: commit: ou est ma page d'accueil principale
+[33me9140ac[m HEAD@{697}: commit: ou est ma page d'accueil principale
+[33mee2bf61[m HEAD@{698}: commit: ou est ma page d'acceuil prinicape
+[33me38c8bd[m HEAD@{699}: commit: ou est ma page d'acceuil prinicape
+[33m5686353[m HEAD@{700}: commit: tu te fout de moi
+[33m1dc0b25[m HEAD@{701}: commit: tu rien faix
+[33mce209f9[m HEAD@{702}: commit: ou est mon app et ma page d'acceuil prncipale
+[33m1d906ab[m HEAD@{703}: commit: tu na pas encord regle mon probleme et tu a detruit mon app
+[33m871e023[m HEAD@{704}: commit: arret de deruit mon app , je te demande juste que je veux avoir acces a
+[33m66423d3[m HEAD@{705}: commit: je n'est toujour pas acces a l app
+[33m00b8e96[m HEAD@{706}: commit: toujour pareil
+[33mbecb8e5[m HEAD@{707}: commit: je n'est toujour pas acces a la fil d'actualite de l app
+[33m8caf5cc[m HEAD@{708}: commit: qaund je me connect : l app me dis bienvenur sur stud'in mais j ai pas l
+[33m884ea52[m HEAD@{709}: commit: Try fixing this error: `Console Error: [2025-11-22T20:16:33.700Z] @fireb
+[33mc903096[m HEAD@{710}: commit: Error: [2025-11-22T20:15:17.863Z] @firebase/firestore: "Firestore (11.9
+[33macf6742[m HEAD@{711}: commit: Try fixing this error: `Console Error: [2025-11-22T20:14:20.854Z] @fireb
+[33ma497dbc[m HEAD@{712}: commit: corrige les erreurs dans les : Console Error
+[33m1d7b1bd[m HEAD@{713}: commit: ya trop d'espace
+[33m52add31[m HEAD@{714}: commit: y'a trop d'espace , prend exemple sur la publication d instgram
+[33mbeebfae[m HEAD@{715}: commit: ameliore aussi les publicaton , les commentaire , les like , paratage ,
+[33ma39cd1e[m HEAD@{716}: commit: améliore le visuel de la page fil d'actualité
+[33m856ab60[m HEAD@{717}: commit: analyse tout les code de l app, trouve les erreures et corrige les
+[33m32caf76[m HEAD@{718}: commit: analyse tout les code de l app
+[33me395d5e[m HEAD@{719}: commit: FirebaseError: Missing or insufficient permissions.
+[33m7ad327f[m HEAD@{720}: commit: FirebaseError: Missing or insufficient permissions.
+[33m5f497a2[m HEAD@{721}: commit: FirebaseError: Missing or insufficient permissions.
+[33ma545702[m HEAD@{722}: commit: FirebaseError: Missing or insufficient permissions.
+[33mc143fdc[m HEAD@{723}: commit: FirebaseError: Missing or insufficient permissions.
+[33mf721c59[m HEAD@{724}: commit: FirebaseError: Missing or insufficient permissions.
+[33m6113f17[m HEAD@{725}: commit: regle se probleme de follower et unfollower , suivre et ne pas suivre ,
+[33m95ba670[m HEAD@{726}: commit: alors pour quoi le probleme persiste
+[33mce75c08[m HEAD@{727}: commit: FirebaseError: Missing or insufficient permissions.
+[33m1feec1c[m HEAD@{728}: commit: C'est effectivement un problème classique avec Firebase Authentication o
+[33mfa219d7[m HEAD@{729}: commit: . Règles de Sécurité Firestore Trop Restrictives
+[33m961b574[m HEAD@{730}: commit: c'est quoi le probleme avec cette erreur : FirebaseError: Missing or ins
+[33mc88abc3[m HEAD@{731}: commit: analyse tout l app trouve les erreur ,
+[33m8193037[m HEAD@{732}: commit: c'est quoi le problème , trouve une alternative pour règle ce problème
+[33m4183dfd[m HEAD@{733}: commit: FirebaseError: Missing or insufficient permissions.
+[33m8223d4f[m HEAD@{734}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m54822eb[m HEAD@{735}: commit: Try fixing this error: `Runtime Error: Error: useMemo is not defined. Er
+[33maccafb9[m HEAD@{736}: commit: active
+[33m3878e2b[m HEAD@{737}: commit: commentaire , paratge , enregistrment active les
+[33mb507790[m HEAD@{738}: commit: Try fixing this error: `Runtime Error: Error: Invalid time value. Error
+[33m616bcb3[m HEAD@{739}: commit: ya encord de l espace
+[33md9f43b7[m HEAD@{740}: commit: supprime les espace en haut de ces fonction : Logements
+[33m6a9257b[m HEAD@{741}: commit: supprime les mots juste ne haut 🚗 Covoiturage
+[33maf1b3d7[m HEAD@{742}: commit: ou est les paramètres
+[33m3468c88[m HEAD@{743}: commit: SUPPRIME JUSTE LES mots EN HAUTES DE CES FONCTIONS SEULEMENDT :🎉 Événem
+[33mbf4c340[m HEAD@{744}: commit: continue l'analyse tout l app , recherche les erreurs , problème , et co
+[33m95eebdd[m HEAD@{745}: commit: analyse tout l app , recherche les erreur , probleme , et corrige les
+[33m8601190[m HEAD@{746}: commit: Error: The default Firebase app does not exist. Make sure you call initi
+[33m0f86d4d[m HEAD@{747}: commit: Try fixing this error: `Console Error: Error: The default Firebase app d
+[33maa9506f[m HEAD@{748}: commit: quand je supprime un utilisateur dans la section message , il revient co
+[33mb014884[m HEAD@{749}: commit: tu peux supprimer les conversation dans les message , supprimer l'ulisat
+[33macc2b51[m HEAD@{750}: commit: FirebaseError: Missing or insufficient permissions.
+[33m91db1a4[m HEAD@{751}: commit: Pseudo de l'application
+[33mc370a44[m HEAD@{752}: commit: FirebaseError: Missing or insufficient permissions.
+[33mc368760[m HEAD@{753}: commit: FirebaseError: Missing or insufficient permissions.
+[33m796e9bf[m HEAD@{754}: commit: FirebaseError: Missing or insufficient permissions.
+[33md1181c4[m HEAD@{755}: commit: <script type="module">
+[33meb2f8d6[m HEAD@{756}: commit: FirebaseError: Missing or insufficient permissions.
+[33md4c8c45[m HEAD@{757}: commit: FirebaseError: Missing or insufficient permissions.
+[33mfd0084a[m HEAD@{758}: commit: FirebaseError: Missing or insufficient permissions.
+[33m5062d6f[m HEAD@{759}: commit: ce utilisateur : doba.guimartinien99
+[33m94ac25f[m HEAD@{760}: commit: quand tu suis un utilisateur il dois recevoir une notification , mais l
+[33m798c625[m HEAD@{761}: commit: Try fixing this error: `Console Error: FirebaseError: Missing or insuffi
+[33m181a251[m HEAD@{762}: commit: pour avoir supprimer la barre de recherche comment je vais pour trouver
+[33m1f8ca35[m HEAD@{763}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33m32ef873[m HEAD@{764}: commit: quand je clique sur la bare de recherche pour ouver un utilisateur cela
+[33mc3f226c[m HEAD@{765}: commit: S'inscrire
+[33mb3c730f[m HEAD@{766}: commit: quand je m'inscrire je clique sur le buton s'incrie et j'ai rien
+[33mc83e5ac[m HEAD@{767}: commit: rien ne manque dans l'architeture de l app
+[33me424509[m HEAD@{768}: commit: analyse tout l app , pour trouve les erreurs soite les supprmies et co
+[33m5796608[m HEAD@{769}: commit: Mon Profil
+[33m0a61acd[m HEAD@{770}: commit: quand je chsoir une autre photo la sauvegarde est lente et ne passe.
+[33m7c073a4[m HEAD@{771}: commit: améliore la page de Modifier le profil
+[33me477224[m HEAD@{772}: commit: utilise la Firebase Storage
+[33maa3f5ac[m HEAD@{773}: commit: Try fixing this error: `Console Error: FirebaseError: The value of prope
+[33m2fa9295[m HEAD@{774}: commit: la je change la photo de profil mais il ne change pas
+[33m3f7252d[m HEAD@{775}: commit: Try fixing this error: `Console Error: FirebaseError: Firebase: Photo UR
+[33m69264d9[m HEAD@{776}: commit: Try fixing this error: `Console Error: FirebaseError: Function updateDoc
+[33mdc7cc87[m HEAD@{777}: commit: dans Modifier le profil
+[33me407d6b[m HEAD@{778}: commit: 1.2k abonnés
+[33m0c92640[m HEAD@{779}: commit: je ne t'es pas demander de metre un tableau de bord
+[33m7e9c2c1[m HEAD@{780}: commit: pareil pour la barre de recherche
+[33mdc97cda[m HEAD@{781}: commit: l'option creer dois etre a cote de buton de notification
+[33m11a3809[m HEAD@{782}: commit: active tout
+[33m61ba7e2[m HEAD@{783}: commit: améliore le visuel sans rien changer
+[33mbdbb71c[m HEAD@{784}: commit: rend le plus propre
+[33m5614908[m HEAD@{785}: commit: erreur d'affichage
+[33m37d03b5[m HEAD@{786}: commit: toujour pareil
+[33mea255af[m HEAD@{787}: commit: toujour pareil
+[33m2983bb5[m HEAD@{788}: commit: tu ne vois pas que y'a erreur
+[33mf39993b[m HEAD@{789}: commit: toujour pareil
+[33me9ea7a9[m HEAD@{790}: commit: le tabeleau de bord de s'ajue pas avec l'ecrain
+[33m26f3e63[m HEAD@{791}: commit: voici ce que je veux
+[33mfeba61a[m HEAD@{792}: commit: on voir a moitie le teableau
+[33mf788aca[m HEAD@{793}: commit: ameliore le visuel et le tableau de bord
+[33ma7f89f8[m HEAD@{794}: commit: chnage rien dans l etat de cette app , ameliore juste le tableau de bord
+[33mc080f3d[m HEAD@{795}: commit: Appels supprime
+[33mbdef1e3[m HEAD@{796}: commit: creer dois etre just en bas du tabeaku de bnord
+[33m8661a91[m HEAD@{797}: commit: Profil
+[33md5ed6c4[m HEAD@{798}: commit: Bienvenue, 👋
+[33m20cac19[m HEAD@{799}: commit: Accueil
+[33mbdf4faf[m HEAD@{800}: commit: , Y A PA LA MESSAGERIE , LE REEL , LA BARE DE RECHERCHE , LA FONCTION PA
+[33m09cd728[m HEAD@{801}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33mdee0287[m HEAD@{802}: commit: AJOUTE L IA , Y A PA LA MESSAGERIE , LE REEL , LA BARE DE RECHERCHE , LA
+[33med3bd16[m HEAD@{803}: commit: toi quand tu regarde est ce que ya une quelqu on ressemble avec insta
+[33mae0c919[m HEAD@{804}: commit: je te demande de reprend instagram en reference
+[33m4a2bd8f[m HEAD@{805}: commit: c'est un truc comme ça je veux
+[33m272c405[m HEAD@{806}: commit: je t'es demande que je veux une app que la couleur violet domine mais la
+[33m2d70322[m HEAD@{807}: commit: je t'es demander de me creer un app , mais ce n'est plus une app que tu
+[33m219e66d[m HEAD@{808}: commit: y'a pas encord d 'utiliateur donc les storie la sert a quoi
+[33m939d092[m HEAD@{809}: commit: Try fixing this error: `Console Error: Encountered two children with the
+[33m0fc5f1d[m HEAD@{810}: commit: la couleur de l app sera le blanc et violet mais c'est le violet qui ser
+[33m663bc17[m HEAD@{811}: commit: il dois ressemnler a instagram
+[33m7ad750a[m HEAD@{812}: commit: Utilisateur Connecté : Une interface d'application unifiée avec sa propr
+[33mbe9ccf7[m HEAD@{813}: commit: ou est la page de profil , ou sont les parametre
+[33m7e24baa[m HEAD@{814}: commit: y'a deux page dans cette app la page d'acceuile et la page ou y'a les pu
+[33mf5cac1b[m HEAD@{815}: commit: quand tu te connecte tu dois allez dans un autre onglet
+[33m68a9e04[m HEAD@{816}: commit: social ne dois pas etre la
+[33m2d30574[m HEAD@{817}: commit: Try fixing this error: `Build Error: Module not found: Can't resolve '@/
+[33m33a8a17[m HEAD@{818}: commit: non pour quoi tu l a modifier comme ça
+[33m6824567[m HEAD@{819}: commit: mais c'est le bus ce cette app , ce n'est pas un reseaux seseaux social
+[33m00a975d[m HEAD@{820}: commit: TOUT LES QUI CONCERNE : Logement
+[33m3ca0cd8[m HEAD@{821}: commit: SUPPRIME Logements DANS LA PAGE SOCIAL
+[33m43e8120[m HEAD@{822}: commit: TU DOIS VOIR QUE LA PAGE SOCIAL QUAND TU EST CONNECTER
+[33m6e7441d[m HEAD@{823}: commit: Page Sociale DOIS ETRE DANS UN AUTRE ONGLET QUE TU A ACCES APRES AVOIR E
+[33m2de9d3c[m HEAD@{824}: commit: Page Sociale DOIS ETRE DANS UN AUTRE ONGLET QUE TU A ACCES APRES AVOIR
+[33mee9d506[m HEAD@{825}: commit: PAGE D ACCEUIL ET PAGE SOCIAL SON DEUX PAGE DIFFERENTE
+[33m60f4fd4[m HEAD@{826}: commit: NON QUAND TU CLIQUE SUR LE LOGO TU ACCES QUE A LA PAGE PRINCIPAL
+[33m0ec5747[m HEAD@{827}: commit: SOCIAL EST UN PAGE ENTIER ET C EST LA QUE L UTILISATEUR A SA PAGE
+[33m36038c4[m HEAD@{828}: commit: la page d'accueille de l'utilisateur et differente de la page d'acceuill
+[33mbc44c16[m HEAD@{829}: commit: évolutivité et continue l'amélioration
+[33m23bb0d4[m HEAD@{830}: commit: Try fixing this error: `Console Error: `DialogContent` requires a `Dialo
+[33mfd0e17f[m HEAD@{831}: commit: Try fixing this error: `Runtime Error: Error: useFirebase must be used w
+[33m2b83717[m HEAD@{832}: commit: The app isn't starting. Please investigate what could be wrong based on
+[33ma06256f[m HEAD@{833}: commit: analyse tout l'app supprime le duplication , corrige les erreur , dis ce
+[33ma409155[m HEAD@{834}: commit: ameliore le visuel et le disign de l app,
+[33m381df58[m HEAD@{835}: commit: ameliore le visuel et le disign de l app,
+[33mb4aae02[m HEAD@{836}: commit: section "Reels"
+[33m7ae58dd[m HEAD@{837}: commit: je parle de la fonction notification et reel qui sont dans l app et non
+[33m7fd406a[m HEAD@{838}: commit: pareil pour la fonction réel
+[33m948bdec[m HEAD@{839}: commit: pareil pour la fonction réel
+[33m30d6390[m HEAD@{840}: commit: Déclarer un problème
+[33m37986cb[m HEAD@{841}: commit: règles de la communauté
+[33md31c0bc[m HEAD@{842}: commit: Version de l’application
+[33m2ca8a22[m HEAD@{843}: commit: active tout ça : Mot de passe Comptes liés Liste des utilisateurs bloqué
+[33m2864f8e[m HEAD@{844}: commit: active tout ça : Mot de passe Comptes liés Liste des utilisateurs bloqué
+[33m7343183[m HEAD@{845}: commit: active tout ça : Mot de passe Comptes liés Liste des utilisateurs bloqué
+[33mf8480dc[m HEAD@{846}: commit: active tout ça : Mot de passe
+[33m9fe9808[m HEAD@{847}: commit: mais je suis connecter pour il dis que vous devez vous connecter
+[33m9cbe1f0[m HEAD@{848}: commit: mais je suis connecter pour il dis que vous devez vous connecter
+[33m9ff619c[m HEAD@{849}: commit: améliore STUD'IN Social
+[33m00bda95[m HEAD@{850}: commit: améliore tout de ces fonctions Logement
+[33mbdba1cc[m HEAD@{851}: commit: Téléchargement d'images pour tout les fonction Logement
+[33m3235e49[m HEAD@{852}: commit: mais je suis connecter pour il dis que vous devez vous connecter
+[33md99a9c6[m HEAD@{853}: commit: Try fixing this error: `Console Error: `DialogContent` requires a `Dialo
+[33ma3993a5[m HEAD@{854}: commit: ajoute le lieux aussi , que le fciher image pas directement sur le pc ou
+[33m3781f74[m HEAD@{855}: commit: Créer une publication
+[33mb771dac[m HEAD@{856}: commit: fais avec un jolie visuel
+[33m585a360[m HEAD@{857}: commit: ajoute celui a la place Qui sommes‑nous ?
+[33m6e2fc51[m HEAD@{858}: commit: c'est pas oblige de fais une publication avec une image et puis la fonct
+[33m9e583c5[m HEAD@{859}: commit: ya des parametre qui ne sont pas active
+[33m8c2d4da[m HEAD@{860}: commit: // Import the functions you need from the SDKs you need
+[33m36096bc[m HEAD@{861}: commit: const firebaseConfig = {
+[33mf9facf5[m HEAD@{862}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33md4d97fb[m HEAD@{863}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33meee50fe[m HEAD@{864}: commit: active tout les composants : Paramètres Gérez les paramètres de votre co
+[33m80c053f[m HEAD@{865}: commit: active tout les composants : Paramètres Gérez les paramètres de votre co
+[33m22be338[m HEAD@{866}: commit: Try fixing this error: `Runtime Error: Error: posts was not properly mem
+[33m09781d7[m HEAD@{867}: commit: active : les notification , message , et tout autre fonctions
+[33m94f0420[m HEAD@{868}: commit: FirebaseError: Missing or insufficient permissions: The following reques
+[33mdbc9423[m HEAD@{869}: commit: Try fixing this error: `Runtime Error: FirebaseError: Missing or insuffi
+[33m7785c06[m HEAD@{870}: commit: parametre de signal et blocable
+[33ma404026[m HEAD@{871}: commit: Try fixing this error: `Runtime Error: Error: posts was not properly mem
+[33m0b4c307[m HEAD@{872}: commit: ajoute outlook et avec gmail et outlook
+[33md5069e7[m HEAD@{873}: commit: mais l'app est pas encor disponible
+[33mba01508[m HEAD@{874}: commit: trouve un jolie emplacement dans l'app pour le mettre.
+[33m0f5669b[m HEAD@{875}: commit: qaund tu clique sur FR la langue change et pareil pour EN qui n'est pas
+[33m49c822b[m HEAD@{876}: commit: supprime le mot langue et ecris seulment FR|EN et FR le drapeur de la
+[33m9216403[m HEAD@{877}: commit: ajoute tout ces fonctionnalité manquante et seulement le français pour l
+[33m2fc4df7[m HEAD@{878}: commit: ajoute tout ces fonctionnalité manquante ,
+[33mdadaf72[m HEAD@{879}: commit: continue
+[33m5c4fb82[m HEAD@{880}: commit: ajoute tout ces fonctionnalite manquante
+[33m67239f8[m HEAD@{881}: commit: active les fonction manquant que j'avais dis l ajouter sur windriver act
+[33mfb19ce6[m HEAD@{882}: commit: atcive gmail
+[33mda051ec[m HEAD@{883}: commit: action tout les composant , fonctions , options de cette app
+[33m529b21b[m HEAD@{884}: commit: ajoute une fonction Aide et Contact
+[33ma88233a[m HEAD@{885}: commit: ajoute ce que tu a supprime car lui c'est aide et lautre c'est contact
+[33m7e167f9[m HEAD@{886}: commit: Contacter le support
+[33ma5a6888[m HEAD@{887}: commit: active Discutez avec notre équipe de support (bientôt disponible).
+[33mb210c36[m HEAD@{888}: commit: ajoute plus et plus détailler FAQ , et ajoute un fonction de commentair
+[33m0f17afb[m HEAD@{889}: commit: ajoute plus de Politique de Confidentialité et de Conditions d'Utilisati
+[33mdeb22ba[m HEAD@{890}: commit: ajouter un petit oeil pour voir et cacher le mot de passe
+[33mb0a0d1a[m HEAD@{891}: commit: erreur de connexion
+[33mfe4d13a[m HEAD@{892}: commit: Try fixing this error: `Console Error: FirebaseError: Firebase: Error (a
+[33mfba8476[m HEAD@{893}: commit: le service d'authentification n'est pas disponible
+[33m83db8ad[m HEAD@{894}: commit: je n arrive toujour pas a me connecter avec gmail
+[33me0463f1[m HEAD@{895}: commit: Try fixing this error: `Runtime Error: Error: housings was not properly
+[33mb1d9881[m HEAD@{896}: commit: active Se connecter avec Google
+[33m4440cfe[m HEAD@{897}: commit: Nous allons passer de l'interface "visuelle" à l'interface "interactive"
+[33md7acd9c[m HEAD@{898}: commit: Nous allons passer de l'interface "visuelle" à l'interface "interactive"
+[33m0001419[m HEAD@{899}: commit: continue
+[33m01ac342[m HEAD@{900}: commit: continue
+[33mbd873c8[m HEAD@{901}: commit: je parle des fonction , gmail , parametre , bare de recherche , notifica
+[33m8704a90[m HEAD@{902}: commit: active l app
+[33m2153b94[m HEAD@{903}: commit: un créer un autre page pour l'administrateur , ca serra une page de moni
+[33mc6f1b09[m HEAD@{904}: commit: ajoute le moyen de se connecter avec gmail
+[33m9285a6a[m HEAD@{905}: commit: ajoute la RGPD Règlement Général sur la Protection des Données et la FAQ
+[33m5f75e34[m HEAD@{906}: commit: I see this error with the app, reported by NextJS, please fix it. The er
+[33m2fa9bd7[m HEAD@{907}: commit: Set up a Firebase backend
+[33m14e62e3[m HEAD@{908}: commit: tout les personne qui veulents fais une publication que ça soit : Logeme
+[33mdc512ed[m HEAD@{909}: commit: une app qui s'adapte une app reponsive
+[33m5ddc0d4[m HEAD@{910}: commit: il faut avoir un compte pour fais ces publications
+[33m4935709[m HEAD@{911}: commit: ce sont les utilisateur qui publier tout ce qui est publiable sur cette
+[33m90ea532[m HEAD@{912}: commit: active tout les composant de l app de manier qu'il n'est pas de problème
+[33m4d002bd[m HEAD@{913}: commit: active tout les composant de l app de manière qu'il n'est pas de problèm
+[33m2f8ff7c[m HEAD@{914}: commit: active tout les composants de l app de manier qu'il n'est pas de problèm
+[33m9d68673[m HEAD@{915}: commit: const firebaseConfig = {
+[33m657b690[m HEAD@{916}: commit: Try fixing this error: `Runtime Error: FirebaseError: Firebase: Error (a
+[33m2398b4c[m HEAD@{917}: commit: Try fixing this error: `Console Error: Missing Firebase config: NEXT_PUB
+[33m70ea74b[m HEAD@{918}: commit: Try fixing this error: `Runtime Error: Error: Missing Firebase config: N
+[33mfe189e2[m HEAD@{919}: commit: I see this error with the app, reported by NextJS, please fix it. The er
+[33m79bb037[m HEAD@{920}: commit: retire le de la page d'acceuil sauf dans les fonction
+[33m27df306[m HEAD@{921}: commit: la map dois etre visible quand on rendre dans les diffrent fonctions : L
+[33md2f4f47[m HEAD@{922}: commit: Try fixing this error: `Runtime Error: Error: Invalid src prop (https://
+[33m00375e3[m HEAD@{923}: commit: Studio cosy proche ULB Solbosch
+[33mfe89c4c[m HEAD@{924}: commit: Error: Map container is already initialized.
+[33m0477377[m HEAD@{925}: commit: Try fixing this error: `Runtime Error: Error: Map container is already i
+[33m3e9d147[m HEAD@{926}: commit: Voici un résumé clair et concis pour créer une carte inspirée d’Apple Ma
+[33mf63f40f[m HEAD@{927}: commit: oki En attendant, je vais continuer à peaufiner l'application pour m'ass
+[33mc17caa5[m HEAD@{928}: commit: utliser ça si c'est possible : C:\Users\Gui Martinien>ssh ptdradmin@wind
+[33mb5e1250[m HEAD@{929}: commit: active tout l'app de façon qu'il n'est pas d'erreur
+[33m44b125f[m HEAD@{930}: commit: active tout l'app de façon qu'il n'est pas d'erreur
+[33m0dc859a[m HEAD@{931}: commit: active tout l'app de façon qu'il n'est pas d'erreur
+[33mb3d15e8[m HEAD@{932}: commit: active tout l'app de façon qu'il n'est pas d'erreur
+[33m7d6cbcc[m HEAD@{933}: commit: active tout l'app de façon qu'il n'est pas d'erreur
+[33m44a3f58[m HEAD@{934}: commit: active tout l'app de façon qu'il n'est pas d'erreur
+[33m49ef87e[m HEAD@{935}: commit: un page utilisateur ou il pourra voir ces publication , enregistrement e
+[33m346ba0f[m HEAD@{936}: commit: barre de Recherche dans l app coter utilisateur Découvrir Reels Messages
+[33mdeb1a97[m HEAD@{937}: commit: barre de Recherche dans l app coter utilisateur
+[33mba5d347[m HEAD@{938}: commit: active tout les composant de l app de manier qu'il n'est pas de problème
+[33mabed54e[m HEAD@{939}: commit: tout ca ne dois plus etre affiche : STUD'IN
+[33m9520533[m HEAD@{940}: commit: quand tu fini de te creer un compte ou te connecte car tu a un compte tu
+[33mae3bc38[m HEAD@{941}: commit: c'est quand on se connecte que on a acces a social
+[33m6f4b0b1[m HEAD@{942}: commit: il est deja dans qui somme nous : Notre Mission
+[33m84ff0f3[m HEAD@{943}: commit: PARAMÈTRES DE L’APPLICATION (version étudiante)
+[33mb15ac47[m HEAD@{944}: commit: À Propos
+[33ma1c8dc1[m HEAD@{945}: commit: Aide
+[33ma0bd9d5[m HEAD@{946}: commit: les parametre de l app
+[33m95a6fe2[m HEAD@{947}: commit: develope plus social et que le nom stud'in social soi cliquable
+[33m683d02e[m HEAD@{948}: commit: que la page de l app meme sois like instagram avec tout les fonctionalit
+[33m03ea7ba[m HEAD@{949}: commit: et c'est maintenant je suis en train de creer cette app
+[33m58c3b1f[m HEAD@{950}: commit: non je suis toujour etudiant , et je ne suis pas a l'iniversitr de namur
+[33me543639[m HEAD@{951}: commit: À Propos de STUD'IN
+[33mbafb68d[m HEAD@{952}: commit: OK, here's a plan for how we'll prototype this app. Take a look below an
+[33m67c953b[m HEAD@{953}: commit: Try fixing this error: `Runtime Error: Error: A <Select.Item /> must hav
+[33m686cc9a[m HEAD@{954}: commit: Initial prototype
+[33m537a1da[m HEAD@{955}: commit (initial): Initialized workspace with Firebase Studio
