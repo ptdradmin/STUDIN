@@ -185,7 +185,7 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
           "Humanitaire": humanitarianLayer,
       };
 
-      planLayer.addTo(map); // Default layer
+      darkLayer.addTo(map); // Default layer
       L.control.layers(baseMaps).addTo(map);
 
 

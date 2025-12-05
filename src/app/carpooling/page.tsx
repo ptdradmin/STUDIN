@@ -184,7 +184,7 @@ export default function CarpoolingPage() {
     // Update carpooling document
     batch.update(carpoolingRef, {
         seatsAvailable: increment(-1),
-        passengerIds: [...(trip.passengerIds || []), user.uid]
+        passengerIds: arrayUnion(user.uid)
     });
 
     // Create booking document

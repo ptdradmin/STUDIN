@@ -15,7 +15,7 @@ import type { Event, Favorite, UserProfile } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useUser, useFirestore, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, arrayUnion, serverTimestamp, query, where } from 'firebase/firestore';
+import { collection, doc, writeBatch, arrayUnion, serverTimestamp, query, where, Timestamp } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
@@ -79,7 +79,7 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
                                     <Badge className="absolute top-3 right-3">{event.category}</Badge>
                                 </div>
                                 <CardContent className="p-4 flex flex-col flex-grow">
-                                    <p className="font-semibold text-primary">{new Date(event.startDate as any).toLocaleDateString()}</p>
+                                    <p className="font-semibold text-primary">{event.startDate.toDate().toLocaleDateString()}</p>
                                     <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
                                     <p className="text-sm text-muted-foreground flex items-center mt-2">
                                         <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
@@ -286,7 +286,7 @@ export default function EventsPage() {
                         )}
                     </div>
                     <CardContent className="p-4 flex flex-col flex-grow">
-                        <p className="font-semibold text-primary">{new Date(event.startDate as any).toLocaleDateString()}</p>
+                        <p className="font-semibold text-primary">{event.startDate.toDate().toLocaleDateString()}</p>
                         <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
                         <p className="text-sm text-muted-foreground flex items-center mt-2">
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
