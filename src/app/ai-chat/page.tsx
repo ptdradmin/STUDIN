@@ -91,7 +91,7 @@ export default function AiChatPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [messages, setMessages] = useState<AiChatMessage[]>([
-        { id: 0, sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider ? Vous pouvez m'écrire ou m'envoyer un message vocal." }
+        { id: 0, sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI, votre assistant personnel alimenté par Gemini 2.5 Pro. Comment puis-je vous aider ? Vous pouvez m'écrire ou m'envoyer un message vocal." }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
