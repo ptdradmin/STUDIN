@@ -7,6 +7,7 @@ import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from "firebase/storage";
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { getFirebaseServices, type FirebaseServices } from './config';
 
 // Define the shape of the context
 interface FirebaseContextState {
@@ -24,29 +25,34 @@ export const FirebaseContext = createContext<FirebaseContextState | undefined>(u
 
 interface FirebaseProviderProps {
   children: ReactNode;
-  firebaseApp: FirebaseApp | null;
-  auth: Auth | null;
-  firestore: Firestore | null;
-  storage: FirebaseStorage | null;
 }
 
 /**
  * Provides Firebase services and user authentication state to the app.
  * This component should wrap the root of your application.
+ * It handles the initialization of Firebase services on the client side.
  */
-export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, firebaseApp, auth, firestore, storage }) => {
+export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isUserLoading, setIsUserLoading] = useState(true);
     
-    const areServicesAvailable = !!(firebaseApp && auth && firestore && storage);
+    // useMemo ensures that getFirebaseServices is called only once per client session.
+    const services: FirebaseServices | null = useMemo(() => {
+        if (typeof window !== 'undefined') {
+            return getFirebaseServices();
+        }
+        return null;
+    }, []);
+
+    const areServicesAvailable = !!(services?.firebaseApp && services?.auth && services?.firestore && services?.storage);
 
     useEffect(() => {
-        if (!auth) {
+        if (!services?.auth) {
             setIsUserLoading(false);
             return;
         }
 
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        const unsubscribe = onAuthStateChanged(services.auth, (firebaseUser) => {
             setUser(firebaseUser);
             setIsUserLoading(false);
         }, (error) => {
@@ -55,21 +61,21 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children, fi
         });
 
         return () => unsubscribe();
-    }, [auth]);
+    }, [services?.auth]);
 
     const contextValue = useMemo(() => ({
-        firebaseApp,
-        auth,
-        firestore,
-        storage,
+        firebaseApp: services?.firebaseApp || null,
+        auth: services?.auth || null,
+        firestore: services?.firestore || null,
+        storage: services?.storage || null,
         user,
         isUserLoading,
         areServicesAvailable,
-    }), [firebaseApp, auth, firestore, storage, user, isUserLoading, areServicesAvailable]);
+    }), [services, user, isUserLoading, areServicesAvailable]);
 
     return (
         <FirebaseContext.Provider value={contextValue}>
-            <FirebaseErrorListener />
+            {areServicesAvailable && <FirebaseErrorListener />}
             {children}
         </FirebaseContext.Provider>
     );
@@ -89,12 +95,12 @@ export const useFirebase = () => {
 };
 
 /** Hook to access Firebase Auth instance. */
-export const useAuth = (): Auth | null => {
+export const useAuth = () => {
   const context = useContext(FirebaseContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within a FirebaseProvider.');
   }
-  return context.auth;
+  return { auth: context.auth, isUserLoading: context.isUserLoading };
 };
 
 /** Hook to access Firestore instance. */

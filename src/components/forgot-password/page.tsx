@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
     }
   };
   
-  const buttonsDisabled = loading || isUserLoading || !auth;
+  const buttonsDisabled = loading || isUserLoading;
 
   return (
     <div className="w-full min-h-screen flex items-center justify-center py-12 px-4">

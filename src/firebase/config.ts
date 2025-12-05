@@ -17,7 +17,7 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-interface FirebaseServices {
+export interface FirebaseServices {
   firebaseApp: FirebaseApp;
   auth: Auth;
   firestore: Firestore;

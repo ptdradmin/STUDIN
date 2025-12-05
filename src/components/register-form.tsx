@@ -117,7 +117,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = loading || isUserLoading || !auth;
+  const buttonsDisabled = loading || isUserLoading;
 
   return (
     <>

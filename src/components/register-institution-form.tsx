@@ -170,7 +170,7 @@ export default function RegisterInstitutionForm() {
     }
   };
 
-  const buttonsDisabled = loading || isUserLoading || !auth;
+  const buttonsDisabled = loading || isUserLoading;
 
   return (
     <>
@@ -276,7 +276,7 @@ export default function RegisterInstitutionForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading || !auth ? 'Chargement...' : 'S\'inscrire'}
+                {isUserLoading ? 'Chargement...' : 'S\'inscrire'}
               </Button>
             </form>
           </Form>

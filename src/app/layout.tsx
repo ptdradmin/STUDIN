@@ -1,7 +1,7 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
-import { Providers } from './providers';
+import { FirebaseProvider } from '@/firebase/provider';
 import { LanguageProvider } from '@/contexts/language-context';
 
 const inter = Inter({
@@ -27,12 +27,12 @@ export default function RootLayout({
       <head>
       </head>
       <body className="font-body antialiased">
-        <Providers>
+        <FirebaseProvider>
           <LanguageProvider>
             {children}
           </LanguageProvider>
           <Toaster />
-        </Providers>
+        </FirebaseProvider>
       </body>
     </html>
   );
