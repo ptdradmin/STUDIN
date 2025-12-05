@@ -4,20 +4,22 @@ import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect } from "react";
+import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { askStudinAi } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
+import { useToast } from "@/hooks/use-toast";
 
 
 type AiChatMessage = {
     id: number;
     sender: 'user' | 'ai';
-    text: string;
+    text?: string;
+    audioUrl?: string;
 };
 
 function MessagesHeader() {
@@ -46,11 +48,19 @@ function MessagesHeader() {
 function MessageBubble({ message }: { message: AiChatMessage }) {
     const { user } = useUser();
     const isUserMessage = message.sender === 'user';
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     const getInitials = (name?: string | null) => {
         if (!name) return '..';
         return name.substring(0, 2).toUpperCase();
     }
+    
+    useEffect(() => {
+        // Autoplay AI audio responses
+        if (message.sender === 'ai' && message.audioUrl && audioRef.current) {
+            audioRef.current.play().catch(e => console.error("Audio autoplay failed:", e));
+        }
+    }, [message]);
 
     return (
         <div className={cn("flex items-start gap-3", isUserMessage && "justify-end")}>
@@ -61,8 +71,11 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
                     </div>
                 </Avatar>
             )}
-            <div className={cn("max-w-md p-3 rounded-2xl prose prose-sm dark:prose-invert prose-p:my-0", isUserMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                <Markdown>{message.text}</Markdown>
+            <div className={cn("max-w-md p-3 rounded-2xl", isUserMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                {message.text && <div className="prose prose-sm dark:prose-invert prose-p:my-0"><Markdown>{message.text}</Markdown></div>}
+                {message.audioUrl && (
+                    <audio ref={audioRef} src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
+                )}
             </div>
              {isUserMessage && user && (
                  <Avatar className="h-8 w-8">
@@ -76,12 +89,20 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
 
 export default function AiChatPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [messages, setMessages] = useState<AiChatMessage[]>([
-        { id: 0, sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider aujourd'hui ? Que ce soit pour réviser un cours, trouver une idée de sortie ou organiser votre semaine, je suis là pour vous." }
+        { id: 0, sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider ? Vous pouvez m'écrire ou m'envoyer un message vocal." }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
 
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -89,13 +110,20 @@ export default function AiChatPage() {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || isLoading) return;
+        if ((!newMessage.trim() && audioChunksRef.current.length === 0) || isLoading) return;
 
         const userMessage: AiChatMessage = {
             id: Date.now(),
             sender: 'user',
-            text: newMessage
+            text: newMessage.trim() || undefined,
         };
+
+        let audioBlob: Blob | null = null;
+        if (audioChunksRef.current.length > 0) {
+            audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            userMessage.audioUrl = URL.createObjectURL(audioBlob);
+            audioChunksRef.current = [];
+        }
         
         setMessages(prev => [...prev, userMessage]);
         const currentMessage = newMessage;
@@ -103,11 +131,21 @@ export default function AiChatPage() {
         setIsLoading(true);
         
         try {
-            const result = await askStudinAi({ message: currentMessage });
+            let audioDataUri: string | undefined = undefined;
+            if (audioBlob) {
+                audioDataUri = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(audioBlob!);
+                });
+            }
+            
+            const result = await askStudinAi({ text: currentMessage, audio: audioDataUri });
             const aiResponse: AiChatMessage = {
                 id: Date.now() + 1,
                 sender: 'ai',
-                text: result.response
+                text: result.text,
+                audioUrl: result.audio
             };
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
@@ -122,6 +160,53 @@ export default function AiChatPage() {
             setIsLoading(false);
         }
     }
+    
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            audioChunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = event => {
+                audioChunksRef.current.push(event.data);
+            };
+            
+            mediaRecorderRef.current.onstop = () => {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            mediaRecorderRef.current.start();
+            setIsRecording(true);
+            setRecordingTime(0);
+            recordingIntervalRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+
+        } catch (error) {
+            toast({ variant: "destructive", title: "Erreur de micro", description: "Impossible d'accéder au microphone." });
+            console.error("Microphone access error:", error);
+        }
+    };
+    
+    const stopRecording = (cancel = false) => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            if(cancel) {
+                audioChunksRef.current = [];
+            } else {
+                 // Automatically submit the form when recording stops
+                 handleSendMessage(new Event('submit') as any);
+            }
+            setIsRecording(false);
+            if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+        }
+    };
+
+    const formatRecordingTime = (time: number) => {
+        const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+        const seconds = (time % 60).toString().padStart(2, '0');
+        return `${minutes}:${seconds}`;
+    };
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -153,18 +238,39 @@ export default function AiChatPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
-                    <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                        <Input 
-                            placeholder="Discutez avec STUD'IN AI..."
-                            className="flex-grow" 
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            disabled={isLoading}
-                        />
-                         <Button type="submit" size="icon" disabled={!newMessage.trim() || isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                             <Send className="h-5 w-5"/>
-                         </Button>
-                    </form>
+                    {isRecording ? (
+                         <div className="flex items-center gap-2 h-10">
+                             <Button type="button" variant="ghost" size="icon" onClick={() => stopRecording(true)}>
+                                <Trash2 className="h-5 w-5 text-muted-foreground" />
+                            </Button>
+                            <div className="flex-grow text-center flex items-center justify-center gap-2">
+                               <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                <span className="font-mono text-sm">{formatRecordingTime(recordingTime)}</span>
+                            </div>
+                            <Button type="button" variant="destructive" size="icon" onClick={() => stopRecording()}>
+                                <StopCircle className="h-5 w-5" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                            <Input 
+                                placeholder="Discutez avec STUD'IN AI..."
+                                className="flex-grow" 
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                disabled={isLoading}
+                            />
+                             {newMessage.trim() === '' ? (
+                                 <Button type="button" variant="ghost" size="icon" onClick={startRecording} disabled={isLoading}>
+                                     <Mic className="h-5 w-5"/>
+                                 </Button>
+                             ) : (
+                                 <Button type="submit" size="icon" disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                                     <Send className="h-5 w-5"/>
+                                 </Button>
+                             )}
+                        </form>
+                    )}
                 </div>
             </div>
         </div>
