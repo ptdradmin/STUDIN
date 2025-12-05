@@ -23,6 +23,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { LogoIcon } from "@/components/logo-icon";
+import Link from "next/link";
 
 
 export default function SubscriptionPage() {
@@ -66,8 +68,13 @@ export default function SubscriptionPage() {
             <SocialSidebar />
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                    <div className="flex-1 max-w-md">
-                        <GlobalSearch />
+                    <div className="flex items-center gap-4">
+                        <Link href="/social" className="flex items-center gap-2 text-xl font-bold md:hidden">
+                           <LogoIcon />
+                        </Link>
+                        <div className="w-full max-w-md">
+                           <GlobalSearch />
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <NotificationsDropdown />
