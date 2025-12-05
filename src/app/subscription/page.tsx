@@ -57,7 +57,7 @@ export default function SubscriptionPage() {
                                     <li className="flex items-center gap-3"><Target className="h-4 w-4 text-primary"/>Recommandations de défis</li>
                                     <li className="flex items-center gap-3"><PartyPopper className="h-4 w-4 text-primary"/>Assistance création d'événements</li>
                                     <li className="flex items-center gap-3"><CheckCircle2 className="h-4 w-4 text-primary"/>Badge de profil Pro</li>
-                                    <li className="flex items-center gap-3"><Gem className="h-4 w-4 text-primary"/>Modèle Gemini 2.5 Pro</li>
+                                    <li className="flex items-center gap-3"><Gem className="h-4 w-4 text-primary"/>Modèle STUD'IN Pro</li>
                                 </ul>
                                 <div className="text-center p-6 bg-background/50 rounded-lg border">
                                     <p className="text-4xl font-bold">4,99 €<span className="text-xl font-medium text-muted-foreground">/mois</span></p>
