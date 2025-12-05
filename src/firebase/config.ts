@@ -6,7 +6,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck, onTokenChanged } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -42,18 +42,15 @@ export function getFirebaseServices(): FirebaseServices {
 
   // --- App Check Initialization ---
   if (typeof window !== 'undefined' && !appCheck) {
-    // For development environments (like Firebase Studio), use a debug token.
-    // For production (Vercel), use reCAPTCHA Enterprise.
-    if (process.env.NODE_ENV !== 'production') {
-        // This is a special variable that Firebase's App Check SDK looks for.
-        (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-        console.log("Firebase App Check debug token enabled for development.");
-    }
-    
+    // This is a special variable that Firebase's App Check SDK looks for.
+    // It's set to true for development environments (like Firebase Studio)
+    // to enable debugging without a valid reCAPTCHA token.
+    (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NODE_ENV !== 'production';
+
     try {
         appCheck = initializeAppCheck(app, {
-            // In development with the debug token set, the provider is effectively ignored.
-            // In production, it will use this reCAPTCHA provider.
+            // For production (Vercel), use reCAPTCHA Enterprise.
+            // For development with the debug token set, this provider is effectively ignored.
             provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
             isTokenAutoRefreshEnabled: true,
         });
