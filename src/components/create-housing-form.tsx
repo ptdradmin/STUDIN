@@ -29,7 +29,7 @@ const housingSchema = z.object({
   address: z.string().min(1, "L'adresse est requise"),
   city: z.string().min(1, 'La ville est requise'),
   bedrooms: z.preprocess((val) => Number(val), z.number().min(1, 'Le nombre de chambres est requis')),
-  surface_area: z.preprocess((val) => Number(val), z.number().min(1, 'La surface est requise')),
+  surfaceArea: z.preprocess((val) => Number(val), z.number().min(1, 'La surface est requise')),
 });
 
 type HousingFormInputs = z.infer<typeof housingSchema>;
@@ -63,7 +63,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
         address: housingToEdit.address,
         city: housingToEdit.city,
         bedrooms: housingToEdit.bedrooms,
-        surface_area: housingToEdit.surface_area,
+        surfaceArea: housingToEdit.surfaceArea,
     } : undefined
   });
   
@@ -228,9 +228,9 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                     {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                     </div>
                     <div>
-                    <Label htmlFor="surface_area">Surface (m²)</Label>
-                    <Input id="surface_area" type="number" {...register('surface_area')} />
-                    {errors.surface_area && <p className="text-xs text-destructive">{errors.surface_area.message}</p>}
+                    <Label htmlFor="surfaceArea">Surface (m²)</Label>
+                    <Input id="surfaceArea" type="number" {...register('surfaceArea')} />
+                    {errors.surfaceArea && <p className="text-xs text-destructive">{errors.surfaceArea.message}</p>}
                     </div>
                 </div>
                 <div>

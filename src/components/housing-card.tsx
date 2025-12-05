@@ -189,7 +189,7 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
                 
                 <div className="flex items-center text-sm text-muted-foreground gap-4 mt-3">
                     <span className="flex items-center"><Bed className="h-4 w-4 mr-1"/> {housing.bedrooms} ch.</span>
-                    <span className="flex items-center"><Home className="h-4 w-4 mr-1"/> {housing.surface_area}m²</span>
+                    <span className="flex items-center"><Home className="h-4 w-4 mr-1"/> {housing.surfaceArea}m²</span>
                 </div>
 
                 <div className="flex items-end justify-between mt-auto pt-4 border-t mt-4">

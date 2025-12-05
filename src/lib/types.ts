@@ -14,7 +14,7 @@ export type Housing = {
   address: string;
   city: string;
   bedrooms: number;
-  surface_area: number;
+  surfaceArea: number;
   imageUrl: string;
   imageHint: string;
   coordinates: [number, number];

@@ -132,7 +132,7 @@ export default function HousingDetailPage() {
                                     </p>
                                     <div className="flex items-center text-md text-muted-foreground gap-6 mt-4 border-t border-b py-4">
                                         <span className="flex items-center gap-2"><Bed className="h-5 w-5"/> {housing.bedrooms} chambre(s)</span>
-                                        <span className="flex items-center gap-2"><Home className="h-5 w-5"/> {housing.surface_area}m²</span>
+                                        <span className="flex items-center gap-2"><Home className="h-5 w-5"/> {housing.surfaceArea}m²</span>
                                     </div>
                                     <div className="prose prose-sm dark:prose-invert max-w-none mt-6">
                                         <p>{housing.description}</p>

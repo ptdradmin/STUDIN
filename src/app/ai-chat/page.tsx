@@ -14,14 +14,7 @@ import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-
-type AiChatMessage = {
-    id: number;
-    role: 'user' | 'model';
-    text?: string;
-    audioUrl?: string;
-    imageUrl?: string;
-};
+import type { ChatMessage } from "@/lib/types";
 
 
 function MessagesHeader() {
@@ -47,7 +40,7 @@ function MessagesHeader() {
     )
 }
 
-function MessageBubble({ message, onDelete }: { message: AiChatMessage, onDelete?: (id: number) => void }) {
+function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?: (id: string) => void }) {
     const { user } = useUser();
     const isUserMessage = message.role === 'user';
     const [isHovered, setIsHovered] = useState(false);
@@ -101,8 +94,8 @@ function MessageBubble({ message, onDelete }: { message: AiChatMessage, onDelete
 export default function AiChatPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [messages, setMessages] = useState<AiChatMessage[]>([
-        { id: Date.now(), role: 'model', text: "Bonjour ! Je suis STUD'IN AI, votre assistant personnel alimenté par Gemini 2.5 Pro. Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
+    const [messages, setMessages] = useState<ChatMessage[]>([
+        { id: String(Date.now()), role: 'model', senderId: 'studin-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -125,9 +118,11 @@ export default function AiChatPage() {
         e.preventDefault();
         if ((!newMessage.trim() && audioChunksRef.current.length === 0 && !imageFile) || isLoading) return;
 
-        const userMessage: AiChatMessage = {
-            id: Date.now(),
+        const userMessage: ChatMessage = {
+            id: String(Date.now()),
             role: 'user',
+            senderId: 'user',
+            createdAt: new Date() as any,
             text: newMessage.trim() || undefined,
             imageUrl: previewUrl || undefined,
         };
@@ -162,7 +157,8 @@ export default function AiChatPage() {
             
             const historyForAi: StudinAiInput['history'] = updatedMessages
                 .slice(0, -1)
-                .map(({id, ...rest}) => ({...rest, text: rest.text || ''})); // Ensure text is not undefined
+                // @ts-ignore - Role is valid for history
+                .map(({id, senderId, createdAt, ...rest}) => ({...rest, text: rest.text || ''}));
 
             const messageToSend: StudinAiInput['message'] = { role: 'user', text: currentMessageText, imageUrl: currentPreviewUrl, audioUrl: audioDataUri };
 
@@ -171,9 +167,11 @@ export default function AiChatPage() {
                 message: messageToSend
              });
              
-            const aiResponse: AiChatMessage = {
-                id: Date.now() + 1,
+            const aiResponse: ChatMessage = {
+                id: String(Date.now() + 1),
                 role: 'model',
+                senderId: 'studin-ai',
+                createdAt: new Date() as any,
                 text: result.text,
                 audioUrl: result.audio,
                 imageUrl: result.imageUrl,
@@ -181,9 +179,11 @@ export default function AiChatPage() {
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
             console.error("Error asking STUD'IN AI:", error);
-            const errorResponse: AiChatMessage = {
-                id: Date.now() + 1,
+            const errorResponse: ChatMessage = {
+                id: String(Date.now() + 1),
                 role: 'model',
+                senderId: 'studin-ai',
+                createdAt: new Date() as any,
                 text: "Désolé, je rencontre un problème pour répondre. Veuillez réessayer plus tard."
             };
             setMessages(prev => [...prev, errorResponse]);
@@ -238,7 +238,7 @@ export default function AiChatPage() {
         }
     };
     
-    const deleteMessage = (id: number) => {
+    const deleteMessage = (id: string) => {
         setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
     };
 
