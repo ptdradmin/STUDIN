@@ -32,22 +32,29 @@ export default function SocialPage() {
     const { data: currentUserProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const postsQuery = useMemoFirebase(() => {
-        // MODIFICATION : Ne pas exécuter la requête si l'utilisateur ne suit personne.
-        // La requête 'in' avec un tableau vide est invalide et cause une erreur de permission.
-        if (!firestore || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) {
-            return null;
+        if (!firestore || !user) return null;
+        
+        // If the user follows people, fetch their posts. Otherwise, fetch generic recent posts.
+        const followedIds = currentUserProfile?.followingIds;
+        if (followedIds && followedIds.length > 0) {
+            // Firestore limits 'in' queries to 30 items.
+            const idsForQuery = [...followedIds, user.uid].slice(0, 30);
+            return query(
+              collection(firestore, 'posts'), 
+              where('userId', 'in', idsForQuery),
+              orderBy('createdAt', 'desc'),
+              limit(50)
+            );
         }
         
-        // Firestore limite les requêtes 'in' à 30 éléments.
-        const followedIds = [...currentUserProfile.followingIds, user?.uid].slice(0, 30);
-        
+        // Fallback for new users: show some recent posts
         return query(
-          collection(firestore, 'posts'), 
-          where('userId', 'in', followedIds),
+          collection(firestore, 'posts'),
           orderBy('createdAt', 'desc'),
-          limit(50)
+          limit(10)
         );
-      }, [firestore, currentUserProfile, user?.uid]);
+
+      }, [firestore, currentUserProfile, user]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -80,6 +87,8 @@ export default function SocialPage() {
     }
 
     const isLoading = postsLoading || favoritesLoading;
+    const noPostsToShow = !posts || posts.length === 0;
+    const isNewUser = !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0;
 
     return (
        <div className="flex h-screen w-full bg-background">
@@ -112,7 +121,12 @@ export default function SocialPage() {
                       </div>
                        {isLoading ? (
                           Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
-                       ) : posts && posts.length > 0 ? (
+                       ) : noPostsToShow ? (
+                         <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
+                              <p className="text-lg font-semibold">{isNewUser ? "Bienvenue sur STUD'IN !" : "Votre fil est vide"}</p>
+                              <p className="text-sm">{isNewUser ? "Suivez des personnes pour voir leurs publications ici." : "Les publications de vos amis apparaîtront ici."}</p>
+                          </div>
+                       ) : (
                           posts.map(post => (
                               <PostCard 
                                   key={post.id} 
@@ -120,11 +134,6 @@ export default function SocialPage() {
                                   isInitiallySaved={savedPostMap.has(post.id)}
                               />
                           ))
-                       ) : (
-                         <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
-                              <p className="text-lg font-semibold">Votre fil est vide</p>
-                              <p className="text-sm">Suivez des personnes pour voir leurs publications ici, ou publiez votre première photo !</p>
-                          </div>
                       )}
                   </div>
 
