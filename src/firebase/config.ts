@@ -1,3 +1,4 @@
+
 // This file is the single source of truth for Firebase initialization.
 // It is designed to be used in a client-side context.
 
@@ -5,7 +6,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -25,6 +26,7 @@ export interface FirebaseServices {
 }
 
 let services: FirebaseServices | null = null;
+let appCheck: AppCheck | null = null;
 
 /**
  * Initializes and gets the Firebase services. This function ensures that
@@ -39,20 +41,20 @@ export function getFirebaseServices(): FirebaseServices {
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
   // --- App Check Initialization ---
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && !appCheck) {
     // Assign the debug token to the window object for App Check.
     // This needs to be done before initializeAppCheck is called.
-    // In a production environment, this variable should not be set.
     if (process.env.NODE_ENV !== 'production') {
       (window as any).self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       console.log("Firebase App Check debug token has been set for development.");
     }
     
     try {
-        initializeAppCheck(app, {
+        appCheck = initializeAppCheck(app, {
             provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
             isTokenAutoRefreshEnabled: true,
         });
+        console.log("Firebase App Check initialized.");
     } catch (e) {
       console.warn("App Check initialization error:", e);
     }
