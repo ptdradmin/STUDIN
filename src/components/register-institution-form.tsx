@@ -76,11 +76,14 @@ export default function RegisterInstitutionForm() {
           return;
       }
       
+      // Step 1: Create the user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
+      // Step 2: Once the user is created, update their Auth profile
       await updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
       
+      // Step 3: Now that the user is authenticated, create the Firestore documents
       const userDocRef = doc(firestore, 'users', user.uid);
       const userData = {
         id: user.uid,
@@ -127,26 +130,20 @@ export default function RegisterInstitutionForm() {
       router.push('/social');
 
     } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
-            toast({
-              variant: "destructive",
-              title: "Erreur d'inscription",
-              description: "Cet email est déjà utilisé pour un autre compte.",
-            });
-        } else if (error.code === 'permission-denied') {
-             // This is our detailed error handling for Firestore rules
-             const permissionError = new FirestorePermissionError({
-                 path: `users_or_institutions`, // Generic path for batch
-                 operation: 'create',
-                 requestResourceData: { note: 'An error occurred during batched write for new institution.' }
-             });
-             errorEmitter.emit('permission-error', permissionError);
-        } else {
-            toast({
-              variant: "destructive",
-              title: "Erreur Inattendue",
-              description: error.message || "Une erreur inconnue est survenue lors de la création du compte.",
-            });
+      if (error.code === 'auth/email-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: "Cet email est déjà utilisé pour un autre compte.",
+        });
+      } else {
+        // Fallback for other errors
+        console.error("Registration error:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur Inattendue",
+          description: error.message || "Une erreur inconnue est survenue.",
+        });
       }
     } finally {
       setLoading(false);
