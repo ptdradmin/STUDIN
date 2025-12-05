@@ -2,7 +2,7 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
-import { FirebaseProvider } from '@/firebase/provider';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
 import type { Metadata } from 'next';
 import BottomNavbar from '@/components/bottom-navbar';
@@ -39,13 +39,13 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className="font-body antialiased">
-        <FirebaseProvider>
+        <FirebaseClientProvider>
           <LanguageProvider>
             {children}
             <BottomNavbar />
           </LanguageProvider>
           <Toaster />
-        </FirebaseProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
