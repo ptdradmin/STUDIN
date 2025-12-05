@@ -68,7 +68,7 @@ export default function RegisterInstitutionForm() {
 
       const batch = writeBatch(firestore);
       const userDocRef = doc(firestore, 'users', user.uid);
-      const username = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${user.uid.substring(0,6)}`;
+      const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${user.uid.substring(0,6)}`;
       
       const userData = {
         id: user.uid,
