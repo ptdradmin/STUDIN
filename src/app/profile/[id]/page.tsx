@@ -136,9 +136,16 @@ export default function UserProfilePage() {
     const { data: tutorings, isLoading: l3 } = useCollection<Tutor>(tutorQuery);
     const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
 
-  const { data: currentUserProfile } = useDoc<UserProfile>(
-    useMemoFirebase(() => user && firestore ? doc(firestore, 'users', user.uid) : null, [user, firestore])
-  );
+    const { data: currentUserProfile } = useDoc<UserProfile>(
+        useMemoFirebase(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore])
+      );
+
+    const isLoading = isUserLoading || profileLoading;
+
+  if (user && profileId === user.uid) {
+    router.replace('/profile');
+    return <div className="flex min-h-screen w-full bg-background justify-center items-center"><p>Redirection...</p></div>;
+  }
   
 
   const handleFollow = async () => {
@@ -181,21 +188,6 @@ export default function UserProfilePage() {
     return firstName.substring(0, 2).toUpperCase();
   }
 
-  const isLoading = isUserLoading || profileLoading;
-  const isCurrentUserProfile = user && user.uid === profileId;
-
-  if (isCurrentUserProfile && !isUserLoading) {
-    router.replace('/profile');
-    return (
-        <div className="flex min-h-screen w-full bg-background">
-            <SocialSidebar />
-            <div className="flex flex-col flex-1">
-                <main className="flex-1 overflow-y-auto p-4 md:p-6"><ProfilePageSkeleton /></main>
-            </div>
-        </div>
-    );
-  }
-  
   const followersCount = userProfile?.followerIds?.length || 0;
   const followingCount = userProfile?.followingIds?.length || 0;
   const isFollowing = !!(currentUserProfile && currentUserProfile.followingIds?.includes(profileId));
@@ -233,7 +225,7 @@ export default function UserProfilePage() {
                                                 {userProfile.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />}
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                {user && !isCurrentUserProfile && (
+                                                {user && (
                                                     <>
                                                         <Button variant={isFollowing ? "secondary" : "default"} size="sm" onClick={handleFollow}>
                                                             {isFollowing ? 'Ne plus suivre' : 'Suivre'}

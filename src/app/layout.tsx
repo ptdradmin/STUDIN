@@ -10,12 +10,14 @@ import BottomNavbar from '@/components/bottom-navbar';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
   variable: '--font-poppins',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

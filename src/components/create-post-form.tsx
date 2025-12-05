@@ -116,7 +116,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         comments: [],
         imageUrl: previewUrl, // Use local data URI for optimistic UI
         isUploading: true,
-        fileType: imageFile.type.startsWith('video') ? 'video' : 'image',
+        fileType: 'image',
     });
 
     const fileRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
@@ -160,7 +160,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                                     Sélectionner depuis l'ordinateur
                                 </Label>
                             </Button>
-                            <Input id="image-upload" type="file" accept="image/*,video/*" className="sr-only" onChange={handleImageUpload} />
+                            <Input id="image-upload" type="file" accept="image/*" className="sr-only" onChange={handleImageUpload} />
                         </div>
                     )}
                 </div>

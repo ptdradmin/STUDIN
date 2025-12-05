@@ -199,6 +199,12 @@ export default function CurrentUserProfilePage() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [modalContent, setModalContent] = useState<{title: string, userIds: string[]} | null>(null);
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace('/login?from=/profile');
+    }
+  }, [user, isUserLoading, router]);
+
   const userRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -257,12 +263,6 @@ export default function CurrentUserProfilePage() {
   }, [firestore, favoritedIds.book]);
   const { data: savedBooks, isLoading: savedBooksLoading } = useCollection<Book>(savedBooksQuery);
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login?from=/profile');
-    }
-  }, [user, isUserLoading, router]);
-
   const handleLogout = async () => {
     if(auth) {
         await signOut(auth);
@@ -301,7 +301,7 @@ export default function CurrentUserProfilePage() {
   const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading || savedBooksLoading;
   const totalSavedItems = (favoritedIds.post?.size || 0) + (favoritedIds.housing?.size || 0) + (favoritedIds.event?.size || 0) + (favoritedIds.tutor?.size || 0) + (favoritedIds.book?.size || 0);
 
-  if (isLoading) {
+  if (isLoading || !user || !userProfile) {
     return (
        <div className="flex min-h-screen w-full bg-background">
         <SocialSidebar />
@@ -314,11 +314,6 @@ export default function CurrentUserProfilePage() {
         </div>
        </div>
     )
-  }
-
-  if (!user || !userProfile) {
-    // This state should be brief as the useEffect above will redirect.
-    return <ProfilePageSkeleton />;
   }
 
   return (

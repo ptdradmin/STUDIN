@@ -1,4 +1,3 @@
-
 // This file is the single source of truth for Firebase initialization.
 // It is designed to be used in a client-side context.
 

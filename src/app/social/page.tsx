@@ -39,23 +39,24 @@ export default function SocialPage() {
     const { data: currentUserProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
+        if (!firestore) return null;
         
-        const followedIds = currentUserProfile?.followingIds;
-        if (followedIds && followedIds.length > 0) {
-            const idsForQuery = [...followedIds, user.uid].slice(0, 30);
-            return query(
-              collection(firestore, 'posts'), 
-              where('userId', 'in', idsForQuery),
-              orderBy('createdAt', 'desc'),
-              limit(50)
-            );
+        // Show all posts if user is not logged in or has no followed users
+        if (!user || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) {
+          return query(
+            collection(firestore, 'posts'),
+            orderBy('createdAt', 'desc'),
+            limit(20)
+          );
         }
         
+        // User is logged in and follows people, fetch posts from them and self
+        const idsForQuery = [...currentUserProfile.followingIds, user.uid].slice(0, 30);
         return query(
-          collection(firestore, 'posts'),
+          collection(firestore, 'posts'), 
+          where('userId', 'in', idsForQuery),
           orderBy('createdAt', 'desc'),
-          limit(10)
+          limit(50)
         );
 
       }, [firestore, currentUserProfile, user]);
@@ -80,7 +81,7 @@ export default function SocialPage() {
         return map;
     }, [favoriteItems]);
     
-    if (isUserLoading || !user || profileLoading) {
+    if (isUserLoading || profileLoading) {
       return <PageSkeleton />;
     }
 
@@ -90,7 +91,7 @@ export default function SocialPage() {
 
     return (
        <div className="flex h-screen w-full bg-background">
-        <SocialSidebar />
+        {user && <SocialSidebar />}
         
         <div className="flex flex-col flex-1 h-screen">
           {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
@@ -101,11 +102,11 @@ export default function SocialPage() {
             </div>
 
             <div className="flex items-center gap-2">
-                <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
+                {user && <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
                     <Plus className="h-4 w-4" />
                     Créer
-                </Button>
-                 <NotificationsDropdown />
+                </Button>}
+                {user && <NotificationsDropdown />}
             </div>
           </header>
           
@@ -114,9 +115,9 @@ export default function SocialPage() {
                <div className="container mx-auto max-w-6xl p-0 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] lg:gap-10">
                    {/* Main Feed */}
                    <div className="space-y-4">
-                      <div className="lg:hidden">
+                      {user && <div className="lg:hidden">
                           <SuggestedUsersCarousel />
-                      </div>
+                      </div>}
                        {isLoading ? (
                           Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                        ) : noPostsToShow ? (
@@ -136,9 +137,9 @@ export default function SocialPage() {
                   </div>
 
                   {/* Right Sidebar */}
-                  <aside className="hidden lg:block">
+                  {user && <aside className="hidden lg:block">
                        <SocialFeedSuggestions />
-                  </aside>
+                  </aside>}
              </div>
             </div>
           </div>

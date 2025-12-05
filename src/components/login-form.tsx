@@ -33,7 +33,6 @@ export default function LoginForm() {
       const from = searchParams.get('from') || '/social';
       
       router.push(from);
-      router.refresh();
   }
 
   const handleError = (error: any) => {
@@ -71,8 +70,7 @@ export default function LoginForm() {
         return;
     }
     if (!auth) {
-        toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible. La page va se rafraîchir."});
-        setTimeout(() => router.refresh(), 2000);
+        toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
         return;
     }
     
@@ -88,7 +86,7 @@ export default function LoginForm() {
     }
   }
 
-  const buttonsDisabled = loading || isUserLoading || !auth;
+  const buttonsDisabled = loading || isUserLoading;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -148,7 +146,7 @@ export default function LoginForm() {
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading || !auth ? 'Chargement...' : 'Se connecter'}
+                {isUserLoading ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
         </div>
