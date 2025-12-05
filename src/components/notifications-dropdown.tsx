@@ -13,11 +13,12 @@ import { Button } from "./ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { Bell, Heart, Car, MessageSquare, CalendarCheck2, User } from "lucide-react";
 import Link from "next/link";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useCollection } from "@/firebase";
 import { collection, query, orderBy, limit, doc, writeBatch } from "firebase/firestore";
 import type { Notification } from "@/lib/types";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useMemo } from "react";
 
 function NotificationSkeleton() {
     return (
@@ -37,7 +38,7 @@ export default function NotificationsDropdown() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    const notificationsQuery = useMemoFirebase(() => {
+    const notificationsQuery = useMemo(() => {
         if (!firestore || !user) return null;
         return query(
             collection(firestore, `users/${user.uid}/notifications`),
