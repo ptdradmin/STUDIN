@@ -16,7 +16,7 @@ service cloud.firestore {
       allow get: if isSignedIn();
       allow list: if false;
       // Allow user to create their own profile document
-      allow create: if isOwner(userId);
+      allow create: if request.auth.uid == userId;
       // Allow user to update/delete their own profile
       allow update, delete: if isOwner(userId);
       
@@ -93,7 +93,7 @@ service cloud.firestore {
     // TUTORINGS - Public read, Tutor write
     // ============================================
     match /tutorings/{tutoringId} {
-      allow get: if true;
+      allow read: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.tutorId == request.auth.uid;
@@ -128,7 +128,7 @@ service cloud.firestore {
     // BOOKS - Public read, Seller write
     // ============================================
     match /books/{bookId} {
-      allow get: if true;
+      allow read: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid;
