@@ -59,6 +59,9 @@ interface CreateEventFormProps {
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
+    defaultValues: {
+        startDate: new Date(),
+    }
   });
 
   const [loading, setLoading] = useState(false);
@@ -245,11 +248,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
                         )}
                     />
 
-                    <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : undefined}>
+                    <Select onValueChange={(value) => handleTimeChange('hours', value)} defaultValue={selectedDate ? format(selectedDate, 'HH') : '00'}>
                         <SelectTrigger className="w-[80px]"><SelectValue placeholder="HH" /></SelectTrigger>
                         <SelectContent>{Array.from({ length: 24 }).map((_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
                     </Select>
-                    <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : undefined}>
+                    <Select onValueChange={(value) => handleTimeChange('minutes', value)} defaultValue={selectedDate ? format(selectedDate, 'mm') : '00'}>
                         <SelectTrigger className="w-[80px]"><SelectValue placeholder="MM" /></SelectTrigger>
                         <SelectContent>{Array.from({ length: 12 }).map((_, i) => <SelectItem key={i} value={String(i * 5).padStart(2, '0')}>{String(i * 5).padStart(2, '0')}</SelectItem>)}</SelectContent>
                     </Select>

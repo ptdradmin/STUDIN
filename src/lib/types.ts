@@ -1,4 +1,5 @@
 
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Housing = {
@@ -93,8 +94,6 @@ export type Event = {
 export type Tutor = {
     id: string;
     tutorId: string;
-    username: string;
-    userAvatarUrl?: string;
     subject: string;
     level: string;
     pricePerHour: number;

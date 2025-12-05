@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from "next/link";
@@ -37,7 +38,7 @@ export default function NotificationCard({ notification }: NotificationCardProps
         switch (notification.type) {
             case 'new_follower': return `/profile/${notification.senderId}`;
             case 'like':
-            case 'comment': return `/post/${notification.relatedId}`;
+            case 'comment': return `/social#${notification.relatedId}`; // Link to post on social feed
             case 'new_message': return `/messages/${notification.relatedId}`;
             case 'carpool_booking': return `/carpooling`;
             case 'event_attendance': return `/events`;
