@@ -12,14 +12,10 @@ const StudinAiMessageSchema = z.object({
   imageUrl: z.string().optional(),
   audioUrl: z.string().optional(),
 });
+export type StudinAiMessage = z.infer<typeof StudinAiMessageSchema>;
 
 export const StudinAiInputSchema = z.object({
-  history: z.array(z.object({
-    role: z.enum(['user', 'model']),
-    text: z.string(), // text is mandatory in history
-    imageUrl: z.string().optional(),
-    audioUrl: z.string().optional(),
-  })).optional().describe('The conversation history.'),
+  history: z.array(StudinAiMessageSchema).optional().describe('The conversation history.'),
   message: StudinAiMessageSchema.describe('The new user message.'),
 });
 export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
@@ -31,4 +27,3 @@ export const StudinAiOutputSchema = z.object({
   imageUrl: z.string().optional().describe("A generated image URL as a data URI."),
 });
 export type StudinAiOutput = z.infer<typeof StudinAiOutputSchema>;
-

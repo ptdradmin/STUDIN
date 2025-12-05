@@ -93,7 +93,7 @@ const studinAiFlow = ai.defineFlow(
     } else if (shouldGenerateImage) {
         const imagePrompt = userMessageText.replace(/^(génère une image de|crée une image de)/i, '').trim();
         const { media } = await ai.generate({
-            model: 'googleai/imagen-4.0-fast-generate-001',
+            model: 'googleai/gemini-2.5-pro-image-generate-001',
             prompt: imagePrompt,
         });
         return {
@@ -104,7 +104,7 @@ const studinAiFlow = ai.defineFlow(
     
     // 3. Standard Text & Audio Response with History
     const { text: textResponse } = await ai.generate({
-        model: googleAI.model('gemini-2.5-pro'),
+        model: googleAI.model('gemini-2.5-flash-preview'),
         system: studinAiSystemPrompt,
         history: (history || []).map(m => ({
           role: m.role,
@@ -112,7 +112,7 @@ const studinAiFlow = ai.defineFlow(
             ...(m.text ? [{ text: m.text }] : []),
             ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
             ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
-          ].filter(Boolean),
+          ].filter(Boolean) as any,
         })),
         prompt: userMessageText,
     });
