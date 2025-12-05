@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Navbar from '@/components/navbar';
@@ -13,35 +14,30 @@ const services = [
         name: "Logements",
         description: "Trouvez le kot ou studio parfait près de votre campus.",
         icon: <Bed className="h-6 w-6"/>,
-        href: "/housing",
         image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Covoiturage",
         description: "Partagez vos trajets pour économiser et faire des rencontres.",
         icon: <Car className="h-6 w-6"/>,
-        href: "/carpooling",
         image: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=2070&auto=format&fit=crop"
     },
      {
         name: "Tutorat",
         description: "Obtenez de l'aide pour réussir ou proposez vos compétences.",
         icon: <BookOpen className="h-6 w-6"/>,
-        href: "/tutoring",
         image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Marché aux Livres",
         description: "Achetez ou vendez vos livres de cours d'occasion.",
         icon: <BookOpen className="h-6 w-6"/>,
-        href: "/books",
         image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1974&auto=format&fit=crop"
     },
      {
         name: "Événements",
         description: "Découvrez les meilleures soirées et activités étudiantes.",
         icon: <PartyPopper className="h-6 w-6"/>,
-        href: "/events",
         image: "https://images.unsplash.com/photo-1519750024422-3806dfa9c723?q=80&w=1974&auto=format&fit=crop"
     },
     {
@@ -101,7 +97,7 @@ export default function HomePage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             {services.map(service => (
-                                <Link href={service.href} key={service.name} className="block group">
+                                <Link href={service.href || '#'} key={service.name} className="block group">
                                     <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg h-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
                                         <Image
                                           src={service.image}
