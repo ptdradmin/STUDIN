@@ -75,21 +75,54 @@ export default function RegisterInstitutionForm() {
           setLoading(false);
           return;
       }
-
-      // Step 1: Create user in Auth
+      
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // Step 2: Update Auth profile
       await updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
       
-      // Step 3: Set temporary data for next page to create the profile
-      // In a real app, this might be handled by a cloud function or passed securely.
-      // For now, we'll rely on the social page to check for profile existence.
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userData = {
+        id: user.uid,
+        role: 'institution' as const,
+        email: data.email,
+        username: username,
+        firstName: data.name,
+        lastName: '',
+        postalCode: data.postalCode,
+        city: data.city,
+        university: '',
+        fieldOfStudy: '',
+        bio: '',
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: false,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      
+      const institutionDocRef = doc(firestore, 'institutions', user.uid);
+      const institutionData = {
+          userId: user.uid,
+          name: data.name,
+          postalCode: data.postalCode,
+          city: data.city,
+          createdAt: serverTimestamp(),
+      };
+
+      const batch = writeBatch(firestore);
+      batch.set(userDocRef, userData);
+      batch.set(institutionDocRef, institutionData);
+
+      await batch.commit();
 
       toast({
         title: "Compte créé !",
-        description: "Finalisation de votre profil...",
+        description: "Votre compte partenaire a été créé avec succès.",
       });
       router.push('/social');
 
@@ -100,6 +133,14 @@ export default function RegisterInstitutionForm() {
               title: "Erreur d'inscription",
               description: "Cet email est déjà utilisé pour un autre compte.",
             });
+        } else if (error.code === 'permission-denied') {
+             // This is our detailed error handling for Firestore rules
+             const permissionError = new FirestorePermissionError({
+                 path: `users_or_institutions`, // Generic path for batch
+                 operation: 'create',
+                 requestResourceData: { note: 'An error occurred during batched write for new institution.' }
+             });
+             errorEmitter.emit('permission-error', permissionError);
         } else {
             toast({
               variant: "destructive",
