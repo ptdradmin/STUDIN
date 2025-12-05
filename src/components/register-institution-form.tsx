@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -11,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -136,7 +137,18 @@ export default function RegisterInstitutionForm() {
             updatedAt: serverTimestamp(),
         };
         
-        await setDoc(userDocRef, userData);
+        await setDoc(userDocRef, userData)
+          .catch((serverError) => {
+              const permissionError = new FirestorePermissionError({
+                  path: userDocRef.path,
+                  operation: 'create',
+                  requestResourceData: userData
+              });
+              errorEmitter.emit('permission-error', permissionError);
+              // We still throw to let the user know something went wrong, 
+              // but the dev overlay will show the rich error.
+              throw serverError;
+          });
         
         toast({
             title: "Compte créé !",
@@ -146,23 +158,19 @@ export default function RegisterInstitutionForm() {
         router.refresh();
 
     } catch (error: any) {
-        if (error.code === 'permission-denied') {
-             const permissionError = new FirestorePermissionError({
-                 path: `users/${auth.currentUser?.uid || 'unknown'}`, 
-                 operation: 'create',
-                 requestResourceData: { name: data.name, email: data.email, role: 'institution' }
-             });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            let description = "Impossible de créer le compte.";
-            if (error.code === 'auth/email-already-in-use') {
-                description = "Cet email est déjà utilisé pour un autre compte.";
-            }
-            toast({
-              variant: "destructive",
-              title: "Erreur d'inscription",
-              description: description,
-            });
+        // This will catch auth errors and Firestore permission errors
+        let description = "Impossible de créer le compte.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "Cet email est déjà utilisé pour un autre compte.";
+        }
+        
+        // Don't show a toast for permission errors as they are handled by the listener
+        if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
+          toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: description,
+          });
         }
     } finally {
         setLoading(false);
