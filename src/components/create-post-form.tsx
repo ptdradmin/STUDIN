@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -108,8 +109,8 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         ...data,
         id: newDocRef.id,
         userId: user.uid,
-        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-        userAvatarUrl: user.photoURL,
+        username: userProfile?.username || user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+        userAvatarUrl: userProfile?.profilePicture || user.photoURL,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         likes: [],

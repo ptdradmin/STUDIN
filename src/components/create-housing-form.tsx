@@ -138,12 +138,12 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
       }
 
     } else {
-      const dataToCreate = {
+      const dataToCreate: Omit<Housing, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
           ...data,
           id: housingId,
           userId: user.uid,
-          username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-          userAvatarUrl: user.photoURL,
+          username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Utilisateur',
+          userAvatarUrl: user.photoURL || undefined,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           coordinates: newCoords,

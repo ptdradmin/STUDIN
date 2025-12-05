@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -11,11 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { staticChallenges } from '@/lib/static-data';
+import type { UserProfile } from '@/lib/types';
 
 const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
@@ -54,8 +54,11 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
   const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
+  const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
   const onSubmit: SubmitHandler<TutorFormInputs> = (data) => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !userProfile) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
@@ -75,8 +78,8 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         ...data,
         id: newDocRef.id,
         tutorId: user.uid,
-        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-        userAvatarUrl: user.photoURL,
+        username: userProfile.username,
+        userAvatarUrl: userProfile.profilePicture,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         rating: 0,
