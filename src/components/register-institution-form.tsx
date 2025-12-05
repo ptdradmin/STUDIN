@@ -80,15 +80,16 @@ export default function RegisterInstitutionForm() {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
-        // Step 2: Update Auth profile (non-critical, can be done async)
-        updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
+        // Step 2: Prepare data for Firestore batch write
+        const batch = writeBatch(firestore);
 
-        // Step 3: Store pending profile data in localStorage to be picked up after redirect
-        const pendingProfileData = {
-            isNewUser: true,
-            role: 'institution',
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userData = {
+            id: user.uid,
+            role: 'institution' as const,
+            email: data.email,
             username: username,
-            firstName: data.name,
+            firstName: data.name, // For institutions, firstName holds the name
             lastName: '',
             postalCode: data.postalCode,
             city: data.city,
@@ -96,17 +97,41 @@ export default function RegisterInstitutionForm() {
             fieldOfStudy: '',
             bio: '',
             website: '',
+            profilePicture: generateAvatar(user.email || user.uid),
+            followerIds: [],
+            followingIds: [],
+            isVerified: false,
+            points: 0,
+            challengesCompleted: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         };
-        localStorage.setItem(`pendingProfile_${user.uid}`, JSON.stringify(pendingProfileData));
+        batch.set(userDocRef, userData);
 
+        const institutionDocRef = doc(firestore, 'institutions', user.uid);
+        const institutionData = {
+            id: user.uid,
+            userId: user.uid,
+            name: data.name,
+            postalCode: data.postalCode,
+            city: data.city,
+            createdAt: serverTimestamp(),
+        };
+        batch.set(institutionDocRef, institutionData);
+        
+        // Step 3: Commit batch write
+        await batch.commit();
+
+        // Step 4: Update Auth profile (non-critical, can be done async)
+        updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
         toast({
             title: "Compte créé !",
-            description: "Finalisation de votre profil...",
+            description: "Votre compte partenaire a été créé avec succès.",
         });
 
-        // Step 4: Redirect to a page where the user is guaranteed to be authenticated
         router.push('/social');
+        router.refresh();
 
     } catch (error: any) {
         if (error.code === 'auth/email-already-in-use') {
@@ -115,6 +140,14 @@ export default function RegisterInstitutionForm() {
               title: "Erreur d'inscription",
               description: "Cet email est déjà utilisé pour un autre compte.",
             });
+        } else if (error.code === 'permission-denied') {
+             // This is our detailed error handling for Firestore rules
+             const permissionError = new FirestorePermissionError({
+                 path: `users_or_institutions`, // Generic path for batch
+                 operation: 'create',
+                 requestResourceData: { note: 'An error occurred during batched write for new institution.' }
+             });
+             errorEmitter.emit('permission-error', permissionError);
         } else {
             console.error("Registration error:", error);
             toast({
