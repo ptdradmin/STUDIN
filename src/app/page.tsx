@@ -44,7 +44,7 @@ const services = [
         description: "Transformez votre ville en terrain de jeu. Relevez des défis, gagnez des points et explorez votre environnement comme jamais auparavant.",
         icon: <Target className="h-8 w-8" />,
         href: "/challenges",
-        image: "https://images.unsplash.com/photo-1533628635777-112b2239b1c7?q=80&w=2070&auto=format&fit=crop"
+        image: "https://images.unsplash.com/photo-1574235124952-f2882195642a?q=80&w=2070&auto=format&fit=crop"
     },
 ];
 
@@ -184,17 +184,17 @@ export default function HomePage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-2xl">
                                     <Sparkles className="text-muted-foreground"/>
-                                    STUD'IN AI
+                                    STUD'IN Flash
                                 </CardTitle>
                                 <CardDescription>L'assistant rapide et efficace pour tous.</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow space-y-4">
                                 <p className="text-3xl font-bold">Gratuit</p>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle rapide (STUD'IN Flash) pour des réponses instantanées.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle rapide pour des réponses instantanées.</li>
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Conversation multimodale (Texte, Voix, Image).</li>
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse de documents et d'images.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Connaissance approfondie de la vie étudiante en Belgique.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Connaissance de la vie étudiante en Belgique.</li>
                                 </ul>
                             </CardContent>
                             <CardFooter>
@@ -210,7 +210,7 @@ export default function HomePage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-2xl">
                                     <BadgeCheck className="text-primary"/>
-                                    STUD'IN AI Pro
+                                    STUD'IN Pro
                                 </CardTitle>
                                 <CardDescription>Débloquez le potentiel maximal de l'IA.</CardDescription>
                             </CardHeader>
@@ -218,10 +218,10 @@ export default function HomePage() {
                                <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage le plus avancé (STUD'IN Pro) pour un raisonnement supérieur.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications sociales.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité à partir de texte ou d'autres images.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour optimiser vos annonces.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage avancé pour un raisonnement supérieur.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour vos annonces.</li>
                                 </ul>
                             </CardContent>
                             <CardFooter>
