@@ -1,214 +1,221 @@
-
+/**
+ * This ruleset enforces a strict, user-centric security model for the STUD'IN application.
+ *
+ * Core Philosophy:
+ * The primary security principle is "Path-Based Ownership." Access to resources is determined
+ * by the document's path in the database. This ensures that users can only access data
+ * that resides within their own designated data tree, making rules simple, fast, and secure.
+ *
+ * Data Structure:
+ * Most data, including housing, carpooling, tutoring, events, and favorites, is nested
+ * within a user-specific subcollection under `/users/{userId}`. This hierarchical
+ * structure inherently ties data to its owner. Private messages are an exception, stored
+ * in a top-level `/messages` collection, with security managed by fields within each
+ * document.
+ *
+ * Key Security Decisions:
+ * - User Privacy: Listing all users in the `/users` collection is explicitly disallowed
+ *   to protect user privacy and prevent data scraping.
+ * - Strict Ownership: All user-generated content (listings, events, etc.) is strictly
+ *   confined to the user who created it. By default, there is no public read access to
+ *   these items, as they are stored in user-specific subcollections.
+ * - Immutable Messages: Once a message is sent, it cannot be edited or deleted, ensuring
+ *   the integrity of conversations.
+ * - Relational Integrity: On creation, rules validate that ownership fields within a
+ *   document (e.g., `housing.userId`) correctly match the user ID in the path, preventing
+ *   data inconsistency. These ownership fields are immutable.
+ *
+ * Denormalization for Authorization:
+ * This ruleset relies on denormalization to enable efficient and secure authorization checks.
+ * - Path-Based Ownership: Placing user content in subcollections like `/users/{userId}/housing`
+ *   avoids the need for costly `get()` calls to check ownership on a parent document. The
+ *   `userId` in the path is sufficient.
+ * - Message Participants: For `/messages`, the `senderId` and `receiverId` are denormalized
+ *   directly onto the message document, allowing rules to grant access without needing to
+ *   look up related data.
+ *
+ * Structural Segregation:
+ * The data model effectively segregates private user data. Each user's content is stored
+ * in separate collection trees (e.g., `/users/userA/housing` vs. `/users/userB/housing`),
+ * which is a highly secure and performant pattern for managing user-owned data and
+ * securing list operations.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // =====================================================================
+    // --------------------------------------------------------------------
     // Helper Functions
-    // =====================================================================
+    // --------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * This is the core of the ownership-based security model.
+     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data.role;
+
+    /**
+     * Checks if the user is the owner of an EXISTING document.
+     * Used for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
     
-    function isRole(userId, role) {
-      return getUserRole(userId) == role;
-    }
-    
-    function isChallengeCreator(challengeId) {
-        let challenge = get(/databases/$(database)/documents/challenges/$(challengeId));
-        return request.auth.uid == challenge.data.creatorId;
+    /**
+     * Validates that the creatorId field of a new document matches the owner's UID.
+     */
+    function isCreatingOwnResource(ownerIdField) {
+      return request.resource.data[ownerIdField] == request.auth.uid;
     }
 
-    function isResourceOwner(doc) {
-      return isSignedIn() && request.auth.uid == doc.userId;
+    /**
+     * Enforces immutability of an ownership field on update.
+     */
+    function ownerFieldIsImmutable(ownerIdField) {
+      return request.resource.data[ownerIdField] == resource.data[ownerIdField];
     }
     
-    function isBookSeller(doc) {
-        return isSignedIn() && request.auth.uid == doc.sellerId;
-    }
-    
-    function isDriver(carpoolingId) {
-      return isSignedIn() && get(/databases/$(database)/documents/carpoolings/$(carpoolingId)).data.driverId == request.auth.uid;
-    }
+    // --------------------------------------------------------------------
+    // User Profiles
+    // --------------------------------------------------------------------
 
-    function isEventOrganizer(eventId) {
-      return isSignedIn() && get(/databases/$(database)/documents/events/$(eventId)).data.organizerId == request.auth.uid;
-    }
-
-    // =====================================================================
-    // User Profile Rules
-    // =====================================================================
+    /**
+     * @description Manages user profile documents.
+     * @path /users/{userId}
+     * @allow (get, update, delete) A user can manage their own profile.
+     * @allow (create) A new user can create their own profile document.
+     * @deny (list) Another user cannot list all user profiles.
+     * @deny (get) Another user cannot read a user's private profile.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if request.auth.uid == userId; // Allow user to create their own doc
-      allow update: if isOwner(userId) || 
-                      (isSignedIn() && (
-                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followerIds']) ||
-                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingIds'])
-                      ));
-      allow delete: if isOwner(userId);
-      
-      match /notifications/{notificationId} {
-        allow read, update: if isOwner(userId);
-        allow create: if isSignedIn();
-        allow delete: if isOwner(userId);
-      }
-      
-      match /favorites/{favoriteId} {
-        allow read, write: if isOwner(userId) && request.resource.data.userId == userId;
-        allow list: if isOwner(userId);
-      }
-    }
-
-    // =====================================================================
-    // Institutions Rules
-    // =====================================================================
-    match /institutions/{institutionId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isOwner(resource.data.userId);
-    }
-    
-    // =====================================================================
-    // Book Exchange Rules
-    // =====================================================================
-    match /books/{bookId} {
-      allow read, list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
-      allow update, delete: if isBookSeller(resource.data);
-    }
-
-    // =====================================================================
-    // Housing Rules
-    // =====================================================================
-    match /housings/{housingId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isResourceOwner(resource.data) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isResourceOwner(resource.data);
-    }
-    
-    // =====================================================================
-    // Reels Rules
-    // =====================================================================
-    match /reels/{reelId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && (
-                      (isOwner(resource.data.userId)) ||
-                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
-                    );
-      allow delete: if isResourceOwner(resource.data);
-    }
-
-    // =====================================================================
-    // Carpooling Rules
-    // =====================================================================
-    match /carpoolings/{carpoolingId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      allow update: if (isSignedIn() && request.auth.uid == resource.data.driverId) ||
-                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['seatsAvailable', 'passengerIds']) && request.resource.data.diff(resource.data).affectedKeys().size() == 2);
-      allow delete: if isOwner(resource.data.driverId);
-
-      match /carpool_bookings/{carpoolBookingId} {
-        allow get: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
-        allow list: if isDriver(carpoolingId);
-        allow create: if isSignedIn(); // Simplified for transaction, client logic is the guard.
-        allow update: if isOwner(resource.data.passengerId) || isDriver(carpoolingId);
-        allow delete: if isOwner(resource.data.passengerId);
-      }
-    }
-
-    // =====================================================================
-    // Tutoring Rules
-    // =====================================================================
-    match /tutorings/{tutoringId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
-      allow update: if (isOwner(resource.data.tutorId) && request.resource.data.tutorId == resource.data.tutorId) || 
-                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAll(['rating', 'totalReviews']));
-      allow delete: if isOwner(resource.data.tutorId);
-    }
-    
-    match /tutoring_reviews/{tutoringReviewId} {
-      allow get: if true;
-      allow list: if request.query.keys().hasOnly(['tutoringId', 'orderBy', 'limit']);
-      allow create: if isSignedIn();
-      allow update, delete: if isOwner(resource.data.studentId);
-    }
-
-    // =====================================================================
-    // Event Rules
-    // =====================================================================
-    match /events/{eventId} {
-      allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
-      allow update: if isOwner(resource.data.organizerId) || 
-                      (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendeeIds']));
-      allow delete: if isOwner(resource.data.organizerId);
-    }
-
-    match /event_attendees/{eventAttendeeId} {
-      allow get: if isOwner(resource.data.userId) || isEventOrganizer(resource.data.eventId);
+      allow get: if isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isOwner(resource.data.userId);
-    }
-    
-    // =====================================================================
-    // Social (Posts) Rules
-    // =====================================================================
-    match /posts/{postId} {
-      allow list, get: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-      allow update: if isSignedIn() && (
-                      (isOwner(resource.data.userId)) ||
-                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'comments']))
-                    );
-      allow delete: if isResourceOwner(resource.data);
-    }
-    
-    // =====================================================================
-    // Conversation & Message Rules
-    // =====================================================================
-    match /conversations/{conversationId} {
-      allow list: if isSignedIn();
-      allow read, update, delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
-      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      // --- User Subcollections ---
+
+      /**
+       * @description Manages housing listings created by a user.
+       * @path /users/{userId}/housing/{housingId}
+       * @allow (all) A user can manage their own housing listings.
+       * @deny (all) Another user cannot access or manage these listings.
+       * @principle Enforces document ownership within a user's private data tree.
+       */
+      match /housing/{housingId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isCreatingOwnResource('userId');
+        allow update: if isExistingOwner(userId) && ownerFieldIsImmutable('userId');
+        allow delete: if isExistingOwner(userId);
+      }
       
-      match /messages/{messageId} {
-        allow list, get: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-        allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
-        allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
+      /**
+       * @description Manages carpooling opportunities created by a user.
+       * @path /users/{userId}/carpooling/{carpoolingId}
+       * @allow (all) A user can manage their own carpooling offers.
+       * @deny (all) Another user cannot access or manage these offers.
+       * @principle Enforces document ownership within a user's private data tree.
+       */
+      match /carpooling/{carpoolingId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isCreatingOwnResource('driverId');
+        allow update: if isExistingOwner(userId) && ownerFieldIsImmutable('driverId');
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages tutoring offers created by a user.
+       * @path /users/{userId}/tutoring/{tutoringId}
+       * @allow (all) A user can manage their own tutoring offers.
+       * @deny (all) Another user cannot access or manage these offers.
+       * @principle Enforces document ownership within a user's private data tree.
+       */
+      match /tutoring/{tutoringId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isCreatingOwnResource('tutorId');
+        allow update: if isExistingOwner(userId) && ownerFieldIsImmutable('tutorId');
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages events created by a user.
+       * @path /users/{userId}/events/{eventId}
+       * @allow (all) A user can manage their own events.
+       * @deny (all) Another user cannot access or manage these events.
+       * @principle Enforces document ownership within a user's private data tree.
+       */
+      match /events/{eventId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isCreatingOwnResource('organizerId');
+        allow update: if isExistingOwner(userId) && ownerFieldIsImmutable('organizerId');
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages a user's favorited items.
+       * @path /users/{userId}/favorites/{favoriteId}
+       * @allow (all) A user can manage their own list of favorites.
+       * @deny (all) Another user cannot access another's favorites.
+       * @principle Enforces document ownership within a user's private data tree.
+       */
+      match /favorites/{favoriteId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && isCreatingOwnResource('userId');
+        allow update: if isExistingOwner(userId) && ownerFieldIsImmutable('userId');
+        allow delete: if isExistingOwner(userId);
       }
     }
 
-    // =====================================================================
-    // Défi Rules
-    // =====================================================================
-    match /challenges/{challengeId} {
-      allow get: if true;
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && (isRole(request.auth.uid, 'admin') || isRole(request.auth.uid, 'institution'));
-      allow update, delete: if isSignedIn() && (isRole(request.auth.uid, 'admin') || (isRole(request.auth.uid, 'institution') && isChallengeCreator(challengeId)));
+    // --------------------------------------------------------------------
+    // Messages
+    // --------------------------------------------------------------------
 
-      match /submissions/{submissionId} {
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        allow get, list: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
-        allow update: if isSignedIn() && (isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
-        allow delete: if isSignedIn() && (isOwner(request.resource.data.userId) || isChallengeCreator(challengeId) || isRole(request.auth.uid, 'admin'));
-      }
+    /**
+     * Checks if the authenticated user is the sender or receiver of a message.
+     */
+    function isParticipantInMessage() {
+      return isSignedIn() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId);
+    }
+
+    /**
+     * Checks if the authenticated user is the sender of a new message.
+     */
+    function isSender() {
+      return isSignedIn() && request.resource.data.senderId == request.auth.uid;
+    }
+
+    /**
+     * @description Manages private messages between users.
+     * @path /messages/{messageId}
+     * @allow (get) A user can read a message if they are the sender or receiver.
+     * @allow (create) A user can send a message.
+     * @deny (list) A user cannot list all messages in the database.
+     * @deny (update, delete) Messages are immutable and cannot be changed or deleted.
+     * @principle Secures access based on denormalized fields within the document itself.
+     */
+    match /messages/{messageId} {
+      allow get: if isParticipantInMessage();
+      allow list: if false;
+      allow create: if isSender() && request.resource.data.receiverId != request.auth.uid;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }
