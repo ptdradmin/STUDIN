@@ -120,19 +120,7 @@ export default function RegisterInstitutionForm() {
       };
       batch.set(institutionDocRef, institutionData);
 
-      await batch.commit().catch((serverError) => {
-         // This is where we catch the permission error for the batch write.
-         // We'll throw a more specific error to be caught by the outer catch block.
-         if (serverError.code === 'permission-denied') {
-             const permissionError = new FirestorePermissionError({
-                path: `users/${user.uid} and institutions/${user.uid}`,
-                operation: 'create', // Operation is a batch write, so 'create' is a good approximation
-                requestResourceData: { user: userData, institution: institutionData }
-             });
-             throw permissionError;
-         }
-         throw serverError; // Re-throw other errors
-      });
+      await batch.commit();
       
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
@@ -144,15 +132,19 @@ export default function RegisterInstitutionForm() {
       router.refresh();
 
     } catch (error: any) {
-        if (error instanceof FirestorePermissionError) {
-          // Emit the detailed error for the listener to catch
-          errorEmitter.emit('permission-error', error);
+        // This is the new, consolidated error handling block.
+        if (error.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: `users/${auth.currentUser?.uid}`, // Approximate path
+                operation: 'create', // The batch write is a create operation
+                requestResourceData: { note: 'Data for user and institution docs was being written.' }
+            });
+            errorEmitter.emit('permission-error', permissionError);
         } else {
             let description = "Impossible de créer le compte.";
             if (error.code === 'auth/email-already-in-use') {
                 description = "Cet email est déjà utilisé pour un autre compte.";
             }
-             // For other errors, show a generic toast.
             toast({
                 variant: "destructive",
                 title: "Erreur d'inscription",
