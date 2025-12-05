@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useAuth, useStorage } from '@/firebase';
+import { useFirestore, useAuth, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -194,26 +194,22 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     }
     setLoading(true);
     
-    let newPhotoURL = userProfile.profilePicture;
-    
     try {
+        let newPhotoURL = userProfile.profilePicture;
         if (profilePictureFile) {
             const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
             await uploadBytes(fileRef, profilePictureFile);
             newPhotoURL = await getDownloadURL(fileRef);
         } else if (previewUrl && previewUrl !== userProfile.profilePicture) {
-            // This means a generated avatar was selected
             newPhotoURL = previewUrl;
         }
 
         const batch = writeBatch(firestore);
         
-        // 1. Update User Document
         const userDocRef = doc(firestore, 'users', user.uid);
         const dataToUpdate = { ...data, profilePicture: newPhotoURL, updatedAt: serverTimestamp() };
         batch.update(userDocRef, dataToUpdate);
 
-        // 2. If institution, update Institution Document as well
         if (isInstitution) {
             const institutionDocRef = doc(firestore, 'institutions', user.uid);
             batch.update(institutionDocRef, {
@@ -223,29 +219,34 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
             });
         }
         
-        // 4. Update user posts if username or avatar changed
         const hasProfileChanged = data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture;
         if (firestore && hasProfileChanged) {
              await updateUserPosts(firestore, user.uid, { username: data.username, profilePicture: newPhotoURL }, batch);
         }
 
-        // Commit all batched writes
         await batch.commit();
         
-        // 3. Update Auth Profile
         const displayName = isInstitution ? data.firstName : `${data.firstName} ${(data as StudentProfileInputs).lastName}`;
         const currentUser = auth.currentUser;
         if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
             await updateProfile(currentUser, { displayName, photoURL: newPhotoURL });
         }
-        
 
         toast({ title: 'Succès', description: 'Profil mis à jour !' });
         onClose();
 
     } catch (error: any) {
-        console.error("Profile update error:", error);
-        toast({ title: 'Erreur', description: error.message || 'Impossible de mettre à jour le profil.', variant: 'destructive' });
+        if(error.code === 'permission-denied') {
+             const permissionError = new FirestorePermissionError({
+                path: `users/${user.uid}`,
+                operation: 'update',
+                requestResourceData: data,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            console.error("Profile update error:", error);
+            toast({ title: 'Erreur', description: error.message || 'Impossible de mettre à jour le profil.', variant: 'destructive' });
+        }
     } finally {
         setLoading(false);
     }

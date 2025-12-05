@@ -1,3 +1,4 @@
+
 'use client';
 
 import { 
@@ -9,19 +10,17 @@ import {
     serverTimestamp,
     getDoc,
     doc,
-    Firestore
+    Firestore,
+    runTransaction
 } from "firebase/firestore";
 import type { UserProfile } from "./types";
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 export const getOrCreateConversation = async (firestore: Firestore, currentUserId: string, otherUserId: string): Promise<string | null> => {
     if (currentUserId === otherUserId) return null;
 
     const conversationsRef = collection(firestore, 'conversations');
-
-    // Query to find an existing conversation between the two users
-    const q = query(conversationsRef, 
-        where('participantIds', 'array-contains', currentUserId)
-    );
+    const q = query(conversationsRef, where('participantIds', 'array-contains', currentUserId));
 
     try {
         const querySnapshot = await getDocs(q);
@@ -38,38 +37,51 @@ export const getOrCreateConversation = async (firestore: Firestore, currentUserI
             return existingConversationId;
         }
 
-        // If no conversation exists, create a new one
-        const currentUserProfileSnap = await getDoc(doc(firestore, 'users', currentUserId));
-        const otherUserProfileSnap = await getDoc(doc(firestore, 'users', otherUserId));
+        // Use a transaction to create the conversation atomically
+        const newConversationId = await runTransaction(firestore, async (transaction) => {
+            const currentUserProfileSnap = await transaction.get(doc(firestore, 'users', currentUserId));
+            const otherUserProfileSnap = await transaction.get(doc(firestore, 'users', otherUserId));
 
-        if (!currentUserProfileSnap.exists() || !otherUserProfileSnap.exists()) {
-            throw new Error("User profile not found");
-        }
+            if (!currentUserProfileSnap.exists() || !otherUserProfileSnap.exists()) {
+                throw new Error("User profile not found");
+            }
 
-        const currentUserProfile = currentUserProfileSnap.data() as UserProfile;
-        const otherUserProfile = otherUserProfileSnap.data() as UserProfile;
-
-        const newConversation = {
-            participantIds: [currentUserId, otherUserId],
-            participants: {
-                [currentUserId]: {
-                    username: currentUserProfile.username,
-                    profilePicture: currentUserProfile.profilePicture || ''
+            const currentUserProfile = currentUserProfileSnap.data() as UserProfile;
+            const otherUserProfile = otherUserProfileSnap.data() as UserProfile;
+            
+            const newConversationData = {
+                participantIds: [currentUserId, otherUserId],
+                participants: {
+                    [currentUserId]: {
+                        username: currentUserProfile.username,
+                        profilePicture: currentUserProfile.profilePicture || ''
+                    },
+                    [otherUserId]: {
+                        username: otherUserProfile.username,
+                        profilePicture: otherUserProfile.profilePicture || ''
+                    }
                 },
-                [otherUserId]: {
-                    username: otherUserProfile.username,
-                    profilePicture: otherUserProfile.profilePicture || ''
-                }
-            },
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            };
 
-        const docRef = await addDoc(conversationsRef, newConversation);
-        return docRef.id;
+            const newDocRef = doc(collection(firestore, 'conversations'));
+            transaction.set(newDocRef, newConversationData);
+            return newDocRef.id;
+        });
 
-    } catch (error) {
-        console.error("Error getting or creating conversation: ", error);
+        return newConversationId;
+
+    } catch (error: any) {
+        console.error("Error in getOrCreateConversation transaction:", error);
+         if(error.code === 'permission-denied') {
+             const permissionError = new FirestorePermissionError({
+                path: 'conversations',
+                operation: 'create',
+                requestResourceData: { participantIds: [currentUserId, otherUserId] }
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
         return null;
     }
 };

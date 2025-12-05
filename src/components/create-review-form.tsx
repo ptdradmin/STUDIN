@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, serverTimestamp, doc, runTransaction, getDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Star } from 'lucide-react';
@@ -64,32 +64,40 @@ export default function CreateReviewForm({ tutor, onClose, onReviewSubmitted }: 
     // Non-blocking write for the review
     setDocumentNonBlocking(reviewRef, reviewData, { merge: false });
 
-    // In a real-world scenario, the aggregation of ratings
-    // would ideally be handled by a Cloud Function for robustness.
-    // Here, we do it client-side for simplicity.
+    // Transaction for rating aggregation
     try {
-        const tutorDoc = await getDoc(tutorRef);
-        if (tutorDoc.exists()) {
-            const oldTotalReviews = tutorDoc.data().totalReviews || 0;
-            const oldAverageRating = tutorDoc.data().rating || 0;
-
-            const newTotalReviews = oldTotalReviews + 1;
-            const newAverageRating = ((oldAverageRating * oldTotalReviews) + data.rating) / newTotalReviews;
-
-            updateDocumentNonBlocking(tutorRef, {
-                totalReviews: newTotalReviews,
-                rating: newAverageRating,
-            });
+      await runTransaction(firestore, async (transaction) => {
+        const tutorDoc = await transaction.get(tutorRef);
+        if (!tutorDoc.exists()) {
+          throw "Tutor profile not found!";
         }
-    } catch(e) {
-        // This part can fail silently without blocking UI, but we log the error.
-        console.error("Failed to update tutor average rating:", e);
+        const oldTotalReviews = tutorDoc.data().totalReviews || 0;
+        const oldAverageRating = tutorDoc.data().rating || 0;
+        const newTotalReviews = oldTotalReviews + 1;
+        const newAverageRating = ((oldAverageRating * oldTotalReviews) + data.rating) / newTotalReviews;
+        
+        transaction.update(tutorRef, { 
+          totalReviews: newTotalReviews, 
+          rating: newAverageRating 
+        });
+      });
+      
+      toast({ title: 'Succès', description: 'Avis publié !' });
+      onReviewSubmitted();
+      onClose();
+
+    } catch (e: any) {
+        console.error("Error submitting review transaction:", e);
+        const permissionError = new FirestorePermissionError({
+            path: tutorRef.path,
+            operation: 'update',
+            requestResourceData: { rating: 'aggregation' }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        toast({ title: 'Erreur de publication', description: 'Impossible de mettre à jour la note du tuteur.', variant: 'destructive'});
+    } finally {
+        setLoading(false);
     }
-    
-    toast({ title: 'Succès', description: 'Avis publié !' });
-    onReviewSubmitted();
-    onClose();
-    setLoading(false);
   };
 
   return (
