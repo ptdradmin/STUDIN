@@ -3,16 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { Download, Mail, Rocket, Users, Milestone, Briefcase, DownloadCloud } from "lucide-react";
+import { Download, Mail, DownloadCloud } from "lucide-react";
 import Link from "next/link";
 import { LogoIcon } from "@/components/logo-icon";
-
-const keyFigures = [
-    { value: "15,000+", label: "Étudiants inscrits" },
-    { value: "2,500+", label: "Annonces publiées" },
-    { value: "50,000+", label: "Téléchargements" },
-    { value: "5", label: "Villes principales" },
-]
 
 const brandColors = [
     { name: 'Primary', hex: '#8B5CF6', hsl: '262 84% 60%' },
@@ -36,18 +29,6 @@ export default function PressPage() {
         </section>
 
         <div className="container mx-auto px-4 py-12 md:py-20 space-y-16">
-
-            {/* Section Chiffres Clés */}
-            <section>
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                    {keyFigures.map(figure => (
-                        <div key={figure.label} className="bg-card p-6 rounded-lg border">
-                            <p className="text-3xl md:text-4xl font-bold text-primary">{figure.value}</p>
-                            <p className="text-sm text-muted-foreground mt-1">{figure.label}</p>
-                        </div>
-                    ))}
-                 </div>
-            </section>
             
             {/* Section Mission & Fondateur */}
             <section className="max-w-4xl mx-auto">
