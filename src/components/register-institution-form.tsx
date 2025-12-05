@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -62,9 +63,11 @@ export default function RegisterInstitutionForm() {
       return;
     }
 
+    // 1. Create user in Auth
+    let user;
     try {
       const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
-
+      
       const usernameIsUnique = await isUsernameUnique(firestore, username);
       if (!usernameIsUnique) {
           form.setError("name", {
@@ -74,15 +77,15 @@ export default function RegisterInstitutionForm() {
           setLoading(false);
           return;
       }
-      
-      // Step 1: Create the user in Firebase Auth. This must succeed before we can write to Firestore.
+
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
+      user = userCredential.user;
 
-      // Step 2: Now that the user is created and authenticated, prepare and execute the Firestore writes.
+      // 2. Prepare Firestore documents in a batch
       const batch = writeBatch(firestore);
-
       const userDocRef = doc(firestore, 'users', user.uid);
+      const institutionDocRef = doc(firestore, 'institutions', user.uid);
+
       const userData = {
         id: user.uid,
         role: 'institution' as const,
@@ -107,7 +110,6 @@ export default function RegisterInstitutionForm() {
       };
       batch.set(userDocRef, userData);
 
-      const institutionDocRef = doc(firestore, 'institutions', user.uid);
       const institutionData = {
         id: user.uid,
         userId: user.uid,
@@ -120,10 +122,22 @@ export default function RegisterInstitutionForm() {
       };
       batch.set(institutionDocRef, institutionData);
 
-      // This commit will now be authenticated.
-      await batch.commit();
-      
-      // Step 3: Update Auth profile display name and photo.
+      // 3. Commit batch and handle specific permission errors
+      await batch.commit().catch(error => {
+          // This is our new detailed error handling.
+          // It throws a specific error that will be caught by the outer catch block.
+          if (error.code === 'permission-denied') {
+              throw new FirestorePermissionError({
+                  path: `users/${user.uid} and institutions/${user.uid}`, // Describe the batch write
+                  operation: 'create',
+                  requestResourceData: { userData, institutionData }
+              });
+          }
+          // Re-throw other commit errors
+          throw error;
+      });
+
+      // 4. Update Auth profile (only after successful DB write)
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
       toast({
@@ -134,28 +148,22 @@ export default function RegisterInstitutionForm() {
       router.refresh();
 
     } catch (error: any) {
-        if (error.code === 'auth/email-already-in-use') {
-            toast({
-                variant: "destructive",
-                title: "Erreur d'inscription",
-                description: "Cet email est déjà utilisé pour un autre compte.",
-            });
-        } else if (error.code === 'permission-denied') {
-             // This is our detailed error handling for Firestore rules.
-             const permissionError = new FirestorePermissionError({
-                path: `users_or_institutions`, // Placeholder path, the error is in the batch.
-                operation: 'create',
-                requestResourceData: { note: 'An error occurred during batched write for new institution.' }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            console.error("An unexpected error occurred:", error);
-             toast({
-                variant: "destructive",
-                title: "Erreur Inattendue",
-                description: error.message || "Une erreur inconnue est survenue.",
-            });
-        }
+      if (error instanceof FirestorePermissionError) {
+          // Emit the detailed error for the global listener to catch and display.
+          errorEmitter.emit('permission-error', error);
+      } else if (error.code === 'auth/email-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: "Cet email est déjà utilisé pour un autre compte.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erreur Inattendue",
+          description: error.message || "Une erreur inconnue est survenue lors de la création du compte.",
+        });
+      }
     } finally {
       setLoading(false);
     }
