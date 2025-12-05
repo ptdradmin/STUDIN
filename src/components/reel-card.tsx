@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Heart, MessageCircle, Send, MoreHorizontal, EyeOff, Link as LinkIcon, Trash2, Music, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useUser, useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import Link from "next/link";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -130,12 +130,8 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         updateDoc(reelRef, { likes: newLikes })
             .catch(serverError => {
                 setOptimisticLikes(currentLikes);
-                const permissionError = new FirestorePermissionError({
-                    path: reelRef.path,
-                    operation: 'update',
-                    requestResourceData: { likes: newLikes }
-                });
-                errorEmitter.emit('permission-error', permissionError);
+                console.error("Error updating likes:", serverError);
+                toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour les likes.' });
             });
     }
 

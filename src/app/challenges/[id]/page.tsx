@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -18,7 +17,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, setDocumentNonBlocking, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { doc, collection, query, where, serverTimestamp, runTransaction, increment, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';

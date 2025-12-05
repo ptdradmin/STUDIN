@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useAuth, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, useAuth, useStorage } from '@/firebase';
 import { doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -243,15 +243,9 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         toast({ title: 'Succès', description: 'Profil mis à jour !' });
         onClose();
 
-    } catch (error) {
-        if (!(error instanceof FirestorePermissionError)) {
-             const contextualError = new FirestorePermissionError({
-                path: `users/${user.uid} or institutions/${user.uid}`,
-                operation: 'update',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', contextualError);
-        }
+    } catch (error: any) {
+        console.error("Profile update error:", error);
+        toast({ title: 'Erreur', description: error.message || 'Impossible de mettre à jour le profil.', variant: 'destructive' });
     } finally {
         setLoading(false);
     }

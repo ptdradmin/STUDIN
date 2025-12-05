@@ -1,6 +1,6 @@
 'use client';
 
-import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage, errorEmitter, FirestorePermissionError } from "@/firebase";
+import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage } from "@/firebase";
 import type { Conversation, ChatMessage } from "@/lib/types";
 import { collection, query, doc, orderBy, serverTimestamp, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
@@ -128,12 +128,7 @@ export default function ConversationPage() {
                  updateDoc(conversationRef, {
                     unread: false,
                  }).catch(err => {
-                    const permissionError = new FirestorePermissionError({
-                        path: conversationRef.path,
-                        operation: 'update',
-                        requestResourceData: { unread: false }
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
+                    console.error("Failed to mark conversation as read:", err);
                 });
              }
         }
@@ -152,11 +147,8 @@ export default function ConversationPage() {
             await deleteDoc(messageRef);
             toast({ title: "Message supprimé" });
         } catch (error) {
-             const permissionError = new FirestorePermissionError({
-                path: messageRef.path,
-                operation: 'delete',
-            });
-            errorEmitter.emit('permission-error', permissionError);
+             console.error("Failed to delete message:", error);
+             toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de supprimer le message.' });
         }
     }
 
@@ -197,12 +189,7 @@ export default function ConversationPage() {
 
                     setDoc(messageDocRef, messageData)
                         .catch(err => {
-                            const permissionError = new FirestorePermissionError({
-                                path: messageDocRef.path,
-                                operation: 'create',
-                                requestResourceData: messageData
-                            });
-                            errorEmitter.emit('permission-error', permissionError);
+                            console.error("Failed to send message:", err);
                         });
 
                     const conversationUpdateData = {
@@ -213,12 +200,7 @@ export default function ConversationPage() {
 
                     updateDoc(conversationRef, conversationUpdateData)
                          .catch(err => {
-                            const permissionError = new FirestorePermissionError({
-                                path: conversationRef.path,
-                                operation: 'update',
-                                requestResourceData: conversationUpdateData
-                            });
-                            errorEmitter.emit('permission-error', permissionError);
+                            console.error("Failed to update conversation:", err);
                         });
                     
                     setFileToSend(null);
@@ -255,12 +237,7 @@ export default function ConversationPage() {
 
         setDoc(messageDocRef, messageData)
             .catch(err => {
-                const permissionError = new FirestorePermissionError({
-                    path: messageDocRef.path,
-                    operation: 'create',
-                    requestResourceData: messageData
-                });
-                errorEmitter.emit('permission-error', permissionError);
+                console.error("Failed to send message:", err);
             });
             
         const conversationUpdateData = {
@@ -271,12 +248,7 @@ export default function ConversationPage() {
 
         updateDoc(conversationRef, conversationUpdateData)
             .catch(err => {
-                const permissionError = new FirestorePermissionError({
-                    path: conversationRef.path,
-                    operation: 'update',
-                    requestResourceData: conversationUpdateData
-                });
-                errorEmitter.emit('permission-error', permissionError);
+                console.error("Failed to update conversation:", err);
             });
 
         createNotification(firestore, {

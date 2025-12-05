@@ -150,8 +150,8 @@ export default function UserProfilePage() {
     try {
         await toggleFollowUser(firestore, user.uid, userProfile.id, wasFollowing);
         toast({ title: wasFollowing ? "Ne plus suivre" : "Suivi", description: `Vous ${wasFollowing ? 'ne suivez plus' : 'suivez maintenant'} ${userProfile.username}.`})
-    } catch(error) {
-        toast({ title: "Erreur", description: "Une erreur est survenue lors de la tentative de suivi.", variant: "destructive"})
+    } catch(error: any) {
+        toast({ title: "Erreur", description: error.message || "Une erreur est survenue.", variant: "destructive"})
     }
   }
 
