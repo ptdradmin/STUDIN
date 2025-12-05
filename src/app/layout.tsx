@@ -1,3 +1,4 @@
+
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
@@ -19,7 +20,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://votre-domaine.com'), // Remplacez par votre nom de domaine
+  metadataBase: new URL('https://stud-in.com'), 
   title: "STUD'IN",
   description: "La plateforme qui simplifie la vie étudiante.",
   icons: {
