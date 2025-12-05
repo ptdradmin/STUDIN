@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase, initiateEmailSignIn } from '@/firebase';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { useFirebase } from '@/firebase';
+import { User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
 
@@ -65,27 +65,14 @@ export default function LoginForm() {
     
     setLoading('email');
 
-    // Non-blocking call
-    initiateEmailSignIn(auth, email, password);
-
-    // Listen for the result
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-            unsubscribe(); // Stop listening
-            handleSuccess(user);
-        }
-    }, (error) => {
-        unsubscribe(); // Stop listening on error
-        handleError(error);
-    });
-
-    // Timeout to prevent hanging state
-    setTimeout(() => {
-        unsubscribe();
-        if (loading) {
-            handleError({ code: 'auth/timeout' });
-        }
-    }, 10000);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      handleSuccess(userCredential.user);
+    } catch (error) {
+      handleError(error);
+    } finally {
+      setLoading('');
+    }
   }
 
   const buttonsDisabled = !!loading || isUserLoading || !areServicesAvailable;
