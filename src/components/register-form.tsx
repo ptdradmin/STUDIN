@@ -16,8 +16,9 @@ import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/au
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
 import { generateAvatar } from '@/lib/avatars';
+import { isUsernameUnique } from '@/lib/user-actions';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -86,6 +87,16 @@ export default function RegisterForm() {
     }
 
     try {
+      const usernameIsUnique = await isUsernameUnique(firestore, data.username);
+      if (!usernameIsUnique) {
+          form.setError("username", {
+              type: "manual",
+              message: "Ce nom d'utilisateur est déjà pris.",
+          });
+          setLoading(false);
+          return;
+      }
+      
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
       
