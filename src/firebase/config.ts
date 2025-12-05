@@ -49,7 +49,6 @@ export function getFirebaseServices(): FirebaseServices {
     
     try {
         appCheck = initializeAppCheck(app, {
-            // Use reCAPTCHA V3 for web apps, as it's simpler to configure and works well across environments.
             provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY || '6Ld-9RkqAAAAAPvXANiZ1sO52sJ12t2Lh_sB1a2z'),
             isTokenAutoRefreshEnabled: true,
         });
