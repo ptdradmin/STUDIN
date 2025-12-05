@@ -6,7 +6,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -42,23 +42,21 @@ export function getFirebaseServices(): FirebaseServices {
 
   // --- App Check Initialization ---
   if (typeof window !== 'undefined' && !appCheck) {
+    const isProduction = window.location.hostname.includes('stud-in.com');
+
     // For development (e.g., Firebase Studio, localhost), always use the debug token.
-    // This allows testing without a real reCAPTCHA setup.
-    // In production (e.g., Vercel), this variable should NOT be set to true.
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
-    if (isDevelopment) {
-      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    if (!isProduction) {
+      (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+       console.log("Firebase App Check: Using DEBUG TOKEN for development environment.");
     }
     
     try {
         appCheck = initializeAppCheck(app, {
-            // Use reCAPTCHA Enterprise for production environments.
-            // The debug token will override this in development.
-            provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+            // Use reCAPTCHA Enterprise for production, debug token for development.
+            provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
             isTokenAutoRefreshEnabled: true,
         });
-        console.log(`Firebase App Check initialized for ${isDevelopment ? 'development' : 'production'}.`);
+        console.log(`Firebase App Check initialized for ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}.`);
     } catch (e) {
       console.warn("App Check initialization error:", e);
     }
