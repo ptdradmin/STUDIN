@@ -6,3 +6,4 @@ import './flows/recommend-events-flow';
 import './flows/verify-submission-flow';
 import './flows/generate-caption-flow';
 import './flows/studin-ai-flow';
+import './flows/verify-recaptcha-flow';
