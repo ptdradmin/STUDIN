@@ -87,33 +87,16 @@ export default function RegisterForm() {
     }
 
     try {
-        // Step 1: Create user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
-        // Step 2: Create user document in Firestore
         const userDocRef = doc(firestore, 'users', user.uid);
         
-        // Find a unique username
-        let username = data.username;
-        let isUnique = false;
-        let counter = 1;
-        while(!isUnique) {
-            const q = query(collection(firestore, "users"), where("username", "==", username));
-            const querySnapshot = await getDocs(q);
-            if (querySnapshot.empty) {
-                isUnique = true;
-            } else {
-                username = `${data.username}${counter}`;
-                counter++;
-            }
-        }
-
         const userData = {
             id: user.uid,
             role: 'student',
             email: data.email,
-            username: username,
+            username: data.username,
             firstName: data.firstName,
             lastName: data.lastName,
             postalCode: data.postalCode,
@@ -134,7 +117,6 @@ export default function RegisterForm() {
 
         await setDoc(userDocRef, userData);
         
-        // Step 3: Update Auth profile
         const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
         await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
 
