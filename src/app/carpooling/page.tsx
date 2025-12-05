@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
 import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, serverTimestamp, doc, runTransaction, increment, updateDoc, writeBatch } from "firebase/firestore";
+import { collection, serverTimestamp, doc, runTransaction, increment, updateDoc, writeBatch, Timestamp } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -88,6 +88,23 @@ export default function CarpoolingPage() {
     setIsClient(true);
   }, []);
 
+  const getSafeDate = useCallback((dateValue: any): Date => {
+    if (!dateValue) return new Date();
+    if (dateValue instanceof Timestamp) {
+        return dateValue.toDate();
+    }
+    if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+        return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+    }
+    if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        const date = new Date(dateValue);
+        if (!isNaN(date.getTime())) {
+            return date;
+        }
+    }
+    return new Date();
+  }, []);
+
   useEffect(() => {
     if (trips && isClient) {
         // Generate random coordinates only on the client-side
@@ -111,10 +128,10 @@ export default function CarpoolingPage() {
     return clientTrips.filter(trip => {
       const departureMatch = departureFilter ? trip.departureCity.toLowerCase().includes(departureFilter.toLowerCase()) : true;
       const arrivalMatch = arrivalFilter ? trip.arrivalCity.toLowerCase().includes(arrivalFilter.toLowerCase()) : true;
-      const dateMatch = dateFilter ? new Date(trip.departureTime).toLocaleDateString() === new Date(dateFilter).toLocaleDateString() : true;
+      const dateMatch = dateFilter ? getSafeDate(trip.departureTime).toLocaleDateString() === new Date(dateFilter).toLocaleDateString() : true;
       return departureMatch && arrivalMatch && dateMatch;
     });
-  }, [clientTrips, departureFilter, arrivalFilter, dateFilter]);
+  }, [clientTrips, departureFilter, arrivalFilter, dateFilter, getSafeDate]);
 
   const handleContact = async (trip: Trip) => {
     if (isUserLoading) return;
@@ -324,8 +341,8 @@ export default function CarpoolingPage() {
                                   </div>
                                   <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
                                       <div className="text-center">
-                                          <p className="font-medium text-sm text-muted-foreground">{new Date(trip.departureTime).toLocaleDateString()}</p>
-                                          <p className="font-semibold">{new Date(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                                          <p className="font-medium text-sm text-muted-foreground">{getSafeDate(trip.departureTime).toLocaleDateString()}</p>
+                                          <p className="font-semibold">{getSafeDate(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                                       </div>
                                         {trip.seatsAvailable > 0 ? (
                                           <Badge variant="outline" className="flex items-center gap-1">
