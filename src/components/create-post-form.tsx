@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, useDoc, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, useStorage, useDoc, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -128,11 +128,11 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         () => {}, // Progress updates ignored for non-blocking
         (error) => {
             console.error("Upload error:", error);
-            updateDoc(newDocRef, { isUploading: false, uploadError: true });
+            updateDocumentNonBlocking(newDocRef, { isUploading: false, uploadError: true });
         },
         async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            updateDoc(newDocRef, {
+            updateDocumentNonBlocking(newDocRef, {
                 imageUrl: downloadURL,
                 isUploading: false,
             });
