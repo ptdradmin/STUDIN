@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, useDoc } from '@/firebase';
 import { collection, query, limit, getDocs } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { doc } from 'firebase/firestore';
@@ -31,7 +31,7 @@ export default function SocialFeedSuggestions() {
     const firestore = useFirestore();
     const { user } = useUser();
 
-    const userProfileRef = useMemoFirebase(() => {
+    const userProfileRef = useMemo(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
