@@ -17,7 +17,6 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
-import { isUsernameUnique } from '@/lib/user-actions';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -63,18 +62,9 @@ export default function RegisterInstitutionForm() {
     // 1. User Document
     const userDocRef = doc(firestore, 'users', user.uid);
     
-    let baseUsername = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20);
-    if (!baseUsername) {
-        baseUsername = `institution_${user.uid.substring(0,6)}`;
-    }
-    
-    let username = baseUsername;
-    let isUnique = await isUsernameUnique(firestore, username);
-    let counter = 1;
-    while(!isUnique) {
-        username = `${baseUsername}${counter}`;
-        isUnique = await isUsernameUnique(firestore, username);
-        counter++;
+    let username = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20);
+    if (!username) {
+        username = `institution_${user.uid.substring(0,6)}`;
     }
 
     const userData = {
@@ -289,3 +279,5 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+
+    
