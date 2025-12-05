@@ -67,6 +67,7 @@ const schoolsList = [
     'HEC Liège',
     'HEPL - Haute École de la Province de Liège',
     'HELMo - Haute École Libre Mosane',
+    'Haute École Albert Jacquard (HEAJ)',
     'Haute École de la Province de Namur (HEPN)',
     'Haute École Louvain en Hainaut (HELHa)',
     'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',

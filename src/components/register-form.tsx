@@ -21,17 +21,50 @@ import { generateAvatar } from '@/lib/avatars';
 import { isUsernameUnique } from '@/lib/user-actions';
 
 const schoolsList = [
-  'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
-  'HEC Liège', 'HEPL - Haute École de la Province de Liège', 'HELMo - Haute École Libre Mosane',
-  'Haute École de la Province de Namur (HEPN)', 'Haute École Louvain en Hainaut (HELHa)', 'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
-  'Haute École Galilée (HEG)', 'Haute École ICHEC - ECAM - ISFSC', 'Haute École de Bruxelles-Brabant (HE2B)',
-  'Haute École Francisco Ferrer', 'Haute École Léonard de Vinci', 'Haute École Robert Schuman',
-  'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)', 'La Cambre', 'Institut national supérieur des arts du spectacle (INSAS)',
-  'École supérieure des Arts Saint-Luc de Bruxelles', "École supérieure des Arts de l'Image 'Le 75'",
-  'Arts et Métiers (Campus de Bruxelles)', 'Arts et Métiers (Campus de Charleroi)', 'Campus Provincial de Namur',
-  'Institut provincial de Promotion sociale (IPC)', 'EPFC - Promotion Sociale', 'École Industrielle et Commerciale de la Province de Namur (EICPN)',
-  'IFAPME - Centre de Namur', 'IFAPME - Centre de Liège', 'IFAPME - Centre de Charleroi', 'IFAPME - Centre de Mons', 'IFAPME - Centre de Wavre',
-  'Autre'
+    // Universités
+    'Université de Namur',
+    'Université de Liège',
+    'UCLouvain',
+    'ULB - Université Libre de Bruxelles',
+    'UMons',
+    'Université Saint-Louis - Bruxelles',
+    // Hautes Écoles
+    'HEC Liège',
+    'HEPL - Haute École de la Province de Liège',
+    'HELMo - Haute École Libre Mosane',
+    'Haute École Albert Jacquard (HEAJ)',
+    'Haute École de la Province de Namur (HEPN)',
+    'Haute École Louvain en Hainaut (HELHa)',
+    'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+    'Haute École Galilée (HEG)',
+    'Haute École ICHEC - ECAM - ISFSC',
+    'Haute École de Bruxelles-Brabant (HE2B)',
+    'Haute École Francisco Ferrer',
+    'Haute École Léonard de Vinci',
+    'Haute École Robert Schuman',
+    // Écoles Supérieures des Arts
+    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
+    'La Cambre',
+    'Institut national supérieur des arts du spectacle (INSAS)',
+    'École supérieure des Arts Saint-Luc de Bruxelles',
+    "École supérieure des Arts de l'Image 'Le 75'",
+    // Arts & Métiers
+    'Arts et Métiers (Campus de Bruxelles)',
+    'Arts et Métiers (Campus de Charleroi)',
+    // Campus Provincial
+    'Campus Provincial de Namur',
+    // Promotion Sociale
+    'Institut provincial de Promotion sociale (IPC)',
+    'EPFC - Promotion Sociale',
+    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
+    // IFAPME
+    'IFAPME - Centre de Namur',
+    'IFAPME - Centre de Liège',
+    'IFAPME - Centre de Charleroi',
+    'IFAPME - Centre de Mons',
+    'IFAPME - Centre de Wavre',
+    // Autre
+    'Autre'
 ];
 
 const registerSchema = z.object({
@@ -119,6 +152,7 @@ export default function RegisterForm() {
         followerIds: [],
         followingIds: [],
         isVerified: false,
+        isPro: false,
         points: 0,
         challengesCompleted: 0,
         createdAt: serverTimestamp(),
