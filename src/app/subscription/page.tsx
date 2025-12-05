@@ -30,18 +30,20 @@ import { Label } from "@/components/ui/label";
 const VisaIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" role="img" aria-labelledby="pi-visa" {...props}>
         <title id="pi-visa">Visa</title>
-        <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.3-3-3-3z" fill="#1A1F71"/>
-        <path d="M12.4 16.3h2.3l1.1-5.7H9.9l-1.3 5.7h2.3c.3 0 .5-.1.6-.4l.2-1h2.3l.2 1c.1.3.3.4.6.4zm-2.6-2.1l.4-1.9.4 1.9h-.8zM23 10.6h-2.1c-.5 0-.8.2-1 .5l-2.1 5.2h2.3c.3 0 .5-.1.6-.4l.2-1h2.1l.2 1c.1.3.3.4.6.4h2.3l-2-5.2c-.3-.4-.6-.5-1.1-.5zm-1.1 2.8h-1.4l.7-1.9.7 1.9zM33.6 11.8h-1.7c-.4 0-.6.1-.7.4l-1.3 4.1h2.3c.3 0 .5-.1.6-.4l.2-1h2.1l.2 1c.1.3.3.4.6.4h2.3l-2-5.2c-.3-.4-.6-.5-1.1-.5h-2.1zM32.5 14.3h-1.4l.7-1.9.7 1.9z" fill="#F7B600"/>
+        <g fill="#1A1F71">
+            <path d="M35,0H3C1.3,0,0,1.3,0,3v18c0,1.7,1.4,3,3,3h32c1.7,0,3-1.3,3-3V3C38,1.3,36.7,0,35,0z"/>
+            <path d="M12.4,16.3h2.3l1.1-5.7H9.9l-1.3,5.7h2.3c0.3,0,0.5-0.1,0.6-0.4l0.2-1h2.3l0.2,1C11.9,16.2,12.1,16.3,12.4,16.3z M9.8,14.2l0.4-1.9l0.4,1.9H9.8z M23,10.6h-2.1c-0.5,0-0.8,0.2-1,0.5l-2.1,5.2h2.3c0.3,0,0.5-0.1,0.6-0.4l0.2-1h2.1l0.2,1c0.1,0.3,0.3,0.4,0.6,0.4h2.3l-2-5.2C23.6,10.8,23.3,10.6,23,10.6z M21.9,13.4h-1.4l0.7-1.9L21.9,13.4z M33.6,11.8h-1.7c-0.4,0-0.6,0.1-0.7,0.4l-1.3,4.1h2.3c0.3,0,0.5-0.1,0.6-0.4l0.2-1h2.1l0.2,1c0.1,0.3,0.3,0.4,0.6,0.4h2.3l-2-5.2C34.1,11.9,33.9,11.8,33.6,11.8z M32.5,14.3h-1.4l0.7-1.9L32.5,14.3z" fill="#F7B600"/>
+        </g>
     </svg>
 );
 
 const MastercardIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" role="img" aria-labelledby="pi-mastercard" {...props}>
         <title id="pi-mastercard">Mastercard</title>
-        <path d="M35 0H3C1.3 0 0 1.3 0 3v18c0 1.7 1.4 3 3 3h32c1.7 0 3-1.3 3-3V3c0-1.7-1.3-3-3-3z" fill="#222"/>
+        <path d="M35,0H3C1.3,0,0,1.3,0,3v18c0,1.7,1.4,3,3,3h32c1.7,0,3-1.3,3-3V3C38,1.3,36.7,0,35,0z" fill="#222"/>
         <circle cx="15" cy="12" r="7" fill="#EB001B"/>
         <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
-        <path d="M22 12c0 .9-.2 1.8-.5 2.6-.4.8-1 1.4-1.6 2s-1.3.9-2.2 1.1-.1.2-.1.3v.1h-2.7v-.1c0-.1.1-.2.1-.3.8-.3 1.5-.7 2.2-1.1.7-.4 1.2-1 1.6-2 .4-.7.6-1.6.6-2.5 0-1.6-1.3-2.9-3.1-2.9-1.2 0-2.3.6-2.8 1.6-.2.4-.4.8-.4 1.3v.1h2.7v-.1c0-.4.1-.7.4-1.1.4-.4.9-.7 1.5-.7s1.1.3 1.5.7c.4.4.6 1 .6 1.6z" fill="#FF5F00"/>
+        <path d="M22,12c0,0.9-0.2,1.8-0.5,2.6c-0.4,0.8-1,1.4-1.6,2s-1.3,0.9-2.2,1.1c0,0.1-0.1,0.2-0.1,0.3v0.1h-2.7v-0.1c0-0.1,0.1-0.2,0.1-0.3c0.8-0.3,1.5-0.7,2.2-1.1c0.7-0.4,1.2-1,1.6-2c0.4-0.7,0.6-1.6,0.6-2.5c0-1.6-1.3-2.9-3.1-2.9c-1.2,0-2.3,0.6-2.8,1.6C16.1,11.5,16,12,16,12.5v0.1h2.7v-0.1c0-0.4,0.1-0.7,0.4-1.1c0.4-0.4,0.9-0.7,1.5-0.7s1.1,0.3,1.5,0.7C21.8,11.3,22,11.9,22,12.5z" fill="#FF5F00"/>
     </svg>
 );
 
@@ -84,7 +86,7 @@ export default function SubscriptionPage() {
 
     return (
         <div className="flex min-h-screen w-full bg-background">
-            <SocialSidebar />
+            {user && <SocialSidebar />}
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                      <Link href={user ? "/social" : "/"} className="flex items-center gap-2 text-xl font-bold">
@@ -206,3 +208,4 @@ export default function SubscriptionPage() {
         </div>
     );
 }
+
