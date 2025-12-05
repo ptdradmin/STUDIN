@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -142,10 +143,9 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     setLoading(true);
     toast({ title: 'Création...', description: 'Votre trajet est en cours de publication.' });
 
-    const carpoolingsCollection = collection(firestore, 'carpoolings');
-    const newDocRef = doc(carpoolingsCollection);
+    const newDocRef = doc(collection(firestore, 'carpoolings'));
     
-    const finalDepartureTime = data.departureTime.toISOString();
+    const finalDepartureTime = Timestamp.fromDate(data.departureTime);
     const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
     const newCoords: [number, number] = [
         (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
@@ -157,8 +157,8 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         departureTime: finalDepartureTime,
         id: newDocRef.id,
         driverId: user.uid,
-        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-        userAvatarUrl: user.photoURL,
+        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Conducteur',
+        userAvatarUrl: user.photoURL || undefined,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         passengerIds: [],
@@ -167,7 +167,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         coordinates: newCoords,
     };
     
-    setDocumentNonBlocking(newDocRef, tripData);
+    setDocumentNonBlocking(newDocRef, tripData, { merge: false });
     toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
     onClose();
   };
@@ -277,5 +277,3 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     </Dialog>
   );
 }
-
-    

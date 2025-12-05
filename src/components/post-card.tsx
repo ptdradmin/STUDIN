@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { formatDistanceToNow, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useUser, useFirestore } from "@/firebase";
-import { doc, updateDoc, arrayUnion, Timestamp, collection, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { useUser, useFirestore, updateDocumentNonBlocking } from "@/firebase";
+import { doc, arrayUnion, Timestamp } from "firebase/firestore";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -177,7 +177,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     }, [isMuted, post.audioUrl]);
 
 
-    const handleLike = async () => {
+    const handleLike = () => {
         if (!user || !firestore) {
             toast({
                 variant: 'destructive',
@@ -202,26 +202,16 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
             setTimeout(() => setShowLikeAnimation(false), 800);
         }
 
-        try {
-            await updateDoc(postRef, { likes: newLikes });
+        updateDocumentNonBlocking(postRef, { likes: newLikes });
 
-            if (isLiking && post.userId !== user.uid) {
-                await createNotification(firestore, {
-                    type: 'like',
-                    senderId: user.uid,
-                    recipientId: post.userId,
-                    relatedId: post.id,
-                    message: 'a aimé votre publication.',
-                });
-            }
-        } catch (serverError) {
-            setOptimisticLikes(currentLikes);
-            const permissionError = new FirestorePermissionError({
-                path: postRef.path,
-                operation: 'update',
-                requestResourceData: { likes: newLikes }
+        if (isLiking && post.userId !== user.uid) {
+            createNotification(firestore, {
+                type: 'like',
+                senderId: user.uid,
+                recipientId: post.userId,
+                relatedId: post.id,
+                message: 'a aimé votre publication.',
             });
-            errorEmitter.emit('permission-error', permissionError);
         }
     };
 
@@ -251,7 +241,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
     };
 
 
-    const handleCommentSubmit = async (e: React.FormEvent) => {
+    const handleCommentSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !firestore || !comment.trim()) return;
 
@@ -261,7 +251,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
             username: user.displayName?.split(' ')[0] || 'Anonyme',
             userAvatarUrl: user.photoURL || `https://api.dicebear.com/7.x/micah/svg?seed=${user.email}`,
             text: comment,
-            createdAt: new Date().toISOString(),
+            createdAt: Timestamp.now(),
         };
 
         const previousComments = optimisticComments;
@@ -269,25 +259,16 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         const submittedComment = comment;
         setComment('');
 
-        try {
-            await updateDoc(postRef, { comments: arrayUnion(newComment) });
-            if (post.userId !== user.uid) {
-                await createNotification(firestore, {
-                    type: 'comment',
-                    senderId: user.uid,
-                    recipientId: post.userId,
-                    relatedId: post.id,
-                    message: `a commenté : "${submittedComment.substring(0, 20)}..."`,
-                });
-            }
-        } catch (serverError) {
-            setOptimisticComments(previousComments);
-            const permissionError = new FirestorePermissionError({
-                path: postRef.path,
-                operation: 'update',
-                requestResourceData: { comments: arrayUnion(newComment) }
+        updateDocumentNonBlocking(postRef, { comments: arrayUnion(newComment) });
+        
+        if (post.userId !== user.uid) {
+            createNotification(firestore, {
+                type: 'comment',
+                senderId: user.uid,
+                recipientId: post.userId,
+                relatedId: post.id,
+                message: `a commenté : "${submittedComment.substring(0, 20)}..."`,
             });
-            errorEmitter.emit('permission-error', permissionError);
         }
     }
 

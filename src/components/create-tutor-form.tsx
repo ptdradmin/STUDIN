@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -54,7 +55,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
   const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
-  const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
+  const userProfileRef = useMemo(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const onSubmit: SubmitHandler<TutorFormInputs> = (data) => {
@@ -65,8 +66,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
     setLoading(true);
     toast({ title: 'Création...', description: 'Votre profil de tuteur est en cours de création.' });
     
-    const tutoringsCollection = collection(firestore, 'tutorings');
-    const newDocRef = doc(tutoringsCollection);
+    const newDocRef = doc(collection(firestore, 'tutorings'));
 
     const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
     const newCoords: [number, number] = [
@@ -87,7 +87,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         coordinates: newCoords,
     };
 
-    setDocumentNonBlocking(newDocRef, tutorData);
+    setDocumentNonBlocking(newDocRef, tutorData, { merge: false });
     
     toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
     onClose();

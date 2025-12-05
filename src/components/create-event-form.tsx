@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,7 +20,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, setHours, setMinutes } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ref as storageRef, uploadBytes, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
 import { staticChallenges } from '@/lib/static-data';
@@ -125,15 +125,14 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         (baseChallenge.longitude || 4.87) + (Math.random() - 0.05),
     ];
 
-    const eventData: Omit<Event, 'updatedAt'> = {
+    const eventData: Omit<Event, 'updatedAt' | 'createdAt' | 'id' | 'startDate' | 'endDate'> & { startDate: any, endDate: any, createdAt: any } = {
         ...data,
-        id: newDocRef.id,
         organizerId: user.uid,
         username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Anonyme',
         userAvatarUrl: user.photoURL || undefined,
-        startDate: serverTimestamp() as any,
-        endDate: serverTimestamp() as any,
-        createdAt: serverTimestamp() as any,
+        startDate: serverTimestamp(),
+        endDate: serverTimestamp(),
+        createdAt: serverTimestamp(),
         attendeeIds: [],
         locationName: data.address,
         coordinates: newCoords,
@@ -143,7 +142,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         longitude: newCoords[1],
     };
     
-    setDocumentNonBlocking(newDocRef, eventData);
+    setDocumentNonBlocking(newDocRef, { ...eventData, id: newDocRef.id }, { merge: false });
     
     const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
@@ -152,11 +151,11 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         () => {},
         (error) => {
             console.error("Upload error:", error);
-            updateDoc(newDocRef, { uploadError: true });
+            updateDocumentNonBlocking(newDocRef, { uploadError: true });
         },
         async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            updateDoc(newDocRef, {
+            updateDocumentNonBlocking(newDocRef, {
                 imageUrl: downloadURL,
                 updatedAt: serverTimestamp()
             });

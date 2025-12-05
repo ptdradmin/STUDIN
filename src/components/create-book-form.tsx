@@ -11,13 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
+import type { Book } from '@/lib/types';
 
 const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
@@ -55,10 +56,9 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { auth, isUserLoading } = useAuth();
+  const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
   const storage = useStorage();
-  const {user} = useAuth();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -89,17 +89,16 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
 
     const newDocRef = doc(collection(firestore, 'books'));
     
-    const bookData = {
+    const bookData: Omit<Book, 'createdAt' | 'id'> & { createdAt: any } = {
         ...data,
-        id: newDocRef.id,
         sellerId: user.uid,
-        sellerName: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-        sellerAvatarUrl: user.photoURL,
+        sellerName: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Vendeur',
+        sellerAvatarUrl: user.photoURL || undefined,
         createdAt: serverTimestamp(),
         imageUrl: previewUrl, // Use local preview URL initially
     };
 
-    setDocumentNonBlocking(newDocRef, bookData);
+    setDocumentNonBlocking(newDocRef, { ...bookData, id: newDocRef.id }, { merge: false });
 
     const imageRef = storageRef(storage, `books/${newDocRef.id}/${imageFile.name}`);
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
@@ -108,11 +107,11 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
       () => {}, // Progress
       (error) => {
           console.error("Upload error:", error);
-          updateDoc(newDocRef, { uploadError: true });
+          updateDocumentNonBlocking(newDocRef, { uploadError: true });
       },
       async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDoc(newDocRef, { imageUrl: downloadURL });
+          updateDocumentNonBlocking(newDocRef, { imageUrl: downloadURL });
       }
     );
   };

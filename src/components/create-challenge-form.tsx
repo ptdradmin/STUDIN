@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -95,7 +95,7 @@ export default function CreateChallengeForm({ onClose }: CreateChallengeFormProp
         imageUrl: previewUrl, // optimistic
     };
     
-    setDocumentNonBlocking(newDocRef, challengeData);
+    setDocumentNonBlocking(newDocRef, challengeData, { merge: false });
 
     const imageRef = storageRef(storage, `challenges/${newDocRef.id}/${imageFile.name}`);
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
@@ -103,12 +103,12 @@ export default function CreateChallengeForm({ onClose }: CreateChallengeFormProp
     uploadTask.on('state_changed',
       () => {},
       (error) => {
-          updateDoc(newDocRef, { uploadError: true });
+          updateDocumentNonBlocking(newDocRef, { uploadError: true });
           toast({ variant: "destructive", title: "Erreur d'envoi", description: "L'image n'a pas pu être envoyée."});
       },
       async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDoc(newDocRef, { imageUrl: downloadURL });
+          updateDocumentNonBlocking(newDocRef, { imageUrl: downloadURL });
       }
     );
   };
