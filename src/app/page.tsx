@@ -5,7 +5,7 @@
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight, Sparkles, Zap, Check, ClipboardCheck } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight, Sparkles, Check, UserPlus, Search, MessageSquare, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -13,47 +13,51 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter }
 const services = [
     {
         name: "Logements",
-        description: "Trouvez le kot ou studio parfait près de votre campus.",
-        icon: <Bed className="h-6 w-6" />,
+        description: "Que vous cherchiez un kot pour l'année, un studio pour votre indépendance ou une colocation pour partager les frais, notre plateforme centralise les meilleures offres près des campus. Fini les recherches interminables.",
+        icon: <Bed className="h-8 w-8" />,
         href: "/housing",
         image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Covoiturage",
-        description: "Partagez vos trajets pour économiser et faire des rencontres.",
-        icon: <Car className="h-6 w-6" />,
+        description: "Partagez vos trajets quotidiens ou occasionnels pour aller en cours ou rentrer le week-end. Économisez sur vos frais de transport, réduisez votre empreinte carbone et faites de nouvelles rencontres en chemin.",
+        icon: <Car className="h-8 w-8" />,
         href: "/carpooling",
         image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop"
     },
     {
-        name: "Tutorat",
-        description: "Obtenez de l'aide pour réussir ou proposez vos compétences.",
-        icon: <BookOpen className="h-6 w-6" />,
+        name: "Tutorat & Marché aux Livres",
+        description: "Obtenez un coup de pouce dans les matières qui vous posent problème grâce à d'autres étudiants, ou partagez vos connaissances. Achetez et vendez également vos livres de cours d'occasion en toute simplicité.",
+        icon: <BookOpen className="h-8 w-8" />,
         href: "/tutoring",
         image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
     },
     {
-        name: "Marché aux Livres",
-        description: "Achetez ou vendez vos livres de cours d'occasion.",
-        icon: <BookOpen className="h-6 w-6" />,
-        href: "/books",
-        image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=1974&auto=format&fit=crop"
-    },
-    {
-        name: "Événements",
-        description: "Découvrez les meilleures soirées et activités étudiantes.",
-        icon: <PartyPopper className="h-6 w-6" />,
+        name: "Événements & Défis",
+        description: "Découvrez les meilleures soirées, conférences et activités étudiantes de votre ville. Relevez des défis, gagnez des points et explorez votre environnement comme jamais auparavant.",
+        icon: <PartyPopper className="h-8 w-8" />,
         href: "/events",
         image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=2070&auto=format&fit=crop"
     },
-    {
-        name: "Défis",
-        description: "Relevez des défis, gagnez des points et explorez votre ville.",
-        icon: <Target className="h-6 w-6" />,
-        href: "/challenges",
-        image: "https://images.unsplash.com/photo-1531844251246-9a1bfaae09fc?q=80&w=2116&auto=format&fit=crop"
-    },
-]
+];
+
+const howItWorksSteps = [
+  {
+    icon: <UserPlus className="h-8 w-8" />,
+    title: "1. Créez votre profil",
+    description: "Inscrivez-vous gratuitement en quelques clics et personnalisez votre profil pour rejoindre la communauté."
+  },
+  {
+    icon: <Search className="h-8 w-8" />,
+    title: "2. Explorez les services",
+    description: "Parcourez les annonces de logement, les offres de covoiturage, les tuteurs disponibles et bien plus encore."
+  },
+  {
+    icon: <MessageSquare className="h-8 w-8" />,
+    title: "3. Connectez-vous",
+    description: "Contactez directement d'autres étudiants via la messagerie sécurisée pour vous organiser."
+  }
+];
 
 export default function HomePage() {
 
@@ -61,7 +65,8 @@ export default function HomePage() {
         <div className="flex flex-col min-h-screen dark:bg-background">
             <Navbar />
             <main className="flex-grow">
-                <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center text-center text-white overflow-hidden">
+                {/* Hero Section */}
+                <section className="relative h-[70vh] min-h-[550px] flex items-center justify-center text-center text-white overflow-hidden">
                     <div className="absolute inset-0">
                         <Image
                             src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop"
@@ -78,7 +83,7 @@ export default function HomePage() {
                             L'écosystème qui simplifie votre vie étudiante.
                         </h1>
                         <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-white/90 drop-shadow-lg">
-                            Trouvez un logement, partagez un trajet, réussissez vos cours, relevez des défis et ne manquez aucun événement.
+                            Trouvez un logement, partagez un trajet, réussissez vos cours et ne manquez aucun événement. Tout au même endroit.
                         </p>
                         <div className="mt-8 flex justify-center items-center gap-4">
                             <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg">
@@ -91,9 +96,35 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                <section id="features" className="py-16 md:py-24 bg-background">
+                {/* How It Works Section */}
+                <section className="py-16 md:py-24 bg-background">
+                  <div className="container mx-auto px-4">
+                    <div className="mx-auto mb-12 max-w-3xl text-center">
+                        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                            Comment ça marche ?
+                        </h2>
+                        <p className="mt-4 text-lg text-muted-foreground">
+                           Commencez à simplifier votre vie étudiante en 3 étapes faciles.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {howItWorksSteps.map((step) => (
+                        <div key={step.title} className="flex flex-col items-center text-center p-6 border border-border/50 rounded-lg">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                            {step.icon}
+                          </div>
+                          <h3 className="text-xl font-semibold">{step.title}</h3>
+                          <p className="text-muted-foreground mt-2">{step.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Features Section */}
+                <section id="features" className="py-16 md:py-24 bg-muted/40">
                     <div className="container mx-auto px-4">
-                        <div className="mx-auto mb-12 max-w-3xl text-center">
+                        <div className="mx-auto mb-16 max-w-3xl text-center">
                             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
                                 Une Plateforme, Toutes les Solutions
                             </h2>
@@ -101,37 +132,40 @@ export default function HomePage() {
                                 Tout ce dont vous avez besoin pour une vie étudiante épanouie, centralisé et simplifié.
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {services.map(service => (
-                                <Link href={service.href || '#'} key={service.name} className="block group">
-                                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg h-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-2xl">
+                        <div className="space-y-20">
+                            {services.map((service, index) => (
+                                <div key={service.name} className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                                    <div className={`relative aspect-video rounded-xl overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 ${index % 2 === 0 ? '' : 'md:order-last'}`}>
                                         <Image
                                             src={service.image}
                                             alt={service.name}
                                             fill
                                             className="object-cover"
-                                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                                            sizes="(max-width: 768px) 100vw, 50vw"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                                        <div className="absolute bottom-0 left-0 p-4 text-white">
-                                            <div className="p-3 rounded-full bg-white/20 backdrop-blur-sm w-fit mb-2">
-                                                {service.icon}
-                                            </div>
-                                            <h3 className="text-xl font-bold">{service.name}</h3>
-                                            <p className="text-xs text-white/80 mt-1">{service.description}</p>
-                                        </div>
                                     </div>
-                                </Link>
+                                    <div className="text-center md:text-left">
+                                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                                            {service.icon}
+                                        </div>
+                                        <h3 className="text-2xl font-bold">{service.name}</h3>
+                                        <p className="mt-3 text-muted-foreground">{service.description}</p>
+                                        <Button asChild variant="link" className="mt-4 px-0">
+                                            <Link href={service.href || '#'}>Explorer {service.name} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                                        </Button>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
                 </section>
                 
-                <section id="ai-presentation" className="py-16 md:py-24 bg-muted/40">
+                {/* AI Presentation Section */}
+                <section id="ai-presentation" className="py-16 md:py-24 bg-background">
                   <div className="container mx-auto px-4">
                     <div className="mx-auto mb-12 max-w-3xl text-center">
-                      <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                        Découvrez STUD'IN AI, Votre Assistant Personnel
+                       <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                        STUD'IN AI, Votre Assistant Personnel
                       </h2>
                       <p className="mt-4 text-lg text-muted-foreground">
                         Une intelligence artificielle conçue pour vous, intégrée à votre quotidien étudiant.
@@ -152,7 +186,7 @@ export default function HomePage() {
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Modèle rapide (Gemini 2.5 Flash)</li>
                                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Réponses instantanées (texte et voix)</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Conversation multimodale (image, audio)</li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Conversation multimodale (analyse d'image, audio)</li>
                                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Connaissance de la vie étudiante belge</li>
                                 </ul>
                             </CardContent>
@@ -168,7 +202,7 @@ export default function HomePage() {
                             <div className="absolute top-0 right-0 py-1 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-bl-lg">LE PLUS PUISSANT</div>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-2xl">
-                                    <Zap className="text-primary"/>
+                                    <BadgeCheck className="text-primary"/>
                                     STUD'IN AI Pro
                                 </CardTitle>
                                 <CardDescription>Débloquez le potentiel maximal de l'IA.</CardDescription>
@@ -180,8 +214,7 @@ export default function HomePage() {
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage le plus avancé (Gemini 2.5 Pro) pour un raisonnement supérieur</li>
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications sociales</li>
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité à partir de texte</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour vos annonces et événements</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Validation intelligente des soumissions aux défis</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour vos annonces</li>
                                 </ul>
                             </CardContent>
                             <CardFooter>
@@ -193,9 +226,26 @@ export default function HomePage() {
                     </div>
                   </div>
                 </section>
+                
+                {/* Final CTA */}
+                <section className="py-16 md:py-24 bg-muted/40">
+                  <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Prêt à commencer ?</h2>
+                    <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+                      Rejoignez des milliers d'autres étudiants et transformez votre expérience universitaire dès aujourd'hui.
+                    </p>
+                    <div className="mt-8">
+                      <Button asChild size="lg">
+                        <Link href="/register">S'inscrire gratuitement</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </section>
 
             </main>
             <Footer />
         </div>
     );
 }
+
+    
