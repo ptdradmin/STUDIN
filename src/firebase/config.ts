@@ -5,7 +5,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -38,27 +37,6 @@ export function getFirebaseServices(): FirebaseServices {
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   
-  if (typeof window !== 'undefined') {
-    // Pass your reCAPTCHA v3 site key (public key) to activate().
-    // Make sure this is set in your environment variables.
-    const reCaptchaV3SiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-    
-    if (reCaptchaV3SiteKey) {
-        // This is the correct way to set the debug token.
-        // It will be used only in development environments where it is set.
-        (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = 'e481d300-fa1d-4245-952e-4b9026564ae2';
-
-        initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider(reCaptchaV3SiteKey),
-            // Optional: set to 'true' to allow auto-refresh of App Check token.
-            isTokenAutoRefreshEnabled: true
-        });
-    } else {
-        console.warn("reCAPTCHA v3 site key not found. App Check is not initialized.");
-    }
-  }
-
-
   const auth = getAuth(app);
   const firestore = getFirestore(app);
   const storage = getStorage(app);
