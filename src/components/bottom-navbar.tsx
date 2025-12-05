@@ -20,6 +20,11 @@ export default function BottomNavbar() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const userProfileRef = useMemoFirebase(
     () => (user ? doc(firestore!, 'users', user.uid) : null),
@@ -51,9 +56,9 @@ export default function BottomNavbar() {
   ];
   
   const isLoading = isUserLoading || isProfileLoading;
-  const hideNavbar = isLoading || !user || !userProfile || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
+  const hideNavbar = !isClient || !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
   
-  if (isLoading) {
+  if (isLoading && !hideNavbar) {
     return (
         <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40">
             <div className="flex justify-around items-center h-full">
@@ -88,7 +93,7 @@ export default function BottomNavbar() {
 
             if (item.isProfile) {
               if (!user || !userProfile) {
-                return null;
+                return <Skeleton key={index} className="h-7 w-7 rounded-full" />;
               }
               const isActive = pathname === item.href || pathname.startsWith('/profile/');
               return (

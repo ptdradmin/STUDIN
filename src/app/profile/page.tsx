@@ -301,7 +301,7 @@ export default function CurrentUserProfilePage() {
   const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading || savedBooksLoading;
   const totalSavedItems = (favoritedIds.post?.size || 0) + (favoritedIds.housing?.size || 0) + (favoritedIds.event?.size || 0) + (favoritedIds.tutor?.size || 0) + (favoritedIds.book?.size || 0);
 
-  if (isLoading || !user || !userProfile) {
+  if (isLoading) {
     return (
        <div className="flex min-h-screen w-full bg-background">
         <SocialSidebar />
@@ -314,6 +314,11 @@ export default function CurrentUserProfilePage() {
         </div>
        </div>
     )
+  }
+
+  if (!user || !userProfile) {
+    // This state should be brief as the useEffect above will redirect.
+    return <ProfilePageSkeleton />;
   }
 
   return (

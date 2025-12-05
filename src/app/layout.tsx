@@ -5,18 +5,17 @@ import { Inter, Poppins } from 'next/font/google';
 import { FirebaseProvider } from '@/firebase/provider';
 import { LanguageProvider } from '@/contexts/language-context';
 import type { Metadata } from 'next';
+import BottomNavbar from '@/components/bottom-navbar';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  display: 'swap',
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-poppins',
-  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -36,11 +35,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="fr" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className="font-body antialiased">
         <FirebaseProvider>
           <LanguageProvider>
             {children}
+            <BottomNavbar />
           </LanguageProvider>
           <Toaster />
         </FirebaseProvider>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
@@ -24,6 +25,12 @@ export default function SocialPage() {
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
 
+    useEffect(() => {
+      if (!isUserLoading && !user) {
+        router.push('/login?from=/social');
+      }
+    }, [isUserLoading, user, router]);
+
     const userProfileRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return doc(firestore, 'users', user.uid);
@@ -34,10 +41,8 @@ export default function SocialPage() {
     const postsQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         
-        // If the user follows people, fetch their posts. Otherwise, fetch generic recent posts.
         const followedIds = currentUserProfile?.followingIds;
         if (followedIds && followedIds.length > 0) {
-            // Firestore limits 'in' queries to 30 items.
             const idsForQuery = [...followedIds, user.uid].slice(0, 30);
             return query(
               collection(firestore, 'posts'), 
@@ -47,7 +52,6 @@ export default function SocialPage() {
             );
         }
         
-        // Fallback for new users: show some recent posts
         return query(
           collection(firestore, 'posts'),
           orderBy('createdAt', 'desc'),
@@ -75,12 +79,6 @@ export default function SocialPage() {
         }
         return map;
     }, [favoriteItems]);
-
-    useEffect(() => {
-      if (!isUserLoading && !user) {
-        router.push('/login?from=/social');
-      }
-    }, [isUserLoading, user, router]);
     
     if (isUserLoading || !user || profileLoading) {
       return <PageSkeleton />;
