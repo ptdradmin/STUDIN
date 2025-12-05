@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -76,11 +75,11 @@ export default function RegisterInstitutionForm() {
           return;
       }
       
-      // Step 1: Create the user in Firebase Auth
+      // Step 1: Create the user in Firebase Auth. This must succeed before we can write to Firestore.
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // Step 2: Now that the user is created and authenticated, write to Firestore
+      // Step 2: Now that the user is created and authenticated, prepare and execute the Firestore writes.
       const batch = writeBatch(firestore);
 
       const userDocRef = doc(firestore, 'users', user.uid);
@@ -121,9 +120,10 @@ export default function RegisterInstitutionForm() {
       };
       batch.set(institutionDocRef, institutionData);
 
+      // This commit will now be authenticated.
       await batch.commit();
       
-      // Step 3: Update Auth profile
+      // Step 3: Update Auth profile display name and photo.
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
       toast({
@@ -140,13 +140,21 @@ export default function RegisterInstitutionForm() {
                 title: "Erreur d'inscription",
                 description: "Cet email est déjà utilisé pour un autre compte.",
             });
-        } else {
+        } else if (error.code === 'permission-denied') {
+             // This is our detailed error handling for Firestore rules.
              const permissionError = new FirestorePermissionError({
-                path: `users_or_institutions`,
+                path: `users_or_institutions`, // Placeholder path, the error is in the batch.
                 operation: 'create',
                 requestResourceData: { note: 'An error occurred during batched write for new institution.' }
             });
             errorEmitter.emit('permission-error', permissionError);
+        } else {
+            console.error("An unexpected error occurred:", error);
+             toast({
+                variant: "destructive",
+                title: "Erreur Inattendue",
+                description: error.message || "Une erreur inconnue est survenue.",
+            });
         }
     } finally {
       setLoading(false);
