@@ -54,28 +54,31 @@ export default function RegisterInstitutionForm() {
     },
   });
 
-  const createUserDocuments = async (user: User, data: RegisterFormValues) => {
-    if (!firestore) return;
-
-    const batch = writeBatch(firestore);
-
-    // 1. User Document
-    const userDocRef = doc(firestore, 'users', user.uid);
-    
-    let username = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20);
-    if (!username) {
-        username = `institution_${user.uid.substring(0,6)}`;
+  const onSubmit = async (data: RegisterFormValues) => {
+    setLoading(true);
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Service indisponible.' });
+      setLoading(false);
+      return;
     }
 
-    const userData = {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+
+      const batch = writeBatch(firestore);
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const username = data.name.toLowerCase().replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${user.uid.substring(0,6)}`;
+      
+      const userData = {
         id: user.uid,
         role: 'institution',
         username: username,
         email: data.email,
-        firstName: data.name, // Use institution name as firstName for consistency
-        lastName: '', // No last name for institution
-        university: '', // Not applicable
-        fieldOfStudy: '', // Not applicable
+        firstName: data.name,
+        lastName: '',
+        university: '',
+        fieldOfStudy: '',
         postalCode: data.postalCode,
         city: data.city,
         bio: `Compte officiel de ${data.name}.`,
@@ -83,17 +86,16 @@ export default function RegisterInstitutionForm() {
         profilePicture: generateAvatar(user.email || user.uid),
         followerIds: [],
         followingIds: [],
-        isVerified: true, // Institutions are auto-verified for now
+        isVerified: true,
         points: 0,
         challengesCompleted: 0,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-    };
-    batch.set(userDocRef, userData);
+      };
+      batch.set(userDocRef, userData);
 
-    // 2. Institution Document
-    const institutionDocRef = doc(firestore, 'institutions', user.uid);
-    const institutionData = {
+      const institutionDocRef = doc(firestore, 'institutions', user.uid);
+      const institutionData = {
         id: user.uid,
         userId: user.uid,
         name: data.name,
@@ -102,58 +104,33 @@ export default function RegisterInstitutionForm() {
         email: data.email,
         role: 'institution',
         createdAt: serverTimestamp(),
-    };
-    batch.set(institutionDocRef, institutionData);
-    
-    await batch.commit();
+      };
+      batch.set(institutionDocRef, institutionData);
+      
+      await batch.commit();
+      
+      await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
-    // 3. Update Auth Profile
-    if (user) {
-        await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
-    }
-  };
-
-  const handleSuccess = () => {
-     toast({
+      toast({
         title: "Inscription réussie !",
         description: "Votre compte partenaire a été créé.",
       });
       router.push('/dashboard');
       router.refresh();
-  };
 
-  const handleError = (error: any) => {
-      let description = "Impossible de créer le compte.";
-      if (error.code === 'auth/email-already-in-use') {
-          description = "Cet email est déjà utilisé pour un autre compte.";
-      }
-       if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
-        description = "Problème de connexion ou de sécurité. Veuillez réessayer."
-      }
-      toast({
-          variant: "destructive",
-          title: "Erreur d'inscription",
-          description,
-      });
-  };
-
-  const onSubmit = async (data: RegisterFormValues) => {
-    setLoading(true);
-    
-    if (!auth || !firestore) {
-        toast({ variant: "destructive", title: "Erreur", description: "Service indisponible." });
-        setLoading(false);
-        return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      await createUserDocuments(userCredential.user, data);
-      handleSuccess();
     } catch (error: any) {
-        handleError(error);
+        console.error("Registration error:", error);
+        let description = "Impossible de créer le compte.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "Cet email est déjà utilisé pour un autre compte.";
+        }
+        toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description,
+        });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -279,5 +256,3 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
-
-    

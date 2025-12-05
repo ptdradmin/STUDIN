@@ -16,7 +16,7 @@ import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/au
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { doc, getDoc, setDoc, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { generateAvatar } from '@/lib/avatars';
 
 const schoolsList = [
@@ -79,67 +79,64 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
-    
     if (!auth || !firestore) {
-        toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez réessayer." });
-        setLoading(false);
-        return;
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible.' });
+      setLoading(false);
+      return;
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const user = userCredential.user;
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+      
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userData = {
+        id: user.uid,
+        role: 'student' as const,
+        email: data.email,
+        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        postalCode: data.postalCode,
+        city: data.city,
+        university: data.university,
+        fieldOfStudy: data.fieldOfStudy,
+        bio: '',
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: false,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await setDoc(userDocRef, userData);
+      
+      const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
+      await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
 
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userData = {
-            id: user.uid,
-            role: 'student' as const,
-            email: data.email,
-            username: data.username,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            postalCode: data.postalCode,
-            city: data.city,
-            university: data.university,
-            fieldOfStudy: data.fieldOfStudy,
-            bio: '',
-            website: '',
-            profilePicture: generateAvatar(user.email || user.uid),
-            followerIds: [],
-            followingIds: [],
-            isVerified: false,
-            points: 0,
-            challengesCompleted: 0,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-        await setDoc(userDocRef, userData);
-        
-        const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
-        await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
-
-        toast({
-            title: "Inscription réussie!",
-            description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
-        });
-        router.push('/social');
-        router.refresh();
+      toast({
+        title: "Inscription réussie!",
+        description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
+      });
+      router.push('/social');
+      router.refresh();
 
     } catch (error: any) {
-        let description = "Impossible de créer le compte.";
-        if (error.code === 'auth/email-already-in-use') {
-            description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-        } else if (error.code) {
-             console.error("Registration error:", error);
-             description = `Erreur: ${error.code}`;
-        }
-         toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description: description,
-        });
+      console.error("Registration error:", error);
+      let description = "Impossible de créer le compte.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "Cet email est déjà utilisé. Essayez de vous connecter.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description: description,
+      });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
   
