@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { CheckCircle2, ClipboardCheck, Gem, PartyPopper, Sparkles, Target, Check } from "lucide-react";
+import { Check, CreditCard, Gem, PartyPopper, Sparkles, Target } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { useUser, useFirestore, useDoc, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from 'firebase/firestore';
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { LogoIcon } from "@/components/logo-icon";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 export default function SubscriptionPage() {
@@ -100,10 +102,10 @@ export default function SubscriptionPage() {
                                <p className="text-sm text-muted-foreground mb-4">Passez à la vitesse supérieure avec les fonctionnalités exclusives de notre intelligence artificielle de pointe.</p>
                                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-6">
                                     <li className="flex items-center gap-3"><Sparkles className="h-4 w-4 text-primary"/>Légendes IA pour vos posts</li>
-                                    <li className="flex items-center gap-3"><ClipboardCheck className="h-4 w-4 text-primary"/>Analyse IA de vos annonces</li>
+                                    <li className="flex items-center gap-3"><CreditCard className="h-4 w-4 text-primary"/>Analyse IA de vos annonces</li>
                                     <li className="flex items-center gap-3"><Target className="h-4 w-4 text-primary"/>Recommandations de défis</li>
                                     <li className="flex items-center gap-3"><PartyPopper className="h-4 w-4 text-primary"/>Assistance création d'événements</li>
-                                    <li className="flex items-center gap-3"><CheckCircle2 className="h-4 w-4 text-primary"/>Badge de profil Pro</li>
+                                    <li className="flex items-center gap-3"><Check className="h-4 w-4 text-primary"/>Badge de profil Pro</li>
                                     <li className="flex items-center gap-3"><Gem className="h-4 w-4 text-primary"/>Modèle STUD'IN Pro</li>
                                 </ul>
                                 <div className="text-center p-6 bg-background/50 rounded-lg border">
@@ -139,14 +141,34 @@ export default function SubscriptionPage() {
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
-                                                <AlertDialogTitle>Confirmer l'abonnement</AlertDialogTitle>
+                                                <AlertDialogTitle>Passer à STUD'IN Pro</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Vous êtes sur le point de souscrire à l'abonnement STUD'IN Pro pour 4,99 €/mois. Un système de paiement sécurisé sera bientôt intégré. Pour l'instant, cliquez sur "Activer" pour simuler l'abonnement.
+                                                    Un système de paiement sécurisé sera bientôt intégré. Pour l'instant, ceci est une simulation.
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
+                                            <div className="space-y-4 py-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="card-name">Nom sur la carte</Label>
+                                                    <Input id="card-name" placeholder="John Doe" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="card-number">Numéro de carte</Label>
+                                                    <Input id="card-number" placeholder="**** **** **** 1234" />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="expiry-date">Date d'expiration</Label>
+                                                        <Input id="expiry-date" placeholder="MM/AA" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="cvc">CVC</Label>
+                                                        <Input id="cvc" placeholder="123" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleSubscription(true)}>Activer l'abonnement Pro</AlertDialogAction>
+                                                <AlertDialogAction onClick={() => handleSubscription(true)}>Payer et s'abonner</AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
@@ -159,3 +181,4 @@ export default function SubscriptionPage() {
         </div>
     );
 }
+
