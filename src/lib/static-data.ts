@@ -1,5 +1,7 @@
 
+
 import type { Challenge } from './types';
+import { Timestamp } from 'firebase/firestore';
 
 export const staticChallenges: Challenge[] = [
   // --- NAMUR FACILE ---
@@ -15,7 +17,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Namur',
     latitude: 50.4673,
     longitude: 4.8675,
-    createdAt: { seconds: 1672531200, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531200, 0),
   },
   {
     id: 'namur-facile-2',
@@ -29,7 +31,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Namur',
     latitude: 50.4593,
     longitude: 4.8625,
-    createdAt: { seconds: 1672531201, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531201, 0),
   },
    {
     id: 'namur-facile-3',
@@ -43,7 +45,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Namur',
     latitude: 50.4633,
     longitude: 4.8601,
-    createdAt: { seconds: 1672531202, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531202, 0),
   },
   
   // --- NAMUR MOYEN ---
@@ -59,7 +61,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Namur',
     latitude: 50.464,
     longitude: 4.866,
-    createdAt: { seconds: 1672531203, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531203, 0),
   },
   {
     id: 'namur-moyen-2',
@@ -73,7 +75,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Namur',
     latitude: 50.4578,
     longitude: 4.87,
-    createdAt: { seconds: 1672531204, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531204, 0),
   },
   
   // --- BRUXELLES FACILE ---
@@ -89,7 +91,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Bruxelles',
     latitude: 50.8949,
     longitude: 4.3415,
-    createdAt: { seconds: 1672531205, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531205, 0),
   },
 
   // --- BRUXELLES MOYEN ---
@@ -105,7 +107,7 @@ export const staticChallenges: Challenge[] = [
     location: 'Bruxelles',
     latitude: 50.8688,
     longitude: 4.348,
-    createdAt: { seconds: 1672531206, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531206, 0),
   },
 
   // --- BRUXELLES DIFFICILE ---
@@ -121,6 +123,57 @@ export const staticChallenges: Challenge[] = [
     location: 'Bruxelles',
     latitude: 50.854,
     longitude: 4.364,
-    createdAt: { seconds: 1672531207, nanoseconds: 0 } as any,
+    createdAt: new Timestamp(1672531207, 0),
   },
+];
+
+
+export const schoolsList = [
+    // Universités
+    'Université de Namur (UNamur)',
+    'Université de Liège (ULiège)',
+    'UCLouvain',
+    'Université Libre de Bruxelles (ULB)',
+    'Université de Mons (UMons)',
+    'Université Saint-Louis - Bruxelles (USL-B)',
+    // Hautes Écoles
+    'HEC Liège',
+    'HEPL - Haute École de la Province de Liège',
+    'HELMo - Haute École Libre Mosane',
+    'Haute École Albert Jacquard (HEAJ)',
+    'Haute École de la Province de Namur (HEPN)',
+    'Haute École Louvain en Hainaut (HELHa)',
+    'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+    'Haute École Galilée (HEG)',
+    'Haute École ICHEC - ECAM - ISFSC',
+    'Haute École de Bruxelles-Brabant (HE2B)',
+    'Haute École Francisco Ferrer',
+    'Haute École Léonard de Vinci',
+    'Haute École Robert Schuman',
+    'Haute École de la Ville de Liège (HEL)',
+    'Haute École Charlemagne (HECh)',
+    // Hautes Écoles Provinciales
+    'Haute École Provinciale de Hainaut - Condorcet',
+    // Écoles Supérieures des Arts
+    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
+    'La Cambre (ENSAV)',
+    'Institut national supérieur des arts du spectacle (INSAS)',
+    'École supérieure des Arts Saint-Luc de Bruxelles',
+    "École supérieure des Arts de l'Image 'Le 75'",
+    'Conservatoire royal de Bruxelles',
+    'Conservatoire royal de Liège',
+    'Arts²',
+    // Promotion Sociale
+    'Institut provincial de Promotion sociale (IPC)',
+    'EPFC - Promotion Sociale',
+    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
+    'IEPSCF - Uccle',
+    // IFAPME
+    'IFAPME - Namur',
+    'IFAPME - Liège',
+    'IFAPME - Charleroi',
+    'IFAPME - Mons',
+    'IFAPME - Wavre',
+    // Autre
+    'Autre'
 ];

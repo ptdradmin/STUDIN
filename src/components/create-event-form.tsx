@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -22,7 +23,7 @@ import { fr } from 'date-fns/locale';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
-import { staticChallenges } from '@/lib/static-data';
+import { staticChallenges, schoolsList } from '@/lib/static-data';
 import type { Event } from '@/lib/types';
 
 const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
@@ -54,57 +55,6 @@ type EventFormInputs = z.infer<typeof eventSchema>;
 interface CreateEventFormProps {
   onClose: () => void;
 }
-
-const schoolsList = [
-    // Universités
-    'Université de Namur (UNamur)',
-    'Université de Liège (ULiège)',
-    'UCLouvain',
-    'Université Libre de Bruxelles (ULB)',
-    'Université de Mons (UMons)',
-    'Université Saint-Louis - Bruxelles (USL-B)',
-    // Hautes Écoles
-    'HEC Liège',
-    'HEPL - Haute École de la Province de Liège',
-    'HELMo - Haute École Libre Mosane',
-    'Haute École Albert Jacquard (HEAJ)',
-    'Haute École de la Province de Namur (HEPN)',
-    'Haute École Louvain en Hainaut (HELHa)',
-    'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
-    'Haute École Galilée (HEG)',
-    'Haute École ICHEC - ECAM - ISFSC',
-    'Haute École de Bruxelles-Brabant (HE2B)',
-    'Haute École Francisco Ferrer',
-    'Haute École Léonard de Vinci',
-    'Haute École Robert Schuman',
-    'Haute École de la Ville de Liège (HEL)',
-    'Haute École Charlemagne (HECh)',
-    // Hautes Écoles Provinciales
-    'Haute École Provinciale de Hainaut - Condorcet',
-    // Écoles Supérieures des Arts
-    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
-    'La Cambre (ENSAV)',
-    'Institut national supérieur des arts du spectacle (INSAS)',
-    'École supérieure des Arts Saint-Luc de Bruxelles',
-    "École supérieure des Arts de l'Image 'Le 75'",
-    'Conservatoire royal de Bruxelles',
-    'Conservatoire royal de Liège',
-    'Arts²',
-    // Promotion Sociale
-    'Institut provincial de Promotion sociale (IPC)',
-    'EPFC - Promotion Sociale',
-    'École Industrielle et Commerciale de la Province de Namur (EICPN)',
-    'IEPSCF - Uccle',
-    // IFAPME
-    'IFAPME - Namur',
-    'IFAPME - Liège',
-    'IFAPME - Charleroi',
-    'IFAPME - Mons',
-    'IFAPME - Wavre',
-    // Autre
-    'Autre'
-];
-
 
 export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<EventFormInputs>({
@@ -162,13 +112,17 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         (baseChallenge.latitude || 50.46) + (Math.random() - 0.05),
         (baseChallenge.longitude || 4.87) + (Math.random() - 0.05),
     ];
+    
+    const startDateTimestamp = Timestamp.fromDate(data.startDate);
 
-    const eventData: Omit<Event, 'updatedAt' | 'createdAt' | 'id' | 'startDate' | 'endDate' | 'username' | 'userAvatarUrl'> & { startDate: any, endDate: any, createdAt: any } = {
+    const eventData = {
         ...data,
+        id: newDocRef.id,
         organizerId: user.uid,
-        startDate: data.startDate, // Will be converted to Timestamp by Firestore
-        endDate: data.startDate, // Simplified, can be extended
+        startDate: startDateTimestamp,
+        endDate: startDateTimestamp, // Simplified, can be extended
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
         attendeeIds: [],
         locationName: data.address,
         coordinates: newCoords,
@@ -178,7 +132,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         longitude: newCoords[1],
     };
     
-    setDocumentNonBlocking(newDocRef, { ...eventData, id: newDocRef.id }, { merge: false });
+    setDocumentNonBlocking(newDocRef, eventData, { merge: false });
     
     const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
@@ -193,7 +147,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             updateDocumentNonBlocking(newDocRef, {
                 imageUrl: downloadURL,
-                updatedAt: serverTimestamp()
             });
         }
     );
