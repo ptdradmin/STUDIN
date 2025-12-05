@@ -184,6 +184,7 @@ export type UserProfile = {
     gender?: 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
     profilePicture: string;
     isVerified?: boolean;
+    isPro?: boolean;
     followerIds: string[];
     followingIds: string[];
     points?: number;

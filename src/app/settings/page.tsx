@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -190,6 +191,18 @@ export default function SettingsPage() {
                                 Déconnexion
                             </Button>
                         </AccordionContent>
+                        </AccordionItem>
+                        
+                        <AccordionItem value="subscription">
+                          <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                              <div className="flex items-center gap-3">
+                              <Gem />
+                              Abonnement
+                              </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-6">
+                            <SettingsLink title="Gérer mon abonnement STUD'IN Pro" href="/subscription" />
+                          </AccordionContent>
                         </AccordionItem>
 
                         <AccordionItem value="privacy">

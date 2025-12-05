@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard, Sparkles, BadgeCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
@@ -127,6 +127,7 @@ export default function SocialSidebar() {
     }
 
     const userRole = userProfile?.role || 'student';
+    const isPro = userProfile?.isPro || false;
     const visibleNavItems = mainNavItems.filter(item => item.roles.includes(userRole));
 
 
@@ -154,7 +155,7 @@ export default function SocialSidebar() {
                             <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
                         </Avatar>}
                         <div className="flex flex-col items-start overflow-hidden">
-                            <p className="font-semibold text-sm truncate">{user?.displayName || 'Utilisateur'}</p>
+                            <p className="font-semibold text-sm truncate flex items-center gap-1.5">{user?.displayName || 'Utilisateur'} {isPro && <BadgeCheck className="h-4 w-4 text-primary" />}</p>
                             <p className="text-xs text-muted-foreground truncate">Voir les options</p>
                         </div>
                     </Button>
@@ -162,7 +163,7 @@ export default function SocialSidebar() {
                   <DropdownMenuContent className="w-56 mb-2" side="top" align="start">
                      <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user?.displayName || 'Utilisateur'}</p>
+                        <p className="text-sm font-medium leading-none flex items-center gap-1.5">{user?.displayName || 'Utilisateur'} {isPro && <BadgeCheck className="h-4 w-4 text-primary" />}</p>
                         <p className="text-xs leading-none text-muted-foreground">
                           {user?.email}
                         </p>

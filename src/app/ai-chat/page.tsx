@@ -1,12 +1,13 @@
+
 'use client';
 
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect } from "react";
+import { FormEvent, useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { askStudinAi } from "@/ai/flows/studin-ai-flow";
@@ -14,7 +15,8 @@ import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, UserProfile } from "@/lib/types";
+import { doc } from 'firebase/firestore';
 import type { StudinAiInput } from '@/ai/schemas/studin-ai-schema';
 
 
@@ -95,6 +97,15 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
 export default function AiChatPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const userProfileRef = useMemo(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
     const [messages, setMessages] = useState<ChatMessage[]>([
         { id: String(Date.now()), role: 'model', senderId: 'studin-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
     ]);
@@ -169,7 +180,7 @@ export default function AiChatPage() {
             const result = await askStudinAi({ 
                 history: historyForAi,
                 message: messageToSend,
-                isPro: true, // Use Pro model by default for now
+                isPro: userProfile?.isPro || false,
              });
              
             const aiResponse: ChatMessage = {

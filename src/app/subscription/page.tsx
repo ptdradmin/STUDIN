@@ -3,16 +3,63 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { CheckCircle2, ClipboardCheck, Gem, PartyPopper, Sparkles, Target } from "lucide-react";
+import { CheckCircle2, ClipboardCheck, Gem, PartyPopper, Sparkles, Target, Check } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { useUser, useFirestore, useDoc, updateDocumentNonBlocking } from "@/firebase";
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { useMemo, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 
 export default function SubscriptionPage() {
-    // In a real app, you would check the user's subscription status
-    const isPro = false; 
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    
+    const userProfileRef = useMemo(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const isPro = userProfile?.isPro || false; 
+
+    const handleSubscription = async (subscribe: boolean) => {
+        if (!userProfileRef) return;
+        
+        setIsProcessing(true);
+        try {
+            updateDocumentNonBlocking(userProfileRef, { isPro: subscribe });
+            toast({
+                title: subscribe ? "Félicitations !" : "Abonnement annulé",
+                description: subscribe ? "Vous êtes maintenant un membre STUD'IN Pro." : "Votre abonnement Pro a été annulé.",
+            });
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: "Erreur",
+                description: "Une erreur est survenue lors de la mise à jour de votre abonnement.",
+            });
+        } finally {
+            setIsProcessing(false);
+        }
+    }
+
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -44,7 +91,9 @@ export default function SubscriptionPage() {
                                     STUD'IN AI Pro
                                 </CardTitle>
                                 {isPro ? (
-                                    <CardDescription className="text-green-500 font-semibold">FORFAIT ACTUEL : PRO</CardDescription>
+                                    <CardDescription className="text-green-500 font-semibold flex items-center gap-2">
+                                        <Check className="h-4 w-4"/> FORFAIT ACTIF
+                                    </CardDescription>
                                 ) : (
                                     <CardDescription>FORFAIT ACTUEL : GRATUIT</CardDescription>
                                 )}
@@ -66,9 +115,43 @@ export default function SubscriptionPage() {
                             </CardContent>
                             <CardFooter>
                                 {isPro ? (
-                                    <Button variant="outline" className="w-full" disabled>Vous êtes déjà Pro</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" className="w-full" disabled={isProcessing}>Gérer l'abonnement</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Gérer votre abonnement</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Vous pouvez annuler votre abonnement à tout moment. Vous conserverez l'accès aux fonctionnalités Pro jusqu'à la fin de votre période de facturation actuelle.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Retour</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleSubscription(false)} className="bg-destructive hover:bg-destructive/90">
+                                                    Annuler mon abonnement
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 ) : (
-                                    <Button className="w-full" size="lg">Passer à Pro</Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button className="w-full" size="lg" disabled={isProcessing}>Passer à Pro</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Confirmer l'abonnement</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Vous êtes sur le point de souscrire à l'abonnement STUD'IN Pro pour 4,99 €/mois. Un système de paiement sécurisé sera bientôt intégré. Pour l'instant, cliquez sur "Activer" pour simuler l'abonnement.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleSubscription(true)}>Activer l'abonnement Pro</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 )}
                             </CardFooter>
                         </Card>
