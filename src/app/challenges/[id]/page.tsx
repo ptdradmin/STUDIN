@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -18,7 +19,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useDoc, useCollection, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { doc, collection, query, where, serverTimestamp, runTransaction, increment, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -60,12 +61,12 @@ export default function ChallengeDetailPage() {
         setIsChallengeLoading(false);
     }, [challengeId]);
 
-    const submissionsQuery = useMemoFirebase(() => !firestore || !challengeId ? null : query(collection(firestore, 'challenges', challengeId, 'submissions')), [firestore, challengeId]);
+    const submissionsQuery = useMemo(() => !firestore || !challengeId ? null : query(collection(firestore, 'challenges', challengeId, 'submissions')), [firestore, challengeId]);
     const { data: submissions, isLoading: areSubmissionsLoading } = useCollection<ChallengeSubmission>(submissionsQuery);
 
     const userSubmission = useMemo(() => submissions?.find(s => s.userId === user?.uid), [submissions, user]);
 
-    const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [user, firestore]);
+    const userProfileRef = useMemo(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [user, firestore]);
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
     const isChallengeCreator = user?.uid === challenge?.creatorId;

@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, MessageSquare, PlusSquare, Sparkles, User } from 'lucide-react';
 import { Button } from './ui/button';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import CreatePostForm from './create-post-form';
 import { generateAvatar } from '@/lib/avatars';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,7 @@ export default function BottomNavbar() {
     setIsClient(true);
   }, []);
 
-  const userProfileRef = useMemoFirebase(
+  const userProfileRef = useMemo(
     () => (user ? doc(firestore!, 'users', user.uid) : null),
     [user, firestore]
   );

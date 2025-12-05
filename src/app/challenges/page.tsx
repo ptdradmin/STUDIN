@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import ChallengeCard from '@/components/challenge-card';
-import { useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useCollection } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
 import { doc, collection, query } from 'firebase/firestore';
 import Navbar from '@/components/navbar';
@@ -40,14 +40,14 @@ export default function ChallengesPage() {
         setIsMounted(true);
     }, []);
 
-    const challengesQuery = useMemoFirebase(() => {
+    const challengesQuery = useMemo(() => {
         if (!firestore) return null;
         return query(collection(firestore, 'challenges'));
     }, [firestore]);
 
     const { data: challenges, isLoading: areChallengesLoading } = useCollection<Challenge>(challengesQuery);
 
-    const userProfileRef = useMemoFirebase(() => {
+    const userProfileRef = useMemo(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);

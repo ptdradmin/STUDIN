@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -17,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from 'next/link';
-import { useDoc, useFirestore, useMemoFirebase, useUser, useCollection } from '@/firebase';
+import { useDoc, useFirestore, useUser, useCollection } from '@/firebase';
 import { UserProfile } from '@/lib/types';
 import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -67,10 +68,10 @@ export default function LeaderboardPage() {
     const { user: authUser, isUserLoading } = useUser();
     const firestore = useFirestore();
 
-    const usersQuery = useMemoFirebase(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('points', 'desc'), limit(50)), [firestore]);
+    const usersQuery = React.useMemo(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('points', 'desc'), limit(50)), [firestore]);
     const { data: leaderboardData, isLoading: areUsersLoading } = useCollection<UserProfile>(usersQuery);
     
-    const userProfileRef = useMemoFirebase(() => {
+    const userProfileRef = React.useMemo(() => {
         if (!authUser || !firestore) return null;
         return doc(firestore, 'users', authUser.uid);
     }, [authUser, firestore]);

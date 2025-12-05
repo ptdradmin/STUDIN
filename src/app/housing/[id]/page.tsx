@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useParams, useRouter } from 'next/navigation';
 import type { Housing } from '@/lib/types';
@@ -18,6 +19,7 @@ import { getOrCreateConversation } from '@/lib/conversations';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
+import { useMemo } from 'react';
 
 
 function HousingDetailPageSkeleton() {
@@ -53,7 +55,7 @@ export default function HousingDetailPage() {
     const { toast } = useToast();
     const housingId = params.id as string;
 
-    const housingRef = useMemoFirebase(() => {
+    const housingRef = useMemo(() => {
         if (!firestore || !housingId) return null;
         return doc(firestore, 'housings', housingId);
     }, [firestore, housingId]);

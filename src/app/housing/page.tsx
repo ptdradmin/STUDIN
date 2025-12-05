@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import HousingListings from '@/components/housing-listings';
 import { LayoutGrid, Map, Plus, Search, GraduationCap, Bed } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
-import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useUser, useFirestore } from '@/firebase';
 import type { Housing, Favorite } from '@/lib/types';
 import CreateHousingForm from '@/components/create-housing-form';
 import { collection, query, where } from 'firebase/firestore';
@@ -39,14 +40,14 @@ export default function HousingPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(1000);
 
-  const housingsCollection = useMemoFirebase(() => {
+  const housingsCollection = useMemo(() => {
     if (!firestore) return null;
     return collection(firestore, 'housings');
   }, [firestore]);
 
   const { data: housings, isLoading } = useCollection<Housing>(housingsCollection);
 
-  const favoritesQuery = useMemoFirebase(() => {
+  const favoritesQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'housing'));
   }, [user, firestore]);

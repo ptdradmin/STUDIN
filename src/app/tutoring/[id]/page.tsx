@@ -1,13 +1,14 @@
 
+
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star, MessageSquare, ArrowLeft } from 'lucide-react';
-import { useUser, useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore, useCollection } from '@/firebase';
 import type { Tutor, TutoringReview } from '@/lib/types';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
@@ -97,13 +98,13 @@ export default function TutorProfilePage() {
   
   const [showReviewForm, setShowReviewForm] = useState(false);
 
-  const tutorRef = useMemoFirebase(() => {
+  const tutorRef = useMemo(() => {
     if (!tutorId || !firestore) return null;
     return doc(firestore, 'tutorings', tutorId);
   }, [tutorId, firestore]);
   const { data: tutor, isLoading: isTutorLoading, error: tutorError } = useDoc<Tutor>(tutorRef);
 
-  const reviewsQuery = useMemoFirebase(() => {
+  const reviewsQuery = useMemo(() => {
     if (!tutorId || !firestore) return null;
     return query(collection(firestore, 'tutoring_reviews'), where('tutoringId', '==', tutorId), orderBy('createdAt', 'desc'));
   }, [tutorId, firestore]);

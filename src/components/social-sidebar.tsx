@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser, useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useFirestore, useDoc } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
@@ -20,7 +21,7 @@ import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquar
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
 
 const mainNavItems = [
@@ -90,7 +91,7 @@ export default function SocialSidebar() {
     const pathname = usePathname();
     const { toast } = useToast();
     
-    const userProfileRef = useMemoFirebase(() => {
+    const userProfileRef = useMemo(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);

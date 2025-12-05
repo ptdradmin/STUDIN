@@ -1,10 +1,11 @@
 
+
 'use client';
 
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useDoc } from '@/firebase';
 import { collection, query, limit, getDocs } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

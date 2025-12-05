@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useCollection } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 import type { Notification } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +11,7 @@ import { Bell } from "lucide-react";
 import NotificationsDropdown from "@/components/notifications-dropdown";
 import GlobalSearch from "@/components/global-search";
 import NotificationCard from "@/components/notification-card";
+import { useMemo } from "react";
 
 
 function PageSkeleton() {
@@ -38,14 +40,14 @@ export default function NotificationsPage() {
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
 
-    const notificationsQuery = useMemoFirebase(() => {
+    const notificationsQuery = useMemo(() => {
         if (!firestore || !user) return null;
         return query(
             collection(firestore, `users/${user.uid}/notifications`),
             orderBy('createdAt', 'desc'),
             limit(50)
         );
-    }, [firestore, user?.uid]);
+    }, [firestore, user]);
 
     const { data: notifications, isLoading } = useCollection<Notification>(notificationsQuery);
     

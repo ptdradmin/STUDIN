@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -13,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Tutor, Favorite } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useUser, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
@@ -44,14 +45,14 @@ export default function TutoringPage() {
   const [subjectFilter, setSubjectFilter] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
 
-  const tutorsCollection = useMemoFirebase(() => {
+  const tutorsCollection = useMemo(() => {
     if (!firestore) return null;
     return collection(firestore, 'tutorings');
   }, [firestore]);
 
   const { data: tutors, isLoading } = useCollection<Tutor>(tutorsCollection);
 
-  const favoritesQuery = useMemoFirebase(() => {
+  const favoritesQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'tutor'));
   }, [user, firestore]);
@@ -178,7 +179,7 @@ export default function TutoringPage() {
       <Card>
         <CardContent className="p-2">
           <div className="h-[600px] w-full rounded-md overflow-hidden">
-              <MapView items={filteredTutors} itemType="tutor" />
+              <MapView items={filteredTutors || []} itemType="tutor" />
           </div>
         </CardContent>
       </Card>
