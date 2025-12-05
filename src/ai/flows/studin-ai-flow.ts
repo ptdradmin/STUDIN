@@ -18,8 +18,13 @@ const StudinAiMessageSchema = z.object({
   audioUrl: z.string().optional(),
 });
 
-const StudinAiInputSchema = z.object({
-  history: z.array(StudinAiMessageSchema).optional().describe('The conversation history.'),
+export const StudinAiInputSchema = z.object({
+  history: z.array(z.object({
+    role: z.enum(['user', 'model']),
+    text: z.string(), // text is mandatory in history
+    imageUrl: z.string().optional(),
+    audioUrl: z.string().optional(),
+  })).optional().describe('The conversation history.'),
   message: StudinAiMessageSchema.describe('The new user message.'),
 });
 export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
@@ -77,18 +82,25 @@ const studinAiFlow = ai.defineFlow(
 
     // 1. Speech-to-Text if audio is provided
     if (message.audioUrl) {
-      const { text: transcribedText } = await ai.generate({
-        model: googleAI.model('gemini-2.5-pro-stt'),
-        prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
-        config: {
-          responseModalities: ['TEXT'],
-        },
-      });
-      userMessageText = transcribedText || '';
+      try {
+          const { text: transcribedText } = await ai.generate({
+            model: googleAI.model('gemini-2.5-pro-stt'),
+            prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
+            config: {
+              responseModalities: ['TEXT'],
+            },
+          });
+          userMessageText = transcribedText || userMessageText;
+      } catch (e) {
+          console.error("Speech-to-text failed:", e);
+          // Fallback to using existing text or an error message
+          userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
+      }
     }
 
     // 2. Image Generation Logic
-    if (userImage) {
+    const shouldGenerateImage = userMessageText.toLowerCase().startsWith('génère une image') || userMessageText.toLowerCase().startsWith('crée une image');
+    if (userImage && userMessageText) {
         const { media, text: imageGenText } = await ai.generate({
             model: 'googleai/gemini-2.5-flash-image-preview',
             prompt: [
@@ -103,7 +115,7 @@ const studinAiFlow = ai.defineFlow(
             text: imageGenText || "Voici l'image que vous avez demandée.",
             imageUrl: media?.url,
         };
-    } else if (userMessageText.toLowerCase().startsWith('génère une image') || userMessageText.toLowerCase().startsWith('crée une image')) {
+    } else if (shouldGenerateImage) {
         const imagePrompt = userMessageText.replace(/^(génère une image de|crée une image de)/i, '').trim();
         const { media } = await ai.generate({
             model: 'googleai/imagen-4.0-fast-generate-001',
@@ -111,7 +123,7 @@ const studinAiFlow = ai.defineFlow(
         });
         return {
             text: `Voici une image de ${imagePrompt}.`,
-            imageUrl: media.url,
+            imageUrl: media?.url,
         };
     }
     
@@ -130,27 +142,33 @@ const studinAiFlow = ai.defineFlow(
         throw new Error('Failed to generate text response.');
     }
     
-    const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Algenib' } },
-        },
-      },
-      prompt: textResponse,
-    });
-    
-    if (!media) {
-      throw new Error('Failed to generate audio response.');
+    try {
+        const { media } = await ai.generate({
+          model: googleAI.model('gemini-2.5-flash-preview-tts'),
+          config: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Algenib' } },
+            },
+          },
+          prompt: textResponse,
+        });
+        
+        if (!media) {
+          throw new Error('No media returned from TTS model.');
+        }
+
+        const audioBuffer = Buffer.from(media.url.substring(media.url.indexOf(',') + 1), 'base64');
+        const wavBase64 = await toWav(audioBuffer);
+
+        return {
+          text: textResponse,
+          audio: 'data:audio/wav;base64,' + wavBase64,
+        };
+    } catch(e) {
+        console.error("Text-to-speech failed:", e);
+        // Return text-only response if TTS fails
+        return { text: textResponse };
     }
-
-    const audioBuffer = Buffer.from(media.url.substring(media.url.indexOf(',') + 1), 'base64');
-    const wavBase64 = await toWav(audioBuffer);
-
-    return {
-      text: textResponse,
-      audio: 'data:audio/wav;base64,' + wavBase64,
-    };
   }
 );

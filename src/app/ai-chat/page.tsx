@@ -9,12 +9,19 @@ import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { askStudinAi } from "@/ai/flows/studin-ai-flow";
+import { askStudinAi, type StudinAiInput } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import type { AiChatMessage } from "@/lib/types";
+
+type AiChatMessage = {
+    id: number;
+    role: 'user' | 'model';
+    text?: string;
+    audioUrl?: string;
+    imageUrl?: string;
+};
 
 
 function MessagesHeader() {
@@ -40,10 +47,10 @@ function MessagesHeader() {
     )
 }
 
-function MessageBubble({ message }: { message: AiChatMessage }) {
+function MessageBubble({ message, onDelete }: { message: AiChatMessage, onDelete?: (id: number) => void }) {
     const { user } = useUser();
     const isUserMessage = message.role === 'user';
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const [isHovered, setIsHovered] = useState(false);
 
     const getInitials = (name?: string | null) => {
         if (!name) return '..';
@@ -51,8 +58,17 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
     }
     
     return (
-        <div className={cn("flex items-start gap-3", isUserMessage && "justify-end")}>
-             {!isUserMessage && (
+        <div 
+            className={cn("flex items-start gap-2 group", isUserMessage && "justify-end")}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+             {isUserMessage && onDelete && (
+                <Button variant="ghost" size="icon" className={cn("h-7 w-7 transition-opacity", isHovered ? 'opacity-100' : 'opacity-0')} onClick={() => onDelete(message.id)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            )}
+            {!isUserMessage && (
                 <Avatar className="h-8 w-8">
                      <div className="h-full w-full flex items-center justify-center rounded-full bg-primary/20">
                         <Sparkles className="h-4 w-4 text-primary" />
@@ -68,7 +84,7 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
                     )}
                     {message.text && <div className="prose prose-sm dark:prose-invert prose-p:my-0 px-2"><Markdown>{message.text}</Markdown></div>}
                     {message.audioUrl && (
-                        <audio ref={audioRef} src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
+                        <audio src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
                     )}
                 </div>
             </div>
@@ -86,7 +102,7 @@ export default function AiChatPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [messages, setMessages] = useState<AiChatMessage[]>([
-        { id: Date.now(), role: 'model', text: "Bonjour ! Je suis STUD'IN AI. Je peux maintenant générer des images pour vous. Essayez de me demander 'génère une image d'un étudiant sur Mars' ou envoyez une image pour que je la modifie !" }
+        { id: Date.now(), role: 'model', text: "Bonjour ! Je suis STUD'IN AI, votre assistant personnel alimenté par Gemini 2.5 Pro. Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -144,11 +160,14 @@ export default function AiChatPage() {
                 });
             }
             
-            const history = updatedMessages.slice(0, -1).map(({id, ...rest}) => rest);
-            const messageToSend = { role: 'user', text: currentMessageText, imageUrl: currentPreviewUrl, audioUrl: audioDataUri };
+            const historyForAi: StudinAiInput['history'] = updatedMessages
+                .slice(0, -1)
+                .map(({id, ...rest}) => ({...rest, text: rest.text || ''})); // Ensure text is not undefined
+
+            const messageToSend: StudinAiInput['message'] = { role: 'user', text: currentMessageText, imageUrl: currentPreviewUrl, audioUrl: audioDataUri };
 
             const result = await askStudinAi({ 
-                history,
+                history: historyForAi,
                 message: messageToSend
              });
              
@@ -185,6 +204,7 @@ export default function AiChatPage() {
             
             mediaRecorderRef.current.onstop = () => {
                 stream.getTracks().forEach(track => track.stop());
+                 handleSendMessage(new Event('submit') as any);
             }
 
             mediaRecorderRef.current.start();
@@ -202,15 +222,24 @@ export default function AiChatPage() {
     
     const stopRecording = (cancel = false) => {
         if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.onstop = () => {
+                 const stream = mediaRecorderRef.current?.stream;
+                 stream?.getTracks().forEach(track => track.stop());
+                 if (!cancel) {
+                    handleSendMessage(new Event('submit') as any);
+                 }
+            }
             mediaRecorderRef.current.stop();
             if(cancel) {
                 audioChunksRef.current = [];
-            } else {
-                 handleSendMessage(new Event('submit') as any);
             }
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
         }
+    };
+    
+    const deleteMessage = (id: number) => {
+        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,7 +276,7 @@ export default function AiChatPage() {
 
                 <div className="flex-grow p-4 overflow-y-auto space-y-4">
                     {messages.map(msg => (
-                        <MessageBubble key={msg.id} message={msg} />
+                        <MessageBubble key={msg.id} message={msg} onDelete={msg.role === 'user' ? deleteMessage : undefined}/>
                     ))}
                     {isLoading && (
                         <div className="flex items-start gap-3">
@@ -288,7 +317,7 @@ export default function AiChatPage() {
                                <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
                                 <span className="font-mono text-sm">{formatRecordingTime(recordingTime)}</span>
                             </div>
-                            <Button type="button" variant="destructive" size="icon" onClick={() => stopRecording()}>
+                            <Button type="button" variant="destructive" size="icon" onClick={() => stopRecording(false)}>
                                 <StopCircle className="h-5 w-5" />
                             </Button>
                         </div>
