@@ -7,6 +7,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 
 const firebaseConfig = {
@@ -40,6 +41,25 @@ export function getFirebaseServices(): FirebaseServices {
   }
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+
+  // Initialize App Check
+  if (typeof window !== 'undefined') {
+    // Pass the reCAPTCHA Enterprise site key.
+    const reCaptchaKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
+    
+    // Assign the debug token to a variable.
+    const debugToken = 'e481d300-fa1d-4245-952e-4b9026564ae2';
+    
+    // Make the debug token available globally for easy access in the developer console.
+    (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
+    
+    initializeAppCheck(app, {
+      provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
+      // Set to 'true' to only allow valid App Check tokens.
+      // Set to 'false' to allow requests without a valid token, but with a warning.
+      isTokenAutoRefreshEnabled: true 
+    });
+  }
 
   const auth = getAuth(app);
   const firestore = getFirestore(app);
