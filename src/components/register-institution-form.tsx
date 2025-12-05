@@ -84,97 +84,102 @@ export default function RegisterInstitutionForm() {
       return;
     }
 
-    try {
-        const recaptchaToken = await executeRecaptcha();
-        const recaptchaResult = await verifyRecaptcha({ token: recaptchaToken, expectedAction: 'REGISTER_INSTITUTION' });
+    const recaptchaToken = await executeRecaptcha();
+    const recaptchaResult = await verifyRecaptcha({ token: recaptchaToken, expectedAction: 'REGISTER_INSTITUTION' });
 
-        if (!recaptchaResult.isVerified) {
-            throw new Error(`reCAPTCHA verification failed. Score: ${recaptchaResult.score}`);
-        }
-
-        const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
+    if (!recaptchaResult.isVerified) {
+        setLoading(false);
+        toast({ variant: 'destructive', title: 'Échec de la vérification', description: 'La vérification reCAPTCHA a échoué. Veuillez réessayer.' });
+        return;
+    }
+    
+    const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
         
-        const usernameIsUnique = await isUsernameUnique(firestore, username);
-        if (!usernameIsUnique) {
-            form.setError("name", {
-                type: "manual",
-                message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
-            });
-            setLoading(false);
-            return;
-        }
+    const usernameIsUnique = await isUsernameUnique(firestore, username);
+    if (!usernameIsUnique) {
+        form.setError("name", {
+            type: "manual",
+            message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
+        });
+        setLoading(false);
+        return;
+    }
 
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const user = userCredential.user;
+    const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+    const user = userCredential.user;
 
-        const newDisplayName = data.name;
-        const newPhotoURL = generateAvatar(user.email || user.uid);
-        await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
+    const newDisplayName = data.name;
+    const newPhotoURL = generateAvatar(user.email || user.uid);
+    await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-        const batch = writeBatch(firestore);
+    const batch = writeBatch(firestore);
 
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userData = {
-            id: user.uid,
-            role: 'institution' as const,
-            email: data.email,
-            username: username,
-            firstName: data.name,
-            lastName: '',
-            university: '',
-            fieldOfStudy: '',
-            postalCode: data.postalCode,
-            city: data.city,
-            bio: `Compte officiel de ${data.name}.`,
-            website: '',
-            profilePicture: newPhotoURL,
-            followerIds: [],
-            followingIds: [],
-            isVerified: false,
-            points: 0,
-            challengesCompleted: 0,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-        batch.set(userDocRef, userData);
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userData = {
+        id: user.uid,
+        role: 'institution' as const,
+        email: data.email,
+        username: username,
+        firstName: data.name,
+        lastName: '',
+        university: '',
+        fieldOfStudy: '',
+        postalCode: data.postalCode,
+        city: data.city,
+        bio: `Compte officiel de ${data.name}.`,
+        website: '',
+        profilePicture: newPhotoURL,
+        followerIds: [],
+        followingIds: [],
+        isVerified: false,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+    };
+    batch.set(userDocRef, userData);
 
-        const institutionDocRef = doc(firestore, 'institutions', user.uid);
-        const institutionData = {
-            id: user.uid,
-            userId: user.uid,
-            name: data.name,
-            postalCode: data.postalCode,
-            city: data.city,
-            createdAt: serverTimestamp(),
-        };
-        batch.set(institutionDocRef, institutionData);
+    const institutionDocRef = doc(firestore, 'institutions', user.uid);
+    const institutionData = {
+        id: user.uid,
+        userId: user.uid,
+        name: data.name,
+        postalCode: data.postalCode,
+        city: data.city,
+        createdAt: serverTimestamp(),
+    };
+    batch.set(institutionDocRef, institutionData);
 
-        await batch.commit();
-
-        toast({
+    batch.commit().then(() => {
+         toast({
             title: "Compte créé !",
             description: "Votre compte institution a été créé avec succès.",
         });
-
         router.push('/social');
         router.refresh();
-
-    } catch (error: any) {
-        let description = "Impossible de créer le compte.";
-        if (error.code === 'auth/email-already-in-use') {
-            description = "Cet email est déjà utilisé pour un autre compte.";
+    }).catch(error => {
+        if (error.code === 'permission-denied') {
+             // This is our detailed error handling for Firestore rules
+             const permissionError = new FirestorePermissionError({
+                 path: `users/${user.uid}`, // Simplified path for batch
+                 operation: 'create',
+                 requestResourceData: { user: userData, institution: institutionData }
+             });
+            errorEmitter.emit('permission-error', permissionError);
         } else {
-            console.error("Registration error:", error);
-            description = `Erreur: ${error.message}`;
+            let description = "Impossible de créer le compte.";
+            if (error.code === 'auth/email-already-in-use') {
+                description = "Cet email est déjà utilisé pour un autre compte.";
+            }
+            toast({
+              variant: "destructive",
+              title: "Erreur d'inscription",
+              description: description,
+            });
         }
-        toast({
-          variant: "destructive",
-          title: "Erreur d'inscription",
-          description: description,
-        });
-    } finally {
-      setLoading(false);
-    }
+    }).finally(() => {
+        setLoading(false);
+    });
   };
 
   const buttonsDisabled = loading;
