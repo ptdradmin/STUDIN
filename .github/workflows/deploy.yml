@@ -1,5 +1,5 @@
 
-name: Build and Deploy STUD'IN
+name: Build and Deploy to Firebase
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -25,24 +25,12 @@ jobs:
       - name: Build Project
         run: npm run build
         env:
-          # Vous pouvez ajouter ici des variables d'environnement nécessaires
-          # pour le build, stockées de manière sécurisée dans les secrets GitHub.
-          # Exemple :
-          # NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           GENKIT_ENV: production
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
-          # Cette action suppose une exportation statique. Pour un déploiement sur Vercel
-          # ou Firebase Hosting, l'étape de déploiement serait différente.
-
-# --- Instructions pour la configuration ---
-# 1. Ce fichier est maintenant prêt.
-# 2. Pour que le déploiement fonctionne, vous devrez peut-être configurer
-#    votre projet Next.js pour l'exportation statique si vous utilisez GitHub Pages.
-# 3. Si vous utilisez un autre hébergeur comme Vercel ou Firebase Hosting,
-#    l'étape "Deploy to GitHub Pages" devra être remplacée par l'action
-#    correspondante à votre service.
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_STUD_IN_A033B }}'
+          channelId: live
+          projectId: stud-in-a033b

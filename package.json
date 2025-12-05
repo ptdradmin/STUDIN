@@ -1,3 +1,4 @@
+
 {
   "name": "stud-in",
   "version": "3.1.0",
@@ -15,7 +16,6 @@
     "@genkit-ai/firebase": "^1.24.0",
     "@genkit-ai/google-genai": "^1.24.0",
     "@genkit-ai/next": "^1.24.0",
-    "@google-cloud/recaptcha-enterprise": "^5.1.0",
     "@hookform/resolvers": "^3.9.0",
     "@opentelemetry/winston-transport": "^0.8.0",
     "@radix-ui/react-accordion": "^1.2.0",
