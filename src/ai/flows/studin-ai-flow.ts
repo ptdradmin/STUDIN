@@ -74,41 +74,7 @@ const studinAiFlow = ai.defineFlow(
           userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
       }
     }
-
-    // 2. Image Analysis & Generation Logic
-    const shouldGenerateImage = userMessageText.toLowerCase().startsWith('génère une image') || userMessageText.toLowerCase().startsWith('crée une image');
-
-    // If there is an image, the main task is likely related to it (analysis, modification, etc.)
-    if (userImage) {
-        const { media, text: imageGenText } = await ai.generate({
-            model: 'googleai/gemini-2.5-pro-image-generate-001',
-            prompt: [
-                { media: { url: userImage } },
-                { text: userMessageText || 'Analyse cette image et décris ce que tu vois en détail.' },
-            ],
-            config: {
-                responseModalities: ['TEXT', 'IMAGE'],
-            },
-        });
-        return {
-            text: imageGenText || "Voici l'image que vous avez demandée.",
-            imageUrl: media?.url,
-        };
-    } 
-    // If the text specifically asks for image generation
-    else if (shouldGenerateImage) {
-        const imagePrompt = userMessageText.replace(/^(génère une image de|crée une image de)/i, '').trim();
-        const { media } = await ai.generate({
-            model: 'googleai/gemini-2.5-pro-image-generate-001',
-            prompt: imagePrompt,
-        });
-        return {
-            text: `Voici une image de ${imagePrompt}.`,
-            imageUrl: media?.url,
-        };
-    }
     
-    // 3. Standard Text & Audio Response with History
     // Choose model based on 'isPro' flag
     const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash-preview');
 
@@ -123,7 +89,10 @@ const studinAiFlow = ai.defineFlow(
             ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
           ].filter(Boolean) as any,
         })),
-        prompt: userMessageText,
+        prompt: [
+            ...(userMessageText ? [{text: userMessageText}] : []),
+            ...(userImage ? [{media: {url: userImage}}] : [])
+        ],
     });
 
     if (!textResponse) {
