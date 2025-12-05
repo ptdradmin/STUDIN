@@ -108,7 +108,8 @@ service cloud.firestore {
     // EVENTS - Public read, Organizer write
     // ============================================
     match /events/{eventId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
       // Allow attending by any signed-in user
       allow update: if (isSignedIn() && resource.data.organizerId == request.auth.uid) || 
