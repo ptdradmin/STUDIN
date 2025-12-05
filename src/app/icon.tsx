@@ -24,9 +24,22 @@ export default function Icon() {
           justifyContent: 'center',
           width: '100%',
           height: '100%',
+          borderRadius: '5px',
+          background: 'linear-gradient(to bottom right, hsl(250, 80%, 60%), hsl(25, 100%, 50%))',
         }}
       >
-        <LogoIcon width={32} height={32} />
+        <text
+            x="50%"
+            y="50%"
+            fontFamily="--font-poppins, sans-serif"
+            fontSize="24"
+            fontWeight="bold"
+            fill="white"
+            textAnchor="middle"
+            dy=".38em"
+        >
+            S
+        </text>
       </div>
     ),
     // ImageResponse options
