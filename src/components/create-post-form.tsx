@@ -123,7 +123,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         imageUrl: previewUrl, // Use local data URI for optimistic UI
         isUploading: true,
         fileType: 'image',
-    });
+    }, { merge: false });
 
     const fileRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
     const uploadTask = uploadBytesResumable(fileRef, imageFile);

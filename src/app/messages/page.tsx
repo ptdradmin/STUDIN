@@ -3,7 +3,7 @@
 
 import SocialSidebar from "@/components/social-sidebar";
 import { MessageSquare, MoreHorizontal, Sparkles, Trash2 } from "lucide-react";
-import { useUser, useFirestore, useCollection, useMemo } from "@/firebase";
+import { useUser, useFirestore, useCollection } from "@/firebase";
 import { collection, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 import type { Conversation } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,7 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from "@/lib/utils";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

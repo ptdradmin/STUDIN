@@ -1,6 +1,6 @@
 'use client';
 
-import { useFirestore, useUser, useMemoFirebase, useCollection, useDoc, useStorage } from "@/firebase";
+import { useFirestore, useUser, useCollection, useDoc, useStorage } from "@/firebase";
 import type { Conversation, ChatMessage } from "@/lib/types";
 import { collection, query, doc, orderBy, serverTimestamp, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { useParams, useRouter } from 'next/navigation';
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Paperclip, X, FileIcon, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
+import { FormEvent, useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createNotification } from "@/lib/actions";
@@ -104,13 +104,13 @@ export default function ConversationPage() {
     const audioChunksRef = useRef<Blob[]>([]);
     const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const conversationRef = useMemoFirebase(() => {
+    const conversationRef = useMemo(() => {
         if (!firestore || !conversationId) return null;
         return doc(firestore, 'conversations', conversationId);
     }, [firestore, conversationId]);
     const { data: conversation, isLoading: isConversationLoading } = useDoc<Conversation>(conversationRef);
 
-    const messagesQuery = useMemoFirebase(() => {
+    const messagesQuery = useMemo(() => {
         if (!firestore || !conversationId) return null;
         return query(collection(firestore, 'conversations', conversationId, 'messages'), orderBy('createdAt', 'asc'));
     }, [firestore, conversationId]);
@@ -227,6 +227,7 @@ export default function ConversationPage() {
             senderId: user.uid,
             text: newMessage,
             createdAt: serverTimestamp() as any,
+            role: 'user',
         };
 
         const otherParticipantId = conversation.participantIds.find(id => id !== user.uid);
