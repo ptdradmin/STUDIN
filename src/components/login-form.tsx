@@ -39,7 +39,7 @@ export default function LoginForm() {
   const handleError = (error: any) => {
     setLoading(false);
     let description = `Une erreur est survenue. (${error.code})`;
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
       description = "Adresse e-mail ou mot de passe incorrect."
     } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed' || error.code === 'auth/firebase-app-check-token-is-invalid') {
       description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
@@ -136,9 +136,9 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={buttonsDisabled || !areServicesAvailable}>
+            <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter'}
+                {loading ? 'Connexion...' : 'Se connecter'}
             </Button>
             </form>
         </div>
