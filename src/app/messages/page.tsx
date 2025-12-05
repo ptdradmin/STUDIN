@@ -107,7 +107,7 @@ function ConversationList() {
                 <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
                 <h2 className="text-xl font-bold mt-4">Aucune conversation</h2>
                 <p className="text-muted-foreground mt-2 max-w-sm">
-                    Commencez une nouvelle conversation depuis le profil d'un utilisateur ou parlez à l'assistant STUD'IN AI.
+                    Commencez une nouvelle conversation depuis le profil d'un utilisateur ou parlez à l'assistante Alice.
                 </p>
             </div>
         )
@@ -120,7 +120,7 @@ function ConversationList() {
     
     return (
         <div className="flex-grow overflow-y-auto">
-            {/* STUD'IN AI Assistant */}
+            {/* Alice Assistant */}
             <Link href="/ai-chat">
                 <div className={cn("p-4 flex items-start gap-3 hover:bg-muted/50 cursor-pointer border-b bg-gradient-to-r from-primary/10 to-card")}>
                      <Avatar className="h-12 w-12 border-2 border-primary/50">
@@ -130,11 +130,11 @@ function ConversationList() {
                     </Avatar>
                     <div className="flex-grow overflow-hidden">
                         <div className="flex justify-between items-center">
-                            <p className="font-semibold truncate">STUD'IN AI</p>
-                            <Badge variant="secondary" className="text-xs">Assistant</Badge>
+                            <p className="font-semibold truncate">Alice</p>
+                            <Badge variant="secondary" className="text-xs">Assistante</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground truncate">
-                           Votre assistant pour la vie étudiante.
+                           Votre assistante pour la vie étudiante.
                         </p>
                     </div>
                 </div>

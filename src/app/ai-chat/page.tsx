@@ -35,8 +35,8 @@ function MessagesHeader() {
                     </div>
                 </Avatar>
                 <div>
-                    <p className="font-semibold">STUD'IN AI</p>
-                    <p className="text-xs text-muted-foreground">Assistant IA Créatif</p>
+                    <p className="font-semibold">Alice</p>
+                    <p className="text-xs text-muted-foreground">Assistante IA Créative</p>
                 </div>
             </div>
         </div>
@@ -107,7 +107,7 @@ export default function AiChatPage() {
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: String(Date.now()), role: 'model', senderId: 'studin-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
+        { id: String(Date.now()), role: 'model', senderId: 'studin-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -194,7 +194,7 @@ export default function AiChatPage() {
             };
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
-            console.error("Error asking STUD'IN AI:", error);
+            console.error("Error asking Alice:", error);
             const errorResponse: ChatMessage = {
                 id: String(Date.now() + 1),
                 role: 'model',
@@ -343,7 +343,7 @@ export default function AiChatPage() {
                                 <Paperclip className="h-5 w-5" />
                             </Button>
                             <Input 
-                                placeholder="Discutez avec STUD'IN AI..."
+                                placeholder="Discutez avec Alice..."
                                 className="flex-grow" 
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}

@@ -172,21 +172,21 @@ export default function HomePage() {
                   <div className="container mx-auto px-4">
                     <div className="mx-auto mb-12 max-w-3xl text-center">
                        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                        STUD'IN AI, Votre Assistant Personnel
+                        Alice, Votre Assistante Personnelle
                       </h2>
                       <p className="mt-4 text-lg text-muted-foreground">
                         Une intelligence artificielle conçue pour vous, intégrée à votre quotidien étudiant.
                       </p>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {/* STUD'IN AI Free */}
+                        {/* Alice Free */}
                         <Card className="flex flex-col">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-2xl">
                                     <Sparkles className="text-muted-foreground"/>
-                                    STUD'IN Flash
+                                    Alice
                                 </CardTitle>
-                                <CardDescription>L'assistant rapide et efficace pour tous.</CardDescription>
+                                <CardDescription>L'assistante rapide et efficace pour tous.</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow space-y-4">
                                 <p className="text-3xl font-bold">Gratuit</p>
@@ -204,13 +204,13 @@ export default function HomePage() {
                             </CardFooter>
                         </Card>
 
-                        {/* STUD'IN AI Pro */}
+                        {/* Alice Pro */}
                          <Card className="border-primary border-2 flex flex-col relative overflow-hidden">
                             <div className="absolute top-0 right-0 py-1 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-bl-lg">LE PLUS PUISSANT</div>
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-2xl">
                                     <BadgeCheck className="text-primary"/>
-                                    STUD'IN Pro
+                                    Alice Pro
                                 </CardTitle>
                                 <CardDescription>Débloquez le potentiel maximal de l'IA.</CardDescription>
                             </CardHeader>

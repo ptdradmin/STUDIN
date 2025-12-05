@@ -69,7 +69,7 @@ export default function SubscriptionPage() {
             updateDocumentNonBlocking(userProfileRef, { isPro: subscribe });
             toast({
                 title: subscribe ? "Félicitations !" : "Abonnement annulé",
-                description: subscribe ? "Vous êtes maintenant un membre STUD'IN Pro." : "Votre abonnement Pro a été annulé.",
+                description: subscribe ? "Vous êtes maintenant un membre Alice Pro." : "Votre abonnement Pro a été annulé.",
             });
         } catch (error) {
             toast({
@@ -86,7 +86,7 @@ export default function SubscriptionPage() {
         setIsFreeActivated(true);
         toast({
             title: "Activation réussie !",
-            description: "Vous pouvez maintenant utiliser la version gratuite de STUD'IN AI.",
+            description: "Vous pouvez maintenant utiliser la version gratuite de Alice.",
         });
     }
 
@@ -103,7 +103,7 @@ export default function SubscriptionPage() {
                 <main className="flex-1 overflow-y-auto">
                     <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
                         <div className="container mx-auto px-4 py-12 text-center">
-                            <h1 className="text-4xl font-bold">Abonnement STUD'IN</h1>
+                            <h1 className="text-4xl font-bold">Abonnement Alice</h1>
                             <p className="mt-2 text-lg text-muted-foreground">
                                 Choisissez votre plan et débloquez le plein potentiel de l'IA.
                             </p>
@@ -116,7 +116,7 @@ export default function SubscriptionPage() {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-2xl">
                                         <Sparkles className="text-muted-foreground"/>
-                                        STUD'IN Flash
+                                        Alice
                                     </CardTitle>
                                     {isPro || isFreeActivated ? (
                                         <CardDescription>Le forfait de base inclus.</CardDescription>
@@ -151,7 +151,7 @@ export default function SubscriptionPage() {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-2xl">
                                         <Gem className="text-primary"/>
-                                        STUD'IN Pro
+                                        Alice Pro
                                     </CardTitle>
                                     {isPro && (
                                         <CardDescription className="text-green-500 font-semibold flex items-center gap-2">
@@ -197,7 +197,7 @@ export default function SubscriptionPage() {
                                             </AlertDialogTrigger>
                                             <AlertDialogContent>
                                                 <AlertDialogHeader>
-                                                    <AlertDialogTitle>Passer à STUD'IN Pro</AlertDialogTitle>
+                                                    <AlertDialogTitle>Passer à Alice Pro</AlertDialogTitle>
                                                     <AlertDialogDescription>
                                                         Un système de paiement sécurisé sera bientôt intégré. Pour l'instant, ceci est une simulation.
                                                     </AlertDialogDescription>

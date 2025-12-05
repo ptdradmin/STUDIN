@@ -29,7 +29,7 @@ const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home, roles: ['student', 'institution', 'admin'] },
   { href: "/reels", label: "Reels", icon: Film, roles: ['student', 'institution', 'admin'] },
   { href: "/messages", label: "Messages", icon: MessageSquare, roles: ['student', 'institution', 'admin'] },
-  { href: "/ai-chat", label: "STUD'IN AI", icon: Sparkles, roles: ['student', 'institution', 'admin'] },
+  { href: "/ai-chat", label: "Alice", icon: Sparkles, roles: ['student', 'institution', 'admin'] },
   { href: "/challenges", label: "Défis", icon: Target, roles: ['student', 'institution', 'admin'] },
   { href: "/leaderboard", label: "Classement", icon: Trophy, roles: ['student', 'institution', 'admin'] },
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ['institution', 'admin'] },

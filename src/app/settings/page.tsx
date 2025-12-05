@@ -201,7 +201,7 @@ export default function SettingsPage() {
                               </div>
                           </AccordionTrigger>
                           <AccordionContent className="px-6">
-                            <SettingsLink title="Gérer mon abonnement STUD'IN Pro" href="/subscription" />
+                            <SettingsLink title="Gérer mon abonnement Alice Pro" href="/subscription" />
                           </AccordionContent>
                         </AccordionItem>
 
