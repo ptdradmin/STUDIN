@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -29,18 +28,18 @@ import { Label } from "@/components/ui/label";
 
 
 const VisaIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <rect width="38" height="24" rx="3" fill="#0057A0"/>
-        <path d="M22.997 6.452H26.33L23.473 17.548H20.218L22.997 6.452ZM12.215 6.452C11.583 6.452 11.033 6.744 10.74 7.23L7.158 17.548H10.5L11.124 15.86H15.22L15.629 17.548H18.65L15.39 6.452H12.215ZM11.97 13.568L13.202 9.53L14.48 13.568H11.97ZM34.218 10.976C34.218 9.944 33.129 9.38 32.072 9.38C31.246 9.38 30.569 9.776 30.222 10.232L30.938 6.74H28L25.688 17.548H28.91L29.155 16.364C29.625 17.156 30.585 17.6 31.63 17.6C33.27 17.6 34.218 16.664 34.218 15.356V10.976ZM31.144 15.152C30.402 15.152 29.836 14.772 29.61 14.12L31.103 10.024C31.258 9.944 31.542 9.888 31.81 9.888C32.322 9.888 32.553 10.216 32.553 10.664V15.152H31.144Z" fill="white"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" fill="none" {...props}>
+        <rect width="38" height="24" rx="4" fill="#0057A0"/>
+        <path d="M23.01 6.5H26.33L23.48 17.5H20.23L23.01 6.5ZM12.23 6.5C11.59 6.5 11.04 6.8 10.75 7.2L7.17 17.5H10.51L11.13 15.9H15.23L15.64 17.5H18.66L15.4 6.5H12.23ZM11.98 13.6L13.21 9.5L14.49 13.6H11.98ZM34.22 11C34.22 9.9 33.13 9.4 32.08 9.4C31.25 9.4 30.58 9.8 30.23 10.2L30.94 6.7H28L25.7 17.5H28.92L29.16 16.4C29.63 17.2 30.59 17.6 31.64 17.6C33.28 17.6 34.22 16.7 34.22 15.4V11ZM31.15 15.2C30.41 15.2 29.84 14.8 29.62 14.1L31.11 10C31.26 9.9 31.55 9.9 31.82 9.9C32.33 9.9 32.56 10.2 32.56 10.7V15.2H31.15Z" fill="white"/>
     </svg>
 );
 
 const MastercardIcon = (props: React.SVGProps<SVGSVGElement>) => (
-   <svg width="38" height="24" viewBox="0 0 38 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <rect width="38" height="24" rx="3" fill="#222222"/>
+   <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" fill="none" {...props}>
+        <rect width="38" height="24" rx="4" fill="#222"/>
         <circle cx="15" cy="12" r="7" fill="#EB001B"/>
         <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
-        <path d="M20.25,12c0,3.866-3.134,7-7,7s-7-3.134-7-7s3.134-7,7-7c0.85,0,1.67,0.15,2.43,0.43c-1.8,1.43-3,3.58-3,6.57z" fill="#FF5F00"/>
+        <path d="M20 12C20 15.866 16.866 19 13 19C9.13401 19 6 15.866 6 12C6 8.13401 9.13401 5 13 5C14.7432 5 16.3312 5.66465 17.5113 6.7461C16.3267 7.83495 15.5 9.3948 15.5 11.1C15.5 11.4132 15.5401 11.7202 15.6163 12.0163C15.0673 11.9402 14.5034 11.9 13.9286 11.9C13.623 11.9 13.3221 11.9213 13.0286 11.962C12.5113 10.785 12.8687 9.35626 13.882 8.34302C13.2598 8.11867 12.6052 8 11.9286 8C10.0337 8 8.41473 9.13401 7.74286 10.7143H20.25Z" fill="#FF5F00" fillOpacity=".8"/>
     </svg>
 );
 
@@ -112,8 +111,8 @@ export default function SubscriptionPage() {
                                     {isPro ? (
                                         <CardDescription>Passez au Pro pour plus de fonctionnalités.</CardDescription>
                                     ) : (
-                                        <CardDescription className="text-green-500 font-semibold flex items-center gap-2">
-                                            <Check className="h-4 w-4"/> FORFAIT ACTIF
+                                        <CardDescription className="text-primary font-semibold flex items-center gap-2">
+                                            <Check className="h-4 w-4"/> Forfait actuel
                                         </CardDescription>
                                     )}
                                 </CardHeader>
@@ -127,7 +126,7 @@ export default function SubscriptionPage() {
                                 </CardContent>
                                 <CardFooter>
                                     <Button variant="secondary" className="w-full" asChild>
-                                        <Link href="/ai-chat">Utiliser l'IA</Link>
+                                        <Link href="/ai-chat">Accéder au Chat</Link>
                                     </Button>
                                 </CardFooter>
                             </Card>

@@ -199,7 +199,7 @@ export default function HomePage() {
                             </CardContent>
                             <CardFooter>
                                 <Button variant="secondary" className="w-full" asChild>
-                                    <Link href="/ai-chat">Essayer maintenant</Link>
+                                    <Link href="/subscription">Essayer maintenant</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
