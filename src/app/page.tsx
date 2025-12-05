@@ -184,10 +184,10 @@ export default function HomePage() {
                             <CardContent className="flex-grow space-y-4">
                                 <p className="text-3xl font-bold">Gratuit</p>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Modèle rapide (Gemini 2.5 Flash)</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Réponses instantanées (texte et voix)</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Conversation multimodale (analyse d'image, audio)</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Connaissance de la vie étudiante belge</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle rapide (Gemini 2.5 Flash) pour des réponses instantanées.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Conversation multimodale (Texte, Voix, Image).</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse de documents et d'images.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Connaissance approfondie de la vie étudiante en Belgique.</li>
                                 </ul>
                             </CardContent>
                             <CardFooter>
@@ -211,10 +211,10 @@ export default function HomePage() {
                                <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage le plus avancé (Gemini 2.5 Pro) pour un raisonnement supérieur</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications sociales</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité à partir de texte</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour vos annonces</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage le plus avancé (Gemini 2.5 Pro) pour un raisonnement supérieur.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications sociales.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité à partir de texte ou d'autres images.</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour optimiser vos annonces.</li>
                                 </ul>
                             </CardContent>
                             <CardFooter>
@@ -227,25 +227,8 @@ export default function HomePage() {
                   </div>
                 </section>
                 
-                {/* Final CTA */}
-                <section className="py-16 md:py-24 bg-muted/40">
-                  <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Prêt à commencer ?</h2>
-                    <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
-                      Rejoignez des milliers d'autres étudiants et transformez votre expérience universitaire dès aujourd'hui.
-                    </p>
-                    <div className="mt-8">
-                      <Button asChild size="lg">
-                        <Link href="/register">S'inscrire gratuitement</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </section>
-
             </main>
             <Footer />
         </div>
     );
 }
-
-    
