@@ -66,7 +66,8 @@ export default function RegisterInstitutionForm() {
         }
         (window as any).grecaptcha.enterprise.ready(async () => {
             try {
-                const token = await (window as any).grecaptcha.enterprise.execute('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS', { action: 'REGISTER_INSTITUTION' });
+                const siteKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
+                const token = await (window as any).grecaptcha.enterprise.execute(siteKey, { action: 'REGISTER_INSTITUTION' });
                 resolve(token);
             } catch (error) {
                 reject(error);
