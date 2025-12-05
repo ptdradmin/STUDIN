@@ -44,13 +44,6 @@ const services = [
         href: "/events",
         image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=2070&auto=format&fit=crop"
     },
-    {
-        name: "Défis",
-        description: "Transformez votre ville en terrain de jeu. Relevez des défis, gagnez des points et explorez votre environnement comme jamais auparavant.",
-        icon: <Target className="h-8 w-8" />,
-        href: "/challenges",
-        image: "https://images.unsplash.com/photo-1574235124952-f2882195642a?q=80&w=2070&auto=format&fit=crop"
-    },
 ];
 
 const howItWorksSteps = [
@@ -252,6 +245,30 @@ export default function HomePage() {
                     </div>
                 </section>
                 
+                {/* Challenges Section */}
+                <section className="relative py-20 md:py-32">
+                    <div className="absolute inset-0">
+                        <Image
+                            src="https://images.unsplash.com/photo-1574235124952-f2882195642a?q=80&w=2070&auto=format&fit=crop"
+                            alt="Vue urbaine pour les défis"
+                            fill
+                            className="object-cover"
+                            data-ai-hint="city exploration"
+                        />
+                        <div className="absolute inset-0 bg-black/60"></div>
+                    </div>
+                    <div className="container mx-auto px-4 relative z-10 text-center text-white">
+                         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/80 text-white mb-6">
+                            <Target className="h-8 w-8" />
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Transformez votre ville en terrain de jeu</h2>
+                        <p className="mt-4 text-lg text-white/90 max-w-2xl mx-auto">Relevez des défis, gagnez des points, et explorez votre environnement comme jamais auparavant.</p>
+                        <Button asChild size="lg" className="mt-8">
+                            <Link href="/challenges">Découvrir les défis</Link>
+                        </Button>
+                    </div>
+                </section>
+
                 {/* AI Presentation Section */}
                 <section id="ai-presentation" className="py-16 md:py-24 bg-background">
                   <div className="container mx-auto px-4">
