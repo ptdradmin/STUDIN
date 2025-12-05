@@ -1,29 +1,39 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, MessageSquare, PlusSquare, Target, User } from 'lucide-react';
 import { Button } from './ui/button';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useState, useEffect } from 'react';
 import CreatePostForm from './create-post-form';
 import { generateAvatar } from '@/lib/avatars';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
 
 export default function BottomNavbar() {
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const [showCreatePost, setShowCreatePost] = useState(false);
 
-  const getInitials = (email?: string | null) => {
-    if (!email) return '..';
-    const nameParts = user?.displayName?.split(' ');
-    if (nameParts && nameParts.length > 1 && nameParts[0] && nameParts[1]) {
+  const userProfileRef = useMemoFirebase(
+    () => (user ? doc(firestore!, 'users', user.uid) : null),
+    [user, firestore]
+  );
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
+  const getInitials = (name?: string | null) => {
+    if (!name) return '..';
+    const nameParts = name.split(' ');
+    if (nameParts.length > 1 && nameParts[0] && nameParts[1]) {
       return nameParts[0][0] + nameParts[1][0];
     }
-    return email.substring(0, 2).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
   };
 
   const navItems = [
@@ -40,10 +50,10 @@ export default function BottomNavbar() {
     '/faq', '/community-rules'
   ];
   
-  const hideNavbar = isUserLoading || !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
+  const isLoading = isUserLoading || isProfileLoading;
+  const hideNavbar = isLoading || !user || !userProfile || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
   
-  // Render a placeholder or nothing if auth state is loading to prevent hydration mismatch
-  if (isUserLoading) {
+  if (isLoading) {
     return (
         <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40">
             <div className="flex justify-around items-center h-full">
@@ -77,7 +87,7 @@ export default function BottomNavbar() {
             }
 
             if (item.isProfile) {
-              if (!user) {
+              if (!user || !userProfile) {
                 return null;
               }
               const isActive = pathname === item.href || pathname.startsWith('/profile/');
@@ -88,8 +98,8 @@ export default function BottomNavbar() {
                       isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
                     }`}
                   >
-                    <AvatarImage src={user.photoURL || generateAvatar(user.email || user.uid)} />
-                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                    <AvatarImage src={userProfile.profilePicture || generateAvatar(user.email || user.uid)} />
+                    <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
                   </Avatar>
                 </Link>
               );
