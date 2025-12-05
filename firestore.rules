@@ -1,45 +1,4 @@
-/**
- * This ruleset enforces a strict, user-centric security model for the STUD'IN application.
- *
- * Core Philosophy:
- * The primary security principle is "Path-Based Ownership." Access to resources is determined
- * by the document's path in the database. This ensures that users can only access data
- * that resides within their own designated data tree, making rules simple, fast, and secure.
- *
- * Data Structure:
- * Most data, including housing, carpooling, tutoring, events, and favorites, is nested
- * within a user-specific subcollection under `/users/{userId}`. This hierarchical
- * structure inherently ties data to its owner. Private messages are an exception, stored
- * in a top-level `/messages` collection, with security managed by fields within each
- * document.
- *
- * Key Security Decisions:
- * - User Privacy: Listing all users in the `/users` collection is explicitly disallowed
- *   to protect user privacy and prevent data scraping.
- * - Strict Ownership: All user-generated content (listings, events, etc.) is strictly
- *   confined to the user who created it. By default, there is no public read access to
- *   these items, as they are stored in user-specific subcollections.
- * - Immutable Messages: Once a message is sent, it cannot be edited or deleted, ensuring
- *   the integrity of conversations.
- * - Relational Integrity: On creation, rules validate that ownership fields within a
- *   document (e.g., `housing.userId`) correctly match the user ID in the path, preventing
- *   data inconsistency. These ownership fields are immutable.
- *
- * Denormalization for Authorization:
- * This ruleset relies on denormalization to enable efficient and secure authorization checks.
- * - Path-Based Ownership: Placing user content in subcollections like `/users/{userId}/housing`
- *   avoids the need for costly `get()` calls to check ownership on a parent document. The
- *   `userId` in the path is sufficient.
- * - Message Participants: For `/messages`, the `senderId` and `receiverId` are denormalized
- *   directly onto the message document, allowing rules to grant access without needing to
- *   look up related data.
- *
- * Structural Segregation:
- * The data model effectively segregates private user data. Each user's content is stored
- * in separate collection trees (e.g., `/users/userA/housing` vs. `/users/userB/housing`),
- * which is a highly secure and performant pattern for managing user-owned data and
- * securing list operations.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -95,7 +54,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
-      // FIXED: Allow creation during registration when auth.uid matches the document path
+      // FIXED: Allow creation during registration
       allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.id == userId;
       allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
@@ -186,7 +145,7 @@ service cloud.firestore {
     match /institutions/{institutionId} {
       allow get: if isOwner(institutionId);
       allow list: if false;
-      // FIXED: Allow creation during registration when auth.uid matches the document path
+      // FIXED: Allow creation during registration
       allow create: if isSignedIn() && request.auth.uid == institutionId && request.resource.data.id == institutionId;
       allow update: if isOwner(institutionId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(institutionId);
