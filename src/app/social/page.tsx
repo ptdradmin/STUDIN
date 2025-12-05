@@ -29,12 +29,17 @@ export default function SocialPage() {
         return doc(firestore, 'users', user.uid);
     }, [firestore, user]);
 
-    const { data: currentUserProfile } = useDoc<UserProfile>(userProfileRef);
+    const { data: currentUserProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const postsQuery = useMemoFirebase(() => {
-        if (!firestore || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) return null;
+        // MODIFICATION : Ne pas exécuter la requête si l'utilisateur ne suit personne.
+        // La requête 'in' avec un tableau vide est invalide et cause une erreur de permission.
+        if (!firestore || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) {
+            return null;
+        }
         
-        const followedIds = [...currentUserProfile.followingIds, user?.uid].slice(0, 10);
+        // Firestore limite les requêtes 'in' à 30 éléments.
+        const followedIds = [...currentUserProfile.followingIds, user?.uid].slice(0, 30);
         
         return query(
           collection(firestore, 'posts'), 
@@ -42,7 +47,7 @@ export default function SocialPage() {
           orderBy('createdAt', 'desc'),
           limit(50)
         );
-      }, [firestore, currentUserProfile?.followingIds, user?.uid]);
+      }, [firestore, currentUserProfile, user?.uid]);
 
     const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
     
@@ -70,7 +75,7 @@ export default function SocialPage() {
       }
     }, [isUserLoading, user, router]);
     
-    if (isUserLoading || !user) {
+    if (isUserLoading || !user || profileLoading) {
       return <PageSkeleton />;
     }
 
