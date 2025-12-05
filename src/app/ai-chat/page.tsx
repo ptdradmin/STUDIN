@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useDoc } from "@/firebase";
@@ -14,10 +15,10 @@ import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import type { ChatMessage, UserProfile } from "@/lib/types";
+import type { ChatMessage, UserProfile, Housing } from "@/lib/types";
 import { doc } from 'firebase/firestore';
-import type { StudinAiInput } from '@/ai/schemas/studin-ai-schema';
-
+import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
+import HousingCard from "@/components/housing-card";
 
 function MessagesHeader() {
     const router = useRouter();
@@ -40,6 +41,26 @@ function MessagesHeader() {
             </div>
         </div>
     )
+}
+
+function HousingResultCard({ housing }: { housing: Housing }) {
+    // This is a simplified card for display in the chat.
+    // It doesn't have all the interactions of the main HousingCard.
+    return (
+        <div className="w-full max-w-xs bg-card p-3 rounded-lg border">
+            <div className="relative aspect-video mb-2">
+                <Image src={housing.imageUrl} alt={housing.title} fill className="object-cover rounded-md" />
+            </div>
+            <h3 className="font-bold text-base truncate">{housing.title}</h3>
+            <p className="text-sm text-muted-foreground">{housing.city}</p>
+            <div className="flex justify-between items-end mt-2">
+                <p className="text-lg font-bold text-primary">{housing.price}€</p>
+                <Button size="sm" asChild>
+                    <Link href={`/housing/${housing.id}`}>Voir</Link>
+                </Button>
+            </div>
+        </div>
+    );
 }
 
 function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?: (id: string) => void }) {
@@ -72,7 +93,7 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
             )}
             <div className={cn("max-w-md p-1 rounded-2xl", isUserMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                 <div className="p-2 space-y-2">
-                    {message.imageUrl && (
+                    {message.imageUrl && !message.toolData && (
                         <div className="relative aspect-square w-full max-w-sm rounded-lg overflow-hidden">
                            <Image src={message.imageUrl} alt="Generated or uploaded image" fill className="object-cover"/>
                         </div>
@@ -80,6 +101,13 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     {message.text && <div className="prose prose-sm dark:prose-invert prose-p:my-0 px-2"><Markdown>{message.text}</Markdown></div>}
                     {message.audioUrl && (
                         <audio src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
+                    )}
+                    {message.toolData?.searchHousingsTool && (
+                        <div className="flex flex-col gap-2 p-2">
+                             {(message.toolData.searchHousingsTool as Housing[]).map(housing => (
+                                <HousingResultCard key={housing.id} housing={housing} />
+                             ))}
+                        </div>
                     )}
                 </div>
             </div>
@@ -106,13 +134,13 @@ export default function AiChatPage() {
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: String(Date.now()), role: 'model', senderId: 'alice-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
+        { id: String(Date.now()), role: 'model', senderId: 'alice-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Vous pouvez me demander de trouver un logement, me poser des questions, ou m'envoyer une image ou un message vocal." }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
-    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [fileToSend, setFileToSend] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -127,7 +155,7 @@ export default function AiChatPage() {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if ((!newMessage.trim() && audioChunksRef.current.length === 0 && !imageFile) || isLoading) return;
+        if ((!newMessage.trim() && audioChunksRef.current.length === 0 && !fileToSend) || isLoading) return;
 
         const userMessage: ChatMessage = {
             id: String(Date.now()),
@@ -135,7 +163,9 @@ export default function AiChatPage() {
             senderId: 'user',
             createdAt: new Date() as any,
             text: newMessage.trim() || undefined,
-            imageUrl: previewUrl || undefined,
+            imageUrl: fileToSend?.type.startsWith('image/') ? previewUrl || undefined : undefined,
+            fileUrl: !fileToSend?.type.startsWith('image/') ? previewUrl || undefined : undefined,
+            fileType: !fileToSend?.type.startsWith('image/') ? fileToSend?.type : undefined,
         };
         
         let audioBlob: Blob | null = null;
@@ -149,10 +179,11 @@ export default function AiChatPage() {
         
         const currentMessageText = newMessage;
         const currentPreviewUrl = previewUrl;
+        const currentFile = fileToSend;
 
         setNewMessage('');
         setIsLoading(true);
-        setImageFile(null);
+        setFileToSend(null);
         setPreviewUrl(null);
         audioChunksRef.current = [];
         
@@ -168,15 +199,19 @@ export default function AiChatPage() {
             
             const historyForAi: StudinAiInput['history'] = updatedMessages
                 .slice(0, -1)
-                .map(({id, senderId, createdAt, ...rest}) => ({role: rest.role, text: rest.text || '', imageUrl: rest.imageUrl || undefined, audioUrl: rest.audioUrl || undefined}));
+                .map(({id, senderId, createdAt, ...rest}) => ({...rest}));
 
             const messageToSend: StudinAiInput['message'] = { role: 'user' };
             if (currentMessageText) messageToSend.text = currentMessageText;
-            if (currentPreviewUrl) messageToSend.imageUrl = currentPreviewUrl;
+            if (currentFile?.type.startsWith('image/')) messageToSend.imageUrl = currentPreviewUrl || undefined;
+            else {
+                messageToSend.fileUrl = currentPreviewUrl || undefined;
+                messageToSend.fileType = currentFile?.type;
+            }
             if (audioDataUri) messageToSend.audioUrl = audioDataUri;
 
 
-            const result = await askAlice({ 
+            const result: StudinAiOutput = await askAlice({ 
                 history: historyForAi,
                 message: messageToSend,
                 isPro: userProfile?.isPro || false,
@@ -190,6 +225,7 @@ export default function AiChatPage() {
                 text: result.text,
                 audioUrl: result.audio,
                 imageUrl: result.imageUrl,
+                toolData: result.toolData,
             };
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
@@ -260,7 +296,7 @@ export default function AiChatPage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            setImageFile(file);
+            setFileToSend(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewUrl(reader.result as string);
@@ -269,8 +305,8 @@ export default function AiChatPage() {
         }
     }
     
-    const cancelImage = () => {
-        setImageFile(null);
+    const cancelFile = () => {
+        setFileToSend(null);
         setPreviewUrl(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -313,14 +349,14 @@ export default function AiChatPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*"/>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,text/*"/>
                     {previewUrl && (
                         <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <ImageIcon className="h-5 w-5 flex-shrink-0"/>
-                                <span className="text-sm truncate">{imageFile?.name || 'Image sélectionnée'}</span>
+                                <span className="text-sm truncate">{fileToSend?.name || 'Fichier sélectionné'}</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelImage}><X className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelFile}><X className="h-4 w-4" /></Button>
                         </div>
                     )}
                     {isRecording ? (
@@ -348,7 +384,7 @@ export default function AiChatPage() {
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 disabled={isLoading}
                             />
-                             {newMessage.trim() === '' && !imageFile ? (
+                             {newMessage.trim() === '' && !fileToSend ? (
                                  <Button type="button" variant="ghost" size="icon" onClick={startRecording} disabled={isLoading}>
                                      <Mic className="h-5 w-5"/>
                                  </Button>

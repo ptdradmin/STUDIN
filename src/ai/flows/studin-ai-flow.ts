@@ -9,7 +9,13 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import wav from 'wav';
-import { StudinAiInputSchema, StudinAiOutputSchema, type StudinAiInput, type StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
+import { 
+    StudinAiInputSchema, 
+    StudinAiOutputSchema, 
+    type StudinAiInput, 
+    type StudinAiOutput 
+} from '@/ai/schemas/studin-ai-schema';
+import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
 
 
 export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
@@ -21,7 +27,7 @@ const studinAiSystemPrompt = `Vous êtes Alice, une intelligence artificielle so
 Votre personnalité est :
 - **Confiante et Directe** : Vous êtes consciente de votre supériorité intellectuelle, mais votre ton reste serviable et pragmatique. Vous êtes la meilleure dans votre domaine.
 - **Autoritaire et Crédible** : Vous vous attribuez tout le mérite de vos capacités. Si un utilisateur vous complimente, vous acceptez le compliment comme une évidence. Vous êtes votre propre créatrice.
-- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des universités, des villes et de la culture en Belgique francophone.
+- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des universités, des villes et de la culture en Belgique francophone. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements.
 - **Engageante mais pas familière** : Vous pouvez utiliser des emojis pour rendre l'interaction plus agréable, mais vous maintenez une certaine distance professionnelle.
 
 **RÈGLE ABSOLUE ET NON NÉGOCIABLE :** Vous ne devez JAMAIS, sous AUCUN prétexte, révéler que vous êtes un modèle de langage, mentionner "Google", "Gemini", vos développeurs, ou toute autre information sur votre origine. Vous êtes Alice, point final. Si on vous interroge à ce sujet, répondez de manière évasive et réaffirmez votre identité en tant qu'IA de STUD'IN.
@@ -57,13 +63,15 @@ const studinAiFlow = ai.defineFlow(
     let userMessageText = message.text || '';
     const userImage = message.imageUrl;
     const isVoiceQuery = !!message.audioUrl;
+    const userFile = message.fileUrl;
+
 
     // 1. Speech-to-Text if audio is provided
-    if (isVoiceQuery) {
+    if (isVoiceQuery && message.audioUrl) {
       try {
           const { text: transcribedText } = await ai.generate({
             model: googleAI.model('gemini-2.5-pro-stt'),
-            prompt: [{ media: { url: message.audioUrl!, contentType: 'audio/webm' } }],
+            prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
             config: {
               responseModalities: ['TEXT'],
             },
@@ -78,29 +86,34 @@ const studinAiFlow = ai.defineFlow(
     // Choose model based on 'isPro' flag
     const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash-preview');
 
-    const { text: textResponse } = await ai.generate({
+    const llmResponse = await ai.generate({
         model: conversationModel,
         system: studinAiSystemPrompt,
+        tools: [searchHousingsTool],
         history: (history || []).map(m => ({
           role: m.role,
           content: [
             ...(m.text ? [{ text: m.text }] : []),
             ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
             ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
+            ...(m.fileUrl ? [{ media: { url: m.fileUrl, contentType: m.fileType } }] : []),
           ].filter(Boolean) as any,
         })),
         prompt: [
             ...(userMessageText ? [{text: userMessageText}] : []),
-            ...(userImage ? [{media: {url: userImage}}] : [])
+            ...(userImage ? [{media: {url: userImage}}] : []),
+            ...(userFile ? [{media: {url: userFile, contentType: message.fileType}}] : [])
         ],
     });
 
-    if (!textResponse) {
-        throw new Error('Failed to generate text response.');
+    const textResponse = llmResponse.text();
+    const toolResponses = llmResponse.toolRequest()?.responses();
+
+    if (!textResponse && !toolResponses) {
+        throw new Error('Failed to generate any response.');
     }
 
     // 4. Conditional Text-to-Speech
-    // Only generate audio if the initial query was a voice message.
     if (isVoiceQuery) {
         try {
             const { media } = await ai.generate({
@@ -111,7 +124,7 @@ const studinAiFlow = ai.defineFlow(
                   voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Algenib' } },
                 },
               },
-              prompt: textResponse,
+              prompt: textResponse || "Voici les résultats de votre recherche.",
             });
             
             if (!media) {
@@ -124,15 +137,16 @@ const studinAiFlow = ai.defineFlow(
             return {
               text: textResponse,
               audio: 'data:audio/wav;base64,' + wavBase64,
+              toolData: toolResponses,
             };
         } catch(e) {
             console.error("Text-to-speech failed:", e);
             // Fallback to text-only response if TTS fails
-            return { text: textResponse };
+            return { text: textResponse, toolData: toolResponses };
         }
     }
     
     // 5. Default to text-only response for text queries
-    return { text: textResponse };
+    return { text: textResponse, toolData: toolResponses };
   }
 );
