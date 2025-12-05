@@ -38,13 +38,22 @@ export default function LoginForm() {
 
   const handleError = (error: any) => {
     setLoading(false);
-    let description = `Une erreur est survenue. (${error.code})`;
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      description = "Adresse e-mail ou mot de passe incorrect."
-    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed' || error.code === 'auth/firebase-app-check-token-is-invalid') {
-      description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
-    } else if (error.code === 'auth/too-many-requests') {
-      description = "Trop de tentatives. Veuillez réessayer plus tard.";
+    let description = "Une erreur de connexion est survenue. Veuillez réessayer.";
+    
+    switch (error.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+            description = "Adresse e-mail ou mot de passe incorrect.";
+            break;
+        case 'auth/too-many-requests':
+            description = "L'accès à ce compte a été temporairement désactivé en raison de nombreuses tentatives de connexion infructueuses. Vous pouvez le restaurer immédiatement en réinitialisant votre mot de passe ou vous pouvez réessayer plus tard.";
+            break;
+        case 'auth/network-request-failed':
+            description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+            break;
+        default:
+             description = `Une erreur inattendue est survenue. (${error.code})`;
     }
 
     toast({

@@ -45,12 +45,26 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordResetEmail(auth, data.email);
       setEmailSent(true);
-    } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'envoyer l'e-mail. Vérifiez que l'adresse est correcte.",
+          title: "Email envoyé",
+          description: "Si un compte existe pour cette adresse, un e-mail de réinitialisation a été envoyé.",
       });
+    } catch (error: any) {
+      // Firebase doesn't reveal if the email exists for security reasons.
+      // So, we show a generic success message even on error, unless it's a specific client-side error.
+      if (error.code === 'auth/invalid-email') {
+          toast({
+            variant: "destructive",
+            title: "Email invalide",
+            description: "Veuillez entrer une adresse e-mail valide.",
+          });
+      } else {
+           setEmailSent(true); // Still show success UI
+            toast({
+              title: "Email envoyé",
+              description: "Si un compte existe pour cette adresse, un e-mail de réinitialisation a été envoyé.",
+          });
+      }
     } finally {
       setLoading(false);
     }

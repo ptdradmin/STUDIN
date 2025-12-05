@@ -158,12 +158,23 @@ export default function RegisterInstitutionForm() {
         router.refresh();
 
     } catch (error: any) {
-        // This will catch auth errors and Firestore permission errors
-        let description = "Impossible de créer le compte.";
-        if (error.code === 'auth/email-already-in-use') {
-            description = "Cet email est déjà utilisé pour un autre compte.";
-        }
+        let description = "Impossible de créer le compte. Veuillez réessayer.";
         
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
+            break;
+          case 'auth/weak-password':
+            description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
+            break;
+          case 'auth/invalid-email':
+            description = "L'adresse e-mail n'est pas valide.";
+            break;
+          case 'auth/network-request-failed':
+              description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+              break;
+        }
+
         // Don't show a toast for permission errors as they are handled by the listener
         if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
           toast({

@@ -138,13 +138,23 @@ export default function RegisterForm() {
 
     } catch (error: any) {
       console.error("Registration error:", error);
-      let description = "Impossible de créer le compte.";
-      if (error.code === 'auth/email-already-in-use') {
-        description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-      } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
-        description = "Problème de connexion ou de sécurité. Veuillez réessayer.";
-      } else {
-        description = `Erreur: ${error.code} - ${error.message}`;
+      let description = "Impossible de créer le compte. Veuillez réessayer.";
+      
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
+          break;
+        case 'auth/weak-password':
+          description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
+          break;
+        case 'auth/invalid-email':
+          description = "L'adresse e-mail n'est pas valide.";
+          break;
+        case 'auth/network-request-failed':
+            description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+            break;
+        default:
+            description = `Une erreur inattendue est survenue. (${error.code})`;
       }
 
       toast({
