@@ -44,7 +44,7 @@ const services = [
         description: "Transformez votre ville en terrain de jeu. Relevez des défis, gagnez des points et explorez votre environnement comme jamais auparavant.",
         icon: <Target className="h-8 w-8" />,
         href: "/challenges",
-        image: "https://images.unsplash.com/photo-1559135160-c305a0928b5a?q=80&w=1964&auto=format&fit=crop"
+        image: "https://images.unsplash.com/photo-1622284384912-29007f353272?q=80&w=1932&auto=format&fit=crop"
     },
 ];
 
