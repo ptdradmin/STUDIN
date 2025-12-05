@@ -137,7 +137,7 @@ export default function RegisterInstitutionForm() {
             updatedAt: serverTimestamp(),
         };
         
-        await setDoc(userDocRef, userData)
+        setDoc(userDocRef, userData)
           .catch((serverError) => {
               const permissionError = new FirestorePermissionError({
                   path: userDocRef.path,
@@ -145,8 +145,6 @@ export default function RegisterInstitutionForm() {
                   requestResourceData: userData
               });
               errorEmitter.emit('permission-error', permissionError);
-              // We still throw to let the user know something went wrong, 
-              // but the dev overlay will show the rich error.
               throw serverError;
           });
         
@@ -160,23 +158,22 @@ export default function RegisterInstitutionForm() {
     } catch (error: any) {
         let description = "Impossible de créer le compte. Veuillez réessayer.";
         
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-            description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
-            break;
-          case 'auth/weak-password':
-            description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
-            break;
-          case 'auth/invalid-email':
-            description = "L'adresse e-mail n'est pas valide.";
-            break;
-          case 'auth/network-request-failed':
-              description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
-              break;
-        }
-
-        // Don't show a toast for permission errors as they are handled by the listener
+        // Only show a toast if it's not a permission error, which is handled globally
         if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
+              break;
+            case 'auth/weak-password':
+              description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
+              break;
+            case 'auth/invalid-email':
+              description = "L'adresse e-mail n'est pas valide.";
+              break;
+            case 'auth/network-request-failed':
+                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+                break;
+          }
           toast({
             variant: "destructive",
             title: "Erreur d'inscription",
