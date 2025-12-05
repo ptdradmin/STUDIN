@@ -54,13 +54,14 @@ const studinAiFlow = ai.defineFlow(
   async ({ history, message }) => {
     let userMessageText = message.text || '';
     const userImage = message.imageUrl;
+    const isVoiceQuery = !!message.audioUrl;
 
     // 1. Speech-to-Text if audio is provided
-    if (message.audioUrl) {
+    if (isVoiceQuery) {
       try {
           const { text: transcribedText } = await ai.generate({
             model: googleAI.model('gemini-2.5-pro-stt'),
-            prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
+            prompt: [{ media: { url: message.audioUrl!, contentType: 'audio/webm' } }],
             config: {
               responseModalities: ['TEXT'],
             },
@@ -68,7 +69,6 @@ const studinAiFlow = ai.defineFlow(
           userMessageText = transcribedText || userMessageText;
       } catch (e) {
           console.error("Speech-to-text failed:", e);
-          // Fallback to using existing text or an error message
           userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
       }
     }
@@ -120,34 +120,41 @@ const studinAiFlow = ai.defineFlow(
     if (!textResponse) {
         throw new Error('Failed to generate text response.');
     }
-    
-    try {
-        const { media } = await ai.generate({
-          model: googleAI.model('gemini-2.5-flash-preview-tts'),
-          config: {
-            responseModalities: ['AUDIO'],
-            speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Algenib' } },
-            },
-          },
-          prompt: textResponse,
-        });
-        
-        if (!media) {
-          throw new Error('No media returned from TTS model.');
+
+    // 4. Conditional Text-to-Speech
+    // Only generate audio if the initial query was a voice message.
+    if (isVoiceQuery) {
+        try {
+            const { media } = await ai.generate({
+              model: googleAI.model('gemini-2.5-flash-preview-tts'),
+              config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                  voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Algenib' } },
+                },
+              },
+              prompt: textResponse,
+            });
+            
+            if (!media) {
+              throw new Error('No media returned from TTS model.');
+            }
+
+            const audioBuffer = Buffer.from(media.url.substring(media.url.indexOf(',') + 1), 'base64');
+            const wavBase64 = await toWav(audioBuffer);
+
+            return {
+              text: textResponse,
+              audio: 'data:audio/wav;base64,' + wavBase64,
+            };
+        } catch(e) {
+            console.error("Text-to-speech failed:", e);
+            // Fallback to text-only response if TTS fails
+            return { text: textResponse };
         }
-
-        const audioBuffer = Buffer.from(media.url.substring(media.url.indexOf(',') + 1), 'base64');
-        const wavBase64 = await toWav(audioBuffer);
-
-        return {
-          text: textResponse,
-          audio: 'data:audio/wav;base64,' + wavBase64,
-        };
-    } catch(e) {
-        console.error("Text-to-speech failed:", e);
-        // Return text-only response if TTS fails
-        return { text: textResponse };
     }
+    
+    // 5. Default to text-only response for text queries
+    return { text: textResponse };
   }
 );
