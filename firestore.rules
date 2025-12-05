@@ -63,7 +63,8 @@ service cloud.firestore {
     // HOUSINGS - Public read, Owner write
     // ============================================
     match /housings/{housingId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
@@ -73,7 +74,8 @@ service cloud.firestore {
     // CARPOOLINGS - Public read, Driver write
     // ============================================
     match /carpoolings/{carpoolId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
       // Allow booking by any signed-in user (not the driver)
       allow update: if (isSignedIn() && resource.data.driverId == request.auth.uid) || 
@@ -91,7 +93,8 @@ service cloud.firestore {
     // TUTORINGS - Public read, Tutor write
     // ============================================
     match /tutorings/{tutoringId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.tutorId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.tutorId == request.auth.uid;
@@ -125,7 +128,8 @@ service cloud.firestore {
     // BOOKS - Public read, Seller write
     // ============================================
     match /books/{bookId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
