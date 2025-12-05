@@ -20,24 +20,23 @@ export const getOrCreateConversation = async (firestore: Firestore, currentUserI
     if (currentUserId === otherUserId) return null;
 
     const conversationsRef = collection(firestore, 'conversations');
-    const q = query(conversationsRef, where('participantIds', 'array-contains', currentUserId));
-
+    // This query might fail if composite indexes are not set up, but it's a good first check.
+    const q = query(conversationsRef, where('participantIds', '==', [currentUserId, otherUserId].sort()));
+    
     try {
         const querySnapshot = await getDocs(q);
-        let existingConversationId: string | null = null;
-        
-        querySnapshot.forEach(doc => {
-            const conversation = doc.data();
-            if (conversation.participantIds.includes(otherUserId)) {
-                existingConversationId = doc.id;
-            }
-        });
-        
-        if (existingConversationId) {
-            return existingConversationId;
+        if (!querySnapshot.empty) {
+            return querySnapshot.docs[0].id;
         }
 
-        // Use a transaction to create the conversation atomically
+        // If not found, try the other permutation in case sorting wasn't consistent on creation
+         const qAlt = query(conversationsRef, where('participantIds', '==', [otherUserId, currentUserId].sort()));
+         const altSnapshot = await getDocs(qAlt);
+         if (!altSnapshot.empty) {
+            return altSnapshot.docs[0].id;
+        }
+
+        // If still no conversation, create one in a transaction
         const newConversationId = await runTransaction(firestore, async (transaction) => {
             const currentUserProfileSnap = await transaction.get(doc(firestore, 'users', currentUserId));
             const otherUserProfileSnap = await transaction.get(doc(firestore, 'users', otherUserId));
@@ -50,7 +49,7 @@ export const getOrCreateConversation = async (firestore: Firestore, currentUserI
             const otherUserProfile = otherUserProfileSnap.data() as UserProfile;
             
             const newConversationData = {
-                participantIds: [currentUserId, otherUserId],
+                participantIds: [currentUserId, otherUserId].sort(),
                 participants: {
                     [currentUserId]: {
                         username: currentUserProfile.username,
@@ -63,6 +62,7 @@ export const getOrCreateConversation = async (firestore: Firestore, currentUserI
                 },
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
+                unread: false,
             };
 
             const newDocRef = doc(collection(firestore, 'conversations'));
@@ -73,12 +73,11 @@ export const getOrCreateConversation = async (firestore: Firestore, currentUserI
         return newConversationId;
 
     } catch (error: any) {
-        console.error("Error in getOrCreateConversation transaction:", error);
+        console.error("Error in getOrCreateConversation:", error);
          if(error.code === 'permission-denied') {
              const permissionError = new FirestorePermissionError({
                 path: 'conversations',
-                operation: 'create',
-                requestResourceData: { participantIds: [currentUserId, otherUserId] }
+                operation: 'list', // Querying is a 'list' operation
             });
             errorEmitter.emit('permission-error', permissionError);
         }
