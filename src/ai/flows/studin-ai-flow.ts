@@ -108,7 +108,11 @@ const studinAiFlow = ai.defineFlow(
         system: studinAiSystemPrompt,
         history: (history || []).map(m => ({
           role: m.role,
-          content: [{ text: m.text || '' }]
+          content: [
+            ...(m.text ? [{ text: m.text }] : []),
+            ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
+            ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
+          ].filter(Boolean),
         })),
         prompt: userMessageText,
     });
