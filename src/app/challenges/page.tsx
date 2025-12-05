@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import SocialSidebar from '@/components/social-sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,11 +17,10 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import ChallengeCard from '@/components/challenge-card';
-import { useUser, useDoc, useFirestore, useCollection } from '@/firebase';
+import { useUser, useDoc, useFirestore } from '@/firebase';
 import CreateChallengeForm from '@/components/create-challenge-form';
-import { doc, collection, query } from 'firebase/firestore';
+import { doc, collection, query, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, orderBy } from 'firebase/firestore';
 import Navbar from '@/components/navbar';
-
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -36,16 +35,62 @@ export default function ChallengesPage() {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
 
+    const [challenges, setChallenges] = useState<Challenge[]>([]);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+
     useEffect(() => {
         setIsMounted(true);
     }, []);
 
     const challengesQuery = useMemo(() => {
         if (!firestore) return null;
-        return query(collection(firestore, 'challenges'));
+        return query(collection(firestore, 'challenges'), orderBy('createdAt', 'desc'));
     }, [firestore]);
 
-    const { data: challenges, isLoading: areChallengesLoading } = useCollection<Challenge>(challengesQuery);
+    const fetchChallenges = useCallback(async (q: any, reset = false) => {
+        if (!q) return;
+        if (reset) {
+            setIsLoading(true);
+            setChallenges([]);
+            setLastVisible(null);
+            setHasMore(true);
+        } else {
+            setIsLoadingMore(true);
+        }
+
+        let finalQuery = q;
+        if (!reset && lastVisible) {
+            finalQuery = query(q, startAfter(lastVisible), limit(6));
+        } else {
+            finalQuery = query(q, limit(6));
+        }
+
+        try {
+            const documentSnapshots = await getDocs(finalQuery);
+            const newChallenges = documentSnapshots.docs.map(doc => doc.data() as Challenge);
+            const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+
+            setChallenges(prev => reset ? newChallenges : [...prev, ...newChallenges]);
+            setLastVisible(lastDoc || null);
+            if (documentSnapshots.docs.length < 6) {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error("Error fetching challenges:", error);
+        } finally {
+            setIsLoading(false);
+            setIsLoadingMore(false);
+        }
+    }, [lastVisible]);
+
+    useEffect(() => {
+        if (challengesQuery) {
+            fetchChallenges(challengesQuery, true);
+        }
+    }, [challengesQuery, fetchChallenges]);
 
     const userProfileRef = useMemo(() => {
         if (!user || !firestore) return null;
@@ -162,16 +207,26 @@ export default function ChallengesPage() {
                     </div>
 
 
-                    {areChallengesLoading ? (
+                    {isLoading ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
                         </div>
                     ) : viewMode === 'list' && challenges ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {challenges.map(challenge => (
-                              <ChallengeCard key={challenge.id} challenge={challenge} />
-                          ))}
-                      </div>
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {challenges.map(challenge => (
+                                <ChallengeCard key={challenge.id} challenge={challenge} />
+                            ))}
+                        </div>
+                        {!isLoading && hasMore && (
+                            <div className="text-center mt-8">
+                                <Button onClick={() => fetchChallenges(challengesQuery)} disabled={isLoadingMore}>
+                                    {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                    Charger plus
+                                </Button>
+                            </div>
+                        )}
+                      </>
                     ) : viewMode === 'map' ? (
                        <Card>
                           <CardContent className="p-2">
@@ -183,7 +238,7 @@ export default function ChallengesPage() {
                     ) : null}
 
 
-                    {!areChallengesLoading && challenges?.length === 0 && (
+                    {!isLoading && challenges?.length === 0 && (
                          <Card className="text-center py-20 col-span-full">
                             <CardContent>
                                 <h3 className="text-xl font-semibold">Aucun défi pour le moment</h3>

@@ -2,16 +2,16 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import HousingListings from '@/components/housing-listings';
-import { LayoutGrid, Map, Plus, Search, GraduationCap, Bed } from 'lucide-react';
+import { LayoutGrid, Map, Plus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
-import { useCollection, useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import type { Housing, Favorite } from '@/lib/types';
 import CreateHousingForm from '@/components/create-housing-form';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, orderBy } from 'firebase/firestore';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,7 +19,6 @@ import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Navbar from '@/components/navbar';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
@@ -36,22 +35,22 @@ export default function HousingPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingHousing, setEditingHousing] = useState<Housing | null>(null);
 
+  const [housings, setHousings] = useState<Housing[]>([]);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
   const [cityFilter, setCityFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(1000);
-
-  const housingsCollection = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'housings');
-  }, [firestore]);
-
-  const { data: housings, isLoading } = useCollection<Housing>(housingsCollection);
 
   const favoritesQuery = useMemo(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'housing'));
   }, [user, firestore]);
-  const { data: favorites } = useCollection<Favorite>(favoritesQuery);
+
+  const { data: favorites } = useCollection<Favorite>(favoritesQuery as any);
   const favoritedIds = useMemo(() => new Set(favorites?.map(f => f.itemId)), [favorites]);
 
   const filteredHousings = useMemo(() => {
@@ -63,6 +62,47 @@ export default function HousingPage() {
       return cityMatch && typeMatch && priceMatch;
     });
   }, [housings, cityFilter, typeFilter, priceFilter]);
+
+  const fetchHousings = useCallback(async (reset = false) => {
+    if (!firestore) return;
+    if (reset) {
+        setIsLoading(true);
+        setHousings([]);
+        setLastVisible(null);
+        setHasMore(true);
+    } else {
+        setIsLoadingMore(true);
+    }
+
+    let q = query(collection(firestore, 'housings'), orderBy('createdAt', 'desc'));
+    
+    if (!reset && lastVisible) {
+        q = query(q, startAfter(lastVisible));
+    }
+    q = query(q, limit(8));
+    
+    try {
+        const documentSnapshots = await getDocs(q);
+        const newHousings = documentSnapshots.docs.map(doc => doc.data() as Housing);
+        const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+
+        setHousings(prev => reset ? newHousings : [...prev, ...newHousings]);
+        setLastVisible(lastDoc || null);
+        if (documentSnapshots.docs.length < 8) {
+            setHasMore(false);
+        }
+    } catch (error) {
+        console.error("Error fetching housings:", error);
+    } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+    }
+  }, [firestore, lastVisible]);
+  
+  useEffect(() => {
+    fetchHousings(true);
+  }, [fetchHousings]);
+
 
   const handleEdit = (housing: Housing) => {
     setEditingHousing(housing);
@@ -168,12 +208,22 @@ export default function HousingPage() {
                 </div>
 
                 {viewMode === 'grid' && (
-                <HousingListings 
-                    housings={filteredHousings} 
-                    isLoading={isLoading} 
-                    onEdit={handleEdit}
-                    favoritedIds={favoritedIds}
-                />
+                  <>
+                    <HousingListings 
+                        housings={filteredHousings} 
+                        isLoading={isLoading} 
+                        onEdit={handleEdit}
+                        favoritedIds={favoritedIds}
+                    />
+                    {!isLoading && hasMore && (
+                        <div className="text-center mt-8">
+                            <Button onClick={() => fetchHousings()} disabled={isLoadingMore}>
+                                {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                Charger plus
+                            </Button>
+                        </div>
+                    )}
+                  </>
                 )}
                 {viewMode === 'map' && (
                 <Card>

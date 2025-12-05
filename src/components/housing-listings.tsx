@@ -15,7 +15,6 @@ interface HousingListingsProps {
 }
 
 export default function HousingListings({ housings, isLoading, onEdit, favoritedIds }: HousingListingsProps) {
-  const router = useRouter();
 
   if (isLoading) {
     return (

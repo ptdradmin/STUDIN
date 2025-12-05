@@ -2,17 +2,17 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, BookOpen, MessageSquare } from "lucide-react";
+import { Plus, Search, BookOpen, MessageSquare, Loader2 } from "lucide-react";
 import Image from "next/image";
 import type { Book } from "@/lib/types";
-import { useCollection, useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, where } from "firebase/firestore";
 import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
@@ -81,6 +81,11 @@ export default function BookMarketPage() {
   const { toast } = useToast();
   
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   
   const [titleFilter, setTitleFilter] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
@@ -88,20 +93,59 @@ export default function BookMarketPage() {
 
   const booksQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'books'), orderBy('createdAt', 'desc'));
-  }, [firestore]);
+    let q = query(collection(firestore, 'books'), orderBy('createdAt', 'desc'));
+    
+    // As filters are not directly compatible with pagination cursors on different fields,
+    // this simple implementation will reset and refetch.
+    // For a more advanced use case, a dedicated search index (e.g., Algolia) would be better.
+    if(titleFilter) q = query(q, where('title', '>=', titleFilter), where('title', '<=', titleFilter + '\uf8ff'));
+    if(courseFilter) q = query(q, where('course', '>=', courseFilter), where('course', '<=', courseFilter + '\uf8ff'));
+    if(universityFilter) q = query(q, where('university', '>=', universityFilter), where('university', '<=', universityFilter + '\uf8ff'));
 
-  const { data: books, isLoading } = useCollection<Book>(booksQuery);
+    return q;
+  }, [firestore, titleFilter, courseFilter, universityFilter]);
 
-  const filteredBooks = useMemo(() => {
-    if (!books) return [];
-    return books.filter(book => {
-      const titleMatch = titleFilter ? book.title.toLowerCase().includes(titleFilter.toLowerCase()) : true;
-      const courseMatch = courseFilter ? book.course?.toLowerCase().includes(courseFilter.toLowerCase()) : true;
-      const universityMatch = universityFilter ? book.university?.toLowerCase().includes(universityFilter.toLowerCase()) : true;
-      return titleMatch && courseMatch && universityMatch;
-    });
-  }, [books, titleFilter, courseFilter, universityFilter]);
+  const fetchBooks = useCallback(async (q: any, reset = false) => {
+    if (!q) return;
+    if (reset) {
+      setIsLoading(true);
+      setBooks([]);
+      setLastVisible(null);
+      setHasMore(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    let finalQuery = q;
+    if (!reset && lastVisible) {
+      finalQuery = query(q, startAfter(lastVisible));
+    }
+    finalQuery = query(finalQuery, limit(8));
+
+    try {
+      const documentSnapshots = await getDocs(finalQuery);
+      const newBooks = documentSnapshots.docs.map(doc => doc.data() as Book);
+      const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+
+      setBooks(prev => reset ? newBooks : [...prev, ...newBooks]);
+      setLastVisible(lastDoc || null);
+      if (documentSnapshots.docs.length < 8) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      toast({ title: "Erreur", description: "Impossible de charger les livres.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [lastVisible, toast]);
+
+  useEffect(() => {
+    if (booksQuery) {
+      fetchBooks(booksQuery, true);
+    }
+  }, [booksQuery, fetchBooks]);
 
   const handleContactSeller = async (sellerId: string) => {
     if (!user || !firestore) {
@@ -190,14 +234,14 @@ export default function BookMarketPage() {
             </div>
 
             {isLoading && <BookListSkeleton />}
-             {!isLoading && filteredBooks.length > 0 && (
+             {!isLoading && books.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                 {filteredBooks.map(book => (
+                 {books.map(book => (
                     <BookCard key={book.id} book={book} onContact={handleContactSeller} />
                  ))}
                 </div>
             )}
-             {!isLoading && filteredBooks.length === 0 && (
+             {!isLoading && books.length === 0 && (
                 <Card className="text-center py-20 col-span-full">
                     <CardContent>
                         <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" strokeWidth={1}/>
@@ -206,6 +250,14 @@ export default function BookMarketPage() {
                     </CardContent>
                 </Card>
              )}
+              {!isLoading && hasMore && (
+                <div className="text-center mt-8">
+                    <Button onClick={() => fetchBooks(booksQuery)} disabled={isLoadingMore}>
+                        {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                        Charger plus
+                    </Button>
+                </div>
+              )}
           </div>
         </main>
       </div>
