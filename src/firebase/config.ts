@@ -6,7 +6,7 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider, AppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaV3Provider, AppCheck } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -42,21 +42,18 @@ export function getFirebaseServices(): FirebaseServices {
 
   // --- App Check Initialization ---
   if (typeof window !== 'undefined' && !appCheck) {
-    const isProduction = window.location.hostname.includes('stud-in.com');
-
-    // For development (e.g., Firebase Studio, localhost), always use the debug token.
-    if (!isProduction) {
-      (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-       console.log("Firebase App Check: Using DEBUG TOKEN for development environment.");
+    // For development, ensure the debug token is available.
+    if (process.env.NODE_ENV !== 'production') {
+        (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     }
     
     try {
         appCheck = initializeAppCheck(app, {
-            // Use reCAPTCHA Enterprise for production, debug token for development.
-            provider: new ReCaptchaEnterpriseProvider(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+            // Use reCAPTCHA V3 for web apps, as it's simpler to configure and works well across environments.
+            provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY || '6Ld-9RkqAAAAAPvXANiZ1sO52sJ12t2Lh_sB1a2z'),
             isTokenAutoRefreshEnabled: true,
         });
-        console.log(`Firebase App Check initialized for ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}.`);
+        console.log(`Firebase App Check initialized.`);
     } catch (e) {
       console.warn("App Check initialization error:", e);
     }
