@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquare, PlusSquare, Target, User } from 'lucide-react';
+import { Home, MessageSquare, PlusSquare, Sparkles, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -43,9 +44,9 @@ export default function BottomNavbar() {
 
   const navItems = [
     { href: '/social', icon: Home },
-    { href: '/challenges', icon: Target },
-    { isAction: true, icon: PlusSquare, onClick: () => setShowCreatePost(true) },
     { href: '/messages', icon: MessageSquare },
+    { isAction: true, icon: PlusSquare, onClick: () => setShowCreatePost(true) },
+    { href: '/ai-chat', icon: Sparkles },
     { href: '/profile', isProfile: true },
   ];
 

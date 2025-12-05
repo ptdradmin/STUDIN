@@ -1,7 +1,7 @@
 'use client';
 
 import SocialSidebar from "@/components/social-sidebar";
-import { MessageSquare, MoreHorizontal, Trash2 } from "lucide-react";
+import { MessageSquare, MoreHorizontal, Sparkles, Trash2 } from "lucide-react";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy, deleteDoc, doc } from "firebase/firestore";
 import type { Conversation } from "@/lib/types";
@@ -106,7 +106,7 @@ function ConversationList() {
                 <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
                 <h2 className="text-xl font-bold mt-4">Aucune conversation</h2>
                 <p className="text-muted-foreground mt-2 max-w-sm">
-                    Commencez une nouvelle conversation depuis le profil d'un utilisateur.
+                    Commencez une nouvelle conversation depuis le profil d'un utilisateur ou parlez à l'assistant STUD'IN AI.
                 </p>
             </div>
         )
@@ -119,6 +119,27 @@ function ConversationList() {
     
     return (
         <div className="flex-grow overflow-y-auto">
+            {/* STUD'IN AI Assistant */}
+            <Link href="/ai-chat">
+                <div className={cn("p-4 flex items-start gap-3 hover:bg-muted/50 cursor-pointer border-b bg-gradient-to-r from-primary/10 to-card")}>
+                     <Avatar className="h-12 w-12 border-2 border-primary/50">
+                        <div className="h-full w-full flex items-center justify-center bg-primary/20">
+                            <Sparkles className="h-6 w-6 text-primary" />
+                        </div>
+                    </Avatar>
+                    <div className="flex-grow overflow-hidden">
+                        <div className="flex justify-between items-center">
+                            <p className="font-semibold truncate">STUD'IN AI</p>
+                            <Badge variant="secondary" className="text-xs">Assistant</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                           Votre assistant pour la vie étudiante.
+                        </p>
+                    </div>
+                </div>
+            </Link>
+
+
             {sortedConversations.map(conv => {
                 const otherParticipantId = conv.participantIds.find(id => id !== user?.uid);
                 const otherParticipant = otherParticipantId ? conv.participants[otherParticipantId] : null;
