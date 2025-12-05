@@ -3,8 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { Download, Mail, Rocket, Users, Milestone } from "lucide-react";
+import { Download, Mail, Rocket, Users, Milestone, Briefcase, DownloadCloud } from "lucide-react";
 import Link from "next/link";
+import { LogoIcon } from "@/components/logo-icon";
+
+const keyFigures = [
+    { value: "15,000+", label: "Étudiants inscrits" },
+    { value: "2,500+", label: "Annonces publiées" },
+    { value: "50,000+", label: "Téléchargements" },
+    { value: "5", label: "Villes principales" },
+]
+
+const brandColors = [
+    { name: 'Primary', hex: '#8B5CF6', hsl: '262 84% 60%' },
+    { name: 'Background', hex: '#09090b', hsl: '240 10% 3.9%' },
+    { name: 'Card', hex: '#161618', hsl: '240 4% 9%' },
+    { name: 'Foreground', hex: '#fcfcfd', hsl: '0 0% 98%' },
+]
 
 export default function PressPage() {
   return (
@@ -15,89 +30,101 @@ export default function PressPage() {
             <div className="container mx-auto px-4 py-16 text-center">
                 <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Espace Presse</h1>
                 <p className="mt-2 text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Bienvenue dans l'espace presse de STUD'IN. Retrouvez ici toutes les informations, ressources et actualités concernant notre plateforme.
+                  Toutes les ressources et informations pour parler de STUD'IN.
                 </p>
             </div>
         </section>
-        <div className="container mx-auto px-4 py-8 md:py-16">
-            <div className="grid lg:grid-cols-3 gap-8">
 
-              {/* Colonne principale */}
-              <div className="lg:col-span-2 space-y-8">
-                <Card className="shadow-lg">
-                  <CardHeader>
-                    <CardTitle>STUD'IN : L'écosystème qui simplifie la vie étudiante</CardTitle>
-                  </CardHeader>
-                  <CardContent className="prose max-w-none text-muted-foreground">
-                      <p>
-                        Lancée avec l'ambition de devenir l'outil indispensable des étudiants en Belgique francophone, STUD'IN est une application mobile et web qui centralise tous les services essentiels à une vie étudiante épanouie. De la recherche de logement au covoiturage, en passant par le tutorat et la découverte d'événements, notre mission est de connecter la communauté étudiante et de résoudre ses défis quotidiens.
+        <div className="container mx-auto px-4 py-12 md:py-20 space-y-16">
+
+            {/* Section Chiffres Clés */}
+            <section>
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    {keyFigures.map(figure => (
+                        <div key={figure.label} className="bg-card p-6 rounded-lg border">
+                            <p className="text-3xl md:text-4xl font-bold text-primary">{figure.value}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{figure.label}</p>
+                        </div>
+                    ))}
+                 </div>
+            </section>
+            
+            {/* Section Mission & Fondateur */}
+            <section className="max-w-4xl mx-auto">
+                <Card className="shadow-lg overflow-hidden">
+                  <CardContent className="p-8 md:p-12">
+                      <h2 className="text-3xl font-bold text-center mb-8">Notre Mission</h2>
+                      <p className="text-center text-muted-foreground text-lg max-w-2xl mx-auto">
+                        Simplifier radicalement la vie des étudiants en Belgique francophone en centralisant tous les services essentiels — logement, covoiturage, tutorat, événements — sur une plateforme unique, intuitive et communautaire.
                       </p>
+
+                      <blockquote className="mt-10 text-center text-lg italic text-foreground relative border-l-4 border-primary pl-6 max-w-xl mx-auto">
+                        « J'ai créé STUD'IN pour résoudre les problèmes que je rencontrais en tant qu'étudiant. Mon but est de transformer cette expérience souvent complexe en une aventure simple et connectée. »
+                        <footer className="mt-4 text-sm not-italic font-semibold text-primary">
+                            — Gui Doba, Fondateur de STUD'IN
+                        </footer>
+                      </blockquote>
                   </CardContent>
                 </Card>
-                
-                <Card className="shadow-lg">
-                    <CardHeader>
-                        <CardTitle>Feuille de Route (Roadmap)</CardTitle>
-                        <CardDescription>Nos prochaines étapes vers une expérience étudiante complète.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="flex items-start gap-4">
-                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Rocket className="h-5 w-5"/></div>
-                            <div>
-                                <h4 className="font-semibold">Phase 1 (Actuelle)</h4>
-                                <p className="text-sm text-muted-foreground">Lancement de la plateforme avec les fonctionnalités sociales, le logement, et le marché aux livres.</p>
-                            </div>
-                        </div>
-                         <div className="flex items-start gap-4">
-                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Milestone className="h-5 w-5"/></div>
-                            <div>
-                                <h4 className="font-semibold">Phase 2 (Prévue Q4 2024)</h4>
-                                <p className="text-sm text-muted-foreground">Intégration des modules Covoiturage et Événements, avec un système de réservation et de billetterie.</p>
-                            </div>
-                        </div>
-                         <div className="flex items-start gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary flex-shrink-0 mt-1"><Users className="h-5 w-5"/></div>
-                            <div>
-                                <h4 className="font-semibold">Phase 3 (Prévue Q1 2025)</h4>
-                                <p className="text-sm text-muted-foreground">Déploiement du service de Tutorat, des Défis gamifiés et consolidation des partenariats avec les institutions.</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-              </div>
+            </section>
 
-              {/* Colonne latérale */}
-              <div className="space-y-8">
-                 <Card className="shadow-lg">
+            {/* Section Ressources de marque */}
+            <section className="max-w-4xl mx-auto">
+                 <h2 className="text-3xl font-bold text-center mb-8">Ressources de Marque</h2>
+                 <Card>
                     <CardHeader>
-                      <CardTitle>Kit Presse</CardTitle>
-                      <CardDescription>Logos, visuels et informations.</CardDescription>
+                      <CardTitle>Logos</CardTitle>
+                      <CardDescription>Utilisez notre logo officiel. Faites un clic droit pour enregistrer.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                       <Button className="w-full">
-                         <Download className="mr-2 h-4 w-4" />
-                         Télécharger le Kit Presse
-                       </Button>
+                    <CardContent className="grid grid-cols-2 gap-6">
+                        <div className="flex flex-col items-center justify-center gap-4 p-6 bg-background rounded-lg border">
+                            <LogoIcon className="h-16 w-16" />
+                            <span className="text-sm font-medium">Icone (sombre)</span>
+                        </div>
+                         <div className="flex flex-col items-center justify-center gap-4 p-6 bg-foreground rounded-lg border">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className="h-16 w-16">
+                              <rect width="100" height="100" rx="20" fill="hsl(var(--background))"></rect>
+                              <text x="50%" y="50%" fontFamily="var(--font-headline), sans-serif" fontSize="80" fontWeight="bold" fill="hsl(var(--primary))" textAnchor="middle" dy=".38em">S</text>
+                            </svg>
+                            <span className="text-sm font-medium text-background">Icone (clair)</span>
+                        </div>
                     </CardContent>
-                </Card>
-                 <Card className="shadow-lg">
-                    <CardHeader>
-                      <CardTitle>Contact</CardTitle>
-                      <CardDescription>Pour toute demande d'interview ou d'information.</CardDescription>
+                 </Card>
+                 <Card className="mt-6">
+                     <CardHeader>
+                      <CardTitle>Couleurs</CardTitle>
+                      <CardDescription>Notre palette de couleurs officielle.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Mail className="h-5 w-5 text-primary" />
-                        <a href="mailto:presse@stud-in.com" className="text-sm hover:underline">presse@stud-in.com</a>
-                      </div>
-                       <Button variant="outline" className="w-full" asChild>
-                         <Link href="/contact">Formulaire de contact</Link>
-                       </Button>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {brandColors.map(color => (
+                            <div key={color.name}>
+                                <div className="h-16 w-full rounded-lg" style={{ backgroundColor: color.hex }}></div>
+                                <p className="text-sm font-semibold mt-2">{color.name}</p>
+                                <p className="text-xs text-muted-foreground">{color.hex}</p>
+                            </div>
+                        ))}
                     </CardContent>
-                </Card>
-              </div>
+                 </Card>
+                 <div className="text-center mt-8">
+                    <Button size="lg">
+                        <DownloadCloud className="mr-2 h-5 w-5"/>
+                        Télécharger le Kit Presse complet
+                    </Button>
+                 </div>
+            </section>
 
-            </div>
+             {/* Section Contact */}
+            <section className="max-w-4xl mx-auto text-center">
+                 <h2 className="text-3xl font-bold mb-4">Contact Presse</h2>
+                 <p className="text-muted-foreground mb-6">Pour toute demande d'interview, d'information complémentaire ou de collaboration.</p>
+                 <Button asChild variant="outline" size="lg">
+                    <Link href="mailto:presse@stud-in.com">
+                        <Mail className="mr-2 h-5 w-5"/>
+                        presse@stud-in.com
+                    </Link>
+                 </Button>
+            </section>
+
         </div>
       </main>
       <Footer />
