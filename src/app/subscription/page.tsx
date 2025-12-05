@@ -25,6 +25,7 @@ import { LogoIcon } from "@/components/logo-icon";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from 'next/navigation';
 
 
 const VisaIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -47,6 +48,7 @@ const MastercardIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function SubscriptionPage() {
     const { user } = useUser();
     const firestore = useFirestore();
+    const router = useRouter();
     const { toast } = useToast();
     
     const userProfileRef = useMemo(() => {
@@ -109,7 +111,7 @@ export default function SubscriptionPage() {
                                         STUD'IN Flash
                                     </CardTitle>
                                     {isPro ? (
-                                        <CardDescription>Passez au Pro pour plus de fonctionnalités.</CardDescription>
+                                        <CardDescription>Le forfait de base inclus.</CardDescription>
                                     ) : (
                                         <CardDescription className="text-primary font-semibold flex items-center gap-2">
                                             <Check className="h-4 w-4"/> Forfait actuel

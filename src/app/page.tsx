@@ -216,7 +216,7 @@ export default function HomePage() {
                             </CardHeader>
                             <CardContent className="flex-grow space-y-4">
                                <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
-                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                <ul className="space-y-2 text-sm">
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage avancé pour un raisonnement supérieur.</li>
                                     <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications.</li>
