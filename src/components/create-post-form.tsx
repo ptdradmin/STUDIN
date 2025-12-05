@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, useStorage, useDoc, setDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -45,7 +46,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
+  const userProfileRef = useMemo(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const getInitials = (name?: string | null) => {

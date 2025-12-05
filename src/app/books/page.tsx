@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Search, BookOpen, MessageSquare } from "lucide-react";
 import Image from "next/image";
 import type { Book } from "@/lib/types";
-import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useUser, useFirestore } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, query, orderBy } from "firebase/firestore";
 import SocialSidebar from "@/components/social-sidebar";
@@ -86,7 +86,7 @@ export default function BookMarketPage() {
   const [courseFilter, setCourseFilter] = useState('');
   const [universityFilter, setUniversityFilter] = useState('');
 
-  const booksQuery = useMemoFirebase(() => {
+  const booksQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'books'), orderBy('createdAt', 'desc'));
   }, [firestore]);

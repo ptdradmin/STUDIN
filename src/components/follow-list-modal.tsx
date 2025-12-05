@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useFirestore, useMemoFirebase, useCollection, useUser, useDoc } from '@/firebase';
+import { useFirestore, useCollection, useUser, useDoc } from '@/firebase';
 import { collection, query, where, doc, getDocs } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { UserProfile } from '@/lib/types';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toggleFollowUser } from '@/lib/actions';
 
 interface FollowListModalProps {
@@ -80,7 +81,7 @@ export default function FollowListModal({ title, userIds, onClose }: FollowListM
     const [isLoading, setIsLoading] = useState(true);
 
     const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<UserProfile>(
-        useMemoFirebase(() => authUser && firestore ? doc(firestore, 'users', authUser.uid) : null, [firestore, authUser])
+        useMemo(() => authUser && firestore ? doc(firestore, 'users', authUser.uid) : null, [firestore, authUser])
     );
     
     useEffect(() => {

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -10,7 +11,7 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare, Grad
 import Image from "next/image";
 import { Trip } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useUser, useFirestore } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, doc, runTransaction, increment, updateDoc, writeBatch, Timestamp } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -74,7 +75,7 @@ export default function CarpoolingPage() {
   const [arrivalFilter, setArrivalFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   
-  const tripsCollection = useMemoFirebase(() => {
+  const tripsCollection = useMemo(() => {
     if (!firestore) return null;
     return collection(firestore, 'carpoolings');
   }, [firestore]);
