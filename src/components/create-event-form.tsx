@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -23,6 +24,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL, uploadBytesResumable } 
 import Image from 'next/image';
 import { ImageIcon, Calendar as CalendarIcon } from 'lucide-react';
 import { staticChallenges } from '@/lib/static-data';
+import type { Event } from '@/lib/types';
 
 const FormSection = ({ title, description, children }: { title: string, description?: string, children: React.ReactNode }) => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b pb-6">
@@ -117,28 +119,26 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     onClose();
 
     const newDocRef = doc(collection(firestore, 'events'));
-    const finalStartDate = data.startDate.toISOString();
     const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
     const newCoords: [number, number] = [
         (baseChallenge.latitude || 50.46) + (Math.random() - 0.05),
         (baseChallenge.longitude || 4.87) + (Math.random() - 0.05),
     ];
 
-    const eventData = {
+    const eventData: Omit<Event, 'updatedAt'> = {
         ...data,
-        startDate: finalStartDate,
         id: newDocRef.id,
         organizerId: user.uid,
-        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-        userAvatarUrl: user.photoURL,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Anonyme',
+        userAvatarUrl: user.photoURL || undefined,
+        startDate: serverTimestamp() as any,
+        endDate: serverTimestamp() as any,
+        createdAt: serverTimestamp() as any,
         attendeeIds: [],
-        endDate: finalStartDate, // simplified
-        locationName: data.address, // simplified
-        coordinates: newCoords, 
+        locationName: data.address,
+        coordinates: newCoords,
         imageHint: "student event",
-        imageUrl: previewUrl, // Use local preview URL initially
+        imageUrl: previewUrl,
         latitude: newCoords[0],
         longitude: newCoords[1],
     };
@@ -149,14 +149,13 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     const uploadTask = uploadBytesResumable(imageRef, imageFile);
 
     uploadTask.on('state_changed', 
-        () => {}, // Progress updates ignored for non-blocking
+        () => {},
         (error) => {
             console.error("Upload error:", error);
-            updateDoc(newDocRef, { uploadError: true }); // Mark error on doc
+            updateDoc(newDocRef, { uploadError: true });
         },
         async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            // Finalize with the real URL
             updateDoc(newDocRef, {
                 imageUrl: downloadURL,
                 updatedAt: serverTimestamp()

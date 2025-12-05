@@ -40,7 +40,7 @@ export type Post = {
         username: string;
         userAvatarUrl?: string;
         text: string;
-        createdAt: string;
+        createdAt: Timestamp;
     }[];
     isUploading?: boolean;
     uploadError?: boolean;
@@ -63,7 +63,7 @@ export type Reel = {
         username: string;
         userAvatarUrl?: string;
         text: string;
-        createdAt: string;
+        createdAt: Timestamp;
     }[];
     songTitle?: string;
     audioUrl?: string;
@@ -77,8 +77,8 @@ export type Event = {
     title: string;
     description: string;
     category: 'soirée' | 'conférence' | 'sport' | 'culture';
-    startDate: string;
-    endDate: string;
+    startDate: Timestamp;
+    endDate: Timestamp;
     locationName: string;
     address: string;
     city: string;
@@ -130,7 +130,7 @@ export type Trip = {
     userAvatarUrl?: string;
     departureCity: string;
     arrivalCity: string;
-    departureTime: string;
+    departureTime: Timestamp;
     pricePerSeat: number;
     seatsAvailable: number;
     passengerIds: string[];

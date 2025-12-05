@@ -160,7 +160,7 @@ export default function ChallengeDetailPage() {
                 async () => {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                     
-                    const submissionData = {
+                    const submissionData: ChallengeSubmission = {
                         id: submissionRef.id,
                         challengeId: challenge.id,
                         userId: user.uid,
@@ -170,7 +170,7 @@ export default function ChallengeDetailPage() {
                         },
                         proofUrl: downloadURL,
                         status: isVerified ? 'approved' : 'rejected' as 'approved' | 'rejected',
-                        createdAt: serverTimestamp()
+                        createdAt: serverTimestamp() as any
                     };
 
                     const userRef = doc(firestore, 'users', user.uid);

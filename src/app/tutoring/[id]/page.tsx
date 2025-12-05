@@ -74,7 +74,7 @@ function ReviewCard({ review }: { review: TutoringReview }) {
             <div className="flex-grow">
                 <div className="flex items-center justify-between">
                     <p className="font-semibold">{review.studentName}</p>
-                    <span className="text-xs text-muted-foreground">{format(new Date(review.createdAt.toDate()), 'dd MMM yyyy', { locale: fr })}</span>
+                    <span className="text-xs text-muted-foreground">{format(review.createdAt.toDate(), 'dd MMM yyyy', { locale: fr })}</span>
                 </div>
                  <div className="flex items-center gap-1 mt-1">
                     {[...Array(5)].map((_, i) => (
