@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -51,7 +50,7 @@ const studinAiFlow = ai.defineFlow(
     inputSchema: StudinAiInputSchema,
     outputSchema: StudinAiOutputSchema,
   },
-  async ({ history, message }) => {
+  async ({ history, message, isPro }) => {
     let userMessageText = message.text || '';
     const userImage = message.imageUrl;
     const isVoiceQuery = !!message.audioUrl;
@@ -103,8 +102,11 @@ const studinAiFlow = ai.defineFlow(
     }
     
     // 3. Standard Text & Audio Response with History
+    // Choose model based on 'isPro' flag
+    const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash-preview');
+
     const { text: textResponse } = await ai.generate({
-        model: googleAI.model('gemini-2.5-pro'),
+        model: conversationModel,
         system: studinAiSystemPrompt,
         history: (history || []).map(m => ({
           role: m.role,

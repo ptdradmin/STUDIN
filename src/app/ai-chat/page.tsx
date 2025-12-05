@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser } from "@/firebase";
@@ -169,7 +168,8 @@ export default function AiChatPage() {
 
             const result = await askStudinAi({ 
                 history: historyForAi,
-                message: messageToSend
+                message: messageToSend,
+                isPro: true, // Use Pro model by default for now
              });
              
             const aiResponse: ChatMessage = {
@@ -354,4 +354,3 @@ export default function AiChatPage() {
         </div>
     );
 }
-

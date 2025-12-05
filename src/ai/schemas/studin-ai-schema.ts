@@ -17,6 +17,7 @@ export type StudinAiMessage = z.infer<typeof StudinAiMessageSchema>;
 export const StudinAiInputSchema = z.object({
   history: z.array(StudinAiMessageSchema).optional().describe('The conversation history.'),
   message: StudinAiMessageSchema.describe('The new user message.'),
+  isPro: z.boolean().optional().describe('Flag to use the Pro model.'),
 });
 export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
 
