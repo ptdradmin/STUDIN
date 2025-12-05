@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { CheckCircle2, ClipboardCheck, Gem, PartyPopper, Sparkles, Target, Check } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import GlobalSearch from "@/components/global-search";
-import NotificationsDropdown from "@/components/notifications-dropdown";
 import { useUser, useFirestore, useDoc, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from "@/lib/types";
@@ -68,17 +66,10 @@ export default function SubscriptionPage() {
             <SocialSidebar />
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                    <div className="flex items-center gap-4">
-                        <Link href="/social" className="flex items-center gap-2 text-xl font-bold md:hidden">
-                           <LogoIcon />
-                        </Link>
-                        <div className="w-full max-w-md">
-                           <GlobalSearch />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <NotificationsDropdown />
-                    </div>
+                     <Link href="/social" className="flex items-center gap-2 text-xl font-bold">
+                       <LogoIcon />
+                       <span className="font-headline hidden sm:inline">STUD'IN</span>
+                    </Link>
                 </header>
                 <main className="flex-1 overflow-y-auto">
                     <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
