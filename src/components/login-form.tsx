@@ -51,6 +51,8 @@ export default function LoginForm() {
             case 'auth/network-request-failed':
                 description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
                 break;
+             default:
+                description = `Erreur: ${error.code}`
         }
     }
     
