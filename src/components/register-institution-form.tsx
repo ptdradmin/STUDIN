@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -18,8 +18,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
 import { isUsernameUnique } from '@/lib/user-actions';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -81,9 +79,8 @@ export default function RegisterInstitutionForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      const batch = writeBatch(firestore);
-      const userDocRef = doc(firestore, 'users', user.uid);
       
+      const userDocRef = doc(firestore, 'users', user.uid);
       const userData = {
         id: user.uid,
         role: 'institution' as const,
@@ -106,7 +103,8 @@ export default function RegisterInstitutionForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      batch.set(userDocRef, userData);
+      // Use setDocumentNonBlocking which has internal try-catch
+      setDocumentNonBlocking(userDocRef, userData, { merge: false });
 
       const institutionDocRef = doc(firestore, 'institutions', user.uid);
       const institutionData = {
@@ -119,17 +117,8 @@ export default function RegisterInstitutionForm() {
         role: 'institution',
         createdAt: serverTimestamp(),
       };
-      batch.set(institutionDocRef, institutionData);
-      
-      batch.commit().catch(async (serverError) => {
-        // This is the new error handling part
-        const permissionError = new FirestorePermissionError({
-          path: `users/${user.uid}`, // Or the path that is failing
-          operation: 'create',
-          requestResourceData: userData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-      });
+       // Use setDocumentNonBlocking which has internal try-catch
+      setDocumentNonBlocking(institutionDocRef, institutionData, { merge: false });
       
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
@@ -141,7 +130,7 @@ export default function RegisterInstitutionForm() {
       router.refresh();
 
     } catch (error: any) {
-        // This handles errors from createUserWithEmailAndPassword
+        // This handles errors from createUserWithEmailAndPassword or isUsernameUnique
         let description = "Impossible de créer le compte.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Cet email est déjà utilisé pour un autre compte.";
