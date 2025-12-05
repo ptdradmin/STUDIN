@@ -3,7 +3,7 @@
 
 import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
 import type { Post, Favorite, UserProfile } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useCollection, useUser, useDoc, setDocumentNonBlocking } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { useMemo, useState, useEffect, useCallback } from 'react';
@@ -34,13 +34,13 @@ export default function SocialPage() {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
 
-    const userProfileRef = useMemoFirebase(() => {
+    const userProfileRef = useMemo(() => {
         if (!firestore || !user) return null;
         return doc(firestore, 'users', user.uid);
     }, [firestore, user]);
     const { data: currentUserProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
-    const userFavoritesQuery = useMemoFirebase(() => {
+    const userFavoritesQuery = useMemo(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
     }, [firestore, user]);
