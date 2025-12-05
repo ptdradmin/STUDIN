@@ -19,7 +19,7 @@ import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { generateAvatar } from "@/lib/avatars";
+import { generateAvatar, getInitials } from "@/lib/avatars";
 import { LogoIcon } from "./logo-icon";
 
 const navLinks = [
@@ -42,15 +42,6 @@ export default function Navbar() {
       await signOut(auth);
     }
   };
-
-  const getInitials = (email?: string | null) => {
-    if (!email) return '..';
-    const parts = email.split('@')[0].replace('.', ' ').split(' ');
-    if (parts.length > 1 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return email.substring(0, 2).toUpperCase();
-  }
 
   const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
     <Link

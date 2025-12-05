@@ -20,6 +20,7 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebas
 import { useRouter } from 'next/navigation';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getInitials } from '@/lib/avatars';
 
 
 const reelSchema = z.object({
@@ -192,11 +193,6 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [showMusicSelection, setShowMusicSelection] = useState(false);
   const [selectedSong, setSelectedSong] = useState<{title: string, url: string} | null>(null);
-
-  const getInitials = (name?: string | null) => {
-    if (!name) return "..";
-    return name.substring(0, 2).toUpperCase();
-  }
 
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

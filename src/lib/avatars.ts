@@ -1,4 +1,6 @@
 
+'use client';
+
 // A list of fun, varied avatar styles from DiceBear.
 const avatarStyles = [
   'micah',
@@ -30,4 +32,19 @@ export function generateAvatar(seed: string): string {
   // We encode the seed to ensure it's URL-safe.
   const encodedSeed = encodeURIComponent(seed);
   return `https://api.dicebear.com/7.x/${style}/svg?seed=${encodedSeed}`;
+}
+
+
+/**
+ * Generates fallback initials from a name or email.
+ * @param name The string to generate initials from.
+ * @returns A 2-character string of initials.
+ */
+export const getInitials = (name?: string | null) => {
+    if (!name) return '..';
+    const nameParts = name.split(' ');
+    if (nameParts.length > 1 && nameParts[0] && nameParts[1]) {
+      return (nameParts[0][0] + nameParts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
 }

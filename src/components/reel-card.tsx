@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { Reel } from "@/lib/types";
@@ -17,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useInView } from 'framer-motion';
+import { getInitials } from "@/lib/avatars";
 
 interface ReelCardProps {
     reel: Reel;
@@ -41,11 +43,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
 
     const hasLiked = user && optimisticLikes.includes(user.uid);
     const isOwner = user?.uid === reel.userId;
-
-    const getInitials = (name?: string) => {
-        if (!name) return '??';
-        return name.split(' ').map(n => n[0]).join('');
-    };
     
     const handlePlayPause = useCallback(() => {
         const video = videoRef.current;

@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import Navbar from '@/components/navbar';
 import { useMemo } from 'react';
+import { getInitials } from '@/lib/avatars';
 
 
 function HousingDetailPageSkeleton() {
@@ -68,11 +69,6 @@ export default function HousingDetailPage() {
     }, [firestore, housing]);
 
     const { data: ownerProfile, isLoading: isOwnerLoading } = useDoc<UserProfile>(ownerRef);
-    
-    const getInitials = (name?: string) => {
-        if (!name) return "..";
-        return name.split(' ').map(n => n[0]).join('');
-    }
 
     const handleContact = async () => {
         if (!user || !firestore || !housing) {

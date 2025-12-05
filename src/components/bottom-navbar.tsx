@@ -10,7 +10,7 @@ import { useUser, useFirestore, useDoc } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useState, useEffect, useMemo } from 'react';
 import CreatePostForm from './create-post-form';
-import { generateAvatar } from '@/lib/avatars';
+import { generateAvatar, getInitials } from '@/lib/avatars';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
 import type { UserProfile } from '@/lib/types';
@@ -32,15 +32,6 @@ export default function BottomNavbar() {
     [user, firestore]
   );
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
-  const getInitials = (name?: string | null) => {
-    if (!name) return '..';
-    const nameParts = name.split(' ');
-    if (nameParts.length > 1 && nameParts[0] && nameParts[1]) {
-      return nameParts[0][0] + nameParts[1][0];
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
 
   const navItems = [
     { href: '/social', icon: Home },

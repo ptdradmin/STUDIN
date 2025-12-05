@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -19,6 +20,7 @@ import type { Notification } from "@/lib/types";
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useMemo } from "react";
+import { getInitials } from "@/lib/avatars";
 
 function NotificationSkeleton() {
     return (
@@ -48,13 +50,6 @@ export default function NotificationsDropdown() {
     }, [firestore, user?.uid]);
 
     const { data: notifications, isLoading } = useCollection<Notification>(notificationsQuery);
-    
-    const getInitials = (name?: string) => {
-        if (!name) return '??';
-        const parts = name.split(' ');
-        if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
-        return name.substring(0, 2).toUpperCase();
-    }
     
     const renderNotificationIcon = (type: Notification['type']) => {
         switch (type) {

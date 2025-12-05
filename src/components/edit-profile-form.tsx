@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -20,7 +21,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { UserProfile } from '@/lib/types';
 import { updateUserPosts } from '@/lib/actions';
-import { generateAvatar } from '@/lib/avatars';
+import { generateAvatar, getInitials } from '@/lib/avatars';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -120,15 +121,6 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
   const handleAvatarSelect = (avatarUrl: string) => {
     setPreviewUrl(avatarUrl);
     setProfilePictureFile(null); // Clear file if an avatar is selected
-  }
-
-  const getInitials = (name?: string) => {
-    if (!name) return "..";
-    const parts = name.split(' ');
-    if (parts.length > 1) {
-        return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
   }
   
   const onSubmit: SubmitHandler<ProfileFormInputs> = async (data) => {

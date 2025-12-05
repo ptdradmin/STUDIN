@@ -20,6 +20,7 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebas
 import Image from 'next/image';
 import type { UserProfile } from '@/lib/types';
 import { generateCaption } from '@/ai/flows/generate-caption-flow';
+import { getInitials } from '@/lib/avatars';
 
 const postSchema = z.object({
   caption: z.string().min(1, 'La légende est requise'),
@@ -48,11 +49,6 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
 
   const userProfileRef = useMemo(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-
-  const getInitials = (name?: string | null) => {
-    if (!name) return "..";
-    return name.substring(0, 2).toUpperCase();
-  }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

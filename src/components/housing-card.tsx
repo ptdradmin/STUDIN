@@ -33,6 +33,7 @@ import { getOrCreateConversation } from "@/lib/conversations";
 import { toggleFavorite } from "@/lib/actions";
 import { useState, useEffect, useMemo } from "react";
 import Link from 'next/link';
+import { getInitials } from "@/lib/avatars";
 
 interface HousingCardProps {
     housing: Housing;
@@ -56,15 +57,6 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
     }, [isFavorited]);
     
     const isOwner = user && user.uid === housing.userId;
-
-    const getInitials = (name?: string) => {
-        if (!name) return "..";
-        const parts = name.split(' ');
-        if (parts.length > 1) {
-            return (parts[0][0] + parts[1][0]).toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
-    }
 
     const handleDelete = async () => {
         if (!firestore || !isOwner) return;

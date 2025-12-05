@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useMemo } from 'react';
 import { toggleFollowUser } from '@/lib/actions';
+import { getInitials } from '@/lib/avatars';
 
 interface FollowListModalProps {
   title: string;
@@ -42,11 +43,6 @@ function UserRow({ userProfile, currentUserId, isFollowing, onFollowToggle, isUp
         e.stopPropagation();
         e.preventDefault();
         onFollowToggle(userProfile.id, isFollowing);
-    }
-
-    const getInitials = (name?: string) => {
-        if (!name) return '..';
-        return name.split(' ').map(n => n[0]).join('');
     }
 
     return (

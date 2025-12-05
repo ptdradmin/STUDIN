@@ -19,6 +19,7 @@ import type { ChatMessage, UserProfile, Housing } from "@/lib/types";
 import { doc } from 'firebase/firestore';
 import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
 import HousingCard from "@/components/housing-card";
+import { getInitials } from "@/lib/avatars";
 
 function MessagesHeader() {
     const router = useRouter();
@@ -67,11 +68,6 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
     const { user } = useUser();
     const isUserMessage = message.role === 'user';
     const [isHovered, setIsHovered] = useState(false);
-
-    const getInitials = (name?: string | null) => {
-        if (!name) return '..';
-        return name.substring(0, 2).toUpperCase();
-    }
     
     return (
         <div 

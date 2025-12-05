@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard, Sparkles, BadgeCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateAvatar } from '@/lib/avatars';
+import { generateAvatar, getInitials } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
 import { useState, useEffect, useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
@@ -108,15 +108,6 @@ export default function SocialSidebar() {
             router.push('/');
         }
     };
-
-    const getInitials = (email?: string | null) => {
-        if (!email) return '..';
-        const nameParts = user?.displayName?.split(' ');
-        if(nameParts && nameParts.length > 1 && nameParts[0] && nameParts[1]) {
-            return nameParts[0][0] + nameParts[1][0];
-        }
-        return email.substring(0, 2).toUpperCase();
-    }
     
     if (isUserLoading || profileLoading) {
         return <SidebarSkeleton />;
