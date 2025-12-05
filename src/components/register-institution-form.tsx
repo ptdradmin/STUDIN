@@ -63,7 +63,6 @@ export default function RegisterInstitutionForm() {
       return;
     }
 
-    let userCredential;
     try {
       const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
 
@@ -77,9 +76,11 @@ export default function RegisterInstitutionForm() {
           return;
       }
       
-      userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      // Step 1: Create the user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
+      // Step 2: Now that the user is created and authenticated, write to Firestore
       const batch = writeBatch(firestore);
 
       const userDocRef = doc(firestore, 'users', user.uid);
@@ -122,6 +123,7 @@ export default function RegisterInstitutionForm() {
 
       await batch.commit();
       
+      // Step 3: Update Auth profile
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
       toast({
@@ -132,29 +134,19 @@ export default function RegisterInstitutionForm() {
       router.refresh();
 
     } catch (error: any) {
-        // This is the new, consolidated error handling block.
-        if (error.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: `users/${auth.currentUser?.uid}`, // Approximate path
-                operation: 'create', // The batch write is a create operation
-                requestResourceData: { note: 'Data for user and institution docs was being written.' }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            let description = "Impossible de créer le compte.";
-            if (error.code === 'auth/email-already-in-use') {
-                description = "Cet email est déjà utilisé pour un autre compte.";
-            }
+        if (error.code === 'auth/email-already-in-use') {
             toast({
                 variant: "destructive",
                 title: "Erreur d'inscription",
-                description: description,
+                description: "Cet email est déjà utilisé pour un autre compte.",
             });
-        }
-        
-        // Clean up the created user in Auth if the Firestore write fails
-        if (userCredential) {
-            await userCredential.user.delete();
+        } else {
+             const permissionError = new FirestorePermissionError({
+                path: `users_or_institutions`,
+                operation: 'create',
+                requestResourceData: { note: 'An error occurred during batched write for new institution.' }
+            });
+            errorEmitter.emit('permission-error', permissionError);
         }
     } finally {
       setLoading(false);
