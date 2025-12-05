@@ -11,7 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -124,7 +124,17 @@ export default function RegisterForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      await setDoc(userDocRef, userData);
+      
+      setDoc(userDocRef, userData)
+        .catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: userDocRef.path,
+                operation: 'create',
+                requestResourceData: userData
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            throw serverError;
+        });
 
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
@@ -140,28 +150,30 @@ export default function RegisterForm() {
       console.error("Registration error:", error);
       let description = "Impossible de créer le compte. Veuillez réessayer.";
       
-      switch (error.code) {
-        case 'auth/email-already-in-use':
-          description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
-          break;
-        case 'auth/weak-password':
-          description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
-          break;
-        case 'auth/invalid-email':
-          description = "L'adresse e-mail n'est pas valide.";
-          break;
-        case 'auth/network-request-failed':
-            description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+      if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+            description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
             break;
-        default:
-            description = `Une erreur inattendue est survenue. (${error.code})`;
-      }
+            case 'auth/weak-password':
+            description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
+            break;
+            case 'auth/invalid-email':
+            description = "L'adresse e-mail n'est pas valide.";
+            break;
+            case 'auth/network-request-failed':
+                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+                break;
+            default:
+                description = `Une erreur inattendue est survenue. (${error.code})`;
+        }
 
-      toast({
-        variant: "destructive",
-        title: "Erreur d'inscription",
-        description: description,
-      });
+        toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: description,
+        });
+      }
     } finally {
       setLoading(false);
     }
