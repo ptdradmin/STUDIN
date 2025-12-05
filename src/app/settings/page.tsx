@@ -8,7 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
   Bell,
@@ -23,6 +23,8 @@ import {
   User,
   Film,
   Globe,
+  Gem,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
@@ -169,6 +171,49 @@ export default function SettingsPage() {
                 <Card className="mx-auto max-w-2xl">
                     <CardContent className="p-0">
                     <Accordion type="single" collapsible className="w-full" defaultValue="account">
+
+                        <AccordionItem value="subscription">
+                            <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                                <div className="flex items-center gap-3">
+                                <Gem />
+                                Abonnement
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-6 space-y-4">
+                               <Card className="bg-muted/30">
+                                   <CardHeader>
+                                       <CardTitle className="text-xl">Modifier votre forfait STUD'IN</CardTitle>
+                                       <CardDescription>FORFAIT ACTUEL</CardDescription>
+                                   </CardHeader>
+                                   <CardContent>
+                                       <div className="border bg-card rounded-lg p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-bold text-lg">STUD'IN Pro</h4>
+                                                    <p className="text-muted-foreground text-sm">Passez à la vitesse supérieure.</p>
+                                                </div>
+                                                <p className="font-bold">4,99 €/mois</p>
+                                            </div>
+                                            <div className="mt-4 pt-4 border-t">
+                                                <p className="text-sm font-semibold mb-2">Avantages Pro :</p>
+                                                <ul className="space-y-1.5 text-sm text-muted-foreground">
+                                                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary"/> Annonces mises en avant</li>
+                                                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary"/> Badge de profil exclusif</li>
+                                                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary"/> Suggestions IA avancées</li>
+                                                </ul>
+                                            </div>
+                                             <div className="mt-6 flex justify-end">
+                                                <Button>Passer à Pro</Button>
+                                            </div>
+                                       </div>
+                                       <div className="text-center mt-4">
+                                            <p className="text-sm text-muted-foreground">Économisez 16 % avec la facturation annuelle (49,99 €/an).</p>
+                                       </div>
+                                   </CardContent>
+                               </Card>
+                            </AccordionContent>
+                        </AccordionItem>
+
                         <AccordionItem value="account">
                         <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
                             <div className="flex items-center gap-3">
