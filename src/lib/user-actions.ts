@@ -41,9 +41,18 @@ export const createUserDocument = async (
   
   const { email, displayName, photoURL } = user;
   
-  const username = (additionalData.username || email?.split('@')[0] || `user_${user.uid.slice(0, 6)}`)
+  let baseUsername = (additionalData.username || email?.split('@')[0] || `user_${user.uid.slice(0, 6)}`)
     .toLowerCase()
     .replace(/[^a-z0-9_.]/g, '');
+
+  let username = baseUsername;
+  let isUnique = await isUsernameUnique(firestore, username);
+  let counter = 1;
+  while(!isUnique) {
+      username = `${baseUsername}${counter}`;
+      isUnique = await isUsernameUnique(firestore, username);
+      counter++;
+  }
 
   const firstName = additionalData.firstName || displayName?.split(' ')[0] || '';
   const lastName = additionalData.lastName || displayName?.split(' ')[1] || '';

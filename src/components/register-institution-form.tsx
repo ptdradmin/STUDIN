@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -72,11 +72,8 @@ export default function RegisterInstitutionForm() {
     let isUnique = await isUsernameUnique(firestore, username);
     let counter = 1;
     while(!isUnique) {
-        const newUsername = `${baseUsername}${counter}`;
-        isUnique = await isUsernameUnique(firestore, newUsername);
-        if (isUnique) {
-            username = newUsername;
-        }
+        username = `${baseUsername}${counter}`;
+        isUnique = await isUsernameUnique(firestore, username);
         counter++;
     }
 
