@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -11,7 +12,7 @@ import wav from 'wav';
 import { StudinAiInputSchema, StudinAiOutputSchema, type StudinAiInput, type StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
 
 
-export async function askStudinAi(input: StudinAiInput): Promise<StudinAiOutput> {
+export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
   return studinAiFlow(input);
 }
 

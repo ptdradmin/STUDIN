@@ -10,7 +10,7 @@ import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { askStudinAi } from "@/ai/flows/studin-ai-flow";
+import { askAlice } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
@@ -107,7 +107,7 @@ export default function AiChatPage() {
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: String(Date.now()), role: 'model', senderId: 'studin-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
+        { id: String(Date.now()), role: 'model', senderId: 'alice-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Envoyez-moi un message vocal, une image, ou demandez-moi d'en créer une !" }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -177,7 +177,7 @@ export default function AiChatPage() {
             if (audioDataUri) messageToSend.audioUrl = audioDataUri;
 
 
-            const result = await askStudinAi({ 
+            const result = await askAlice({ 
                 history: historyForAi,
                 message: messageToSend,
                 isPro: userProfile?.isPro || false,
@@ -186,7 +186,7 @@ export default function AiChatPage() {
             const aiResponse: ChatMessage = {
                 id: String(Date.now() + 1),
                 role: 'model',
-                senderId: 'studin-ai',
+                senderId: 'alice-ai',
                 createdAt: new Date() as any,
                 text: result.text,
                 audioUrl: result.audio,
@@ -198,7 +198,7 @@ export default function AiChatPage() {
             const errorResponse: ChatMessage = {
                 id: String(Date.now() + 1),
                 role: 'model',
-                senderId: 'studin-ai',
+                senderId: 'alice-ai',
                 createdAt: new Date() as any,
                 text: "Désolé, je rencontre un problème pour répondre. Veuillez réessayer plus tard."
             };
