@@ -107,15 +107,7 @@ export default function RegisterInstitutionForm() {
         // The logic in /social will now handle creating the Firestore documents
 
     } catch (error: any) {
-        if (error.code === 'permission-denied') {
-             // This is our detailed error handling for Firestore rules
-             const permissionError = new FirestorePermissionError({
-                 path: `users_or_institutions`, // Generic path for batch
-                 operation: 'create',
-                 requestResourceData: { note: 'An error occurred during batched write for new institution.' }
-             });
-             errorEmitter.emit('permission-error', permissionError);
-        } else if (error.code === 'auth/email-already-in-use') {
+        if (error.code === 'auth/email-already-in-use') {
             toast({
               variant: "destructive",
               title: "Erreur d'inscription",
