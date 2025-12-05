@@ -30,14 +30,13 @@ service cloud.firestore {
     }
 
     // ============================================
-    // INSTITUTIONS - Public read, Owner write
+    // INSTITUTIONS - DEPRECATED / REMOVED
+    // The role is now stored directly in the /users/{userId} document.
+    // This collection is no longer needed for profile creation.
     // ============================================
     match /institutions/{institutionId} {
-      allow get: if isSignedIn();
-      allow list: if false; // Don't allow listing all institutions
-      // Allow an institution to create its own document
-      allow create: if isOwner(institutionId);
-      allow update, delete: if isOwner(institutionId);
+      allow read: if false;
+      allow write: if false;
     }
     
     // ============================================

@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -113,6 +113,13 @@ export default function UserProfilePage() {
 
   const [modalContent, setModalContent] = useState<{title: string, userIds: string[]} | null>(null);
 
+  useEffect(() => {
+    if (user && profileId === user.uid) {
+        router.replace('/profile');
+    }
+  }, [user, profileId, router]);
+
+
   const userRef = useMemoFirebase(() => {
     if (!profileId || !firestore) return null;
     return doc(firestore, 'users', profileId);
@@ -141,12 +148,6 @@ export default function UserProfilePage() {
       );
 
     const isLoading = isUserLoading || profileLoading;
-
-  if (user && profileId === user.uid) {
-    router.replace('/profile');
-    return <div className="flex min-h-screen w-full bg-background justify-center items-center"><p>Redirection...</p></div>;
-  }
-  
 
   const handleFollow = async () => {
     if (!user || !firestore || !userProfile || !currentUserProfile) {
