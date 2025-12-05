@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -23,8 +24,7 @@ import Navbar from '@/components/navbar';
 
 export async function generateStaticParams() {
   // This function is required for static export.
-  // In a real app, you would fetch all tutor IDs from your database.
-  // For now, we return an empty array, which means pages will be generated on-demand.
+  // It returns an empty array, which means pages will be generated on-demand at client-side.
   return [];
 }
 

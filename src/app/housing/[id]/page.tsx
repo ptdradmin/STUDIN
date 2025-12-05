@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
@@ -21,10 +22,7 @@ import Navbar from '@/components/navbar';
 
 export async function generateStaticParams() {
   // This function is required for static export.
-  // In a real app, you would fetch all housing IDs from your database.
-  // For now, we return an empty array, which means pages will be generated on-demand.
-  // If you have a small, known set of housings, you can list their IDs here.
-  // For example: return [{ id: 'housing-1' }, { id: 'housing-2' }];
+  // It returns an empty array, which means pages will be generated on-demand at client-side.
   return [];
 }
 

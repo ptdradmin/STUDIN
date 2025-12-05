@@ -138,7 +138,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
       }
 
     } else {
-      const dataToCreate: Omit<Housing, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
+      const dataToCreate = {
           ...data,
           id: housingId,
           userId: user.uid,

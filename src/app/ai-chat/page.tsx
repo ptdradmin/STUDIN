@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from "@/firebase";
@@ -158,7 +159,7 @@ export default function AiChatPage() {
             const historyForAi: StudinAiInput['history'] = updatedMessages
                 .slice(0, -1)
                 // @ts-ignore - Role is valid for history
-                .map(({id, senderId, createdAt, ...rest}) => ({...rest, text: rest.text || ''}));
+                .map(({id, senderId, createdAt, ...rest}) => ({role: rest.role, text: rest.text || '', imageUrl: rest.imageUrl, audioUrl: rest.audioUrl}));
 
             const messageToSend: StudinAiInput['message'] = { role: 'user', text: currentMessageText, imageUrl: currentPreviewUrl, audioUrl: audioDataUri };
 

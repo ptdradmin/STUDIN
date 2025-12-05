@@ -203,7 +203,7 @@ export type ChatMessage = {
     audioUrl?: string;
     fileType?: 'image' | 'video' | 'audio';
     // AI-specific fields
-    role?: 'user' | 'model'; 
+    role: 'user' | 'model'; 
 };
 
 export type Conversation = {

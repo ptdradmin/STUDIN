@@ -1,6 +1,5 @@
 
 import type { Challenge } from './types';
-import { PlaceHolderImages } from './placeholder-images';
 
 export const staticChallenges: Challenge[] = [
   // --- NAMUR FACILE ---
