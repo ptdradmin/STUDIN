@@ -5,7 +5,7 @@ import { useUser, useFirestore, useDoc } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -15,11 +15,13 @@ import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import type { ChatMessage, UserProfile, Housing } from "@/lib/types";
+import type { ChatMessage, UserProfile } from "@/lib/types";
 import { doc } from 'firebase/firestore';
 import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
 import HousingCard from "@/components/housing-card";
 import { getInitials } from "@/lib/avatars";
+import type { Housing as HousingType } from '@/lib/types';
+
 
 function MessagesHeader() {
     const router = useRouter();
@@ -44,7 +46,7 @@ function MessagesHeader() {
     )
 }
 
-function HousingResultCard({ housing }: { housing: Housing }) {
+function HousingResultCard({ housing }: { housing: HousingType }) {
     // This is a simplified card for display in the chat.
     // It doesn't have all the interactions of the main HousingCard.
     return (
@@ -100,7 +102,7 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     )}
                     {message.toolData?.searchHousingsTool && (
                         <div className="flex flex-col gap-2 p-2">
-                             {(message.toolData.searchHousingsTool as Housing[]).map(housing => (
+                             {(message.toolData.searchHousingsTool as HousingType[]).map(housing => (
                                 <HousingResultCard key={housing.id} housing={housing} />
                              ))}
                         </div>
@@ -151,60 +153,63 @@ export default function AiChatPage() {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if ((!newMessage.trim() && audioChunksRef.current.length === 0 && !fileToSend) || isLoading) return;
+        if ((!newMessage.trim() && !fileToSend) || isLoading) return;
+
+        const userMessageText = newMessage.trim();
+        const currentFile = fileToSend;
+        const currentPreviewUrl = previewUrl;
+
+        setNewMessage('');
+        setFileToSend(null);
+        setPreviewUrl(null);
+        setIsLoading(true);
 
         const userMessage: ChatMessage = {
             id: String(Date.now()),
             role: 'user',
-            senderId: 'user',
+            senderId: user?.uid || 'user',
             createdAt: new Date() as any,
-            text: newMessage.trim() || undefined,
-            imageUrl: fileToSend?.type.startsWith('image/') ? previewUrl || undefined : undefined,
-            fileUrl: !fileToSend?.type.startsWith('image/') ? previewUrl || undefined : undefined,
-            fileType: !fileToSend?.type.startsWith('image/') ? fileToSend?.type : undefined,
+            text: userMessageText || undefined,
         };
-        
-        let audioBlob: Blob | null = null;
-        if (audioChunksRef.current.length > 0) {
-            audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            userMessage.audioUrl = URL.createObjectURL(audioBlob);
+
+        let fileDataUri: string | undefined = undefined;
+        if(currentFile) {
+            fileDataUri = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.readAsDataURL(currentFile);
+            });
+
+             if (currentFile.type.startsWith('image/')) {
+                userMessage.imageUrl = currentPreviewUrl || undefined;
+            } else if (currentFile.type.startsWith('audio/')) {
+                userMessage.audioUrl = currentPreviewUrl || undefined;
+            } else {
+                 userMessage.fileUrl = currentPreviewUrl || undefined;
+                 userMessage.fileType = currentFile.type;
+            }
         }
         
-        const updatedMessages = [...messages, userMessage];
-        setMessages(updatedMessages);
-        
-        const currentMessageText = newMessage;
-        const currentPreviewUrl = previewUrl;
-        const currentFile = fileToSend;
-
-        setNewMessage('');
-        setIsLoading(true);
-        setFileToSend(null);
-        setPreviewUrl(null);
-        audioChunksRef.current = [];
+        setMessages(prev => [...prev, userMessage]);
         
         try {
-            let audioDataUri: string | undefined = undefined;
-            if (audioBlob) {
-                audioDataUri = await new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(audioBlob!);
-                });
-            }
-            
-            const historyForAi: StudinAiInput['history'] = updatedMessages
-                .slice(0, -1)
+            const historyForAi: StudinAiInput['history'] = messages
+                .slice(1) // Remove initial welcome message
                 .map(({id, senderId, createdAt, ...rest}) => ({...rest}));
 
             const messageToSend: StudinAiInput['message'] = { role: 'user' };
-            if (currentMessageText) messageToSend.text = currentMessageText;
-            if (currentFile?.type.startsWith('image/')) messageToSend.imageUrl = currentPreviewUrl || undefined;
-            else {
-                messageToSend.fileUrl = currentPreviewUrl || undefined;
-                messageToSend.fileType = currentFile?.type;
+            if (userMessageText) messageToSend.text = userMessageText;
+
+            if(fileDataUri && currentFile) {
+                 if (currentFile.type.startsWith('image/')) {
+                    messageToSend.imageUrl = fileDataUri;
+                } else if (currentFile.type.startsWith('audio/')) {
+                    messageToSend.audioUrl = fileDataUri;
+                } else {
+                    messageToSend.fileUrl = fileDataUri;
+                    messageToSend.fileType = currentFile.type;
+                }
             }
-            if (audioDataUri) messageToSend.audioUrl = audioDataUri;
 
 
             const result: StudinAiOutput = await askAlice({ 
@@ -250,8 +255,11 @@ export default function AiChatPage() {
             };
             
             mediaRecorderRef.current.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const audioFile = new File([audioBlob], 'recording.webm');
+                setFileToSend(audioFile);
+                setPreviewUrl(URL.createObjectURL(audioBlob));
                 stream.getTracks().forEach(track => track.stop());
-                 handleSendMessage(new Event('submit') as any);
             }
 
             mediaRecorderRef.current.start();
@@ -269,19 +277,14 @@ export default function AiChatPage() {
     
     const stopRecording = (cancel = false) => {
         if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.onstop = () => {
-                 const stream = mediaRecorderRef.current?.stream;
-                 stream?.getTracks().forEach(track => track.stop());
-                 if (!cancel) {
-                    handleSendMessage(new Event('submit') as any);
-                 }
-            }
             mediaRecorderRef.current.stop();
-            if(cancel) {
-                audioChunksRef.current = [];
-            }
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+            if(cancel) {
+                audioChunksRef.current = [];
+                setFileToSend(null);
+                setPreviewUrl(null);
+            }
         }
     };
     
@@ -345,12 +348,16 @@ export default function AiChatPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,text/*"/>
-                    {previewUrl && (
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,text/*,audio/*"/>
+                    {previewUrl && fileToSend && (
                         <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
                             <div className="flex items-center gap-2 overflow-hidden">
-                                <ImageIcon className="h-5 w-5 flex-shrink-0"/>
-                                <span className="text-sm truncate">{fileToSend?.name || 'Fichier sélectionné'}</span>
+                                {fileToSend.type.startsWith('image/') ? (
+                                    <Image src={previewUrl} alt="Preview" width={20} height={20} className="object-cover rounded-sm" />
+                                ) : (
+                                    <Paperclip className="h-5 w-5 flex-shrink-0"/>
+                                )}
+                                <span className="text-sm truncate">{fileToSend.name}</span>
                             </div>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelFile}><X className="h-4 w-4" /></Button>
                         </div>

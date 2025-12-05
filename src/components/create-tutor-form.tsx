@@ -78,6 +78,8 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         ...data,
         id: newDocRef.id,
         tutorId: user.uid,
+        username: userProfile.username,
+        userAvatarUrl: userProfile.profilePicture,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         rating: 0,
