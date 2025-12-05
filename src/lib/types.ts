@@ -270,3 +270,20 @@ export type ChallengeSubmission = {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
 };
+
+export type Article = {
+  id: string;
+  creatorId: string;
+  creatorUsername: string;
+  creatorAvatarUrl?: string;
+  title: string;
+  summary: string;
+  content: string; // Markdown content
+  imageUrl: string;
+  imageHint: string;
+  category: 'Actualités' | 'Conseils' | 'Administration' | 'Santé' | 'Culture';
+  tags?: string[];
+  isPublished: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+};

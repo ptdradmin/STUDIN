@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -630,6 +631,83 @@
         "itemType",
         "itemId"
       ]
+    },
+    "Article": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Article",
+      "type": "object",
+      "description": "Represents an informational article on the STUD'IN platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Article entity."
+        },
+        "creatorId": {
+          "type": "string",
+          "description": "Reference to User (creator). (Relationship: User 1:N Article)"
+        },
+        "creatorUsername": {
+          "type": "string",
+          "description": "Username of the creator."
+        },
+        "creatorAvatarUrl": {
+          "type": "string",
+          "description": "URL of the creator's avatar.",
+          "format": "uri"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the article."
+        },
+        "summary": {
+          "type": "string",
+          "description": "A short summary of the article."
+        },
+        "content": {
+          "type": "string",
+          "description": "The full content of the article in Markdown format."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the article's header image.",
+          "format": "uri"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the article (e.g., 'Actualités', 'Conseils', 'Administration')."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Array of tags associated with the article.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Indicates if the article is visible to the public."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the article was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the article was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "creatorId",
+        "title",
+        "summary",
+        "content",
+        "imageUrl",
+        "category",
+        "isPublished"
+      ]
     }
   },
   "auth": {
@@ -720,6 +798,22 @@
           ]
         }
       },
+       {
+        "path": "/articles/{articleId}",
+        "definition": {
+          "entityName": "Article",
+          "schema": {
+            "$ref": "#/backend/entities/Article"
+          },
+          "description": "Stores all informational articles in a top-level collection. The `creatorId` enforces ownership for writes, restricted to partners/admins.",
+          "params": [
+            {
+              "name": "articleId",
+              "description": "The unique identifier of the article."
+            }
+          ]
+        }
+      },
       {
         "path": "/conversations/{conversationId}",
         "definition": {
@@ -757,6 +851,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure has been refactored to use top-level collections for publicly queryable data (housings, carpoolings, tutorings, events). This is a more scalable and flexible approach than nesting everything under user documents, especially for features that require querying across all users' listings. Ownership-based security is now enforced through a `userId` (or `driverId`, `tutorId`, `organizerId`) field within each document, rather than relying on path-based security. This allows for more flexible queries while maintaining robust security.\n\n*   **Top-Level Collections:** Collections like `housings`, `carpoolings`, `tutorings`, and `events` are at the root level. This makes it easy to query all listings (e.g., 'show me all housings in Namur').\n*   **Field-Based Ownership:** Security rules will now check `request.auth.uid == resource.data.userId` for write operations on these top-level collections, ensuring only owners can modify their content.\n*   **User-Specific Subcollections:** Data that is strictly private to a user, like `favorites` and `notifications`, remains in subcollections under `/users/{userId}`. This uses path-based security, which is simple and effective for private data.\n*   **Conversations:** The `conversations` collection remains at the top level, with security rules granting access based on the `participantIds` array within each conversation document. This is a standard and secure pattern for chat applications."
+    "reasoning": "The Firestore data structure has been refactored to use top-level collections for publicly queryable data (housings, carpoolings, tutorings, events, articles). This is a more scalable and flexible approach than nesting everything under user documents, especially for features that require querying across all users' listings. Ownership-based security is now enforced through a `userId` (or `driverId`, `tutorId`, `organizerId`, `creatorId`) field within each document, rather than relying on path-based security. This allows for more flexible queries while maintaining robust security.\n\n*   **Top-Level Collections:** Collections like `housings`, `carpoolings`, `tutorings`, `events`, and `articles` are at the root level. This makes it easy to query all listings (e.g., 'show me all housings in Namur').\n*   **Field-Based Ownership:** Security rules will now check `request.auth.uid == resource.data.userId` for write operations on these top-level collections, ensuring only owners can modify their content.\n*   **User-Specific Subcollections:** Data that is strictly private to a user, like `favorites` and `notifications`, remains in subcollections under `/users/{userId}`. This uses path-based security, which is simple and effective for private data.\n*   **Conversations:** The `conversations` collection remains at the top level, with security rules granting access based on the `participantIds` array within each conversation document. This is a standard and secure pattern for chat applications."
   }
 }
