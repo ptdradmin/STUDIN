@@ -13,19 +13,17 @@ service cloud.firestore {
     // USERS - Public read, Owner write
     // ============================================
     match /users/{userId} {
-      // Anyone signed in can read a user's public profile
       allow get: if isSignedIn();
-      // But no one can list all users
       allow list: if false;
-      // The user can create, update, and delete their own profile
-      allow write: if isOwner(userId);
+      // Allow user to create their own profile document
+      allow create: if isOwner(userId);
+      // Allow user to update/delete their own profile
+      allow update, delete: if isOwner(userId);
       
-      // User favorites are private
       match /favorites/{favoriteId} {
         allow read, write: if isOwner(userId);
       }
 
-      // Notifications are private
       match /notifications/{notificationId} {
         allow read, write: if isOwner(userId);
       }
@@ -37,7 +35,9 @@ service cloud.firestore {
     match /institutions/{institutionId} {
       allow get: if isSignedIn();
       allow list: if false; // Don't allow listing all institutions
-      allow write: if isOwner(institutionId);
+      // Allow an institution to create its own document
+      allow create: if isOwner(institutionId);
+      allow update, delete: if isOwner(institutionId);
     }
     
     // ============================================

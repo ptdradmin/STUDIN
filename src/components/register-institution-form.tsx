@@ -76,51 +76,76 @@ export default function RegisterInstitutionForm() {
             return;
         }
 
-        // Step 1: Create user in Auth
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
-        // Step 2: Store profile info in localStorage to be picked up after redirect
-         const pendingProfile = {
-            role: 'institution',
+        const newDisplayName = data.name;
+        const newPhotoURL = generateAvatar(user.email || user.uid);
+        await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
+
+        const batch = writeBatch(firestore);
+
+        // Create user document
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userData = {
+            id: user.uid,
+            role: 'institution' as const,
+            email: data.email,
             username: username,
-            firstName: data.name, // For institutions, firstName holds the name
+            firstName: data.name,
             lastName: '',
-            postalCode: data.postalCode,
-            city: data.city,
             university: '',
             fieldOfStudy: '',
+            postalCode: data.postalCode,
+            city: data.city,
             bio: `Compte officiel de ${data.name}.`,
             website: '',
+            profilePicture: newPhotoURL,
+            followerIds: [],
+            followingIds: [],
+            isVerified: false,
+            points: 0,
+            challengesCompleted: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
         };
-        localStorage.setItem(`pendingProfile_${user.uid}`, JSON.stringify(pendingProfile));
-        
-        // Step 3: Update Auth profile (non-critical, can be done async)
-        updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
+        batch.set(userDocRef, userData);
+
+        // Create institution document
+        const institutionDocRef = doc(firestore, 'institutions', user.uid);
+        const institutionData = {
+            id: user.uid,
+            userId: user.uid,
+            name: data.name,
+            postalCode: data.postalCode,
+            city: data.city,
+            createdAt: serverTimestamp(),
+        };
+        batch.set(institutionDocRef, institutionData);
+
+        await batch.commit();
 
         toast({
             title: "Compte créé !",
-            description: "Finalisation de la configuration...",
+            description: "Votre compte institution a été créé avec succès.",
         });
 
         router.push('/social');
-        // The logic in /social will now handle creating the Firestore documents
+        router.refresh();
 
     } catch (error: any) {
+        let description = "Impossible de créer le compte.";
         if (error.code === 'auth/email-already-in-use') {
-            toast({
-              variant: "destructive",
-              title: "Erreur d'inscription",
-              description: "Cet email est déjà utilisé pour un autre compte.",
-            });
+            description = "Cet email est déjà utilisé pour un autre compte.";
         } else {
             console.error("Registration error:", error);
-            toast({
-              variant: "destructive",
-              title: "Erreur Inattendue",
-              description: error.message || "Une erreur inconnue est survenue.",
-            });
+            description = `Erreur: ${error.message}`;
         }
+        toast({
+          variant: "destructive",
+          title: "Erreur d'inscription",
+          description: description,
+        });
     } finally {
       setLoading(false);
     }
