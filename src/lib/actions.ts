@@ -19,6 +19,7 @@ import {
   WriteBatch,
 } from 'firebase/firestore';
 import type { UserProfile, Notification, Favorite } from './types';
+import { deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 
 /**
@@ -88,9 +89,7 @@ export const createNotification = (
                 createdAt: serverTimestamp(),
             };
 
-            setDoc(notificationRef, finalNotifData).catch(error => {
-                console.error("Failed to create notification:", error);
-            });
+            setDocumentNonBlocking(notificationRef, finalNotifData, { merge: false });
         }
     }).catch(error => {
         // Handle error from getDoc if needed, e.g., sender profile not found.
@@ -131,10 +130,7 @@ export const toggleFavorite = async (
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
             const favDoc = querySnapshot.docs[0];
-            await deleteDoc(favDoc.ref).catch((error) => {
-                console.error("Failed to delete favorite:", error);
-                throw error;
-            });
+            deleteDocumentNonBlocking(favDoc.ref);
         }
     } else {
         // Favorite: add a new favorite document
@@ -145,9 +141,6 @@ export const toggleFavorite = async (
             createdAt: serverTimestamp() as any,
         };
         const newDocRef = doc(favoritesColRef);
-        await setDoc(newDocRef, {...newFavData, id: newDocRef.id }).catch((error) => {
-            console.error("Failed to create favorite:", error);
-            throw error;
-        });
+        setDocumentNonBlocking(newDocRef, {...newFavData, id: newDocRef.id }, { merge: false });
     }
 };
