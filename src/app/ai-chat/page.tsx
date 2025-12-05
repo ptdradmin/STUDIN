@@ -4,13 +4,11 @@ import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Sparkles, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Send, Sparkles } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
+import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
-import { generateAvatar } from "@/lib/avatars";
 import { askStudinAi } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
@@ -66,10 +64,10 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
             <div className={cn("max-w-md p-3 rounded-2xl prose prose-sm dark:prose-invert prose-p:my-0", isUserMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                 <Markdown>{message.text}</Markdown>
             </div>
-             {isUserMessage && (
+             {isUserMessage && user && (
                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.photoURL ?? undefined} />
-                    <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
+                    <AvatarImage src={user.photoURL ?? undefined} />
+                    <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                 </Avatar>
             )}
         </div>
@@ -77,7 +75,6 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
 }
 
 export default function AiChatPage() {
-    const { user } = useUser();
     const router = useRouter();
     const [messages, setMessages] = useState<AiChatMessage[]>([
         { id: 0, sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI. Comment puis-je vous aider aujourd'hui ? Que ce soit pour réviser un cours, trouver une idée de sortie ou organiser votre semaine, je suis là pour vous." }
@@ -88,7 +85,7 @@ export default function AiChatPage() {
 
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, [messages, isLoading]);
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
@@ -101,11 +98,12 @@ export default function AiChatPage() {
         };
         
         setMessages(prev => [...prev, userMessage]);
+        const currentMessage = newMessage;
         setNewMessage('');
         setIsLoading(true);
         
         try {
-            const result = await askStudinAi({ message: newMessage });
+            const result = await askStudinAi({ message: currentMessage });
             const aiResponse: AiChatMessage = {
                 id: Date.now() + 1,
                 sender: 'ai',
