@@ -24,16 +24,11 @@ import {
   Film,
   Globe,
   Gem,
-  CheckCircle2,
-  Sparkles,
-  ClipboardCheck,
-  Target,
-  PartyPopper,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import {
@@ -102,7 +97,6 @@ export default function SettingsPage() {
   const { auth } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const pathname = usePathname();
 
   const [isPrivateProfile, setIsPrivateProfile] = useState(false);
   const [pauseAllNotifications, setPauseAllNotifications] = useState(false);
@@ -111,12 +105,6 @@ export default function SettingsPage() {
   
   const [defaultAccordion, setDefaultAccordion] = useState("account");
 
-  useEffect(() => {
-    const hash = window.location.hash.substring(1);
-    if (hash === 'subscription') {
-      setDefaultAccordion('subscription');
-    }
-  }, [pathname]);
 
   const handleLogout = async () => {
     if (auth) {
@@ -185,39 +173,6 @@ export default function SettingsPage() {
                 <Card className="mx-auto max-w-2xl">
                     <CardContent className="p-0">
                     <Accordion type="single" collapsible className="w-full" value={defaultAccordion} onValueChange={setDefaultAccordion}>
-
-                        <AccordionItem value="subscription" id="subscription">
-                            <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
-                                <div className="flex items-center gap-3">
-                                <Gem />
-                                Abonnement
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-6 pt-2 pb-6">
-                               <Card className="bg-gradient-to-br from-primary/10 to-background border-primary/50">
-                                   <CardHeader>
-                                       <CardTitle className="text-2xl">Passez à STUD'IN Pro</CardTitle>
-                                       <CardDescription>FORFAIT ACTUEL : GRATUIT</CardDescription>
-                                   </CardHeader>
-                                   <CardContent>
-                                      <p className="text-sm text-muted-foreground mb-4">Débloquez tout le potentiel de STUD'IN avec les fonctionnalités exclusives de l'IA.</p>
-                                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-6">
-                                          <li className="flex items-center gap-3"><Sparkles className="h-4 w-4 text-primary"/>Légendes IA pour vos posts</li>
-                                          <li className="flex items-center gap-3"><ClipboardCheck className="h-4 w-4 text-primary"/>Analyse IA de vos annonces</li>
-                                          <li className="flex items-center gap-3"><Target className="h-4 w-4 text-primary"/>Recommandations de défis</li>
-                                          <li className="flex items-center gap-3"><PartyPopper className="h-4 w-4 text-primary"/>Assistance création d'événements</li>
-                                          <li className="flex items-center gap-3"><CheckCircle2 className="h-4 w-4 text-primary"/>Badge de profil Pro</li>
-                                          <li className="flex items-center gap-3"><Gem className="h-4 w-4 text-primary"/>Modèle Gemini 2.5 Pro</li>
-                                      </ul>
-                                       <div className="text-center p-4 bg-background/50 rounded-lg">
-                                           <p className="text-3xl font-bold">4,99 €<span className="text-lg font-medium text-muted-foreground">/mois</span></p>
-                                           <Button className="w-full mt-4">Passer à Pro</Button>
-                                            <p className="text-xs text-muted-foreground mt-2">Économisez 16 % avec la facturation annuelle (49,99 €/an).</p>
-                                       </div>
-                                   </CardContent>
-                               </Card>
-                            </AccordionContent>
-                        </AccordionItem>
 
                         <AccordionItem value="account">
                         <AccordionTrigger className="px-6 py-4 text-lg font-semibold">

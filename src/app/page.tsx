@@ -219,7 +219,7 @@ export default function HomePage() {
                             </CardContent>
                             <CardFooter>
                                 <Button className="w-full" asChild>
-                                    <Link href="/settings#subscription">Passer à Pro</Link>
+                                    <Link href="/subscription">Passer à Pro</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
