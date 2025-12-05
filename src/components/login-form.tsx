@@ -88,7 +88,7 @@ export default function LoginForm() {
     }
   }
 
-  const buttonsDisabled = loading || isUserLoading;
+  const buttonsDisabled = loading || isUserLoading || !auth;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -148,7 +148,7 @@ export default function LoginForm() {
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading ? 'Chargement...' : 'Se connecter'}
+                {isUserLoading || !auth ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
         </div>
