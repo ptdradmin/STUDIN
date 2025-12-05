@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, DependencyList } from 'react';
@@ -150,6 +149,9 @@ export const useStorage = (): FirebaseStorage => {
     return storage;
 };
 
+/**
+ * Hook specifically for accessing the authenticated user's state.
+ */
 export const useUser = (): UserHookResult => {
   const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };

@@ -10,6 +10,7 @@ interface FirebaseUserResult {
 }
 
 /**
+ * DEPRECATED: This hook is deprecated. Please import `useUser` directly from `@/firebase` or `@/firebase/provider`.
  * Hook specifically for accessing the authenticated user's state.
  */
 export const useUser = (): FirebaseUserResult => {
