@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -14,8 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import type { Event, Favorite, UserProfile } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useDoc } from '@/firebase';
-import { collection, doc, writeBatch, arrayUnion, serverTimestamp, query, where, Timestamp } from 'firebase/firestore';
+import { useCollection, useUser, useFirestore, useDoc, updateDocumentNonBlocking } from '@/firebase';
+import { collection, doc, arrayUnion, serverTimestamp, query, where, Timestamp } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
 import SocialSidebar from '@/components/social-sidebar';
@@ -41,7 +40,8 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
     useEffect(() => {
         if (userProfile && events.length > 0) {
             setIsLoading(true);
-            recommendEvents({ userProfile, allEvents: events })
+            const futureEvents = events.filter(event => event.startDate.toDate() > new Date());
+            recommendEvents({ userProfile, allEvents: futureEvents })
                 .then(setRecommendations)
                 .catch(err => {
                     console.error("Failed to get event recommendations:", err);
@@ -168,42 +168,22 @@ export default function EventsPage() {
       return;
     }
 
-    const batch = writeBatch(firestore);
     const eventRef = doc(firestore, 'events', event.id);
-    const attendeeRef = doc(collection(firestore, 'event_attendees'));
+
+    updateDocumentNonBlocking(eventRef, { attendeeIds: arrayUnion(user.uid) });
+
+    createNotification(firestore, {
+        type: 'event_attendance',
+        senderId: user.uid,
+        recipientId: event.organizerId,
+        relatedId: event.id,
+        message: `participe à votre événement : ${event.title}.`
+    });
     
-    const attendeeData = {
-      id: attendeeRef.id,
-      eventId: event.id,
-      userId: user.uid,
-      status: 'attending',
-      createdAt: serverTimestamp()
-    };
-
-    batch.update(eventRef, { attendeeIds: arrayUnion(user.uid) });
-    batch.set(attendeeRef, attendeeData);
-
-    try {
-      await batch.commit();
-      await createNotification(firestore, {
-          type: 'event_attendance',
-          senderId: user.uid,
-          recipientId: event.organizerId,
-          relatedId: event.id,
-          message: `participe à votre événement : ${event.title}.`
-      });
-      toast({
+    toast({
         title: 'Inscription réussie !',
         description: `Vous participez à l'événement : ${event.title}.`,
-      });
-    } catch (error: any) {
-        console.error("Error attending event:", error);
-       toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: error.message || "Une erreur est survenue lors de l'inscription.",
-       });
-    }
+    });
   };
 
   const handleContact = async (event: Event) => {

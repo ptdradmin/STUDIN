@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -259,7 +258,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
             <Button type="submit" disabled={loading || isUserLoading}>
-              {isEditing ? 'Mettre à jour' : 'Créer l\'annonce'}
+              {isEditing ? 'Mettre à jour' : "Créer l'annonce"}
             </Button>
           </DialogFooter>
         </form>

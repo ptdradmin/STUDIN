@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -130,8 +129,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         organizerId: user.uid,
         username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Anonyme',
         userAvatarUrl: user.photoURL || undefined,
-        startDate: serverTimestamp(),
-        endDate: serverTimestamp(),
+        startDate: data.startDate, // Will be converted to Timestamp by Firestore
+        endDate: data.startDate, // Simplified, can be extended
         createdAt: serverTimestamp(),
         attendeeIds: [],
         locationName: data.address,
