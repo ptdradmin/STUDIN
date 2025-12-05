@@ -387,7 +387,6 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                         data-ai-hint="social media post"
                         placeholder="blur"
                         blurDataURL={BLUR_DATA_URL}
-                        priority
                     />
                 ) : null}
             </div>

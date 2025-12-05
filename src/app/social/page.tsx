@@ -2,7 +2,7 @@
 
 'use client';
 
-import { collection, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import type { Post, Favorite, UserProfile } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
@@ -10,7 +10,7 @@ import PostCard from '@/components/post-card';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import CreatePostForm from '@/components/create-post-form';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import GlobalSearch from '@/components/global-search';
@@ -19,57 +19,32 @@ import SuggestedUsersCarousel from '@/components/suggested-users-carousel';
 import SocialFeedSuggestions from '@/components/social-feed-suggestions';
 import { doc } from 'firebase/firestore';
 
+const POST_BATCH_SIZE = 10;
+
 export default function SocialPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
+    
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    useEffect(() => {
-      if (!isUserLoading && !user) {
-        router.push('/login?from=/social');
-      }
-    }, [isUserLoading, user, router]);
 
     const userProfileRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return doc(firestore, 'users', user.uid);
     }, [firestore, user]);
-
     const { data: currentUserProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
-    const postsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        
-        // Show all posts if user is not logged in or has no followed users
-        if (!user || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) {
-          return query(
-            collection(firestore, 'posts'),
-            orderBy('createdAt', 'desc'),
-            limit(20)
-          );
-        }
-        
-        // User is logged in and follows people, fetch posts from them and self
-        const idsForQuery = [...currentUserProfile.followingIds, user.uid].slice(0, 30);
-        return query(
-          collection(firestore, 'posts'), 
-          where('userId', 'in', idsForQuery),
-          orderBy('createdAt', 'desc'),
-          limit(50)
-        );
-
-      }, [firestore, currentUserProfile, user]);
-
-    const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
-    
     const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
     }, [firestore, user]);
-
-
-    const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
+    const { data: favoriteItems } = useCollection<Favorite>(userFavoritesQuery);
     
     const savedPostMap = useMemo(() => {
         const map = new Map<string, string>();
@@ -80,13 +55,92 @@ export default function SocialPage() {
         }
         return map;
     }, [favoriteItems]);
+
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.push('/login?from=/social');
+        }
+    }, [isUserLoading, user, router]);
+    
+    useEffect(() => {
+        if (profileLoading || !firestore) return;
+
+        const fetchInitialPosts = async () => {
+            setIsLoadingInitial(true);
+            setHasMore(true);
+
+            let initialQuery;
+            if (!user || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) {
+              // Public feed for new or logged-out users
+              initialQuery = query(
+                collection(firestore, 'posts'),
+                orderBy('createdAt', 'desc'),
+                limit(POST_BATCH_SIZE)
+              );
+            } else {
+              // Personalized feed for logged-in users
+              const idsForQuery = [...currentUserProfile.followingIds, user.uid].slice(0, 30);
+              initialQuery = query(
+                collection(firestore, 'posts'), 
+                where('userId', 'in', idsForQuery),
+                orderBy('createdAt', 'desc'),
+                limit(POST_BATCH_SIZE)
+              );
+            }
+
+            const documentSnapshots = await getDocs(initialQuery);
+            const initialPosts = documentSnapshots.docs.map(doc => doc.data() as Post);
+            setPosts(initialPosts);
+            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
+            setIsLoadingInitial(false);
+            if (documentSnapshots.docs.length < POST_BATCH_SIZE) {
+                setHasMore(false);
+            }
+        }
+        fetchInitialPosts();
+
+    }, [firestore, user, currentUserProfile, profileLoading]);
+
+    const fetchMorePosts = async () => {
+        if (!firestore || !lastVisible || isLoadingMore) return;
+        setIsLoadingMore(true);
+
+        let nextQuery;
+        if (!user || !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0) {
+            nextQuery = query(
+                collection(firestore, "posts"),
+                orderBy("createdAt", "desc"),
+                startAfter(lastVisible),
+                limit(POST_BATCH_SIZE)
+            );
+        } else {
+             const idsForQuery = [...currentUserProfile.followingIds, user.uid].slice(0, 30);
+             nextQuery = query(
+                collection(firestore, "posts"),
+                where('userId', 'in', idsForQuery),
+                orderBy("createdAt", "desc"),
+                startAfter(lastVisible),
+                limit(POST_BATCH_SIZE)
+            );
+        }
+        
+        const documentSnapshots = await getDocs(nextQuery);
+        const newPosts = documentSnapshots.docs.map(doc => doc.data() as Post);
+
+        setPosts(prevPosts => [...prevPosts, ...newPosts]);
+        setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
+        setIsLoadingMore(false);
+
+        if (documentSnapshots.docs.length < POST_BATCH_SIZE) {
+            setHasMore(false);
+        }
+    }
     
     if (isUserLoading || profileLoading) {
       return <PageSkeleton />;
     }
 
-    const isLoading = postsLoading || favoritesLoading;
-    const noPostsToShow = !posts || posts.length === 0;
+    const noPostsToShow = posts.length === 0 && !isLoadingInitial;
     const isNewUser = !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0;
 
     return (
@@ -118,7 +172,7 @@ export default function SocialPage() {
                       {user && <div className="lg:hidden">
                           <SuggestedUsersCarousel />
                       </div>}
-                       {isLoading ? (
+                       {isLoadingInitial ? (
                           Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
                        ) : noPostsToShow ? (
                          <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
@@ -126,13 +180,23 @@ export default function SocialPage() {
                               <p className="text-sm">{isNewUser ? "Suivez des personnes pour voir leurs publications ici." : "Les publications de vos amis apparaîtront ici."}</p>
                           </div>
                        ) : (
-                          posts.map(post => (
-                              <PostCard 
-                                  key={post.id} 
-                                  post={post}
-                                  isInitiallySaved={savedPostMap.has(post.id)}
-                              />
-                          ))
+                          <>
+                            {posts.map(post => (
+                                <PostCard 
+                                    key={post.id} 
+                                    post={post}
+                                    isInitiallySaved={savedPostMap.has(post.id)}
+                                />
+                            ))}
+                            {hasMore && (
+                                <div className="text-center">
+                                    <Button variant="outline" onClick={fetchMorePosts} disabled={isLoadingMore}>
+                                        {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                        Charger plus
+                                    </Button>
+                                </div>
+                            )}
+                          </>
                       )}
                   </div>
 
