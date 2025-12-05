@@ -159,9 +159,13 @@ export default function AiChatPage() {
             
             const historyForAi: StudinAiInput['history'] = updatedMessages
                 .slice(0, -1)
-                .map(({id, senderId, createdAt, ...rest}) => ({role: rest.role, text: rest.text || '', imageUrl: rest.imageUrl, audioUrl: rest.audioUrl}));
+                .map(({id, senderId, createdAt, ...rest}) => ({role: rest.role, text: rest.text || '', imageUrl: rest.imageUrl || undefined, audioUrl: rest.audioUrl || undefined}));
 
-            const messageToSend: StudinAiInput['message'] = { role: 'user', text: currentMessageText, imageUrl: currentPreviewUrl, audioUrl: audioDataUri };
+            const messageToSend: StudinAiInput['message'] = { role: 'user' };
+            if (currentMessageText) messageToSend.text = currentMessageText;
+            if (currentPreviewUrl) messageToSend.imageUrl = currentPreviewUrl;
+            if (audioDataUri) messageToSend.audioUrl = audioDataUri;
+
 
             const result = await askStudinAi({ 
                 history: historyForAi,
@@ -350,3 +354,4 @@ export default function AiChatPage() {
         </div>
     );
 }
+

@@ -31,3 +31,4 @@ export const StudinAiOutputSchema = z.object({
   imageUrl: z.string().optional().describe("A generated image URL as a data URI."),
 });
 export type StudinAiOutput = z.infer<typeof StudinAiOutputSchema>;
+
