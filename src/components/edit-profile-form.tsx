@@ -172,17 +172,12 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
         onClose();
 
     } catch (error: any) {
-        if(error.code === 'permission-denied') {
-             const permissionError = new FirestorePermissionError({
-                path: `users/${user.uid}`,
-                operation: 'update',
-                requestResourceData: data,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            console.error("Profile update error:", error);
-            toast({ title: 'Erreur', description: error.message || 'Impossible de mettre à jour le profil.', variant: 'destructive' });
-        }
+        const permissionError = new FirestorePermissionError({
+            path: `users/${user.uid}`,
+            operation: 'update',
+            requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', permissionError);
     } finally {
         setLoading(false);
     }
@@ -366,3 +361,5 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     </Dialog>
   );
 }
+
+    
