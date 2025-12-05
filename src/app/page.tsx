@@ -33,11 +33,18 @@ const services = [
         image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
     },
     {
-        name: "Événements & Défis",
-        description: "Découvrez les meilleures soirées, conférences et activités étudiantes de votre ville. Relevez des défis, gagnez des points et explorez votre environnement comme jamais auparavant.",
+        name: "Événements",
+        description: "Découvrez les meilleures soirées, conférences et activités étudiantes de votre ville. Ne manquez rien de la vie de campus.",
         icon: <PartyPopper className="h-8 w-8" />,
         href: "/events",
         image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=2070&auto=format&fit=crop"
+    },
+    {
+        name: "Défis",
+        description: "Transformez votre ville en terrain de jeu. Relevez des défis, gagnez des points et explorez votre environnement comme jamais auparavant.",
+        icon: <Target className="h-8 w-8" />,
+        href: "/challenges",
+        image: "https://images.unsplash.com/photo-1559135160-c305a0928b5a?q=80&w=1964&auto=format&fit=crop"
     },
 ];
 
