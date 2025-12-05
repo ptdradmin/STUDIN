@@ -35,10 +35,8 @@ service cloud.firestore {
     // This collection is no longer needed for profile creation.
     // ============================================
     match /institutions/{institutionId} {
-      allow read: if isSignedIn();
-      allow list: if false; 
-      allow create: if isSignedIn() && request.auth.uid == institutionId;
-      allow update, delete: if isOwner(institutionId);
+      allow read: if false;
+      allow write: if false;
     }
     
     // ============================================

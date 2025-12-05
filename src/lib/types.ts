@@ -194,21 +194,16 @@ export type UserProfile = {
 
 export type ChatMessage = {
     id: string;
-    text?: string;
     senderId: string;
     createdAt: Timestamp;
+    // Standard message fields
+    text?: string;
     imageUrl?: string;
     videoUrl?: string;
     audioUrl?: string;
     fileType?: 'image' | 'video' | 'audio';
-};
-
-export type AiChatMessage = {
-    id: number;
-    role: 'user' | 'model';
-    text?: string;
-    audioUrl?: string;
-    imageUrl?: string;
+    // AI-specific fields
+    role?: 'user' | 'model'; 
 };
 
 export type Conversation = {

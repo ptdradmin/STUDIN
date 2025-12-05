@@ -657,18 +657,14 @@
         }
       },
       {
-        "path": "/users/{userId}/housing/{housingId}",
+        "path": "/housings/{housingId}",
         "definition": {
           "entityName": "Housing",
           "schema": {
             "$ref": "#/backend/entities/Housing"
           },
-          "description": "Stores housing listings created by a user. The authenticated user must match the userId to create, modify, or delete a listing.",
+          "description": "Stores all housing listings in a top-level collection for public querying. Security rules enforce that only the owner can write.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who created the housing listing."
-            },
             {
               "name": "housingId",
               "description": "The unique identifier of the housing listing."
@@ -677,18 +673,14 @@
         }
       },
       {
-        "path": "/users/{userId}/carpooling/{carpoolingId}",
+        "path": "/carpoolings/{carpoolingId}",
         "definition": {
           "entityName": "Carpooling",
           "schema": {
             "$ref": "#/backend/entities/Carpooling"
           },
-          "description": "Stores carpooling opportunities created by a user. Only the authenticated user who created the carpooling opportunity can modify or delete it.",
+          "description": "Stores all carpooling opportunities in a top-level collection. The `driverId` field is used to enforce ownership for writes.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who created the carpooling opportunity (driverId)."
-            },
             {
               "name": "carpoolingId",
               "description": "The unique identifier of the carpooling opportunity."
@@ -697,18 +689,14 @@
         }
       },
       {
-        "path": "/users/{userId}/tutoring/{tutoringId}",
+        "path": "/tutorings/{tutoringId}",
         "definition": {
           "entityName": "Tutoring",
           "schema": {
             "$ref": "#/backend/entities/Tutoring"
           },
-          "description": "Stores tutoring offers created by a user. Only the authenticated user who created the tutoring offer can modify or delete it.",
+          "description": "Stores all tutoring offers in a top-level collection. The `tutorId` field enforces ownership for writes.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who created the tutoring offer (tutorId)."
-            },
             {
               "name": "tutoringId",
               "description": "The unique identifier of the tutoring offer."
@@ -717,18 +705,14 @@
         }
       },
       {
-        "path": "/users/{userId}/events/{eventId}",
+        "path": "/events/{eventId}",
         "definition": {
           "entityName": "Event",
           "schema": {
             "$ref": "#/backend/entities/Event"
           },
-          "description": "Stores events created by a user. Only the authenticated user who created the event can modify or delete it.",
+          "description": "Stores all events in a top-level collection. The `organizerId` enforces ownership for writes.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user who created the event (organizerId)."
-            },
             {
               "name": "eventId",
               "description": "The unique identifier of the event."
@@ -737,17 +721,17 @@
         }
       },
       {
-        "path": "/messages/{messageId}",
+        "path": "/conversations/{conversationId}",
         "definition": {
-          "entityName": "Message",
+          "entityName": "Conversation",
           "schema": {
-            "$ref": "#/backend/entities/Message"
+            "$ref": "#/backend/entities/Conversation"
           },
-          "description": "Stores messages exchanged between users. Access control is based on senderId and receiverId.",
+          "description": "Stores conversation metadata. Access is restricted to participants.",
           "params": [
             {
-              "name": "messageId",
-              "description": "The unique identifier of the message."
+              "name": "conversationId",
+              "description": "The unique identifier of the conversation."
             }
           ]
         }
@@ -773,6 +757,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to follow the principle of path-based ownership and denormalization for authorization independence. This approach ensures that security rules can be written without relying on `get()` calls, enabling atomic operations and improving debuggability. The structure also adheres to the principle of segregating data based on security posture.\n\n*   **Users Collection:** The `users` collection stores user profiles. Access to a user's document is restricted to the user themselves, ensuring privacy of personal data. This implements Path-Based Ownership.\n*   **Housing Collection:** Housing data is stored in `/users/{userId}/housing/{housingId}`. This structure enables simple, ownership-based security rules, as only the user who created the housing can modify or delete it. This structure is highly secure and efficient.\n*   **Carpooling Collection:** Carpooling data is stored in `/users/{userId}/carpooling/{carpoolingId}`. Only the owner of the carpooling can modify it.\n*   **Tutoring Collection:** Tutoring data is stored in `/users/{userId}/tutoring/{tutoringId}`. Only the owner can modify.\n*   **Events Collection:** Events are stored in `/users/{userId}/events/{eventId}`. Only the owner can modify. \n*   **Messages:** Messages are stored in a top-level `messages` collection. Each message contains `senderId` and `receiverId`, used to authorize read access. The message content itself is secured via rules to restrict modification after creation.\n*   **Favorites:** Favorites are stored in `/users/{userId}/favorites/{favoriteId}`. Only the owner can modify.\n\n**Authorization Independence (Denormalization):**\n\n*   The subcollections, like `housing`, `carpooling`, `tutoring`, and `events`, DO NOT require denormalization of parent (user) data because their paths already enforce user-based ownership. The security rules can simply check if `request.auth.uid == userId`.\n*   For collaborative data (if any were present), membership maps in documents would be crucial to achieving authorization independence.\n\n**QAPs Support:**\n\n*   **Secure List Operations:** Because data is segregated based on ownership and the path includes the userId, `list` operations are inherently secure. Rules can easily enforce that a user can only list documents within their own `users/{userId}` path.\n\nThis design supports secure and scalable data access, aligning with Firebase best practices."
+    "reasoning": "The Firestore data structure has been refactored to use top-level collections for publicly queryable data (housings, carpoolings, tutorings, events). This is a more scalable and flexible approach than nesting everything under user documents, especially for features that require querying across all users' listings. Ownership-based security is now enforced through a `userId` (or `driverId`, `tutorId`, `organizerId`) field within each document, rather than relying on path-based security. This allows for more flexible queries while maintaining robust security.\n\n*   **Top-Level Collections:** Collections like `housings`, `carpoolings`, `tutorings`, and `events` are at the root level. This makes it easy to query all listings (e.g., 'show me all housings in Namur').\n*   **Field-Based Ownership:** Security rules will now check `request.auth.uid == resource.data.userId` for write operations on these top-level collections, ensuring only owners can modify their content.\n*   **User-Specific Subcollections:** Data that is strictly private to a user, like `favorites` and `notifications`, remains in subcollections under `/users/{userId}`. This uses path-based security, which is simple and effective for private data.\n*   **Conversations:** The `conversations` collection remains at the top level, with security rules granting access based on the `participantIds` array within each conversation document. This is a standard and secure pattern for chat applications."
   }
 }
