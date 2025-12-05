@@ -10,12 +10,13 @@ import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { askStudinAi, type StudinAiInput } from "@/ai/flows/studin-ai-flow";
+import { askStudinAi } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import type { ChatMessage } from "@/lib/types";
+import type { StudinAiInput } from '@/ai/schemas/studin-ai-schema';
 
 
 function MessagesHeader() {

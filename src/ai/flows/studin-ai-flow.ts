@@ -8,34 +8,9 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { z } from 'genkit';
 import wav from 'wav';
+import { StudinAiInputSchema, StudinAiOutputSchema, type StudinAiInput, type StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
 
-const StudinAiMessageSchema = z.object({
-  role: z.enum(['user', 'model']),
-  text: z.string().optional(),
-  imageUrl: z.string().optional(),
-  audioUrl: z.string().optional(),
-});
-
-export const StudinAiInputSchema = z.object({
-  history: z.array(z.object({
-    role: z.enum(['user', 'model']),
-    text: z.string(), // text is mandatory in history
-    imageUrl: z.string().optional(),
-    audioUrl: z.string().optional(),
-  })).optional().describe('The conversation history.'),
-  message: StudinAiMessageSchema.describe('The new user message.'),
-});
-export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
-
-
-const StudinAiOutputSchema = z.object({
-  text: z.string().describe("The AI's text response."),
-  audio: z.string().optional().describe("The AI's audio response as a dataURI."),
-  imageUrl: z.string().optional().describe("A generated image URL as a data URI."),
-});
-export type StudinAiOutput = z.infer<typeof StudinAiOutputSchema>;
 
 export async function askStudinAi(input: StudinAiInput): Promise<StudinAiOutput> {
   return studinAiFlow(input);
