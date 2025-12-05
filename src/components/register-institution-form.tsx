@@ -90,7 +90,7 @@ export default function RegisterInstitutionForm() {
             city: data.city,
             university: '',
             fieldOfStudy: '',
-            bio: '',
+            bio: `Compte officiel de ${data.name}.`,
             website: '',
         };
         localStorage.setItem(`pendingProfile_${user.uid}`, JSON.stringify(pendingProfile));
@@ -143,115 +143,115 @@ export default function RegisterInstitutionForm() {
         <CardDescription>Inscrivez votre institution sur STUD'IN</CardDescription>
       </CardHeader>
       <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom de l'institution</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Ville de Bruxelles, ASBL..." {...field} disabled={buttonsDisabled} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <FormField
-                  control={form.control}
-                  name="postalCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Code Postal</FormLabel>
-                      <FormControl>
-                        <Input placeholder="1000" {...field} disabled={buttonsDisabled} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ville</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Bruxelles" {...field} disabled={buttonsDisabled} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom de l'institution</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Ville de Bruxelles, ASBL..." {...field} disabled={buttonsDisabled} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="postalCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email de contact</FormLabel>
+                    <FormLabel>Code Postal</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="contact@votreinstitution.org" {...field} disabled={buttonsDisabled} />
+                      <Input placeholder="1000" {...field} disabled={buttonsDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mot de passe</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input type={showPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={buttonsDisabled} className="pr-10"/>
-                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
-                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmer le mot de passe</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={buttonsDisabled} className="pr-10"/>
-                           <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
-                            {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ville</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Bruxelles" {...field} disabled={buttonsDisabled} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email de contact</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="contact@votreinstitution.org" {...field} disabled={buttonsDisabled} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mot de passe</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input type={showPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={buttonsDisabled} className="pr-10" />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmer le mot de passe</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="6+ caractères" {...field} disabled={buttonsDisabled} className="pr-10" />
+                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                          {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-              <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {loading ? "Création du compte..." : 'S\'inscrire'}
-              </Button>
-            </form>
-          </Form>
+            <Button type="submit" className="w-full" disabled={buttonsDisabled}>
+              {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {loading ? "Création du compte..." : 'S\'inscrire'}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
-       <CardFooter className="flex justify-center">
-         <p className="text-sm text-muted-foreground">
-            Vous êtes étudiant ?{' '}
-            <Link href="/register" className="font-semibold text-primary hover:underline">
-              Inscrivez-vous ici
-            </Link>
-          </p>
+      <CardFooter className="flex justify-center">
+        <p className="text-sm text-muted-foreground">
+          Vous êtes étudiant ?{' '}
+          <Link href="/register" className="font-semibold text-primary hover:underline">
+            Inscrivez-vous ici
+          </Link>
+        </p>
       </CardFooter>
     </>
   );

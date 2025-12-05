@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirebase } from '@/firebase';
 import { User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
@@ -22,7 +22,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, isUserLoading } = useAuth();
+  const { auth, isUserLoading, areServicesAvailable } = useFirebase();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
@@ -34,53 +34,45 @@ export default function LoginForm() {
       const from = searchParams.get('from') || '/social';
       
       router.push(from);
+      router.refresh();
   }
 
   const handleError = (error: any) => {
-    let description = "Une erreur est survenue. Veuillez réessayer.";
-    if (error.code) {
-        switch(error.code) {
-            case 'auth/user-not-found':
-            case 'auth/wrong-password':
-            case 'auth/invalid-credential':
-                description = "Adresse e-mail ou mot de passe incorrect.";
-                break;
-            case 'auth/too-many-requests':
-                description = "Trop de tentatives. Veuillez réessayer plus tard.";
-                break;
-            case 'auth/network-request-failed':
-                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
-                break;
-             default:
-                description = `Erreur: ${error.code}`
-        }
+    setLoading(false);
+    let description = `Une erreur est survenue. (${error.code})`;
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      description = "Adresse e-mail ou mot de passe incorrect."
+    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed' || error.code === 'auth/firebase-app-check-token-is-invalid') {
+      description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
+    } else if (error.code === 'auth/too-many-requests') {
+      description = "Trop de tentatives. Veuillez réessayer plus tard.";
     }
-    
-    toast({
-        variant: "destructive",
-        title: "Erreur de connexion",
-        description: description,
-    });
-}
 
-  
+    toast({
+      variant: "destructive",
+      title: "Erreur de connexion",
+      description: description,
+    });
+  }
+
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-        toast({variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs."});
-        return;
+      toast({ variant: "destructive", title: "Champs requis", description: "Veuillez remplir tous les champs." });
+      return;
     }
     if (!auth) {
         toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
         return;
     }
-    
+
     setLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       handleSuccess(userCredential.user);
-    } catch (error) {
+    } catch (error: any) {
       handleError(error);
     } finally {
       setLoading(false);
@@ -145,9 +137,9 @@ export default function LoginForm() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={buttonsDisabled}>
+            <Button type="submit" className="w-full" disabled={buttonsDisabled || !areServicesAvailable}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isUserLoading ? 'Chargement...' : 'Se connecter'}
+                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>
         </div>
@@ -157,6 +149,6 @@ export default function LoginForm() {
             Inscrivez-vous
           </Link>
         </div>
-      </div>
+    </div>
   );
 }

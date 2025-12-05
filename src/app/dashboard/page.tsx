@@ -28,7 +28,7 @@ export default function DashboardPage() {
     const firestore = useFirestore();
     const router = useRouter();
     const { toast } = useToast();
-    
+
     const [showCreateEventForm, setShowCreateEventForm] = useState(false);
     const [showCreateChallengeForm, setShowCreateChallengeForm] = useState(false);
 
@@ -36,12 +36,12 @@ export default function DashboardPage() {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
-    const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
-    
+    const { data: userProfile, isLoading: profileLoading, error: profileError } = useDoc<UserProfile>(userProfileRef);
+
     const isAuthorized = userProfile?.role === 'institution' || userProfile?.role === 'admin';
-    
+
     // Queries for dynamic data
-    const challengesQuery = useMemoFirebase(() => 
+    const challengesQuery = useMemoFirebase(() =>
         (user && firestore && isAuthorized) ? query(collection(firestore, 'challenges'), where('creatorId', '==', user.uid)) : null,
         [user, firestore, isAuthorized]
     );
@@ -65,7 +65,7 @@ export default function DashboardPage() {
     }, [firestore, challenges]);
     const { data: submissions, isLoading: submissionsLoading } = useCollection<ChallengeSubmission>(submissionsQuery);
 
-    
+
     useEffect(() => {
         if (!isUserLoading && !profileLoading && (!user || !isAuthorized)) {
             router.push('/social');
@@ -74,9 +74,9 @@ export default function DashboardPage() {
 
     const handleSubmissionAction = async (submissionId: string, challengeId: string, action: 'approve' | 'reject') => {
         if (!firestore) return;
-        
+
         const submissionRef = doc(firestore, 'challenges', challengeId, 'submissions', submissionId);
-        
+
         try {
             await updateDoc(submissionRef, { status: action });
             toast({
@@ -88,10 +88,31 @@ export default function DashboardPage() {
         }
     };
 
-    if (isUserLoading || profileLoading || !user || !isAuthorized) {
+    if (profileError) {
+        return (
+            <div className="flex min-h-screen w-full bg-background">
+                <SocialSidebar />
+                <div className="flex flex-col flex-1 items-center justify-center p-4">
+                    <div className="text-center space-y-4">
+                        <h2 className="text-xl font-bold text-destructive">Erreur de chargement</h2>
+                        <p className="text-muted-foreground">{profileError.message}</p>
+                        <p className="text-sm text-muted-foreground">Vérifiez vos règles de sécurité Firebase (Firestore Rules).</p>
+                        <Button onClick={() => window.location.reload()}>Réessayer</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (isUserLoading || profileLoading) {
         return <PageSkeleton />;
     }
-    
+
+    if (!user || !isAuthorized) {
+        // Should be handled by useEffect redirect, but as a fallback
+        return <PageSkeleton />;
+    }
+
     const isLoadingData = challengesLoading || eventsLoading || submissionsLoading;
 
     return (
@@ -120,7 +141,7 @@ export default function DashboardPage() {
                             <TabsTrigger value="events">Gestion des Événements</TabsTrigger>
                         </TabsList>
                         <TabsContent value="challenges" className="mt-6">
-                           <Card>
+                            <Card>
                                 <CardHeader className="flex flex-row items-center justify-between">
                                     <div>
                                         <CardTitle>Participations aux défis</CardTitle>
@@ -131,60 +152,60 @@ export default function DashboardPage() {
                                     </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                {isLoadingData ? (
-                                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-                                ) : submissions && submissions.length > 0 ? submissions.map(sub => (
-                                    <Card key={sub.id} className="bg-muted/50">
-                                        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start">
-                                            <div className="relative w-full md:w-32 h-32 flex-shrink-0 rounded-md overflow-hidden">
-                                                <Image src={sub.proofUrl} alt={`Preuve de ${sub.userProfile.username}`} layout="fill" objectFit="cover" />
-                                            </div>
-                                            <div className="flex-grow">
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-8 w-8">
-                                                        <AvatarImage src={sub.userProfile.avatarUrl} />
-                                                        <AvatarFallback>{sub.userProfile.username.substring(0,2)}</AvatarFallback>
-                                                    </Avatar>
-                                                    <p className="font-semibold">{sub.userProfile.username}</p>
+                                    {isLoadingData ? (
+                                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                                    ) : submissions && submissions.length > 0 ? submissions.map(sub => (
+                                        <Card key={sub.id} className="bg-muted/50">
+                                            <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start">
+                                                <div className="relative w-full md:w-32 h-32 flex-shrink-0 rounded-md overflow-hidden">
+                                                    <Image src={sub.proofUrl} alt={`Preuve de ${sub.userProfile.username}`} layout="fill" objectFit="cover" />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground mt-2">
-                                                    A participé au défi : <Link href={`/challenges/${sub.challengeId}`} className="font-semibold text-primary hover:underline">{challengeMap.get(sub.challengeId)?.title || 'Défi inconnu'}</Link>
-                                                </p>
-                                                <Badge variant={sub.status === 'pending' ? 'default' : sub.status === 'approved' ? 'secondary' : 'destructive'} className="mt-2">{sub.status}</Badge>
-                                            </div>
-                                            {sub.status === 'pending' && (
-                                                <div className="flex gap-2 self-start md:self-center flex-shrink-0">
-                                                    <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleSubmissionAction(sub.id, sub.challengeId, 'reject')}>
-                                                        <X className="mr-2 h-4 w-4" /> Rejeter
-                                                    </Button>
-                                                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleSubmissionAction(sub.id, sub.challengeId, 'approve')}>
-                                                        <Check className="mr-2 h-4 w-4" /> Approuver
-                                                    </Button>
+                                                <div className="flex-grow">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8">
+                                                            <AvatarImage src={sub.userProfile.avatarUrl} />
+                                                            <AvatarFallback>{sub.userProfile.username.substring(0, 2)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <p className="font-semibold">{sub.userProfile.username}</p>
+                                                    </div>
+                                                    <p className="text-sm text-muted-foreground mt-2">
+                                                        A participé au défi : <Link href={`/challenges/${sub.challengeId}`} className="font-semibold text-primary hover:underline">{challengeMap.get(sub.challengeId)?.title || 'Défi inconnu'}</Link>
+                                                    </p>
+                                                    <Badge variant={sub.status === 'pending' ? 'default' : sub.status === 'approved' ? 'secondary' : 'destructive'} className="mt-2">{sub.status}</Badge>
                                                 </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                )) : (
-                                    <div className="text-center py-10 text-muted-foreground">
-                                        Aucune participation en attente.
-                                    </div>
-                                )}
+                                                {sub.status === 'pending' && (
+                                                    <div className="flex gap-2 self-start md:self-center flex-shrink-0">
+                                                        <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleSubmissionAction(sub.id, sub.challengeId, 'reject')}>
+                                                            <X className="mr-2 h-4 w-4" /> Rejeter
+                                                        </Button>
+                                                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleSubmissionAction(sub.id, sub.challengeId, 'approve')}>
+                                                            <Check className="mr-2 h-4 w-4" /> Approuver
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    )) : (
+                                        <div className="text-center py-10 text-muted-foreground">
+                                            Aucune participation en attente.
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         </TabsContent>
                         <TabsContent value="events" className="mt-6">
-                             <Card>
+                            <Card>
                                 <CardHeader className="flex flex-row items-center justify-between">
-                                  <div>
-                                    <CardTitle>Vos Événements</CardTitle>
-                                    <CardDescription>Suivez le nombre de participants et créez de nouveaux événements.</CardDescription>
-                                  </div>
-                                  <Button onClick={() => setShowCreateEventForm(true)}>
-                                    <Plus className="mr-2 h-4 w-4" /> Créer un événement
-                                  </Button>
+                                    <div>
+                                        <CardTitle>Vos Événements</CardTitle>
+                                        <CardDescription>Suivez le nombre de participants et créez de nouveaux événements.</CardDescription>
+                                    </div>
+                                    <Button onClick={() => setShowCreateEventForm(true)}>
+                                        <Plus className="mr-2 h-4 w-4" /> Créer un événement
+                                    </Button>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                     {isLoadingData ? (
+                                    {isLoadingData ? (
                                         <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                                     ) : events && events.length > 0 ? events.map(event => (
                                         <Card key={event.id} className="bg-muted/50">
@@ -208,7 +229,7 @@ export default function DashboardPage() {
                                         </div>
                                     )}
                                 </CardContent>
-                             </Card>
+                            </Card>
                         </TabsContent>
                     </Tabs>
                 </main>

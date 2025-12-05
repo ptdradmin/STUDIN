@@ -6,7 +6,7 @@ import type { Post, Favorite, UserProfile } from '@/lib/types';
 import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, setDocumentNonBlocking } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2 } from 'lucide-react';
@@ -159,7 +159,7 @@ export default function SocialPage() {
 
     }, [firestore, user, currentUserProfile, profileLoading]);
 
-    const fetchMorePosts = async () => {
+    const fetchMorePosts = useCallback(async () => {
         if (!firestore || !lastVisible || isLoadingMore) return;
         setIsLoadingMore(true);
 
@@ -192,7 +192,7 @@ export default function SocialPage() {
         if (documentSnapshots.docs.length < POST_BATCH_SIZE) {
             setHasMore(false);
         }
-    }
+    }, [firestore, lastVisible, isLoadingMore, user, currentUserProfile]);
     
     if (isUserLoading || profileLoading) {
       return <PageSkeleton />;
