@@ -11,7 +11,7 @@ export default function TermsPage() {
         <div className="bg-gradient-to-br from-primary/10 to-secondary/10">
             <div className="container mx-auto px-4 py-16 text-center">
                 <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl text-foreground">Conditions d'Utilisation</h1>
-                <p className="mt-2 text-lg text-muted-foreground">Dernière mise à jour le 28 Juillet 2024</p>
+                <p className="mt-2 text-lg text-muted-foreground">Dernière mise à jour le 5 Décembre 2025</p>
             </div>
         </div>
         <div className="container mx-auto px-4 py-8 md:py-16">
