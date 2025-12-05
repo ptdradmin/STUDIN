@@ -1,3 +1,4 @@
+
 // This file is the single source of truth for Firebase initialization.
 // It is designed to be used in a client-side context.
 
@@ -5,7 +6,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaV3Provider, AppCheck } from 'firebase/app-check';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -25,7 +25,6 @@ export interface FirebaseServices {
 }
 
 let services: FirebaseServices | null = null;
-let appCheck: AppCheck | null = null;
 
 /**
  * Initializes and gets the Firebase services. This function ensures that
@@ -38,25 +37,6 @@ export function getFirebaseServices(): FirebaseServices {
   }
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-
-  // --- App Check Initialization ---
-  if (typeof window !== 'undefined' && !appCheck) {
-    // For development, ensure the debug token is available.
-    if (process.env.NODE_ENV !== 'production') {
-        (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    }
-    
-    try {
-        appCheck = initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider(process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY || '6Ld-9RkqAAAAAPvXANiZ1sO52sJ12t2Lh_sB1a2z'),
-            isTokenAutoRefreshEnabled: true,
-        });
-        console.log(`Firebase App Check initialized.`);
-    } catch (e) {
-      console.warn("App Check initialization error:", e);
-    }
-  }
-
 
   const auth = getAuth(app);
   const firestore = getFirestore(app);
