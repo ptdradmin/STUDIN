@@ -2,9 +2,9 @@
 
 'use client';
 
-import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, serverTimestamp, setDoc } from 'firebase/firestore';
 import type { Post, Favorite, UserProfile } from '@/lib/types';
-import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser, useDoc, setDocumentNonBlocking } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { useMemo, useState, useEffect } from 'react';
@@ -18,6 +18,7 @@ import SocialSidebar from '@/components/social-sidebar';
 import SuggestedUsersCarousel from '@/components/suggested-users-carousel';
 import SocialFeedSuggestions from '@/components/social-feed-suggestions';
 import { doc } from 'firebase/firestore';
+import { generateAvatar } from '@/lib/avatars';
 
 const POST_BATCH_SIZE = 10;
 
@@ -61,6 +62,37 @@ export default function SocialPage() {
             router.push('/login?from=/social');
         }
     }, [isUserLoading, user, router]);
+
+    useEffect(() => {
+        if (user && !profileLoading && !currentUserProfile && firestore) {
+            // This is a new user, create their profile document
+            const userDocRef = doc(firestore, 'users', user.uid);
+            const username = user.displayName?.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '') || user.email?.split('@')[0] || `user_${user.uid.substring(0,5)}`;
+            const userData: UserProfile = {
+                id: user.uid,
+                role: 'student', // Default role
+                email: user.email!,
+                username: username,
+                firstName: user.displayName?.split(' ')[0] || '',
+                lastName: user.displayName?.split(' ')[1] || '',
+                university: '',
+                fieldOfStudy: '',
+                postalCode: '',
+                city: '',
+                bio: '',
+                website: '',
+                profilePicture: user.photoURL || generateAvatar(user.email || user.uid),
+                followerIds: [],
+                followingIds: [],
+                isVerified: false,
+                points: 0,
+                challengesCompleted: 0,
+                createdAt: serverTimestamp() as any,
+                updatedAt: serverTimestamp() as any,
+            };
+            setDocumentNonBlocking(userDocRef, userData, { merge: false });
+        }
+    }, [user, profileLoading, currentUserProfile, firestore]);
     
     useEffect(() => {
         if (profileLoading || !firestore) return;

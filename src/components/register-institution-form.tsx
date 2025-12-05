@@ -64,74 +64,34 @@ export default function RegisterInstitutionForm() {
     }
 
     try {
-        const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
-        
-        const usernameIsUnique = await isUsernameUnique(firestore, username);
-        if (!usernameIsUnique) {
-            form.setError("name", {
-                type: "manual",
-                message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
-            });
-            setLoading(false);
-            return;
-        }
+      const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
+      
+      const usernameIsUnique = await isUsernameUnique(firestore, username);
+      if (!usernameIsUnique) {
+          form.setError("name", {
+              type: "manual",
+              message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
+          });
+          setLoading(false);
+          return;
+      }
 
       // Step 1: Create user in Auth
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // Step 2: Now that user is created and authenticated, write to Firestore
-      const batch = writeBatch(firestore);
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const institutionDocRef = doc(firestore, 'institutions', user.uid);
-
-      const userData = {
-        id: user.uid,
-        role: 'institution' as const,
-        username: username,
-        email: data.email,
-        firstName: data.name,
-        lastName: '',
-        university: '',
-        fieldOfStudy: '',
-        postalCode: data.postalCode,
-        city: data.city,
-        bio: `Compte officiel de ${data.name}.`,
-        website: '',
-        profilePicture: generateAvatar(user.email || user.uid),
-        followerIds: [],
-        followingIds: [],
-        isVerified: true,
-        points: 0,
-        challengesCompleted: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-      batch.set(userDocRef, userData);
-
-      const institutionData = {
-        id: user.uid,
-        userId: user.uid,
-        name: data.name,
-        postalCode: data.postalCode,
-        city: data.city,
-        email: data.email,
-        role: 'institution',
-        createdAt: serverTimestamp(),
-      };
-      batch.set(institutionDocRef, institutionData);
-
-      await batch.commit();
-
-      // Step 3: Update Auth profile (display name, etc.)
-      await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
+      // Step 2: Update Auth profile
+      await updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
+      
+      // Step 3: Set temporary data for next page to create the profile
+      // In a real app, this might be handled by a cloud function or passed securely.
+      // For now, we'll rely on the social page to check for profile existence.
 
       toast({
-        title: "Inscription réussie !",
-        description: "Votre compte partenaire a été créé.",
+        title: "Compte créé !",
+        description: "Finalisation de votre profil...",
       });
-      router.push('/dashboard');
-      router.refresh();
+      router.push('/social');
 
     } catch (error: any) {
         if (error.code === 'auth/email-already-in-use') {
@@ -140,16 +100,7 @@ export default function RegisterInstitutionForm() {
               title: "Erreur d'inscription",
               description: "Cet email est déjà utilisé pour un autre compte.",
             });
-        } else if (error.code === 'permission-denied') {
-             // This is our detailed error handling for Firestore rules
-             const permissionError = new FirestorePermissionError({
-                 path: `users_or_institutions`, // Generic path for batch
-                 operation: 'create',
-                 requestResourceData: { note: 'An error occurred during batched write for new institution.' }
-             });
-             errorEmitter.emit('permission-error', permissionError);
-        }
-        else {
+        } else {
             toast({
               variant: "destructive",
               title: "Erreur Inattendue",
