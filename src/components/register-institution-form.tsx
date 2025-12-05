@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useAuth, useFirestore, FirestorePermissionError, errorEmitter, setDocumentNonBlocking } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -137,17 +136,7 @@ export default function RegisterInstitutionForm() {
             updatedAt: serverTimestamp(),
         };
         
-        try {
-          await setDoc(userDocRef, userData);
-        } catch (serverError) {
-           const permissionError = new FirestorePermissionError({
-                  path: userDocRef.path,
-                  operation: 'create',
-                  requestResourceData: userData
-              });
-              errorEmitter.emit('permission-error', permissionError);
-              throw serverError;
-        }
+        setDocumentNonBlocking(userDocRef, userData, { merge: false });
         
         toast({
             title: "Compte créé !",

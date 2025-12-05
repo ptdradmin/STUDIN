@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState } from 'react';
@@ -12,12 +10,12 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useAuth, useFirestore, FirestorePermissionError, errorEmitter, setDocumentNonBlocking } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { generateAvatar } from '@/lib/avatars';
 import { isUsernameUnique } from '@/lib/user-actions';
 import { schoolsList } from '@/lib/static-data';
@@ -114,19 +112,7 @@ export default function RegisterForm() {
         updatedAt: serverTimestamp(),
       };
       
-      try {
-        await setDoc(userDocRef, userData);
-      } catch (serverError) {
-        // This is the critical part for catching security rule errors on write.
-        const permissionError = new FirestorePermissionError({
-          path: userDocRef.path,
-          operation: 'create',
-          requestResourceData: userData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        // We still throw the original error to be caught by the outer catch block.
-        throw serverError;
-      }
+      setDocumentNonBlocking(userDocRef, userData, { merge: false });
 
 
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
