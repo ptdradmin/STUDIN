@@ -137,16 +137,17 @@ export default function RegisterInstitutionForm() {
             updatedAt: serverTimestamp(),
         };
         
-        setDoc(userDocRef, userData)
-          .catch((serverError) => {
-              const permissionError = new FirestorePermissionError({
+        try {
+          await setDoc(userDocRef, userData);
+        } catch (serverError) {
+           const permissionError = new FirestorePermissionError({
                   path: userDocRef.path,
                   operation: 'create',
                   requestResourceData: userData
               });
               errorEmitter.emit('permission-error', permissionError);
               throw serverError;
-          });
+        }
         
         toast({
             title: "Compte créé !",

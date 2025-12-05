@@ -125,16 +125,20 @@ export default function RegisterForm() {
         updatedAt: serverTimestamp(),
       };
       
-      setDoc(userDocRef, userData)
-        .catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: userDocRef.path,
-                operation: 'create',
-                requestResourceData: userData
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            throw serverError;
+      try {
+        await setDoc(userDocRef, userData);
+      } catch (serverError) {
+        // This is the critical part for catching security rule errors on write.
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'create',
+          requestResourceData: userData,
         });
+        errorEmitter.emit('permission-error', permissionError);
+        // We still throw the original error to be caught by the outer catch block.
+        throw serverError;
+      }
+
 
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
@@ -150,6 +154,7 @@ export default function RegisterForm() {
       console.error("Registration error:", error);
       let description = "Impossible de créer le compte. Veuillez réessayer.";
       
+      // Only show a toast if it's NOT a permission error, which is handled globally
       if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
         switch (error.code) {
             case 'auth/email-already-in-use':
