@@ -42,19 +42,23 @@ export function getFirebaseServices(): FirebaseServices {
 
   // --- App Check Initialization ---
   if (typeof window !== 'undefined' && !appCheck) {
-    // This is a special variable that Firebase's App Check SDK looks for.
-    // It's set to true for development environments (like Firebase Studio)
-    // to enable debugging without a valid reCAPTCHA token.
-    (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NODE_ENV !== 'production';
-
+    // For development (e.g., Firebase Studio, localhost), always use the debug token.
+    // This allows testing without a real reCAPTCHA setup.
+    // In production (e.g., Vercel), this variable should NOT be set to true.
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    if (isDevelopment) {
+      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    }
+    
     try {
         appCheck = initializeAppCheck(app, {
-            // For production (Vercel), use reCAPTCHA Enterprise.
-            // For development with the debug token set, this provider is effectively ignored.
+            // Use reCAPTCHA Enterprise for production environments.
+            // The debug token will override this in development.
             provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
             isTokenAutoRefreshEnabled: true,
         });
-        console.log("Firebase App Check initialized.");
+        console.log(`Firebase App Check initialized for ${isDevelopment ? 'development' : 'production'}.`);
     } catch (e) {
       console.warn("App Check initialization error:", e);
     }
