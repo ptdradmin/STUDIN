@@ -5,9 +5,10 @@
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight, Sparkles, Zap, Check } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 
 const services = [
     {
@@ -125,6 +126,72 @@ export default function HomePage() {
                         </div>
                     </div>
                 </section>
+                
+                <section id="ai-presentation" className="py-16 md:py-24 bg-muted/40">
+                  <div className="container mx-auto px-4">
+                    <div className="mx-auto mb-12 max-w-3xl text-center">
+                      <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                        Découvrez STUD'IN AI, Votre Assistant Personnel
+                      </h2>
+                      <p className="mt-4 text-lg text-muted-foreground">
+                        Une intelligence artificielle conçue pour vous, intégrée à votre quotidien étudiant.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        {/* STUD'IN AI Free */}
+                        <Card className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-2xl">
+                                    <Sparkles className="text-muted-foreground"/>
+                                    STUD'IN AI
+                                </CardTitle>
+                                <CardDescription>L'assistant rapide et efficace pour tous.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow space-y-4">
+                                <p className="text-3xl font-bold">Gratuit</p>
+                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Réponses instantanées (texte et voix)</li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Conversation multimodale (image, audio)</li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Connaissance de la vie étudiante belge</li>
+                                </ul>
+                            </CardContent>
+                            <CardFooter>
+                                <Button variant="secondary" className="w-full" asChild>
+                                    <Link href="/ai-chat">Essayer maintenant</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+
+                        {/* STUD'IN AI Pro */}
+                         <Card className="border-primary border-2 flex flex-col relative overflow-hidden">
+                            <div className="absolute top-0 right-0 py-1 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-bl-lg">LE PLUS PUISSANT</div>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-2xl">
+                                    <Zap className="text-primary"/>
+                                    STUD'IN AI Pro
+                                </CardTitle>
+                                <CardDescription>Débloquez le potentiel maximal de l'IA.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow space-y-4">
+                               <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
+                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/><strong>Toutes les fonctionnalités gratuites</strong></li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Modèle de langage le plus avancé (raisonnement supérieur)</li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Génération de légendes pour vos publications</li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Génération d'images haute qualité</li>
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Analyse et aide à la création d'annonces et d'événements</li>
+                                </ul>
+                            </CardContent>
+                            <CardFooter>
+                                <Button className="w-full" asChild>
+                                    <Link href="/settings">Passer à Pro</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    </div>
+                  </div>
+                </section>
+
             </main>
             <Footer />
         </div>
