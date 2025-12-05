@@ -74,14 +74,16 @@ const studinAiFlow = ai.defineFlow(
       }
     }
 
-    // 2. Image Generation Logic
+    // 2. Image Analysis & Generation Logic
     const shouldGenerateImage = userMessageText.toLowerCase().startsWith('génère une image') || userMessageText.toLowerCase().startsWith('crée une image');
-    if (userImage && userMessageText) {
+
+    // If there is an image, the main task is likely related to it (analysis, modification, etc.)
+    if (userImage) {
         const { media, text: imageGenText } = await ai.generate({
-            model: 'googleai/gemini-2.5-flash-image-preview',
+            model: 'googleai/gemini-2.5-pro-image-generate-001',
             prompt: [
                 { media: { url: userImage } },
-                { text: userMessageText || 'Améliore cette image.' },
+                { text: userMessageText || 'Analyse cette image et décris ce que tu vois en détail.' },
             ],
             config: {
                 responseModalities: ['TEXT', 'IMAGE'],
@@ -91,7 +93,9 @@ const studinAiFlow = ai.defineFlow(
             text: imageGenText || "Voici l'image que vous avez demandée.",
             imageUrl: media?.url,
         };
-    } else if (shouldGenerateImage) {
+    } 
+    // If the text specifically asks for image generation
+    else if (shouldGenerateImage) {
         const imagePrompt = userMessageText.replace(/^(génère une image de|crée une image de)/i, '').trim();
         const { media } = await ai.generate({
             model: 'googleai/gemini-2.5-pro-image-generate-001',
