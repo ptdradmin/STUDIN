@@ -1,15 +1,13 @@
 
-import { firebaseConfig } from '@/firebase/config';
+
+import { getFirebaseServices } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
-    const isConfigured = getApps().length > 0;
-    const firebaseApp = isConfigured ? getApp() : initializeApp(firebaseConfig);
-    const auth = getAuth(firebaseApp);
-    const firestore = getFirestore(firebaseApp);
+    const { firebaseApp, auth, firestore } = getFirebaseServices();
 
     if (process.env.NEXT_PUBLIC_EMULATOR_HOST) {
         if (!('_emulator' in auth) || !auth._emulator.options) {
