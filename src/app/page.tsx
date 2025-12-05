@@ -5,7 +5,7 @@
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight, Sparkles, Zap, Check } from 'lucide-react';
+import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight, Sparkles, Zap, Check, ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
@@ -150,6 +150,7 @@ export default function HomePage() {
                             <CardContent className="flex-grow space-y-4">
                                 <p className="text-3xl font-bold">Gratuit</p>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Modèle rapide (Gemini 2.5 Flash)</li>
                                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Réponses instantanées (texte et voix)</li>
                                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Conversation multimodale (image, audio)</li>
                                     <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Connaissance de la vie étudiante belge</li>
@@ -175,11 +176,12 @@ export default function HomePage() {
                             <CardContent className="flex-grow space-y-4">
                                <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
                                 <ul className="space-y-2 text-sm text-muted-foreground">
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/><strong>Toutes les fonctionnalités gratuites</strong></li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Modèle de langage le plus avancé (raisonnement supérieur)</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Génération de légendes pour vos publications</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Génération d'images haute qualité</li>
-                                    <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary"/>Analyse et aide à la création d'annonces et d'événements</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage le plus avancé (Gemini 2.5 Pro) pour un raisonnement supérieur</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications sociales</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité à partir de texte</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour vos annonces et événements</li>
+                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Validation intelligente des soumissions aux défis</li>
                                 </ul>
                             </CardContent>
                             <CardFooter>
