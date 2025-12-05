@@ -196,7 +196,7 @@ export type ChatMessage = {
     id: string;
     senderId: string;
     createdAt: Timestamp;
-    role: 'user' | 'model'; 
+    role: 'user' | 'model';
     text?: string;
     imageUrl?: string;
     videoUrl?: string;
