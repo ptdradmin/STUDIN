@@ -42,7 +42,7 @@ function MessagesHeader() {
 
 function MessageBubble({ message }: { message: AiChatMessage }) {
     const { user } = useUser();
-    const isUserMessage = message.sender === 'user';
+    const isUserMessage = message.role === 'user';
     const audioRef = useRef<HTMLAudioElement>(null);
 
     const getInitials = (name?: string | null) => {
@@ -50,12 +50,6 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
         return name.substring(0, 2).toUpperCase();
     }
     
-    useEffect(() => {
-        if (message.sender === 'ai' && message.audioUrl && audioRef.current) {
-            audioRef.current.play().catch(e => console.error("Audio autoplay failed:", e));
-        }
-    }, [message]);
-
     return (
         <div className={cn("flex items-start gap-3", isUserMessage && "justify-end")}>
              {!isUserMessage && (
@@ -92,7 +86,7 @@ export default function AiChatPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [messages, setMessages] = useState<AiChatMessage[]>([
-        { id: Date.now(), sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI. Je peux maintenant générer des images pour vous. Essayez de me demander 'génère une image d'un étudiant sur Mars' ou envoyez une image pour que je la modifie !" }
+        { id: Date.now(), role: 'model', text: "Bonjour ! Je suis STUD'IN AI. Je peux maintenant générer des images pour vous. Essayez de me demander 'génère une image d'un étudiant sur Mars' ou envoyez une image pour que je la modifie !" }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -117,7 +111,7 @@ export default function AiChatPage() {
 
         const userMessage: AiChatMessage = {
             id: Date.now(),
-            sender: 'user',
+            role: 'user',
             text: newMessage.trim() || undefined,
             imageUrl: previewUrl || undefined,
         };
@@ -128,8 +122,12 @@ export default function AiChatPage() {
             userMessage.audioUrl = URL.createObjectURL(audioBlob);
         }
         
-        setMessages(prev => [...prev, userMessage]);
-        const currentMessage = newMessage;
+        const updatedMessages = [...messages, userMessage];
+        setMessages(updatedMessages);
+        
+        const currentMessageText = newMessage;
+        const currentPreviewUrl = previewUrl;
+
         setNewMessage('');
         setIsLoading(true);
         setImageFile(null);
@@ -145,11 +143,18 @@ export default function AiChatPage() {
                     reader.readAsDataURL(audioBlob!);
                 });
             }
+            
+            const history = updatedMessages.slice(0, -1).map(({id, ...rest}) => rest);
+            const messageToSend = { role: 'user', text: currentMessageText, imageUrl: currentPreviewUrl, audioUrl: audioDataUri };
 
-            const result = await askStudinAi({ text: currentMessage, audio: audioDataUri, imageDataUri: previewUrl || undefined });
+            const result = await askStudinAi({ 
+                history,
+                message: messageToSend
+             });
+             
             const aiResponse: AiChatMessage = {
                 id: Date.now() + 1,
-                sender: 'ai',
+                role: 'model',
                 text: result.text,
                 audioUrl: result.audio,
                 imageUrl: result.imageUrl,
@@ -159,7 +164,7 @@ export default function AiChatPage() {
             console.error("Error asking STUD'IN AI:", error);
             const errorResponse: AiChatMessage = {
                 id: Date.now() + 1,
-                sender: 'ai',
+                role: 'model',
                 text: "Désolé, je rencontre un problème pour répondre. Veuillez réessayer plus tard."
             };
             setMessages(prev => [...prev, errorResponse]);

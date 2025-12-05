@@ -205,7 +205,7 @@ export type ChatMessage = {
 
 export type AiChatMessage = {
     id: number;
-    sender: 'user' | 'ai';
+    role: 'user' | 'model';
     text?: string;
     audioUrl?: string;
     imageUrl?: string;

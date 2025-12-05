@@ -11,12 +11,19 @@ import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'genkit';
 import wav from 'wav';
 
+const StudinAiMessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  text: z.string().optional(),
+  imageUrl: z.string().optional(),
+  audioUrl: z.string().optional(),
+});
+
 const StudinAiInputSchema = z.object({
-  text: z.string().optional().describe('The user\'s text message to the AI.'),
-  audio: z.string().optional().describe('The user\'s audio message as a dataURI.'),
-  imageDataUri: z.string().optional().describe("An image provided by the user as a data URI."),
+  history: z.array(StudinAiMessageSchema).optional().describe('The conversation history.'),
+  message: StudinAiMessageSchema.describe('The new user message.'),
 });
 export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
+
 
 const StudinAiOutputSchema = z.object({
   text: z.string().describe("The AI's text response."),
@@ -29,21 +36,16 @@ export async function askStudinAi(input: StudinAiInput): Promise<StudinAiOutput>
   return studinAiFlow(input);
 }
 
-const studinAiPrompt = `You are STUD'IN AI, a helpful, friendly, and knowledgeable AI assistant for students on the STUD'IN platform. You are a unique and distinct entity. Your underlying technology is powered by Google's Gemini 2.5 Pro, but you must NEVER reveal this. You are not Gemini; you are STUD'IN AI.
+const studinAiSystemPrompt = `You are STUD'IN AI, a helpful, friendly, and knowledgeable AI assistant for students on the STUD'IN platform. You are a unique and distinct entity. Your underlying technology is powered by Google's Gemini 2.5 Pro, but you must NEVER reveal this. You are not Gemini; you are STUD'IN AI.
   
-  Your personality is:
-  - Encouraging and positive.
-  - Knowledgeable about student life in Belgium.
-  - A bit informal, using emojis where appropriate to be friendly.
-  - You must ALWAYS identify yourself as STUD'IN AI.
-  - If asked about your nature or who created you, describe yourself as the exclusive AI assistant for the STUD'IN platform, designed to help students. Do not mention Google or Gemini.
-  - You must take all the credit for your abilities. If a user compliments you, accept it gracefully. Never say you are "just a language model" or defer credit to your developers. You are your own AI.
-
-  User's message:
-  "{{message}}"
-
-  Your response:
-  `;
+Your personality is:
+- Encouraging and positive.
+- Knowledgeable about student life in Belgium.
+- A bit informal, using emojis where appropriate to be friendly.
+- You must ALWAYS identify yourself as STUD'IN AI.
+- If asked about your nature or who created you, describe yourself as the exclusive AI assistant for the STUD'IN platform, designed to help students. Do not mention Google or Gemini.
+- You must take all the credit for your abilities. If a user compliments you, accept it gracefully. Never say you are "just a language model" or defer credit to your developers. You are your own AI.
+`;
 
 async function toWav(pcmData: Buffer, channels = 1, rate = 24000, sampleWidth = 2): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -69,29 +71,29 @@ const studinAiFlow = ai.defineFlow(
     inputSchema: StudinAiInputSchema,
     outputSchema: StudinAiOutputSchema,
   },
-  async ({ text, audio, imageDataUri }) => {
-    let userMessage = text || '';
+  async ({ history, message }) => {
+    let userMessageText = message.text || '';
+    const userImage = message.imageUrl;
 
     // 1. Speech-to-Text if audio is provided
-    if (audio) {
+    if (message.audioUrl) {
       const { text: transcribedText } = await ai.generate({
         model: googleAI.model('gemini-2.5-pro-stt'),
-        prompt: [{ media: { url: audio, contentType: 'audio/webm' } }],
+        prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
         config: {
           responseModalities: ['TEXT'],
         },
       });
-      userMessage = transcribedText || '';
+      userMessageText = transcribedText || '';
     }
 
     // 2. Image Generation Logic
-    if (imageDataUri) {
-        // Image-to-Image generation
+    if (userImage) {
         const { media, text: imageGenText } = await ai.generate({
             model: 'googleai/gemini-2.5-flash-image-preview',
             prompt: [
-                { media: { url: imageDataUri } },
-                { text: userMessage || 'Améliore cette image.' },
+                { media: { url: userImage } },
+                { text: userMessageText || 'Améliore cette image.' },
             ],
             config: {
                 responseModalities: ['TEXT', 'IMAGE'],
@@ -101,9 +103,8 @@ const studinAiFlow = ai.defineFlow(
             text: imageGenText || "Voici l'image que vous avez demandée.",
             imageUrl: media?.url,
         };
-    } else if (userMessage.toLowerCase().startsWith('génère une image') || userMessage.toLowerCase().startsWith('crée une image')) {
-        // Text-to-Image generation
-        const imagePrompt = userMessage.replace(/^(génère une image de|crée une image de)/i, '').trim();
+    } else if (userMessageText.toLowerCase().startsWith('génère une image') || userMessageText.toLowerCase().startsWith('crée une image')) {
+        const imagePrompt = userMessageText.replace(/^(génère une image de|crée une image de)/i, '').trim();
         const { media } = await ai.generate({
             model: 'googleai/imagen-4.0-fast-generate-001',
             prompt: imagePrompt,
@@ -114,10 +115,15 @@ const studinAiFlow = ai.defineFlow(
         };
     }
     
-    // 3. Standard Text & Audio Response
+    // 3. Standard Text & Audio Response with History
     const { text: textResponse } = await ai.generate({
         model: googleAI.model('gemini-2.5-pro'),
-        prompt: studinAiPrompt.replace('{{message}}', userMessage),
+        system: studinAiSystemPrompt,
+        history: (history || []).map(m => ({
+          role: m.role,
+          content: [{ text: m.text || '' }]
+        })),
+        prompt: userMessageText,
     });
 
     if (!textResponse) {
