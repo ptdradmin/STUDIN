@@ -1,3 +1,4 @@
+
 import { Suspense } from 'react';
 import LoginForm from '@/components/login-form';
 import Image from 'next/image';
@@ -6,7 +7,9 @@ function LoginPageContent() {
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="flex items-center justify-center py-12">
-        <LoginForm />
+        <Suspense fallback={<div className="h-[400px] w-[350px] animate-pulse rounded-lg bg-muted"></div>}>
+          <LoginForm />
+        </Suspense>
       </div>
       <div className="hidden bg-muted lg:block relative">
         <Image
@@ -27,9 +30,5 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={<div>Chargement...</div>}>
-      <LoginPageContent />
-    </Suspense>
-  );
+  return <LoginPageContent />;
 }
