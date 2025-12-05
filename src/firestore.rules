@@ -108,7 +108,8 @@ service cloud.firestore {
     // EVENTS - Public read, Organizer write
     // ============================================
     match /events/{eventId} {
-      allow read: if isSignedIn();
+      allow get: if true;
+      allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
       // Allow attending by any signed-in user
       allow update: if (isSignedIn() && resource.data.organizerId == request.auth.uid) || 
@@ -134,7 +135,8 @@ service cloud.firestore {
     // CHALLENGES - Public read, Admin/Partner write
     // ============================================
     match /challenges/{challengeId} {
-      allow read: if isSignedIn();
+      allow get: if true;
+      allow list: if true;
       // Only allow creation/update if user has 'institution' or 'admin' role
       allow write: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['institution', 'admin'];
 
