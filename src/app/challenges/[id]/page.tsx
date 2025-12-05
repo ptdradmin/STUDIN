@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -29,6 +30,12 @@ const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full" />,
 });
+
+export async function generateStaticParams() {
+  return staticChallenges.map((challenge) => ({
+    id: challenge.id,
+  }));
+}
 
 export default function ChallengeDetailPage() {
     const params = useParams();
