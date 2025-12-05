@@ -22,7 +22,7 @@ const services = [
         description: "Partagez vos trajets pour économiser et faire des rencontres.",
         icon: <Car className="h-6 w-6" />,
         href: "/carpooling",
-        image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto=format&fit=crop"
+        image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Tutorat",
@@ -130,4 +130,3 @@ export default function HomePage() {
         </div>
     );
 }
-
