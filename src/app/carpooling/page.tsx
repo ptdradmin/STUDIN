@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -8,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare, GraduationCap, Car, AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { Trip } from "@/lib/types";
+import { Trip, UserProfile } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, updateDocumentNonBlocking } from "@/firebase";
+import { useCollection, useUser, useFirestore, updateDocumentNonBlocking, useDoc } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, doc, writeBatch, Timestamp, arrayUnion, collectionGroup, getDocs, runTransaction, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -30,6 +31,98 @@ const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
 });
+
+function TripCard({ trip, onContact, onReserve }: { trip: Trip, onContact: (trip: Trip) => void, onReserve: (trip: Trip) => void}) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const router = useRouter();
+
+    const driverProfileRef = useMemo(() => firestore ? doc(firestore, 'users', trip.driverId) : null, [firestore, trip.driverId]);
+    const { data: driverProfile } = useDoc<UserProfile>(driverProfileRef);
+    
+    const isPassenger = user && (trip.passengerIds || []).includes(user.uid);
+    const isOwner = user && user.uid === trip.driverId;
+
+    const getSafeDate = useCallback((dateValue: any): Date => {
+      if (!dateValue) return new Date();
+      if (dateValue instanceof Timestamp) {
+          return dateValue.toDate();
+      }
+      if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+          return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+      }
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+          const date = new Date(dateValue);
+          if (!isNaN(date.getTime())) {
+              return date;
+          }
+      }
+      return new Date();
+    }, []);
+
+    return (
+        <Card className={cn("transition-shadow hover:shadow-md")}>
+            <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <Image src={driverProfile?.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={driverProfile?.username || "conducteur"} width={48} height={48} className="rounded-full" />
+                </div>
+                <div className="hidden sm:flex flex-col items-center">
+                    <p className="font-semibold text-sm">{driverProfile?.username || 'Utilisateur'}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
+                </div>
+                <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
+                    <div className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-primary"/>
+                        <div>
+                            <p className="font-medium text-sm text-muted-foreground">Départ</p>
+                            <p className="font-semibold">{trip.departureCity}</p>
+                        </div>
+                    </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-secondary"/>
+                        <div>
+                            <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
+                            <p className="font-semibold">{trip.arrivalCity}</p>
+                        </div>
+                    </div>
+                    <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+                        <div className="text-center">
+                            <p className="font-medium text-sm text-muted-foreground">{getSafeDate(trip.departureTime).toLocaleDateString()}</p>
+                            <p className="font-semibold">{getSafeDate(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                        </div>
+                          {trip.seatsAvailable > 0 ? (
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              {trip.seatsAvailable}
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">Complet</Badge>
+                          )}
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+                    <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
+                    {user ? (
+                      <>
+                          <Button size="sm" onClick={(e) => {e.stopPropagation(); onReserve(trip);}} disabled={isOwner || trip.seatsAvailable <= 0 || isPassenger}>
+                              {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={(e) => {e.stopPropagation(); onContact(trip);}} disabled={isOwner}>
+                              <MessageSquare className="h-4 w-4" />
+                          </Button>
+                      </>
+                    ) : (
+                      <Button size="sm" onClick={(e) => {e.stopPropagation(); router.push('/login?from=/carpooling');}}>
+                          Réserver
+                      </Button>
+                    )}
+                </div>
+
+            </CardContent>
+        </Card>
+    );
+}
 
 function TripListSkeleton() {
   return (
@@ -285,70 +378,11 @@ export default function CarpoolingPage() {
             {viewMode === 'list' ? (
                 <div className="space-y-4">
                   {isLoading && <TripListSkeleton />}
-                  {!isLoading && filteredTrips && filteredTrips.map(trip => {
-                    const isPassenger = user && (trip.passengerIds || []).includes(user.uid);
-                    return (
-                      <Card key={trip.id} className={cn("transition-shadow hover:shadow-md cursor-pointer", selectedTrip?.id === trip.id && "ring-2 ring-primary")} onClick={() => handleSelectTrip(trip)}>
-                          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                              <div className="flex items-center gap-3">
-                                  <Image src={trip.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={trip.username || "conducteur"} width={48} height={48} className="rounded-full" />
-                              </div>
-                              <div className="hidden sm:flex flex-col items-center">
-                                  <p className="font-semibold text-sm">{trip.username || 'Utilisateur'}</p>
-                                  <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500"/> 4.9</p>
-                              </div>
-                              <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
-                                  <div className="flex items-center gap-2">
-                                      <MapPin className="h-5 w-5 text-primary"/>
-                                      <div>
-                                          <p className="font-medium text-sm text-muted-foreground">Départ</p>
-                                          <p className="font-semibold">{trip.departureCity}</p>
-                                      </div>
-                                  </div>
-                                    <div className="flex items-center gap-2">
-                                      <MapPin className="h-5 w-5 text-secondary"/>
-                                      <div>
-                                          <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
-                                          <p className="font-semibold">{trip.arrivalCity}</p>
-                                      </div>
-                                  </div>
-                                  <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
-                                      <div className="text-center">
-                                          <p className="font-medium text-sm text-muted-foreground">{getSafeDate(trip.departureTime).toLocaleDateString()}</p>
-                                          <p className="font-semibold">{getSafeDate(trip.departureTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                                      </div>
-                                        {trip.seatsAvailable > 0 ? (
-                                          <Badge variant="outline" className="flex items-center gap-1">
-                                            <Users className="h-4 w-4" />
-                                            {trip.seatsAvailable}
-                                          </Badge>
-                                        ) : (
-                                          <Badge variant="destructive">Complet</Badge>
-                                        )}
-                                  </div>
-                              </div>
-
-                              <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
-                                  <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                                  {user ? (
-                                    <>
-                                        <Button size="sm" onClick={(e) => {e.stopPropagation(); handleReserve(trip);}} disabled={trip.driverId === user.uid || trip.seatsAvailable <= 0 || isPassenger}>
-                                            {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
-                                        </Button>
-                                        <Button size="sm" variant="outline" onClick={(e) => {e.stopPropagation(); handleContact(trip);}} disabled={trip.driverId === user.uid}>
-                                            <MessageSquare className="h-4 w-4" />
-                                        </Button>
-                                    </>
-                                  ) : (
-                                    <Button size="sm" onClick={(e) => {e.stopPropagation(); router.push('/login?from=/carpooling');}}>
-                                        Réserver
-                                    </Button>
-                                  )}
-                              </div>
-
-                          </CardContent>
-                      </Card>
-                  )})}
+                  {!isLoading && filteredTrips && filteredTrips.map(trip => (
+                      <div key={trip.id} onClick={() => handleSelectTrip(trip)} className="cursor-pointer">
+                        <TripCard trip={trip} onContact={handleContact} onReserve={handleReserve} />
+                      </div>
+                  ))}
                   {!isLoading && filteredTrips && filteredTrips.length === 0 && (
                     <Card className="text-center py-20">
                       <CardContent>

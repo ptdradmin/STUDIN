@@ -5,8 +5,6 @@ import type { Timestamp } from 'firebase/firestore';
 export type Housing = {
   id: string;
   userId: string;
-  username: string;
-  userAvatarUrl?: string;
   title: string;
   description: string;
   type: 'kot' | 'studio' | 'colocation';
@@ -72,8 +70,6 @@ export type Reel = {
 export type Event = {
     id: string;
     organizerId: string;
-    username: string;
-    userAvatarUrl?: string;
     title: string;
     description: string;
     category: 'soirée' | 'conférence' | 'sport' | 'culture';
@@ -98,8 +94,6 @@ export type Event = {
 export type Tutor = {
     id: string;
     tutorId: string;
-    username: string;
-    userAvatarUrl?: string;
     subject: string;
     level: string;
     pricePerHour: number;
@@ -126,8 +120,6 @@ export type TutoringReview = {
 export type Trip = {
     id: string;
     driverId: string;
-    username: string;
-    userAvatarUrl?: string;
     departureCity: string;
     arrivalCity: string;
     departureTime: Timestamp;

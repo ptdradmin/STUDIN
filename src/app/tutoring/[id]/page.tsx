@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Star, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useUser, useDoc, useFirestore, useCollection } from '@/firebase';
-import type { Tutor, TutoringReview } from '@/lib/types';
+import type { Tutor, TutoringReview, UserProfile } from '@/lib/types';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
@@ -104,6 +104,12 @@ export default function TutorProfilePage() {
   }, [tutorId, firestore]);
   const { data: tutor, isLoading: isTutorLoading, error: tutorError } = useDoc<Tutor>(tutorRef);
 
+  const tutorProfileRef = useMemo(() => {
+      if (!tutor || !firestore) return null;
+      return doc(firestore, 'users', tutor.tutorId);
+  }, [tutor, firestore]);
+  const { data: tutorProfile } = useDoc<UserProfile>(tutorProfileRef);
+
   const reviewsQuery = useMemo(() => {
     if (!tutorId || !firestore) return null;
     return query(collection(firestore, 'tutoring_reviews'), where('tutoringId', '==', tutorId), orderBy('createdAt', 'desc'));
@@ -181,13 +187,13 @@ export default function TutorProfilePage() {
                                 <div className="grid md:grid-cols-[150px_1fr] gap-6 md:gap-8">
                                     <div className="flex flex-col items-center text-center gap-4">
                                         <Avatar className="h-36 w-36 border-4 border-primary/20">
-                                            <AvatarImage src={tutor.userAvatarUrl} />
+                                            <AvatarImage src={tutorProfile?.profilePicture} />
                                             <AvatarFallback>
-                                                {tutor.username?.substring(0, 2).toUpperCase()}
+                                                {tutorProfile?.username?.substring(0, 2).toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="space-y-1">
-                                             <h1 className="text-2xl font-bold">{tutor.username}</h1>
+                                             <h1 className="text-2xl font-bold">{tutorProfile?.username}</h1>
                                              <p className="text-muted-foreground">{tutor.level}</p>
                                         </div>
                                        

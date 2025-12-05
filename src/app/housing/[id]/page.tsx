@@ -5,7 +5,7 @@
 import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useParams, useRouter } from 'next/navigation';
-import type { Housing } from '@/lib/types';
+import type { Housing, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bed, Home, MapPin, MessageSquare } from 'lucide-react';
@@ -61,6 +61,13 @@ export default function HousingDetailPage() {
     }, [firestore, housingId]);
 
     const { data: housing, isLoading } = useDoc<Housing>(housingRef);
+
+    const ownerRef = useMemo(() => {
+        if (!firestore || !housing) return null;
+        return doc(firestore, 'users', housing.userId);
+    }, [firestore, housing]);
+
+    const { data: ownerProfile, isLoading: isOwnerLoading } = useDoc<UserProfile>(ownerRef);
     
     const getInitials = (name?: string) => {
         if (!name) return "..";
@@ -147,12 +154,12 @@ export default function HousingDetailPage() {
                                          <Link href={`/profile/${housing.userId}`}>
                                             <div className="border rounded-lg p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors">
                                                  <Avatar>
-                                                    <AvatarImage src={housing.userAvatarUrl} />
-                                                    <AvatarFallback>{getInitials(housing.username)}</AvatarFallback>
+                                                    <AvatarImage src={ownerProfile?.profilePicture} />
+                                                    <AvatarFallback>{getInitials(ownerProfile?.username)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
                                                     <p className="text-sm text-muted-foreground">Publié par</p>
-                                                    <p className="font-semibold">{housing.username}</p>
+                                                    <p className="font-semibold">{ownerProfile?.username || 'Utilisateur'}</p>
                                                 </div>
                                             </div>
                                          </Link>

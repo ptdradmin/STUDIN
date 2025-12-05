@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -124,11 +125,9 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         (baseChallenge.longitude || 4.87) + (Math.random() - 0.05),
     ];
 
-    const eventData: Omit<Event, 'updatedAt' | 'createdAt' | 'id' | 'startDate' | 'endDate'> & { startDate: any, endDate: any, createdAt: any } = {
+    const eventData: Omit<Event, 'updatedAt' | 'createdAt' | 'id' | 'startDate' | 'endDate' | 'username' | 'userAvatarUrl'> & { startDate: any, endDate: any, createdAt: any } = {
         ...data,
         organizerId: user.uid,
-        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Anonyme',
-        userAvatarUrl: user.photoURL || undefined,
         startDate: data.startDate, // Will be converted to Timestamp by Firestore
         endDate: data.startDate, // Simplified, can be extended
         createdAt: serverTimestamp(),

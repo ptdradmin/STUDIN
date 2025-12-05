@@ -11,11 +11,11 @@ import { Star, LayoutGrid, Map, Plus, Search, Bookmark, GraduationCap, BookOpen 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import type { Tutor, Favorite } from "@/lib/types";
+import type { Tutor, Favorite, UserProfile } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useCollection, useUser, useFirestore, useDoc } from '@/firebase';
+import { collection, query, where, doc } from 'firebase/firestore';
 import CreateTutorForm from '@/components/create-tutor-form';
 import { useRouter } from "next/navigation";
 import SocialSidebar from '@/components/social-sidebar';
@@ -32,6 +32,41 @@ const MapView = dynamic(() => import('@/components/map-view'), {
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
 });
 
+function TutorCard({ tutor, isFavorited, onFavoriteClick, isOwner }: { tutor: Tutor, isFavorited: boolean, onFavoriteClick: (e: React.MouseEvent, tutor: Tutor, isFavorited: boolean) => void, isOwner: boolean }) {
+    const firestore = useFirestore();
+    const tutorProfileRef = useMemo(() => firestore ? doc(firestore, 'users', tutor.tutorId) : null, [firestore, tutor.tutorId]);
+    const { data: tutorProfile } = useDoc<UserProfile>(tutorProfileRef);
+
+    return (
+        <Link href={`/tutoring/${tutor.id}`} className="block h-full group">
+            <Card className={cn("flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full relative", isOwner && "bg-muted/30")}>
+                {isOwner && <Badge className="absolute top-2 left-2">Vous</Badge>}
+                {!isOwner && (
+                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 right-2" onClick={(e) => onFavoriteClick(e, tutor, isFavorited)}>
+                        <Bookmark className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
+                    </Button>
+                )}
+                <div className="relative flex-shrink-0">
+                   <Image src={tutorProfile?.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutorProfile?.username || "tuteur"} width={96} height={96} className="rounded-full" />
+                </div>
+                <div className="flex flex-col flex-grow mt-4">
+                <h3 className="text-xl font-bold">{tutorProfile?.username || 'Utilisateur'}</h3>
+                <p className="text-sm text-muted-foreground">{tutor.level}</p>
+                <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
+                <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
+                    <Star className="h-5 w-5 fill-current" />
+                    <span className="font-bold text-base text-foreground">{tutor.rating?.toFixed(1) || 'N/A'}</span>
+                </div>
+                <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.pricePerHour}€/h</p>
+                </div>
+                 <div className="w-full mt-4 space-x-2">
+                    {tutor.locationType !== 'online' && <Badge variant="outline">En personne</Badge>}
+                    {tutor.locationType !== 'in-person' && <Badge variant="outline">En ligne</Badge>}
+                </div>
+            </Card>
+        </Link>
+    );
+}
 
 export default function TutoringPage() {
   const firestore = useFirestore();
@@ -129,38 +164,15 @@ export default function TutoringPage() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTutors && filteredTutors.map(tutor => {
-              const isFavorited = favoritedIds.has(tutor.id);
-              const isOwner = user?.uid === tutor.tutorId;
-              return (
-                  <Link href={`/tutoring/${tutor.id}`} key={tutor.id} className="block h-full group">
-                    <Card className={cn("flex flex-col text-center items-center p-6 transition-shadow hover:shadow-xl h-full relative", isOwner && "bg-muted/30")}>
-                        {user && !isOwner && (
-                            <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 right-2" onClick={(e) => handleFavoriteClick(e, tutor, isFavorited)}>
-                                <Bookmark className={`h-4 w-4 ${isFavorited ? 'fill-current' : ''}`} />
-                            </Button>
-                        )}
-                        <div className="relative flex-shrink-0">
-                           <Image src={tutor.userAvatarUrl || `https://api.dicebear.com/7.x/micah/svg?seed=${tutor.tutorId}`} alt={tutor.username || "tuteur"} width={96} height={96} className="rounded-full" />
-                           {isOwner && <Badge className="absolute -bottom-1 -right-1">Vous</Badge>}
-                        </div>
-                        <div className="flex flex-col flex-grow mt-4">
-                        <h3 className="text-xl font-bold">{tutor.username || 'Utilisateur'}</h3>
-                        <p className="text-sm text-muted-foreground">{tutor.level}</p>
-                        <Badge variant="secondary" className="mt-3 mx-auto">{tutor.subject}</Badge>
-                        <div className="flex items-center justify-center gap-1 text-yellow-500 mt-3">
-                            <Star className="h-5 w-5 fill-current" />
-                            <span className="font-bold text-base text-foreground">{tutor.rating?.toFixed(1) || 'N/A'}</span>
-                        </div>
-                        <p className="text-2xl font-bold text-primary mt-auto pt-4">{tutor.pricePerHour}€/h</p>
-                        </div>
-                         <div className="w-full mt-4 space-x-2">
-                            {tutor.locationType !== 'online' && <Badge variant="outline">En personne</Badge>}
-                            {tutor.locationType !== 'in-person' && <Badge variant="outline">En ligne</Badge>}
-                        </div>
-                    </Card>
-                  </Link>
-            )})}
+            {filteredTutors && filteredTutors.map(tutor => (
+                <TutorCard
+                    key={tutor.id}
+                    tutor={tutor}
+                    isFavorited={favoritedIds.has(tutor.id)}
+                    onFavoriteClick={handleFavoriteClick}
+                    isOwner={user?.uid === tutor.tutorId}
+                />
+            ))}
         </div>
     );
   }

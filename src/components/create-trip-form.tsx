@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -156,8 +157,6 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         departureTime: finalDepartureTime,
         id: newDocRef.id,
         driverId: user.uid,
-        username: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Conducteur',
-        userAvatarUrl: user.photoURL || undefined,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         passengerIds: [],

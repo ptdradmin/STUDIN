@@ -1,13 +1,14 @@
 
+
 'use client';
 
 import Image from "next/image";
-import type { Housing, Favorite } from "@/lib/types";
+import type { Housing, Favorite, UserProfile } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon, Bookmark, MessageSquare } from "lucide-react";
-import { useUser, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
+import { useUser, useFirestore, deleteDocumentNonBlocking, useDoc } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -30,7 +31,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { getOrCreateConversation } from "@/lib/conversations";
 import { toggleFavorite } from "@/lib/actions";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from 'next/link';
 
 interface HousingCardProps {
@@ -46,6 +47,9 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
     const { toast } = useToast();
     const router = useRouter();
     const [isSaved, setIsSaved] = useState(isFavorited);
+
+    const ownerRef = useMemo(() => firestore ? doc(firestore, 'users', housing.userId) : null, [firestore, housing.userId]);
+    const { data: ownerProfile } = useDoc<UserProfile>(ownerRef);
 
     useEffect(() => {
         setIsSaved(isFavorited);
@@ -176,10 +180,10 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
             <CardContent className="p-4 flex flex-col flex-grow">
                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Avatar className="h-6 w-6">
-                        <AvatarImage src={housing.userAvatarUrl} alt={housing.username} />
-                        <AvatarFallback>{getInitials(housing.username)}</AvatarFallback>
+                        <AvatarImage src={ownerProfile?.profilePicture} alt={ownerProfile?.username} />
+                        <AvatarFallback>{getInitials(ownerProfile?.username)}</AvatarFallback>
                     </Avatar>
-                    <span>{housing.username}</span>
+                    <span>{ownerProfile?.username || '...'}</span>
                  </div>
                 <h3 className="text-lg font-semibold leading-tight truncate mt-2">{housing.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1 flex items-center">
