@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
@@ -101,6 +99,7 @@ export default function SocialPage() {
                 if (pendingProfile.role === 'institution') {
                     const institutionDocRef = doc(firestore, 'institutions', user.uid);
                     const institutionData = {
+                        id: user.uid,
                         userId: user.uid,
                         name: pendingProfile.firstName, // Institution name is stored in firstName
                         postalCode: pendingProfile.postalCode,
