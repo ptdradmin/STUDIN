@@ -68,7 +68,7 @@ export default function SubscriptionPage() {
             <SocialSidebar />
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                     <Link href="/social" className="flex items-center gap-2 text-xl font-bold">
+                     <Link href={user ? "/social" : "/"} className="flex items-center gap-2 text-xl font-bold">
                        <LogoIcon />
                        <span className="font-headline hidden sm:inline">STUD'IN</span>
                     </Link>
@@ -181,4 +181,3 @@ export default function SubscriptionPage() {
         </div>
     );
 }
-
