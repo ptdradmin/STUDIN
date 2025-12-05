@@ -23,7 +23,6 @@ import { generateAvatar, getInitials } from "@/lib/avatars";
 import { LogoIcon } from "./logo-icon";
 
 const navLinks = [
-  { href: "/social", label: "Communauté", icon: <Home className="mr-2 h-4 w-4" /> },
   { href: "/housing", label: "Logement", icon: <Home className="mr-2 h-4 w-4" /> },
   { href: "/carpooling", label: "Covoiturage", icon: <Car className="mr-2 h-4 w-4" /> },
   { href: "/tutoring", label: "Tutorat", icon: <BookOpen className="mr-2 h-4 w-4" /> },
