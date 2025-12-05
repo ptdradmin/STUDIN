@@ -57,6 +57,7 @@ export default function SubscriptionPage() {
     }, [user, firestore]);
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isFreeActivated, setIsFreeActivated] = useState(false);
 
     const isPro = userProfile?.isPro || false; 
 
@@ -81,6 +82,13 @@ export default function SubscriptionPage() {
         }
     }
 
+    const handleActivateFree = () => {
+        setIsFreeActivated(true);
+        toast({
+            title: "Activation réussie !",
+            description: "Vous pouvez maintenant utiliser la version gratuite de STUD'IN AI.",
+        });
+    }
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -110,12 +118,10 @@ export default function SubscriptionPage() {
                                         <Sparkles className="text-muted-foreground"/>
                                         STUD'IN Flash
                                     </CardTitle>
-                                    {isPro ? (
+                                    {isPro || isFreeActivated ? (
                                         <CardDescription>Le forfait de base inclus.</CardDescription>
                                     ) : (
-                                        <CardDescription className="text-primary font-semibold flex items-center gap-2">
-                                            <Check className="h-4 w-4"/> Forfait actuel
-                                        </CardDescription>
+                                        <CardDescription>Gratuit pour tous les étudiants.</CardDescription>
                                     )}
                                 </CardHeader>
                                 <CardContent className="flex-grow space-y-4">
@@ -127,9 +133,15 @@ export default function SubscriptionPage() {
                                     </ul>
                                 </CardContent>
                                 <CardFooter>
-                                    <Button variant="secondary" className="w-full" asChild>
-                                        <Link href="/ai-chat">Accéder au Chat</Link>
-                                    </Button>
+                                    {isFreeActivated || isPro ? (
+                                        <Button variant="secondary" className="w-full" asChild>
+                                            <Link href="/ai-chat">Accéder au Chat</Link>
+                                        </Button>
+                                    ) : (
+                                        <Button variant="outline" className="w-full" onClick={handleActivateFree}>
+                                            Activer l'abonnement gratuit
+                                        </Button>
+                                    )}
                                 </CardFooter>
                             </Card>
 
@@ -232,3 +244,4 @@ export default function SubscriptionPage() {
         </div>
     );
 }
+
