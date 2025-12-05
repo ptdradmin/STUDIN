@@ -40,24 +40,21 @@ export function getFirebaseServices(): FirebaseServices {
 
   // --- App Check Initialization ---
   if (typeof window !== 'undefined') {
-    // We only want to initialize App Check in the production environment.
-    // In development, App Check can cause issues, especially within iframes like in Firebase Studio.
-    if (process.env.NODE_ENV === 'production') {
-      try {
+    // Assign the debug token to the window object for App Check.
+    // This needs to be done before initializeAppCheck is called.
+    // In a production environment, this variable should not be set.
+    if (process.env.NODE_ENV !== 'production') {
+      (window as any).self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      console.log("Firebase App Check debug token has been set for development.");
+    }
+    
+    try {
         initializeAppCheck(app, {
-          provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-          isTokenAutoRefreshEnabled: true,
+            provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+            isTokenAutoRefreshEnabled: true,
         });
-      } catch (e) {
-        console.warn("App Check initialization error:", e);
-      }
-    } else {
-        // In development, we can set up a debug token if needed, but for simplicity
-        // and to avoid iframe issues, we can skip initialization altogether.
-        // If you need to test App Check locally, uncomment the following line and
-        // add the generated token to your Firebase project settings.
-        // (window as any).self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-        console.log("App Check is disabled in development environment.");
+    } catch (e) {
+      console.warn("App Check initialization error:", e);
     }
   }
 
