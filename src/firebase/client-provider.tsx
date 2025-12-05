@@ -7,7 +7,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 
 // This is the only place Firebase is initialized.
 const firebaseConfig = {
@@ -31,20 +30,7 @@ interface FirebaseServices {
 function getFirebaseServices(): FirebaseServices {
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-  // Initialize App Check MUST be done right after app init and before other services
-  // This check ensures it only runs in the browser.
-  if (typeof window !== 'undefined') {
-    // try-catch block to prevent crashes if App Check is already initialized
-    try {
-       initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-        isTokenAutoRefreshEnabled: true,
-      });
-    } catch (e) {
-      // App Check may already be initialized, which is fine.
-      console.warn("App Check initialization caught an error (this may be safe to ignore on hot reloads):", e);
-    }
-  }
+
 
   const auth = getAuth(app);
   const firestore = getFirestore(app);

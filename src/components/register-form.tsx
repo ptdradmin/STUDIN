@@ -19,17 +19,17 @@ import { createUserDocument } from '@/lib/user-actions';
 import Link from 'next/link';
 
 const schoolsList = [
-    'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
-    'HEC Liège', 'HEPL - Haute École de la Province de Liège', 'HELMo - Haute École Libre Mosane',
-    'Haute École de la Province de Namur (HEPN)', 'Haute École Louvain en Hainaut (HELHa)', 'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
-    'Haute École Galilée (HEG)', 'Haute École ICHEC - ECAM - ISFSC', 'Haute École de Bruxelles-Brabant (HE2B)',
-    'Haute École Francisco Ferrer', 'Haute École Léonard de Vinci', 'Haute École Robert Schuman',
-    'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)', 'La Cambre', 'Institut national supérieur des arts du spectacle (INSAS)',
-    'École supérieure des Arts Saint-Luc de Bruxelles', "École supérieure des Arts de l'Image 'Le 75'",
-    'Arts et Métiers (Campus de Bruxelles)', 'Arts et Métiers (Campus de Charleroi)', 'Campus Provincial de Namur',
-    'Institut provincial de Promotion sociale (IPC)', 'EPFC - Promotion Sociale', 'École Industrielle et Commerciale de la Province de Namur (EICPN)',
-    'IFAPME - Centre de Namur', 'IFAPME - Centre de Liège', 'IFAPME - Centre de Charleroi', 'IFAPME - Centre de Mons', 'IFAPME - Centre de Wavre',
-    'Autre'
+  'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
+  'HEC Liège', 'HEPL - Haute École de la Province de Liège', 'HELMo - Haute École Libre Mosane',
+  'Haute École de la Province de Namur (HEPN)', 'Haute École Louvain en Hainaut (HELHa)', 'Haute École Libre de Bruxelles - Ilya Prigogine (HELB)',
+  'Haute École Galilée (HEG)', 'Haute École ICHEC - ECAM - ISFSC', 'Haute École de Bruxelles-Brabant (HE2B)',
+  'Haute École Francisco Ferrer', 'Haute École Léonard de Vinci', 'Haute École Robert Schuman',
+  'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)', 'La Cambre', 'Institut national supérieur des arts du spectacle (INSAS)',
+  'École supérieure des Arts Saint-Luc de Bruxelles', "École supérieure des Arts de l'Image 'Le 75'",
+  'Arts et Métiers (Campus de Bruxelles)', 'Arts et Métiers (Campus de Charleroi)', 'Campus Provincial de Namur',
+  'Institut provincial de Promotion sociale (IPC)', 'EPFC - Promotion Sociale', 'École Industrielle et Commerciale de la Province de Namur (EICPN)',
+  'IFAPME - Centre de Namur', 'IFAPME - Centre de Liège', 'IFAPME - Centre de Charleroi', 'IFAPME - Centre de Mons', 'IFAPME - Centre de Wavre',
+  'Autre'
 ];
 
 const registerSchema = z.object({
@@ -77,46 +77,50 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
-    
+
     // Ensure services are available before proceeding
     if (!auth || !firestore || !areServicesAvailable) {
-        toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez réessayer." });
-        setLoading(false);
-        return;
+      toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez réessayer." });
+      setLoading(false);
+      return;
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const user = userCredential.user;
-        
-        await createUserDocument(firestore, user, data);
-        
-        const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
-        await updateProfile(user, { displayName: newDisplayName });
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
 
-        toast({
-            title: "Inscription réussie!",
-            description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
-        });
-        router.push('/social');
-        router.refresh();
+      await createUserDocument(firestore, user, data);
+
+      const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
+      await updateProfile(user, { displayName: newDisplayName });
+
+      toast({
+        title: "Inscription réussie!",
+        description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
+      });
+      router.push('/social');
+      router.refresh();
     } catch (error: any) {
-        let description = "Impossible de créer le compte.";
-        if (error.code === 'auth/email-already-in-use') {
-            description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-        } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
-            description = "Problème de connexion ou de sécurité. Veuillez réessayer."
-        }
-         toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description: description,
-        });
+      console.error("Registration error:", error);
+      let description = "Impossible de créer le compte.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "Cet email est déjà utilisé. Essayez de vous connecter.";
+      } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
+        description = "Problème de connexion ou de sécurité. Veuillez réessayer."
+      } else {
+        // DEBUG: Show specific error for diagnosis
+        description = `Erreur: ${error.code} - ${error.message}`;
+      }
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description: description,
+      });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
-  
+
   const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
 
   return (
@@ -157,19 +161,19 @@ export default function RegisterForm() {
                   )}
                 />
               </div>
-               <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom d'utilisateur</FormLabel>
-                      <FormControl>
-                        <Input placeholder="jean.dupont" {...field} disabled={buttonsDisabled} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom d'utilisateur</FormLabel>
+                    <FormControl>
+                      <Input placeholder="jean.dupont" {...field} disabled={buttonsDisabled} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -192,7 +196,7 @@ export default function RegisterForm() {
                       <FormLabel>Mot de passe</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={buttonsDisabled} className="pr-10"/>
+                          <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={buttonsDisabled} className="pr-10" />
                           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
@@ -210,8 +214,8 @@ export default function RegisterForm() {
                       <FormLabel>Confirmer le mot de passe</FormLabel>
                       <FormControl>
                         <div className="relative">
-                           <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={buttonsDisabled} className="pr-10"/>
-                           <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
+                          <Input type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" {...field} disabled={buttonsDisabled} className="pr-10" />
+                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground">
                             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                           </button>
                         </div>
@@ -222,8 +226,8 @@ export default function RegisterForm() {
                 />
               </div>
 
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <FormField
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
                   control={form.control}
                   name="postalCode"
                   render={({ field }) => (
@@ -236,7 +240,7 @@ export default function RegisterForm() {
                     </FormItem>
                   )}
                 />
-                 <FormField
+                <FormField
                   control={form.control}
                   name="city"
                   render={({ field }) => (
@@ -250,23 +254,23 @@ export default function RegisterForm() {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="university"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Établissement</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={buttonsDisabled}>
-                        <FormControl>
-                          <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {schoolsList.map(uni => (
-                                <SelectItem key={uni} value={uni}>{uni}</SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={buttonsDisabled}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Sélectionnez votre établissement" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {schoolsList.map(uni => (
+                          <SelectItem key={uni} value={uni}>{uni}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -286,20 +290,20 @@ export default function RegisterForm() {
               />
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isUserLoading ? 'Chargement...' : "S'inscrire"}
               </Button>
             </form>
           </Form>
         </div>
       </CardContent>
-       <CardFooter className="flex justify-center pt-4">
-         <p className="text-sm text-muted-foreground">
-            Déjà un compte ?{' '}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-              Connectez-vous
-            </Link>
-          </p>
+      <CardFooter className="flex justify-center pt-4">
+        <p className="text-sm text-muted-foreground">
+          Déjà un compte ?{' '}
+          <Link href="/login" className="font-semibold text-primary hover:underline">
+            Connectez-vous
+          </Link>
+        </p>
       </CardFooter>
     </>
   );
