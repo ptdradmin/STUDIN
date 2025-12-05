@@ -13,32 +13,31 @@ service cloud.firestore {
     // USERS - Public read, Owner write
     // ============================================
     match /users/{userId} {
-      // Anyone signed in can read a user's public profile
       allow get: if isSignedIn();
-      // But no one can list all users
       allow list: if false;
-      // The user can create, update, and delete their own profile
+      // Allow user to create their own profile document
       allow create: if isOwner(userId);
+      // Allow user to update/delete their own profile
       allow update, delete: if isOwner(userId);
       
-      // User favorites are private
       match /favorites/{favoriteId} {
         allow read, write: if isOwner(userId);
       }
 
-      // Notifications are private
       match /notifications/{notificationId} {
         allow read, write: if isOwner(userId);
       }
     }
 
     // ============================================
-    // INSTITUTIONS - Public read, Owner write
+    // INSTITUTIONS - DEPRECATED / REMOVED
+    // The role is now stored directly in the /users/{userId} document.
+    // This collection is no longer needed for profile creation.
     // ============================================
     match /institutions/{institutionId} {
-      allow get: if isSignedIn();
-      allow list: if false; // Don't allow listing all institutions
-      allow create: if isOwner(institutionId);
+      allow read: if isSignedIn();
+      allow list: if false; 
+      allow create: if isSignedIn() && request.auth.uid == institutionId;
       allow update, delete: if isOwner(institutionId);
     }
     

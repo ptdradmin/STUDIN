@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -84,86 +83,74 @@ export default function RegisterInstitutionForm() {
       return;
     }
 
-    const recaptchaToken = await executeRecaptcha();
-    const recaptchaResult = await verifyRecaptcha({ token: recaptchaToken, expectedAction: 'REGISTER_INSTITUTION' });
+    try {
+        const recaptchaToken = await executeRecaptcha();
+        const recaptchaResult = await verifyRecaptcha({ token: recaptchaToken, expectedAction: 'REGISTER_INSTITUTION' });
 
-    if (!recaptchaResult.isVerified) {
-        setLoading(false);
-        toast({ variant: 'destructive', title: 'Échec de la vérification', description: 'La vérification reCAPTCHA a échoué. Veuillez réessayer.' });
-        return;
-    }
-    
-    const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
+        if (!recaptchaResult.isVerified) {
+            setLoading(false);
+            toast({ variant: 'destructive', title: 'Échec de la vérification', description: 'La vérification reCAPTCHA a échoué. Veuillez réessayer.' });
+            return;
+        }
         
-    const usernameIsUnique = await isUsernameUnique(firestore, username);
-    if (!usernameIsUnique) {
-        form.setError("name", {
-            type: "manual",
-            message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
-        });
-        setLoading(false);
-        return;
-    }
+        const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
+            
+        const usernameIsUnique = await isUsernameUnique(firestore, username);
+        if (!usernameIsUnique) {
+            form.setError("name", {
+                type: "manual",
+                message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
+            });
+            setLoading(false);
+            return;
+        }
 
-    const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    const user = userCredential.user;
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        const user = userCredential.user;
 
-    const newDisplayName = data.name;
-    const newPhotoURL = generateAvatar(user.email || user.uid);
-    await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
+        const newDisplayName = data.name;
+        const newPhotoURL = generateAvatar(user.email || user.uid);
+        await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-    const batch = writeBatch(firestore);
-
-    const userDocRef = doc(firestore, 'users', user.uid);
-    const userData = {
-        id: user.uid,
-        role: 'institution' as const,
-        email: data.email,
-        username: username,
-        firstName: data.name,
-        lastName: '',
-        university: '',
-        fieldOfStudy: '',
-        postalCode: data.postalCode,
-        city: data.city,
-        bio: `Compte officiel de ${data.name}.`,
-        website: '',
-        profilePicture: newPhotoURL,
-        followerIds: [],
-        followingIds: [],
-        isVerified: false,
-        points: 0,
-        challengesCompleted: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-    };
-    batch.set(userDocRef, userData);
-
-    const institutionDocRef = doc(firestore, 'institutions', user.uid);
-    const institutionData = {
-        id: user.uid,
-        userId: user.uid,
-        name: data.name,
-        postalCode: data.postalCode,
-        city: data.city,
-        createdAt: serverTimestamp(),
-    };
-    batch.set(institutionDocRef, institutionData);
-
-    batch.commit().then(() => {
-         toast({
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userData = {
+            id: user.uid,
+            role: 'institution' as const,
+            email: data.email,
+            username: username,
+            firstName: data.name,
+            lastName: '',
+            university: data.name,
+            fieldOfStudy: 'Partenaire',
+            postalCode: data.postalCode,
+            city: data.city,
+            bio: `Compte officiel de ${data.name}.`,
+            website: '',
+            profilePicture: newPhotoURL,
+            followerIds: [],
+            followingIds: [],
+            isVerified: false,
+            points: 0,
+            challengesCompleted: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        };
+        
+        await setDoc(userDocRef, userData);
+        
+        toast({
             title: "Compte créé !",
-            description: "Votre compte institution a été créé avec succès.",
+            description: "Votre compte partenaire a été créé avec succès.",
         });
         router.push('/social');
         router.refresh();
-    }).catch(error => {
+
+    } catch (error: any) {
         if (error.code === 'permission-denied') {
-             // This is our detailed error handling for Firestore rules
              const permissionError = new FirestorePermissionError({
-                 path: `users/${user.uid}`, // Simplified path for batch
+                 path: `users/${auth.currentUser?.uid || 'unknown'}`, 
                  operation: 'create',
-                 requestResourceData: { user: userData, institution: institutionData }
+                 requestResourceData: { name: data.name, email: data.email, role: 'institution' }
              });
             errorEmitter.emit('permission-error', permissionError);
         } else {
@@ -177,9 +164,9 @@ export default function RegisterInstitutionForm() {
               description: description,
             });
         }
-    }).finally(() => {
+    } finally {
         setLoading(false);
-    });
+    }
   };
 
   const buttonsDisabled = loading;
