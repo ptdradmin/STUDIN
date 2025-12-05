@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
@@ -67,55 +68,59 @@ export default function SocialPage() {
             // This logic creates the profile document for a new user upon first load of the social page.
             const pendingProfileRaw = localStorage.getItem(`pendingProfile_${user.uid}`);
             if (pendingProfileRaw) {
-                const pendingProfile = JSON.parse(pendingProfileRaw);
-                const batch = writeBatch(firestore);
+                try {
+                    const pendingProfile = JSON.parse(pendingProfileRaw);
+                    const batch = writeBatch(firestore);
 
-                // Create user document
-                const userDocRef = doc(firestore, 'users', user.uid);
-                const userData: UserProfile = {
-                    id: user.uid,
-                    role: pendingProfile.role,
-                    email: user.email!,
-                    username: pendingProfile.username,
-                    firstName: pendingProfile.firstName,
-                    lastName: pendingProfile.lastName,
-                    university: pendingProfile.university,
-                    fieldOfStudy: pendingProfile.fieldOfStudy,
-                    postalCode: pendingProfile.postalCode,
-                    city: pendingProfile.city,
-                    bio: pendingProfile.bio,
-                    website: pendingProfile.website,
-                    profilePicture: user.photoURL || generateAvatar(user.email || user.uid),
-                    followerIds: [],
-                    followingIds: [],
-                    isVerified: false,
-                    points: 0,
-                    challengesCompleted: 0,
-                    createdAt: serverTimestamp() as any,
-                    updatedAt: serverTimestamp() as any,
-                };
-                batch.set(userDocRef, userData);
-
-                // If institution, create institution document
-                if (pendingProfile.role === 'institution') {
-                    const institutionDocRef = doc(firestore, 'institutions', user.uid);
-                    const institutionData = {
+                    // Create user document
+                    const userDocRef = doc(firestore, 'users', user.uid);
+                    const userData: UserProfile = {
                         id: user.uid,
-                        userId: user.uid,
-                        name: pendingProfile.firstName, // Institution name is stored in firstName
+                        role: pendingProfile.role,
+                        email: user.email!,
+                        username: pendingProfile.username,
+                        firstName: pendingProfile.firstName,
+                        lastName: pendingProfile.lastName,
+                        university: pendingProfile.university,
+                        fieldOfStudy: pendingProfile.fieldOfStudy,
                         postalCode: pendingProfile.postalCode,
                         city: pendingProfile.city,
-                        createdAt: serverTimestamp(),
+                        bio: pendingProfile.bio,
+                        website: pendingProfile.website,
+                        profilePicture: user.photoURL || generateAvatar(user.email || user.uid),
+                        followerIds: [],
+                        followingIds: [],
+                        isVerified: false,
+                        points: 0,
+                        challengesCompleted: 0,
+                        createdAt: serverTimestamp() as any,
+                        updatedAt: serverTimestamp() as any,
                     };
-                    batch.set(institutionDocRef, institutionData);
-                }
+                    batch.set(userDocRef, userData);
 
-                // Commit the batch and clean up localStorage
-                batch.commit().then(() => {
-                    localStorage.removeItem(`pendingProfile_${user.uid}`);
-                }).catch(err => {
-                    console.error("Failed to create profile documents:", err);
-                });
+                    // If institution, create institution document
+                    if (pendingProfile.role === 'institution') {
+                        const institutionDocRef = doc(firestore, 'institutions', user.uid);
+                        const institutionData = {
+                            id: user.uid,
+                            userId: user.uid,
+                            name: pendingProfile.firstName, // Institution name is stored in firstName
+                            postalCode: pendingProfile.postalCode,
+                            city: pendingProfile.city,
+                            createdAt: serverTimestamp(),
+                        };
+                        batch.set(institutionDocRef, institutionData);
+                    }
+
+                    // Commit the batch and clean up localStorage
+                    batch.commit().then(() => {
+                        localStorage.removeItem(`pendingProfile_${user.uid}`);
+                    }).catch(err => {
+                        console.error("Failed to create profile documents:", err);
+                    });
+                } catch(e) {
+                    console.error("Error parsing pending profile from localStorage", e);
+                }
             }
         }
     }, [user, profileLoading, currentUserProfile, firestore]);

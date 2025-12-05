@@ -41,9 +41,6 @@ export function getFirebaseServices(): FirebaseServices {
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-
-
-
   const auth = getAuth(app);
   const firestore = getFirestore(app);
   const storage = getStorage(app);
