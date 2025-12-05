@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
-import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useAuth, useCollection, useDoc, useFirestore } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import type { Post, UserProfile, Favorite, Housing, Trip, Tutor, Event, Book } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
@@ -69,10 +69,10 @@ const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean 
 const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
     const firestore = useFirestore();
 
-    const housingQuery = useMemoFirebase(() => query(collection(firestore!, 'housings'), where('userId', '==', user.uid)), [firestore, user.uid]);
-    const carpoolQuery = useMemoFirebase(() => query(collection(firestore!, 'carpoolings'), where('driverId', '==', user.uid)), [firestore, user.uid]);
-    const tutorQuery = useMemoFirebase(() => query(collection(firestore!, 'tutorings'), where('tutorId', '==', user.uid)), [firestore, user.uid]);
-    const eventQuery = useMemoFirebase(() => query(collection(firestore!, 'events'), where('organizerId', '==', user.uid)), [firestore, user.uid]);
+    const housingQuery = useMemo(() => query(collection(firestore!, 'housings'), where('userId', '==', user.uid)), [firestore, user.uid]);
+    const carpoolQuery = useMemo(() => query(collection(firestore!, 'carpoolings'), where('driverId', '==', user.uid)), [firestore, user.uid]);
+    const tutorQuery = useMemo(() => query(collection(firestore!, 'tutorings'), where('tutorId', '==', user.uid)), [firestore, user.uid]);
+    const eventQuery = useMemo(() => query(collection(firestore!, 'events'), where('organizerId', '==', user.uid)), [firestore, user.uid]);
 
     const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
     const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
@@ -101,13 +101,13 @@ const MyListings = ({ user }: { user: import('firebase/auth').User }) => {
 const MyActivities = ({ user }: { user: import('firebase/auth').User }) => {
     const firestore = useFirestore();
 
-    const carpoolBookingsQuery = useMemoFirebase(() =>
+    const carpoolBookingsQuery = useMemo(() =>
         !firestore ? null : query(collection(firestore, 'carpoolings'), where('passengerIds', 'array-contains', user.uid)),
         [firestore, user.uid]
     );
     const { data: bookedCarpools, isLoading: l1 } = useCollection<Trip>(carpoolBookingsQuery);
 
-    const attendedEventsQuery = useMemoFirebase(() =>
+    const attendedEventsQuery = useMemo(() =>
         !firestore ? null : query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid)),
         [firestore, user.uid]
     );
@@ -200,19 +200,19 @@ export default function CurrentUserProfilePage() {
     const [showEditForm, setShowEditForm] = useState(false);
     const [modalContent, setModalContent] = useState<{ title: string, userIds: string[] } | null>(null);
 
-    const userRef = useMemoFirebase(() => {
+    const userRef = useMemo(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
     const { data: userProfile, isLoading: profileLoading, error } = useDoc<UserProfile>(userRef);
 
-    const userPostsQuery = useMemoFirebase(() => {
+    const userPostsQuery = useMemo(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, 'posts'), where('userId', '==', user.uid), limit(30));
     }, [firestore, user]);
     const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
 
-    const userFavoritesQuery = useMemoFirebase(() => {
+    const userFavoritesQuery = useMemo(() => {
         if (!user || !firestore) return null;
         return query(collection(firestore, `users/${user.uid}/favorites`), limit(50));
     }, [user, firestore]);
@@ -228,31 +228,31 @@ export default function CurrentUserProfilePage() {
         return ids;
     }, [favoriteItems]);
 
-    const savedPostsQuery = useMemoFirebase(() => {
+    const savedPostsQuery = useMemo(() => {
         if (!firestore || !favoritedIds.post || favoritedIds.post.size === 0) return null;
         return query(collection(firestore, 'posts'), where(documentId(), 'in', Array.from(favoritedIds.post).slice(0, 30)));
     }, [firestore, favoritedIds.post]);
     const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
 
-    const savedHousingsQuery = useMemoFirebase(() => {
+    const savedHousingsQuery = useMemo(() => {
         if (!firestore || !favoritedIds.housing || favoritedIds.housing.size === 0) return null;
         return query(collection(firestore, 'housings'), where(documentId(), 'in', Array.from(favoritedIds.housing).slice(0, 30)));
     }, [firestore, favoritedIds.housing]);
     const { data: savedHousings, isLoading: savedHousingsLoading } = useCollection<Housing>(savedHousingsQuery);
 
-    const savedEventsQuery = useMemoFirebase(() => {
+    const savedEventsQuery = useMemo(() => {
         if (!firestore || !favoritedIds.event || favoritedIds.event.size === 0) return null;
         return query(collection(firestore, 'events'), where(documentId(), 'in', Array.from(favoritedIds.event).slice(0, 30)));
     }, [firestore, favoritedIds.event]);
     const { data: savedEvents, isLoading: savedEventsLoading } = useCollection<Event>(savedEventsQuery);
 
-    const savedTutorsQuery = useMemoFirebase(() => {
+    const savedTutorsQuery = useMemo(() => {
         if (!firestore || !favoritedIds.tutor || favoritedIds.tutor.size === 0) return null;
         return query(collection(firestore, 'tutorings'), where(documentId(), 'in', Array.from(favoritedIds.tutor).slice(0, 30)));
     }, [firestore, favoritedIds.tutor]);
     const { data: savedTutors, isLoading: savedTutorsLoading } = useCollection<Tutor>(savedTutorsQuery);
 
-    const savedBooksQuery = useMemoFirebase(() => {
+    const savedBooksQuery = useMemo(() => {
         if (!firestore || !favoritedIds.book || favoritedIds.book.size === 0) return null;
         return query(collection(firestore, 'books'), where(documentId(), 'in', Array.from(favoritedIds.book).slice(0, 30)));
     }, [firestore, favoritedIds.book]);

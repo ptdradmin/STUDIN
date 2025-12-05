@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -9,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Package, PartyPopper, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
-import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useCollection, useDoc, useFirestore } from '@/firebase';
 import type { Post, UserProfile, Housing, Trip, Tutor, Event } from '@/lib/types';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where, limit } from 'firebase/firestore';
@@ -119,23 +120,23 @@ export default function UserProfilePage() {
   }, [user, profileId, router]);
 
 
-  const userRef = useMemoFirebase(() => {
+  const userRef = useMemo(() => {
     if (!profileId || !firestore) return null;
     return doc(firestore, 'users', profileId);
   }, [profileId, firestore]);
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userRef);
 
-  const userPostsQuery = useMemoFirebase(() => {
+  const userPostsQuery = useMemo(() => {
     if (!firestore || !profileId) return null;
     return query(collection(firestore, 'posts'), where('userId', '==', profileId), limit(30));
   }, [firestore, profileId]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
   
   // Queries for the new tabs
-    const housingQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'housings'), where('userId', '==', profileId)), [firestore, profileId]);
-    const carpoolQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'carpoolings'), where('driverId', '==', profileId)), [firestore, profileId]);
-    const tutorQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'tutorings'), where('tutorId', '==', profileId)), [firestore, profileId]);
-    const eventQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'events'), where('organizerId', '==', profileId)), [firestore, profileId]);
+    const housingQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'housings'), where('userId', '==', profileId)), [firestore, profileId]);
+    const carpoolQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'carpoolings'), where('driverId', '==', profileId)), [firestore, profileId]);
+    const tutorQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'tutorings'), where('tutorId', '==', profileId)), [firestore, profileId]);
+    const eventQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'events'), where('organizerId', '==', profileId)), [firestore, profileId]);
 
     const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
     const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
@@ -143,7 +144,7 @@ export default function UserProfilePage() {
     const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
 
     const { data: currentUserProfile } = useDoc<UserProfile>(
-        useMemoFirebase(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore])
+        useMemo(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore])
       );
 
     const isLoading = isUserLoading || profileLoading;
