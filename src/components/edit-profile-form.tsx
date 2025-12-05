@@ -57,12 +57,12 @@ type ProfileFormInputs = StudentProfileInputs | InstitutionProfileInputs;
 
 const schoolsList = [
     // Universités
-    'Université de Namur',
-    'Université de Liège',
+    'Université de Namur (UNamur)',
+    'Université de Liège (ULiège)',
     'UCLouvain',
-    'ULB - Université Libre de Bruxelles',
-    'UMons',
-    'Université Saint-Louis - Bruxelles',
+    'Université Libre de Bruxelles (ULB)',
+    'Université de Mons (UMons)',
+    'Université Saint-Louis - Bruxelles (USL-B)',
     // Hautes Écoles
     'HEC Liège',
     'HEPL - Haute École de la Province de Liège',
@@ -77,30 +77,34 @@ const schoolsList = [
     'Haute École Francisco Ferrer',
     'Haute École Léonard de Vinci',
     'Haute École Robert Schuman',
+    'Haute École de la Ville de Liège (HEL)',
+    'Haute École Charlemagne (HECh)',
+    // Hautes Écoles Provinciales
+    'Haute École Provinciale de Hainaut - Condorcet',
     // Écoles Supérieures des Arts
     'Académie royale des Beaux-Arts de Bruxelles (ArBA-EsA)',
-    'La Cambre',
+    'La Cambre (ENSAV)',
     'Institut national supérieur des arts du spectacle (INSAS)',
     'École supérieure des Arts Saint-Luc de Bruxelles',
     "École supérieure des Arts de l'Image 'Le 75'",
-    // Arts & Métiers
-    'Arts et Métiers (Campus de Bruxelles)',
-    'Arts et Métiers (Campus de Charleroi)',
-    // Campus Provincial
-    'Campus Provincial de Namur',
+    'Conservatoire royal de Bruxelles',
+    'Conservatoire royal de Liège',
+    'Arts²',
     // Promotion Sociale
     'Institut provincial de Promotion sociale (IPC)',
     'EPFC - Promotion Sociale',
     'École Industrielle et Commerciale de la Province de Namur (EICPN)',
+    'IEPSCF - Uccle',
     // IFAPME
-    'IFAPME - Centre de Namur',
-    'IFAPME - Centre de Liège',
-    'IFAPME - Centre de Charleroi',
-    'IFAPME - Centre de Mons',
-    'IFAPME - Centre de Wavre',
+    'IFAPME - Namur',
+    'IFAPME - Liège',
+    'IFAPME - Charleroi',
+    'IFAPME - Mons',
+    'IFAPME - Wavre',
     // Autre
     'Autre'
 ];
+
 
 interface EditProfileFormProps {
   user: FirebaseUser;
