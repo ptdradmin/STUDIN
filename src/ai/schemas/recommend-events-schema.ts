@@ -17,13 +17,11 @@ import { z } from 'genkit';
 const EventSchema = z.object({
     id: z.string(),
     organizerId: z.string(),
-    username: z.string(),
-    userAvatarUrl: z.string().optional(),
     title: z.string(),
     description: z.string(),
     category: z.enum(['soirée', 'conférence', 'sport', 'culture']),
-    startDate: z.string(),
-    endDate: z.string(),
+    startDate: z.any(), // Firestore Timestamps are serialized
+    endDate: z.any(),
     locationName: z.string(),
     address: z.string(),
     city: z.string(),
@@ -58,6 +56,7 @@ const UserProfileSchema = z.object({
   gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say']).optional(),
   profilePicture: z.string(),
   isVerified: z.boolean().optional(),
+  isPro: z.boolean().optional(),
   followerIds: z.array(z.string()),
   followingIds: z.array(z.string()),
   points: z.number().optional(),

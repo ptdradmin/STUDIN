@@ -8,11 +8,17 @@ import { initializeApp, getApps } from 'firebase-admin/app';
 import type { Housing } from '@/lib/types';
 import {credential} from "firebase-admin";
 
+// Ensure the service account environment variable is set.
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_STUD_IN_A033B;
-if (!getApps().length) {
-    initializeApp({
-        credential: credential.cert(JSON.parse(serviceAccount!))
-    });
+
+if (serviceAccount && !getApps().length) {
+    try {
+        initializeApp({
+            credential: credential.cert(JSON.parse(serviceAccount))
+        });
+    } catch (e) {
+        console.error("Failed to initialize Firebase Admin SDK:", e);
+    }
 }
 const db = getFirestore();
 
@@ -30,7 +36,7 @@ const HousingSchemaForTool = z.object({
   price: z.number(),
   bedrooms: z.number(),
   surfaceArea: z.number(),
-  type: z.string(),
+  type: z.enum(['kot', 'studio', 'colocation']),
   imageUrl: z.string(),
   description: z.string(),
 });
@@ -44,6 +50,11 @@ export const searchHousingsTool = ai.defineTool(
         output: { schema: z.array(HousingSchemaForTool) },
     },
     async (input: SearchHousingsInput) => {
+        if (!getApps().length) {
+            console.error("Firebase Admin SDK not initialized. Cannot perform search.");
+            return [];
+        }
+
         let query: FirebaseFirestore.Query = db.collection('housings');
 
         if (input.city) {

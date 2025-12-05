@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -138,7 +137,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
       }
 
     } else {
-      const dataToCreate: Omit<Housing, 'username' | 'userAvatarUrl'> = {
+      const dataToCreate: Omit<Housing, 'userId'> & { userId: string } = {
           ...data,
           id: housingId,
           userId: user.uid,

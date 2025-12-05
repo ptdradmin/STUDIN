@@ -1,3 +1,4 @@
+
 import type { Timestamp } from 'firebase/firestore';
 
 export type Housing = {
@@ -92,6 +93,8 @@ export type Event = {
 export type Tutor = {
     id: string;
     tutorId: string;
+    username: string;
+    userAvatarUrl?: string;
     subject: string;
     level: string;
     pricePerHour: number;
@@ -190,9 +193,10 @@ export type ChatMessage = {
     role: 'user' | 'model';
     text?: string;
     imageUrl?: string;
-    videoUrl?: string;
     audioUrl?: string;
-    fileType?: 'image' | 'video' | 'audio';
+    fileUrl?: string;
+    fileType?: string;
+    toolData?: any;
 };
 
 export type Conversation = {
