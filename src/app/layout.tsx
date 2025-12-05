@@ -9,15 +9,15 @@ import BottomNavbar from '@/components/bottom-navbar';
 
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter',
   display: 'swap',
+  variable: '--font-inter',
 });
 
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-poppins',
   display: 'swap',
+  variable: '--font-poppins',
 });
 
 export const metadata: Metadata = {

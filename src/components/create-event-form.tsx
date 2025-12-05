@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -121,8 +120,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     const finalStartDate = data.startDate.toISOString();
     const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
     const newCoords: [number, number] = [
-        (baseChallenge.latitude || 50.46) + (Math.random() - 0.5) * 0.05,
-        (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
+        (baseChallenge.latitude || 50.46) + (Math.random() - 0.05),
+        (baseChallenge.longitude || 4.87) + (Math.random() - 0.05),
     ];
 
     const eventData = {

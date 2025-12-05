@@ -46,7 +46,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
-  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "..";
@@ -68,6 +68,10 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
   const handleGenerateCaption = async () => {
     if (!previewUrl) {
       toast({ variant: 'destructive', title: "Image requise", description: "Veuillez d'abord sélectionner une image." });
+      return;
+    }
+     if (isProfileLoading) {
+      toast({ variant: 'destructive', title: "Chargement...", description: "Le profil est en cours de chargement." });
       return;
     }
     setIsGenerating(true);
@@ -183,7 +187,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
                 {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
                 
                 <div className="border-t pt-4 space-y-2">
-                    <Button variant="ghost" className="w-full justify-start p-0 h-auto" type="button" onClick={handleGenerateCaption} disabled={isGenerating}>
+                    <Button variant="ghost" className="w-full justify-start p-0 h-auto" type="button" onClick={handleGenerateCaption} disabled={isGenerating || isProfileLoading}>
                         {isGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
                         {isGenerating ? 'Génération...' : 'Générer avec l\'IA'}
                     </Button>

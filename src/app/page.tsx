@@ -22,7 +22,7 @@ const services = [
         description: "Partagez vos trajets pour économiser et faire des rencontres.",
         icon: <Car className="h-6 w-6" />,
         href: "/carpooling",
-        image: "/images/carpooling.jpg"
+        image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Tutorat",
@@ -43,7 +43,7 @@ const services = [
         description: "Découvrez les meilleures soirées et activités étudiantes.",
         icon: <PartyPopper className="h-6 w-6" />,
         href: "/events",
-        image: "/images/events.jpg"
+        image: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=2070&auto=format&fit=crop"
     },
     {
         name: "Défis",

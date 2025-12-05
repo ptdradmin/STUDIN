@@ -31,12 +31,6 @@ const MapView = dynamic(() => import('@/components/map-view'), {
   loading: () => <Skeleton className="h-full w-full" />,
 });
 
-export async function generateStaticParams() {
-  return staticChallenges.map((challenge) => ({
-    id: challenge.id,
-  }));
-}
-
 export default function ChallengeDetailPage() {
     const params = useParams();
     const router = useRouter();

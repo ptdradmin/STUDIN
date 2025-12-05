@@ -196,14 +196,12 @@ export type ChatMessage = {
     id: string;
     senderId: string;
     createdAt: Timestamp;
-    // Standard message fields
+    role: 'user' | 'model'; 
     text?: string;
     imageUrl?: string;
     videoUrl?: string;
     audioUrl?: string;
     fileType?: 'image' | 'video' | 'audio';
-    // AI-specific fields
-    role: 'user' | 'model'; 
 };
 
 export type Conversation = {

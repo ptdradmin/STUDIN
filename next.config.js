@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  output: 'export',
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -9,7 +8,6 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
