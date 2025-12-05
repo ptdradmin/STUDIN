@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -18,7 +17,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
@@ -37,13 +36,23 @@ export default function LoginForm() {
   }
 
   const handleError = (error: any) => {
-    setLoading('');
-    let description = `Une erreur est survenue. (${error.code})`;
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        description = "Adresse e-mail ou mot de passe incorrect."
-    } else if (error.code === 'auth/internal-error' || error.code === 'auth/invalid-app-credential' || error.code === 'auth/network-request-failed' || error.code === 'auth/firebase-app-check-token-is-invalid') {
-        description = "Une erreur de connexion est survenue. Veuillez vérifier votre connexion internet et réessayer."
+    let description = "Une erreur est survenue. Veuillez réessayer.";
+    if (error.code) {
+        switch(error.code) {
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+                description = "Adresse e-mail ou mot de passe incorrect.";
+                break;
+            case 'auth/too-many-requests':
+                description = "Trop de tentatives. Veuillez réessayer plus tard.";
+                break;
+            case 'auth/network-request-failed':
+                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+                break;
+        }
     }
+    
     toast({
         variant: "destructive",
         title: "Erreur de connexion",
@@ -59,11 +68,12 @@ export default function LoginForm() {
         return;
     }
     if (!auth) {
-        toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible."});
+        toast({variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas disponible. La page va se rafraîchir."});
+        setTimeout(() => router.refresh(), 2000);
         return;
     }
     
-    setLoading('email');
+    setLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -71,11 +81,11 @@ export default function LoginForm() {
     } catch (error) {
       handleError(error);
     } finally {
-      setLoading('');
+      setLoading(false);
     }
   }
 
-  const buttonsDisabled = !!loading || !auth;
+  const buttonsDisabled = loading || !auth;
 
   return (
     <div className="mx-auto grid w-full max-w-[350px] gap-6">
@@ -134,7 +144,7 @@ export default function LoginForm() {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={buttonsDisabled}>
-                {loading === 'email' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {!auth ? 'Chargement...' : 'Se connecter'}
             </Button>
             </form>

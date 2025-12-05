@@ -7,7 +7,6 @@ import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from "firebase/storage";
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { initializeFirebase } from '.';
 
 // Define the shape of the context
 interface FirebaseContextState {
@@ -91,22 +90,38 @@ export const useFirebase = () => {
 
 /** Hook to access Firebase Auth instance. */
 export const useAuth = (): Auth | null => {
-  return useFirebase().auth;
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within a FirebaseProvider.');
+  }
+  return context.auth;
 };
 
 /** Hook to access Firestore instance. */
 export const useFirestore = (): Firestore | null => {
-  return useFirebase().firestore;
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useFirestore must be used within a FirebaseProvider.');
+  }
+  return context.firestore;
 };
 
 /** Hook to access Firebase Storage instance. */
 export const useStorage = (): FirebaseStorage | null => {
-  return useFirebase().storage;
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useStorage must be used within a FirebaseProvider.');
+  }
+  return context.storage;
 };
 
 /** Hook to access Firebase App instance. */
 export const useFirebaseApp = (): FirebaseApp | null => {
-  return useFirebase().firebaseApp;
+  const context = useContext(FirebaseContext);
+  if (context === undefined) {
+    throw new Error('useFirebaseApp must be used within a FirebaseProvider.');
+  }
+  return context.firebaseApp;
 };
 
 /**
