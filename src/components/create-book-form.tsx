@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -10,14 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
-import type { Book } from '@/lib/types';
+import type { Book, UserProfile } from '@/lib/types';
 import FormSection from './form-section';
 
 
@@ -50,6 +51,9 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const userProfileRef = useMemo(() => user && firestore ? doc(firestore, 'users', user.uid) : null, [user, firestore]);
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -63,7 +67,7 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
   };
 
   const onSubmit: SubmitHandler<BookFormInputs> = (data) => {
-    if (!user || !firestore || !storage) {
+    if (!user || !firestore || !storage || !userProfile) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
@@ -80,8 +84,8 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
     const bookData: Omit<Book, 'createdAt' | 'id'> & { createdAt: any } = {
         ...data,
         sellerId: user.uid,
-        sellerName: user.displayName?.split(' ')[0] || user.email?.split('@')[0] || 'Vendeur',
-        sellerAvatarUrl: user.photoURL || undefined,
+        username: userProfile.username,
+        userAvatarUrl: userProfile.profilePicture,
         createdAt: serverTimestamp(),
         imageUrl: previewUrl, // Use local preview URL initially
     };
