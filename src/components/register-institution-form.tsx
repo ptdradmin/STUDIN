@@ -11,12 +11,13 @@ import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from 
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
+import { isUsernameUnique } from '@/lib/user-actions';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -38,7 +39,7 @@ export default function RegisterInstitutionForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, isUserLoading } = useAuth();
+  const { auth } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -57,18 +58,29 @@ export default function RegisterInstitutionForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
     if (!auth || !firestore) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Service indisponible.' });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Service indisponible. Veuillez réessayer.' });
       setLoading(false);
       return;
     }
 
     try {
+      const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
+
+      const usernameIsUnique = await isUsernameUnique(firestore, username);
+      if (!usernameIsUnique) {
+          form.setError("name", {
+              type: "manual",
+              message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
+          });
+          setLoading(false);
+          return;
+      }
+      
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
       const batch = writeBatch(firestore);
       const userDocRef = doc(firestore, 'users', user.uid);
-      const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${user.uid.substring(0,6)}`;
       
       const userData = {
         id: user.uid,
@@ -134,7 +146,7 @@ export default function RegisterInstitutionForm() {
     }
   };
 
-  const buttonsDisabled = loading || isUserLoading;
+  const buttonsDisabled = loading;
 
   return (
     <>
@@ -240,7 +252,7 @@ export default function RegisterInstitutionForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading ? 'Chargement...' : 'S\'inscrire'}
+                {loading ? "Création du compte..." : 'S\'inscrire'}
               </Button>
             </form>
           </Form>

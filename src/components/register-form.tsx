@@ -12,11 +12,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { doc, setDoc, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { generateAvatar } from '@/lib/avatars';
 import { isUsernameUnique } from '@/lib/user-actions';
 
@@ -58,7 +58,7 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, isUserLoading } = useAuth();
+  const { auth } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -81,7 +81,7 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
     if (!auth || !firestore) {
-      toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible.' });
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible. Veuillez réessayer.' });
       setLoading(false);
       return;
     }
@@ -151,7 +151,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = loading || isUserLoading;
+  const buttonsDisabled = loading;
 
   return (
     <>
@@ -321,7 +321,7 @@ export default function RegisterForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading ? 'Chargement...' : "S'inscrire"}
+                {loading ? 'Inscription...' : "S'inscrire"}
               </Button>
             </form>
           </Form>
