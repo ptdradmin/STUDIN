@@ -25,6 +25,10 @@ import {
   Globe,
   Gem,
   CheckCircle2,
+  Sparkles,
+  ClipboardCheck,
+  Target,
+  PartyPopper,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/firebase";
@@ -182,24 +186,26 @@ export default function SettingsPage() {
                             <AccordionContent className="px-6 space-y-4">
                                <Card className="bg-muted/30">
                                    <CardHeader>
-                                       <CardTitle className="text-xl">Modifier votre forfait STUD'IN</CardTitle>
-                                       <CardDescription>FORFAIT ACTUEL</CardDescription>
+                                       <CardTitle className="text-xl">Passez à STUD'IN Pro</CardTitle>
+                                       <CardDescription>FORFAIT ACTUEL : GRATUIT</CardDescription>
                                    </CardHeader>
                                    <CardContent>
-                                       <div className="border bg-card rounded-lg p-4">
+                                       <div className="border bg-card rounded-lg p-6">
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <h4 className="font-bold text-lg">STUD'IN Pro</h4>
-                                                    <p className="text-muted-foreground text-sm">Passez à la vitesse supérieure.</p>
+                                                    <p className="text-muted-foreground text-sm">Passez à la vitesse supérieure avec l'IA.</p>
                                                 </div>
-                                                <p className="font-bold">4,99 €/mois</p>
+                                                <p className="font-bold text-lg">4,99 €/mois</p>
                                             </div>
-                                            <div className="mt-4 pt-4 border-t">
-                                                <p className="text-sm font-semibold mb-2">Avantages Pro :</p>
-                                                <ul className="space-y-1.5 text-sm text-muted-foreground">
-                                                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary"/> Annonces mises en avant</li>
-                                                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary"/> Badge de profil exclusif</li>
-                                                    <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary"/> Suggestions IA avancées</li>
+                                            <div className="mt-6 pt-4 border-t">
+                                                <p className="text-sm font-semibold mb-3">Avantages exclusifs STUD'IN Pro :</p>
+                                                <ul className="space-y-2.5 text-sm text-muted-foreground">
+                                                    <li className="flex items-center gap-3"><Sparkles className="h-4 w-4 text-primary"/>Légendes IA pour vos publications</li>
+                                                    <li className="flex items-center gap-3"><ClipboardCheck className="h-4 w-4 text-primary"/>Analyse IA de vos annonces</li>
+                                                    <li className="flex items-center gap-3"><Target className="h-4 w-4 text-primary"/>Recommandations de défis personnalisées</li>
+                                                    <li className="flex items-center gap-3"><PartyPopper className="h-4 w-4 text-primary"/>Assistance IA pour créer des événements</li>
+                                                    <li className="flex items-center gap-3"><CheckCircle2 className="h-4 w-4 text-primary"/>Badge de profil Pro exclusif</li>
                                                 </ul>
                                             </div>
                                              <div className="mt-6 flex justify-end">
