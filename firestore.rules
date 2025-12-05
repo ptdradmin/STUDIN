@@ -48,8 +48,7 @@ service cloud.firestore {
     // User Profile Rules
     // =====================================================================
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow read: if isSignedIn();
       allow create: if request.auth.uid == userId;
       allow update: if isOwner(userId) || 
                       (isSignedIn() && (
@@ -75,7 +74,7 @@ service cloud.firestore {
     // =====================================================================
     match /institutions/{institutionId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isRole(request.auth.uid, 'institution');
       allow update, delete: if isOwner(resource.data.userId);
     }
     

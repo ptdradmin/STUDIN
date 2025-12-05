@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -79,7 +79,8 @@ export default function RegisterInstitutionForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      
+      const batch = writeBatch(firestore);
+
       const userDocRef = doc(firestore, 'users', user.uid);
       const userData = {
         id: user.uid,
@@ -103,21 +104,7 @@ export default function RegisterInstitutionForm() {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
-      
-      // Try to set the user document and catch permission errors
-      try {
-        await setDoc(userDocRef, userData);
-      } catch (userDocError) {
-        const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'create',
-            requestResourceData: userData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        // We re-throw to stop execution here. The listener will show the UI.
-        throw userDocError;
-      }
-
+      batch.set(userDocRef, userData);
 
       const institutionDocRef = doc(firestore, 'institutions', user.uid);
       const institutionData = {
@@ -130,18 +117,9 @@ export default function RegisterInstitutionForm() {
         role: 'institution',
         createdAt: serverTimestamp(),
       };
-       
-       try {
-         await setDoc(institutionDocRef, institutionData);
-       } catch (institutionDocError) {
-         const permissionError = new FirestorePermissionError({
-            path: institutionDocRef.path,
-            operation: 'create',
-            requestResourceData: institutionData,
-         });
-         errorEmitter.emit('permission-error', permissionError);
-         throw institutionDocError;
-       }
+      batch.set(institutionDocRef, institutionData);
+
+      await batch.commit();
       
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
@@ -153,21 +131,16 @@ export default function RegisterInstitutionForm() {
       router.refresh();
 
     } catch (error: any) {
-        // This will catch the re-thrown errors from our blocks,
-        // or other errors like auth/email-already-in-use
-        if (error.name !== 'FirebaseError') {
-             let description = "Impossible de créer le compte.";
-            if (error.code === 'auth/email-already-in-use') {
-                description = "Cet email est déjà utilisé pour un autre compte.";
-            }
-            toast({
-                variant: "destructive",
-                title: "Erreur d'inscription",
-                description: description,
-            });
+        let description = "Impossible de créer le compte.";
+        if (error.code === 'auth/email-already-in-use') {
+            description = "Cet email est déjà utilisé pour un autre compte.";
         }
-        // If it's a FirestorePermissionError, the global listener is handling the UI.
-        
+        toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: description,
+        });
+        console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
