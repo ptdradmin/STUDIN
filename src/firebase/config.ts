@@ -38,22 +38,26 @@ export function getFirebaseServices(): FirebaseServices {
 
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+  // --- App Check Initialization ---
   if (typeof window !== 'undefined') {
-    // Pass your reCAPTCHA v3 site key (public) to activate(). Make sure this
-    // key is the counterpart to the secret key you set in the Firebase console.
-    if (process.env.NODE_ENV !== 'production') {
-      // Create a 'self' property on the window object to store the App Check debug token.
-      // This is a common practice to make the token easily accessible in the browser's developer console.
-      (window as any).self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-    }
-    
-    try {
-      initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
-        isTokenAutoRefreshEnabled: true,
-      });
-    } catch (e) {
-      console.warn("App Check initialization error (safe to ignore on hot reloads):", e);
+    // We only want to initialize App Check in the production environment.
+    // In development, App Check can cause issues, especially within iframes like in Firebase Studio.
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
+          isTokenAutoRefreshEnabled: true,
+        });
+      } catch (e) {
+        console.warn("App Check initialization error:", e);
+      }
+    } else {
+        // In development, we can set up a debug token if needed, but for simplicity
+        // and to avoid iframe issues, we can skip initialization altogether.
+        // If you need to test App Check locally, uncomment the following line and
+        // add the generated token to your Firebase project settings.
+        // (window as any).self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        console.log("App Check is disabled in development environment.");
     }
   }
 
