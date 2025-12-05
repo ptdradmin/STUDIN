@@ -286,6 +286,17 @@ export default function SettingsPage() {
                             <SettingsLink title="Notifications de Covoiturage" href="#" />
                         </AccordionContent>
                         </AccordionItem>
+                        
+                        <AccordionItem value="language">
+                        <AccordionTrigger className="px-6 py-4 text-lg font-semibold">
+                            <div className="flex items-center gap-3">
+                            <Globe />
+                            Langue
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6 space-y-2">
+                        </AccordionContent>
+                        </AccordionItem>
 
                         <AccordionItem value="content">
                         <AccordionTrigger className="px-6 py-4 text-lg font-semibold">

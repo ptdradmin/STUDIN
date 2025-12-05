@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useFirebase } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, writeBatch, query, collection, where, getDocs } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -39,7 +39,8 @@ export default function RegisterInstitutionForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const { auth, isUserLoading } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -169,7 +170,7 @@ export default function RegisterInstitutionForm() {
     }
   };
 
-  const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = loading || isUserLoading || !auth;
 
   return (
     <>
@@ -275,7 +276,7 @@ export default function RegisterInstitutionForm() {
 
               <Button type="submit" className="w-full" disabled={buttonsDisabled}>
                 {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                {isUserLoading || !areServicesAvailable ? 'Chargement...' : 'S\'inscrire'}
+                {isUserLoading || !auth ? 'Chargement...' : 'S\'inscrire'}
               </Button>
             </form>
           </Form>

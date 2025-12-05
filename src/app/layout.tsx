@@ -2,6 +2,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Inter, Poppins } from 'next/font/google';
 import { Providers } from './providers';
+import { LanguageProvider } from '@/contexts/language-context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -27,8 +28,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <Providers>
+          <LanguageProvider>
             {children}
-            <Toaster />
+          </LanguageProvider>
+          <Toaster />
         </Providers>
       </body>
     </html>

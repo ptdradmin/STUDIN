@@ -11,7 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useFirebase } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -56,7 +56,8 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { auth, firestore, isUserLoading, areServicesAvailable } = useFirebase();
+  const { auth, isUserLoading } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -78,8 +79,7 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
     
-    // Ensure services are available before proceeding
-    if (!auth || !firestore || !areServicesAvailable) {
+    if (!auth || !firestore) {
         toast({ variant: "destructive", title: "Erreur", description: "Le service d'authentification n'est pas prêt. Veuillez réessayer." });
         setLoading(false);
         return;
@@ -117,7 +117,7 @@ export default function RegisterForm() {
     }
   };
   
-  const buttonsDisabled = loading || isUserLoading || !areServicesAvailable;
+  const buttonsDisabled = loading || isUserLoading || !auth;
 
   return (
     <>

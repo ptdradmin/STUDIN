@@ -83,7 +83,8 @@ function SidebarSkeleton() {
 
 export default function SocialSidebar() {
     const { user, isUserLoading } = useUser();
-    const { auth, firestore } = useAuth();
+    const { auth } = useAuth();
+    const firestore = useFirestore();
     const router = useRouter();
     const pathname = usePathname();
     const { toast } = useToast();

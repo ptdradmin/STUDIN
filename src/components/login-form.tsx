@@ -20,7 +20,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const auth = useAuth();
+  const { auth, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {

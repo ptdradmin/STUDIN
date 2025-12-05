@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, GraduationCap, Target } from "lucide-react";
-import { useFirebase, useUser } from "@/firebase";
+import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
 import { useState, useEffect } from "react";
@@ -33,12 +33,12 @@ const navLinks = [
 
 export default function Navbar() {
   const { user } = useUser();
-  const { auth, areServicesAvailable } = useFirebase();
+  const { auth } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
 
   const handleLogout = async () => {
-    if (auth && areServicesAvailable) {
+    if (auth) {
       await signOut(auth);
     }
   };
