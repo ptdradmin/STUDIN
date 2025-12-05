@@ -7,6 +7,7 @@ import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from "firebase/storage";
 import { getFirebaseServices, type FirebaseServices } from './config';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 // Define the shape of the context
 interface FirebaseContextState {
@@ -75,6 +76,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     return (
         <FirebaseContext.Provider value={contextValue}>
             {children}
+            <FirebaseErrorListener />
         </FirebaseContext.Provider>
     );
 };
