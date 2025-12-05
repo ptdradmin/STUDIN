@@ -39,7 +39,14 @@ export function getFirebaseServices(): FirebaseServices {
   const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
   if (typeof window !== 'undefined') {
-    // Initialize App Check only on the client.
+    // Pass your reCAPTCHA v3 site key (public) to activate(). Make sure this
+    // key is the counterpart to the secret key you set in the Firebase console.
+    if (process.env.NODE_ENV !== 'production') {
+      // Create a 'self' property on the window object to store the App Check debug token.
+      // This is a common practice to make the token easily accessible in the browser's developer console.
+      (window as any).self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    }
+    
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaEnterpriseProvider('6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS'),
