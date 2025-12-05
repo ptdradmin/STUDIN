@@ -3,7 +3,7 @@
 
 /**
  * @fileOverview A conversational AI flow for STUD'IN AI.
- * This flow powers the main AI assistant of the application, handling both text and audio.
+ * This flow powers the main AI assistant of the application, handling text, audio, and image generation.
  */
 
 import { ai } from '@/ai/genkit';
@@ -14,12 +14,14 @@ import wav from 'wav';
 const StudinAiInputSchema = z.object({
   text: z.string().optional().describe('The user\'s text message to the AI.'),
   audio: z.string().optional().describe('The user\'s audio message as a dataURI.'),
+  imageDataUri: z.string().optional().describe("An image provided by the user as a data URI."),
 });
 export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
 
 const StudinAiOutputSchema = z.object({
   text: z.string().describe("The AI's text response."),
   audio: z.string().optional().describe("The AI's audio response as a dataURI."),
+  imageUrl: z.string().optional().describe("A generated image URL as a data URI."),
 });
 export type StudinAiOutput = z.infer<typeof StudinAiOutputSchema>;
 
@@ -61,14 +63,13 @@ async function toWav(pcmData: Buffer, channels = 1, rate = 24000, sampleWidth = 
     });
 }
 
-
 const studinAiFlow = ai.defineFlow(
   {
     name: 'studinAiFlow',
     inputSchema: StudinAiInputSchema,
     outputSchema: StudinAiOutputSchema,
   },
-  async ({ text, audio }) => {
+  async ({ text, audio, imageDataUri }) => {
     let userMessage = text || '';
 
     // 1. Speech-to-Text if audio is provided
@@ -82,8 +83,38 @@ const studinAiFlow = ai.defineFlow(
       });
       userMessage = transcribedText || '';
     }
+
+    // 2. Image Generation Logic
+    if (imageDataUri) {
+        // Image-to-Image generation
+        const { media, text: imageGenText } = await ai.generate({
+            model: 'googleai/gemini-2.5-flash-image-preview',
+            prompt: [
+                { media: { url: imageDataUri } },
+                { text: userMessage || 'Améliore cette image.' },
+            ],
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
+        });
+        return {
+            text: imageGenText || "Voici l'image que vous avez demandée.",
+            imageUrl: media?.url,
+        };
+    } else if (userMessage.toLowerCase().startsWith('génère une image') || userMessage.toLowerCase().startsWith('crée une image')) {
+        // Text-to-Image generation
+        const imagePrompt = userMessage.replace(/^(génère une image de|crée une image de)/i, '').trim();
+        const { media } = await ai.generate({
+            model: 'googleai/imagen-4.0-fast-generate-001',
+            prompt: imagePrompt,
+        });
+        return {
+            text: `Voici une image de ${imagePrompt}.`,
+            imageUrl: media.url,
+        };
+    }
     
-    // 2. Generate Text Response
+    // 3. Standard Text & Audio Response
     const { text: textResponse } = await ai.generate({
         model: googleAI.model('gemini-2.5-pro'),
         prompt: studinAiPrompt.replace('{{message}}', userMessage),
@@ -93,7 +124,6 @@ const studinAiFlow = ai.defineFlow(
         throw new Error('Failed to generate text response.');
     }
     
-    // 3. Text-to-Speech
     const { media } = await ai.generate({
       model: googleAI.model('gemini-2.5-flash-preview-tts'),
       config: {

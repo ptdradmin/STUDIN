@@ -4,23 +4,18 @@ import { useUser } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
+import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { askStudinAi } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
+import type { AiChatMessage } from "@/lib/types";
 
-
-type AiChatMessage = {
-    id: number;
-    sender: 'user' | 'ai';
-    text?: string;
-    audioUrl?: string;
-};
 
 function MessagesHeader() {
     const router = useRouter();
@@ -38,7 +33,7 @@ function MessagesHeader() {
                 </Avatar>
                 <div>
                     <p className="font-semibold">STUD'IN AI</p>
-                    <p className="text-xs text-muted-foreground">Assistant IA</p>
+                    <p className="text-xs text-muted-foreground">Assistant IA Créatif</p>
                 </div>
             </div>
         </div>
@@ -56,7 +51,6 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
     }
     
     useEffect(() => {
-        // Autoplay AI audio responses
         if (message.sender === 'ai' && message.audioUrl && audioRef.current) {
             audioRef.current.play().catch(e => console.error("Audio autoplay failed:", e));
         }
@@ -71,11 +65,18 @@ function MessageBubble({ message }: { message: AiChatMessage }) {
                     </div>
                 </Avatar>
             )}
-            <div className={cn("max-w-md p-3 rounded-2xl", isUserMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                {message.text && <div className="prose prose-sm dark:prose-invert prose-p:my-0"><Markdown>{message.text}</Markdown></div>}
-                {message.audioUrl && (
-                    <audio ref={audioRef} src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
-                )}
+            <div className={cn("max-w-md p-1 rounded-2xl", isUserMessage ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                <div className="p-2 space-y-2">
+                    {message.imageUrl && (
+                        <div className="relative aspect-square w-full max-w-sm rounded-lg overflow-hidden">
+                           <Image src={message.imageUrl} alt="Generated or uploaded image" fill className="object-cover"/>
+                        </div>
+                    )}
+                    {message.text && <div className="prose prose-sm dark:prose-invert prose-p:my-0 px-2"><Markdown>{message.text}</Markdown></div>}
+                    {message.audioUrl && (
+                        <audio ref={audioRef} src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
+                    )}
+                </div>
             </div>
              {isUserMessage && user && (
                  <Avatar className="h-8 w-8">
@@ -91,18 +92,20 @@ export default function AiChatPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [messages, setMessages] = useState<AiChatMessage[]>([
-        { id: 0, sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI, votre assistant personnel alimenté par Gemini 2.5 Pro. Comment puis-je vous aider ? Vous pouvez m'écrire ou m'envoyer un message vocal." }
+        { id: Date.now(), sender: 'ai', text: "Bonjour ! Je suis STUD'IN AI. Je peux maintenant générer des images pour vous. Essayez de me demander 'génère une image d'un étudiant sur Mars' ou envoyez une image pour que je la modifie !" }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
     const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,25 +113,28 @@ export default function AiChatPage() {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if ((!newMessage.trim() && audioChunksRef.current.length === 0) || isLoading) return;
+        if ((!newMessage.trim() && audioChunksRef.current.length === 0 && !imageFile) || isLoading) return;
 
         const userMessage: AiChatMessage = {
             id: Date.now(),
             sender: 'user',
             text: newMessage.trim() || undefined,
+            imageUrl: previewUrl || undefined,
         };
-
+        
         let audioBlob: Blob | null = null;
         if (audioChunksRef.current.length > 0) {
             audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             userMessage.audioUrl = URL.createObjectURL(audioBlob);
-            audioChunksRef.current = [];
         }
         
         setMessages(prev => [...prev, userMessage]);
         const currentMessage = newMessage;
         setNewMessage('');
         setIsLoading(true);
+        setImageFile(null);
+        setPreviewUrl(null);
+        audioChunksRef.current = [];
         
         try {
             let audioDataUri: string | undefined = undefined;
@@ -139,13 +145,14 @@ export default function AiChatPage() {
                     reader.readAsDataURL(audioBlob!);
                 });
             }
-            
-            const result = await askStudinAi({ text: currentMessage, audio: audioDataUri });
+
+            const result = await askStudinAi({ text: currentMessage, audio: audioDataUri, imageDataUri: previewUrl || undefined });
             const aiResponse: AiChatMessage = {
                 id: Date.now() + 1,
                 sender: 'ai',
                 text: result.text,
-                audioUrl: result.audio
+                audioUrl: result.audio,
+                imageUrl: result.imageUrl,
             };
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
@@ -194,11 +201,30 @@ export default function AiChatPage() {
             if(cancel) {
                 audioChunksRef.current = [];
             } else {
-                 // Automatically submit the form when recording stops
                  handleSendMessage(new Event('submit') as any);
             }
             setIsRecording(false);
             if(recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setImageFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    const cancelImage = () => {
+        setImageFile(null);
+        setPreviewUrl(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
         }
     };
 
@@ -238,6 +264,16 @@ export default function AiChatPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*"/>
+                    {previewUrl && (
+                        <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <ImageIcon className="h-5 w-5 flex-shrink-0"/>
+                                <span className="text-sm truncate">{imageFile?.name || 'Image sélectionnée'}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelImage}><X className="h-4 w-4" /></Button>
+                        </div>
+                    )}
                     {isRecording ? (
                          <div className="flex items-center gap-2 h-10">
                              <Button type="button" variant="ghost" size="icon" onClick={() => stopRecording(true)}>
@@ -253,6 +289,9 @@ export default function AiChatPage() {
                         </div>
                     ) : (
                         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                             <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isLoading || !!previewUrl}>
+                                <Paperclip className="h-5 w-5" />
+                            </Button>
                             <Input 
                                 placeholder="Discutez avec STUD'IN AI..."
                                 className="flex-grow" 
@@ -260,13 +299,13 @@ export default function AiChatPage() {
                                 onChange={(e) => setNewMessage(e.target.value)}
                                 disabled={isLoading}
                             />
-                             {newMessage.trim() === '' ? (
+                             {newMessage.trim() === '' && !imageFile ? (
                                  <Button type="button" variant="ghost" size="icon" onClick={startRecording} disabled={isLoading}>
                                      <Mic className="h-5 w-5"/>
                                  </Button>
                              ) : (
                                  <Button type="submit" size="icon" disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                                     <Send className="h-5 w-5"/>
+                                     {isLoading ? <Loader2 className="h-5 w-5 animate-spin"/> : <Send className="h-5 w-5"/>}
                                  </Button>
                              )}
                         </form>

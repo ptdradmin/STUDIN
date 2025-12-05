@@ -203,6 +203,14 @@ export type ChatMessage = {
     fileType?: 'image' | 'video' | 'audio';
 };
 
+export type AiChatMessage = {
+    id: number;
+    sender: 'user' | 'ai';
+    text?: string;
+    audioUrl?: string;
+    imageUrl?: string;
+};
+
 export type Conversation = {
     id:string;
     participantIds: string[];
