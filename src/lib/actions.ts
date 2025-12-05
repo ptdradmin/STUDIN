@@ -19,7 +19,8 @@ import {
   WriteBatch,
 } from 'firebase/firestore';
 import type { UserProfile, Notification, Favorite } from './types';
-import { deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { deleteDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 
 /**
@@ -51,16 +52,27 @@ export const toggleFollowUser = async (
     batch.update(targetUserRef, { followerIds: arrayUnion(currentUserId) });
   }
 
-  await batch.commit();
+  try {
+    await batch.commit();
 
-  if (!isCurrentlyFollowing) {
-    // Create notification only on follow
-    await createNotification(firestore, {
-        type: 'new_follower',
-        senderId: currentUserId,
-        recipientId: targetUserId,
-        message: `a commencé à vous suivre.`
-    });
+    if (!isCurrentlyFollowing) {
+      // Create notification only on follow
+      await createNotification(firestore, {
+          type: 'new_follower',
+          senderId: currentUserId,
+          recipientId: targetUserId,
+          message: `a commencé à vous suivre.`
+      });
+    }
+  } catch (error) {
+     const operation = isCurrentlyFollowing ? 'update (unfollow)' : 'update (follow)';
+     errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({
+            path: `users/${currentUserId} and users/${targetUserId}`,
+            operation: 'write',
+        })
+     )
   }
 };
 
