@@ -12,11 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, User } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
-import { createUserDocument } from '@/lib/user-actions';
 import Link from 'next/link';
+import { doc, getDoc, setDoc, serverTimestamp, query, collection, where, getDocs } from 'firebase/firestore';
+import { generateAvatar } from '@/lib/avatars';
 
 const schoolsList = [
     'Université de Namur', 'Université de Liège', 'UCLouvain', 'ULB - Université Libre de Bruxelles', 'UMons', 'Université Saint-Louis - Bruxelles',
@@ -86,13 +87,56 @@ export default function RegisterForm() {
     }
 
     try {
+        // Step 1: Create user in Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
+
+        // Step 2: Create user document in Firestore
+        const userDocRef = doc(firestore, 'users', user.uid);
         
-        await createUserDocument(firestore, user, data);
+        // Find a unique username
+        let username = data.username;
+        let isUnique = false;
+        let counter = 1;
+        while(!isUnique) {
+            const q = query(collection(firestore, "users"), where("username", "==", username));
+            const querySnapshot = await getDocs(q);
+            if (querySnapshot.empty) {
+                isUnique = true;
+            } else {
+                username = `${data.username}${counter}`;
+                counter++;
+            }
+        }
+
+        const userData = {
+            id: user.uid,
+            role: 'student',
+            email: data.email,
+            username: username,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            postalCode: data.postalCode,
+            city: data.city,
+            university: data.university,
+            fieldOfStudy: data.fieldOfStudy,
+            bio: '',
+            website: '',
+            profilePicture: generateAvatar(user.email || user.uid),
+            followerIds: [],
+            followingIds: [],
+            isVerified: false,
+            points: 0,
+            challengesCompleted: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        };
+
+        await setDoc(userDocRef, userData);
         
+        // Step 3: Update Auth profile
         const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
-        await updateProfile(user, { displayName: newDisplayName });
+        await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
 
         toast({
             title: "Inscription réussie!",
