@@ -1,7 +1,8 @@
+import { Suspense } from 'react';
 import LoginForm from '@/components/login-form';
 import Image from 'next/image';
 
-export default function LoginPage() {
+function LoginPageContent() {
   return (
     <div className="w-full min-h-screen lg:grid lg:grid-cols-2">
       <div className="flex items-center justify-center py-12">
@@ -22,5 +23,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Chargement...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

@@ -20,7 +20,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://stud-in.com'), 
+  metadataBase: new URL('https://stud-in.com'),
   title: "STUD'IN",
   description: "La plateforme qui simplifie la vie étudiante.",
   icons: {
