@@ -18,6 +18,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
 import { isUsernameUnique } from '@/lib/user-actions';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -84,7 +86,7 @@ export default function RegisterInstitutionForm() {
       
       const userData = {
         id: user.uid,
-        role: 'institution',
+        role: 'institution' as const,
         username: username,
         email: data.email,
         firstName: data.name,
@@ -119,7 +121,15 @@ export default function RegisterInstitutionForm() {
       };
       batch.set(institutionDocRef, institutionData);
       
-      await batch.commit();
+      batch.commit().catch(async (serverError) => {
+        // This is the new error handling part
+        const permissionError = new FirestorePermissionError({
+          path: `users/${user.uid}`, // Or the path that is failing
+          operation: 'create',
+          requestResourceData: userData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
       
       await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
@@ -131,7 +141,7 @@ export default function RegisterInstitutionForm() {
       router.refresh();
 
     } catch (error: any) {
-        console.error("Registration error:", error);
+        // This handles errors from createUserWithEmailAndPassword
         let description = "Impossible de créer le compte.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Cet email est déjà utilisé pour un autre compte.";
@@ -139,7 +149,7 @@ export default function RegisterInstitutionForm() {
         toast({
             variant: "destructive",
             title: "Erreur d'inscription",
-            description,
+            description: description,
         });
     } finally {
       setLoading(false);
