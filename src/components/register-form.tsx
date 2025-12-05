@@ -87,11 +87,16 @@ export default function RegisterForm() {
     }
 
     try {
+        // --- STEP 1: ONLY create the auth user ---
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredential.user;
 
+        // --- STEP 2: Create user profile document in Firestore ---
+        // This will be done in a separate, more robust flow, e.g. on first login or profile edit.
+        // For now, we ensure the auth account is created successfully.
+        // A Cloud Function would be the most robust way to handle this.
+        // As a fallback, we can create a minimal profile document.
         const userDocRef = doc(firestore, 'users', user.uid);
-        
         const userData = {
             id: user.uid,
             role: 'student',
@@ -114,24 +119,28 @@ export default function RegisterForm() {
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         };
-
         await setDoc(userDocRef, userData);
         
+        // --- STEP 3: Update Auth Profile (Display Name, Photo) ---
         const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
         await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
 
+        // --- STEP 4: Success feedback and navigation ---
         toast({
             title: "Inscription réussie!",
             description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
         });
         router.push('/social');
         router.refresh();
+
     } catch (error: any) {
         let description = "Impossible de créer le compte.";
         if (error.code === 'auth/email-already-in-use') {
             description = "Cet email est déjà utilisé. Essayez de vous connecter.";
-        } else if (error.code === 'auth/invalid-app-credential' || error.code === 'auth/firebase-app-check-token-is-invalid' || error.code === 'auth/network-request-failed') {
-            description = "Problème de connexion ou de sécurité. Veuillez réessayer."
+        } else if (error.code === 'auth/invalid-credential') {
+             description = "Les informations fournies sont invalides.";
+        } else {
+            console.error("Registration error:", error);
         }
          toast({
             variant: "destructive",
