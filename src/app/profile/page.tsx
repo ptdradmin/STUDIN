@@ -293,7 +293,7 @@ export default function CurrentUserProfilePage() {
     return email.substring(0, 2).toUpperCase();
   }
 
-  const loading = isUserLoading || postsLoading || profileLoading;
+  const isLoading = isUserLoading || profileLoading;
 
   const followersCount = userProfile?.followerIds?.length || 0;
   const followingCount = userProfile?.followingIds?.length || 0;
@@ -301,7 +301,7 @@ export default function CurrentUserProfilePage() {
   const savedItemsLoading = savedPostsLoading || savedHousingsLoading || savedEventsLoading || savedTutorsLoading || savedBooksLoading;
   const totalSavedItems = (favoritedIds.post?.size || 0) + (favoritedIds.housing?.size || 0) + (favoritedIds.event?.size || 0) + (favoritedIds.tutor?.size || 0) + (favoritedIds.book?.size || 0);
 
-  if (loading || !user || !userProfile) {
+  if (isLoading || !user || !userProfile) {
     return (
        <div className="flex min-h-screen w-full bg-background">
         <SocialSidebar />
