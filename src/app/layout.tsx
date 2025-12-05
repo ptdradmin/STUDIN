@@ -19,6 +19,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://votre-domaine.com'), // Remplacez par votre nom de domaine
   title: "STUD'IN",
   description: "La plateforme qui simplifie la vie étudiante.",
   icons: {
