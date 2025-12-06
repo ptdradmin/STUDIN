@@ -136,7 +136,6 @@ export default function RegisterForm() {
               requestResourceData: { role: 'student', email: data.email },
           });
           errorEmitter.emit('permission-error', permissionError);
-          // Don't show a toast here, the global handler will show the error overlay
       } else {
         switch (error.code) {
             case 'auth/email-already-in-use':

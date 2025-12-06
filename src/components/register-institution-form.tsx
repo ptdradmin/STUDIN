@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, FirestorePermissionError, errorEmitter, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -136,7 +137,7 @@ export default function RegisterInstitutionForm() {
             updatedAt: serverTimestamp(),
         };
         
-        setDocumentNonBlocking(userDocRef, userData, { merge: false });
+        await setDoc(userDocRef, userData);
         
         toast({
             title: "Compte créé !",
