@@ -10,15 +10,16 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
 import { isUsernameUnique } from '@/lib/user-actions';
 import type { UserProfile } from '@/lib/types';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const registerSchema = z.object({
@@ -101,13 +102,14 @@ export default function RegisterInstitutionForm() {
           followerIds: [],
           followingIds: [],
           isVerified: false,
+          isPro: false,
           points: 0,
           challengesCompleted: 0,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
       };
-      setDocumentNonBlocking(userDocRef, newUserProfile, { merge: false });
-
+      
+      await setDoc(userDocRef, newUserProfile);
 
       toast({
         title: "Inscription réussie !",
@@ -123,6 +125,11 @@ export default function RegisterInstitutionForm() {
         description = "Cet email est déjà utilisé pour un autre compte.";
       } else if (error.code === 'permission-denied') {
         description = "Erreur de permissions. Vérifiez que vous avez mis à jour les règles Firestore.";
+        const permissionError = new FirestorePermissionError({
+            path: `users/${auth.currentUser?.uid}`,
+            operation: 'create',
+        });
+        errorEmitter.emit('permission-error', permissionError);
       }
       toast({
         variant: "destructive",
@@ -256,5 +263,7 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+
+    
 
     

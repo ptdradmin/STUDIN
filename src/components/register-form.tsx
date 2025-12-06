@@ -11,15 +11,16 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
 import { schoolsList } from '@/lib/static-data';
 import { generateAvatar } from '@/lib/avatars';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const registerSchema = z.object({
@@ -103,13 +104,15 @@ export default function RegisterForm() {
           followerIds: [],
           followingIds: [],
           isVerified: false,
+          isPro: false,
           points: 0,
           challengesCompleted: 0,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
       };
-      // Use non-blocking write for performance
-      setDocumentNonBlocking(userDocRef, newUserProfile, { merge: false });
+      
+      // Use a blocking write to ensure profile creation before redirecting.
+      await setDoc(userDocRef, newUserProfile);
 
       toast({
         title: "Inscription réussie!",
@@ -120,6 +123,7 @@ export default function RegisterForm() {
       router.refresh();
 
     } catch (error: any) {
+      // This will now catch both Auth and Firestore errors
       let description = "Impossible de créer le compte. Veuillez réessayer.";
 
       switch (error.code) {
@@ -135,8 +139,17 @@ export default function RegisterForm() {
         case 'auth/network-request-failed':
           description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
           break;
+        case 'permission-denied':
+            description = "Une erreur de permission s'est produite lors de la création de votre profil. Contactez le support.";
+            // Optionally emit a more detailed error for debugging
+             const permissionError = new FirestorePermissionError({
+                path: `users/${auth.currentUser?.uid}`,
+                operation: 'create',
+             });
+             errorEmitter.emit('permission-error', permissionError);
+            break;
         default:
-          description = `Une erreur inattendue est survenue. (${error.code})`;
+          description = `Une erreur inattendue est survenue. (${error.code || error.name})`;
       }
 
       toast({
@@ -337,5 +350,7 @@ export default function RegisterForm() {
     </>
   );
 }
+
+    
 
     
