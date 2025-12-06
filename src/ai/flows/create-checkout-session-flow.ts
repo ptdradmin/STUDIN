@@ -115,3 +115,8 @@ export const createCheckoutSessionTool = ai.defineTool(
     }
   }
 );
+
+
+export async function createCheckoutSession(input: CreateCheckoutSessionInput): Promise<CreateCheckoutSessionOutput> {
+  return createCheckoutSessionTool(input);
+}

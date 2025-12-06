@@ -20,12 +20,12 @@ import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
 import { searchEventsTool } from '@/ai/tools/search-events-tool';
 import { saveUserPreferenceTool } from '@/ai/tools/save-user-preference-tool';
 import { manageAssignmentsTool } from '@/ai/tools/manage-assignments-tool';
-import { createCheckoutSessionTool } from '@/ai/tools/create-checkout-session-tool';
+import { createCheckoutSessionTool } from '@/ai/flows/create-checkout-session-flow';
 import { manageSettingsTool } from '@/ai/tools/manage-settings-tool';
 import { streamFlow } from '@genkit-ai/next/server';
 
 export async function askAlice(input: StudinAiInput): Promise<Response> {
-    return streamFlow(studinAiFlow, input);
+  return streamFlow(studinAiFlow, input);
 }
   
 
@@ -125,7 +125,7 @@ export const studinAiFlow = ai.defineFlow(
             };
         }
     
-        const conversationPrompt = (history || []).map(m => ({
+        const conversationHistory = (history || []).map(m => ({
             role: m.role,
             content: [
               ...(m.text ? [{ text: m.text }] : []),
@@ -134,20 +134,18 @@ export const studinAiFlow = ai.defineFlow(
             ].filter(Boolean) as any,
         }));
         
-        conversationPrompt.push({
-            role: 'user',
-            content: [
-                ...(userMessageText ? [{text: userMessageText}] : []),
-                ...(userImage ? [{media: {url: userImage}}] : [])
-            ].filter(Boolean) as any
-        });
+        const currentMessageContent = [
+            ...(userMessageText ? [{text: userMessageText}] : []),
+            ...(userImage ? [{media: {url: userImage}}] : [])
+        ].filter(Boolean) as any;
         
     
         const llmResponse = await ai.generate({
             model: conversationModel,
             system: dynamicSystemPrompt,
             tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool, manageAssignmentsTool, createCheckoutSessionTool, manageSettingsTool],
-            prompt: conversationPrompt,
+            history: conversationHistory,
+            prompt: currentMessageContent,
             stream: true,
         });
     
