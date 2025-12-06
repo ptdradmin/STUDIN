@@ -11,14 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { Film, Music, Play, Pause, Search } from 'lucide-react';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/navigation';
-import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getInitials } from '@/lib/avatars';
 
@@ -245,7 +244,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         likes: [],
         comments: [],
         videoUrl: previewUrl, // temporary local URL for optimistic UI
-    });
+    }, { merge: false });
     
     const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
     const uploadTask = uploadBytesResumable(videoRef, videoFile);
@@ -257,16 +256,15 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         },
         (error) => {
             setLoading(false);
-            updateDoc(newDocRef, { uploadError: true });
+            updateDocumentNonBlocking(newDocRef, { uploadError: true });
             toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée."});
         },
         async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             // Finalize the document with the real URL
-            await updateDoc(newDocRef, {
+            updateDocumentNonBlocking(newDocRef, {
                 videoUrl: downloadURL
             });
-            // setLoading(false); // No need as we close the dialog instantly
         }
     );
   };

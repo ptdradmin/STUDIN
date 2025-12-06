@@ -67,6 +67,7 @@ export type Reel = {
     }[];
     songTitle?: string;
     audioUrl?: string;
+    uploadError?: boolean;
 };
 
 export type Event = {

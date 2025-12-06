@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -61,21 +62,15 @@ export default function SubscriptionPage() {
         if (!userProfileRef) return;
         
         setIsProcessing(true);
-        try {
-            updateDocumentNonBlocking(userProfileRef, { isPro: subscribe });
-            toast({
-                title: subscribe ? "Félicitations !" : "Abonnement annulé",
-                description: subscribe ? "Vous êtes maintenant un membre Alice Pro." : "Votre abonnement Pro a été annulé.",
-            });
-        } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: "Erreur",
-                description: "Une erreur est survenue lors de la mise à jour de votre abonnement.",
-            });
-        } finally {
-            setIsProcessing(false);
-        }
+        
+        updateDocumentNonBlocking(userProfileRef, { isPro: subscribe });
+
+        toast({
+            title: subscribe ? "Félicitations !" : "Abonnement annulé",
+            description: subscribe ? "Vous êtes maintenant un membre Alice Pro." : "Votre abonnement Pro a été annulé.",
+        });
+
+        setIsProcessing(false);
     }
     
     const handleRedirectToCheckout = async () => {

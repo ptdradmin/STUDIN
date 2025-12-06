@@ -1,0 +1,131 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    //------------------------------------------------------------
+    // Users
+    // read: any signed-in user
+    // write: owner only
+    //------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+
+      // Subcollections
+      match /favorites/{favoriteId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+      }
+       match /assignments/{assignmentId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    //------------------------------------------------------------
+    // Posts
+    // read: any signed-in user
+    // write: owner only
+    //------------------------------------------------------------
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    //------------------------------------------------------------
+    // Reels
+    // read: any signed-in user
+    // write: owner only
+    //------------------------------------------------------------
+    match /reels/{reelId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+    
+    //------------------------------------------------------------
+    // Public Listings (Housings, Carpools, etc.)
+    // read: anyone
+    // write: owner only
+    //------------------------------------------------------------
+    match /housings/{housingId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /carpoolings/{carpoolingId} {
+      allow read: if true;
+      allow create, delete: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
+      allow update: if isSignedIn(); // Allow booking updates
+    }
+    
+    match /tutorings/{tutoringId} {
+        allow read: if true;
+        allow create, update, delete: if isSignedIn() && request.resource.data.tutorId == request.auth.uid;
+    }
+
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, delete: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
+      allow update: if isSignedIn(); // Allow attendees updates
+    }
+
+    match /books/{bookId} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
+    }
+    
+    //------------------------------------------------------------
+    // Reviews
+    // read: anyone
+    // create: any signed-in user
+    // write: owner only
+    //------------------------------------------------------------
+    match /tutoring_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource.data.studentId == request.auth.uid;
+    }
+
+    //------------------------------------------------------------
+    // Conversations
+    // access: participants only
+    //------------------------------------------------------------
+    match /conversations/{conversationId} {
+      allow read, write: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+
+      match /messages/{messageId} {
+        allow read, create: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+        allow update, delete: if isSignedIn() && resource.data.senderId == request.auth.uid;
+      }
+    }
+    
+     //------------------------------------------------------------
+    // Challenges
+    // read: anyone
+    // write: admin/institution only
+    //------------------------------------------------------------
+    match /challenges/{challengeId} {
+      allow read: if true;
+      allow write: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['institution', 'admin'];
+
+      // Submissions
+      match /submissions/{submissionId} {
+        allow read: if true;
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/challenges/$(challengeId)).data.creatorId == request.auth.uid);
+      }
+    }
+  }
+}
