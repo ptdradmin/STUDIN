@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, useDoc, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useStorage, useDoc, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { ImageIcon, Sparkles, Loader2 } from 'lucide-react';
@@ -96,48 +96,53 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour publier.' });
       return;
     }
-    if (!imageFile || !previewUrl) {
+    if (!imageFile) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
         return;
     }
     setLoading(true);
-    toast({ title: 'Publication...', description: 'Votre publication est en cours de téléversement.' });
-    onClose();
-
+    
     const newDocRef = doc(collection(firestore, 'posts'));
     
-    setDocumentNonBlocking(newDocRef, {
-        ...data,
-        id: newDocRef.id,
-        userId: user.uid,
-        username: userProfile?.username || user.displayName?.split(' ')[0] || user.email?.split('@')[0],
-        userAvatarUrl: userProfile?.profilePicture || user.photoURL,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        likes: [],
-        comments: [],
-        imageUrl: previewUrl, // Use local data URI for optimistic UI
-        isUploading: true,
-        fileType: 'image',
-    }, { merge: false });
+    try {
+        const fileRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
+        await uploadBytesResumable(fileRef, imageFile);
+        const downloadURL = await getDownloadURL(fileRef);
 
-    const fileRef = storageRef(storage, `posts/${newDocRef.id}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(fileRef, imageFile);
+        const postData = {
+            ...data,
+            id: newDocRef.id,
+            userId: user.uid,
+            username: userProfile?.username || user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+            userAvatarUrl: userProfile?.profilePicture || user.photoURL,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            likes: [],
+            comments: [],
+            imageUrl: downloadURL,
+            fileType: 'image',
+        };
 
-    uploadTask.on('state_changed',
-        () => {}, // Progress updates ignored for non-blocking
-        (error) => {
-            console.error("Upload error:", error);
-            updateDocumentNonBlocking(newDocRef, { isUploading: false, uploadError: true });
-        },
-        async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            updateDocumentNonBlocking(newDocRef, {
-                imageUrl: downloadURL,
-                isUploading: false,
-            });
-        }
-    );
+        await setDoc(newDocRef, postData);
+
+        toast({ title: 'Publication réussie !', description: 'Votre publication est maintenant en ligne.' });
+        onClose();
+
+    } catch (error) {
+        console.error("Error creating post:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `posts/${newDocRef.id}`,
+            operation: 'create',
+            requestResourceData: data,
+        }));
+        toast({
+            variant: 'destructive',
+            title: 'Erreur de publication',
+            description: "Votre publication n'a pas pu être créée. Veuillez vérifier les permissions et réessayer."
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

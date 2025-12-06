@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, DependencyList } from 'react';
@@ -9,7 +10,7 @@ import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { generateAvatar } from '@/lib/avatars';
 import type { UserProfile } from '@/lib/types';
-import { errorEmitter, FirestorePermissionError, setDocumentNonBlocking } from '@/firebase';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 
 interface FirebaseProviderProps {
@@ -78,52 +79,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      async (firebaseUser) => {
-        if (firebaseUser) {
-            const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-            
-            getDoc(userDocRef).then(userDocSnap => {
-                if (!userDocSnap.exists()) {
-                    // Use only reliable data available right after creation
-                    const emailUsername = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
-                    const displayName = firebaseUser.displayName || emailUsername;
-                    const firstName = firebaseUser.displayName?.split(' ')[0] || '';
-                    const lastName = firebaseUser.displayName?.split(' ').slice(1).join(' ') || '';
-
-                    const userData: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
-                        id: firebaseUser.uid,
-                        role: 'student',
-                        email: firebaseUser.email || '',
-                        username: emailUsername,
-                        firstName: firstName,
-                        lastName: lastName,
-                        postalCode: '',
-                        city: '',
-                        university: '',
-                        fieldOfStudy: '',
-                        bio: '',
-                        profilePicture: firebaseUser.photoURL || generateAvatar(firebaseUser.email || firebaseUser.uid),
-                        followerIds: [],
-                        followingIds: [],
-                        isVerified: false,
-                        isPro: false,
-                        points: 0,
-                        challengesCompleted: 0,
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp(),
-                    };
-                    
-                    setDocumentNonBlocking(userDocRef, userData, { merge: false });
-                }
-            }).catch(e => {
-                 console.error("[FirebaseProvider] Error checking user document:", e);
-                 const contextualError = new FirestorePermissionError({
-                    path: userDocRef.path,
-                    operation: 'get',
-                 });
-                 errorEmitter.emit('permission-error', contextualError);
-            });
-        }
+      (firebaseUser) => {
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => {

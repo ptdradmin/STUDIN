@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -66,46 +66,53 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<BookFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<BookFormInputs> = async (data) => {
     if (!user || !firestore || !storage || !userProfile) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
-    if (!imageFile || !previewUrl) {
+    if (!imageFile) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
         return;
     }
     setLoading(true);
-    toast({ title: 'Création...', description: 'Votre annonce est en cours de publication.' });
-    onClose();
 
     const newDocRef = doc(collection(firestore, 'books'));
     
-    const bookData: Omit<Book, 'createdAt' | 'id'> & { createdAt: any } = {
-        ...data,
-        sellerId: user.uid,
-        username: userProfile.username,
-        userAvatarUrl: userProfile.profilePicture,
-        createdAt: serverTimestamp(),
-        imageUrl: previewUrl, // Use local preview URL initially
-    };
+    try {
+        const imageRef = storageRef(storage, `books/${newDocRef.id}/${imageFile.name}`);
+        await uploadBytesResumable(imageRef, imageFile);
+        const downloadURL = await getDownloadURL(imageRef);
 
-    setDocumentNonBlocking(newDocRef, { ...bookData, id: newDocRef.id }, { merge: false });
+        const bookData: Book = {
+            ...data,
+            id: newDocRef.id,
+            sellerId: user.uid,
+            username: userProfile.username,
+            userAvatarUrl: userProfile.profilePicture,
+            createdAt: serverTimestamp() as any,
+            imageUrl: downloadURL,
+        };
 
-    const imageRef = storageRef(storage, `books/${newDocRef.id}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(imageRef, imageFile);
+        await setDoc(newDocRef, bookData);
+        toast({ title: 'Succès !', description: 'Votre livre est maintenant en vente.' });
+        onClose();
 
-    uploadTask.on('state_changed',
-      () => {}, // Progress
-      (error) => {
-          console.error("Upload error:", error);
-          updateDocumentNonBlocking(newDocRef, { uploadError: true });
-      },
-      async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDocumentNonBlocking(newDocRef, { imageUrl: downloadURL });
-      }
-    );
+    } catch (error) {
+        console.error("Error creating book listing:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `books/${newDocRef.id}`,
+            operation: 'create',
+            requestResourceData: data,
+        }));
+        toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: "L'annonce n'a pas pu être créée. Veuillez réessayer."
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

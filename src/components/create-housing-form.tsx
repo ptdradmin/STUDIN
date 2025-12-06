@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { Housing } from '@/lib/types';
@@ -90,7 +91,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
   };
 
 
-  const onSubmit: SubmitHandler<HousingFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<HousingFormInputs> = async (data) => {
     if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour poster.' });
       return;
@@ -101,9 +102,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
     }
 
     setLoading(true);
-    toast({ title: isEditing ? 'Mise à jour...' : 'Création...', description: 'Votre annonce est en cours de traitement.' });
-    onClose();
-
+    
     const housingId = housingToEdit?.id || doc(collection(firestore, 'housings')).id;
     const housingRef = doc(firestore, 'housings', housingId);
     
@@ -113,42 +112,48 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
         (baseChallenge.longitude || 4.87) + (Math.random() - 0.5) * 0.05,
     ];
 
-    if (isEditing && housingToEdit) {
-      const dataToUpdate = { ...data, surfaceArea: data.surfaceArea, updatedAt: serverTimestamp(), imageUrl: previewUrl, coordinates: newCoords };
-      
-      updateDocumentNonBlocking(housingRef, dataToUpdate);
+    try {
+        let imageUrl = housingToEdit?.imageUrl || '';
+        if (imageFile) {
+            const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
+            await uploadBytesResumable(imageRef, imageFile);
+            imageUrl = await getDownloadURL(imageRef);
+        }
 
-      if (imageFile) {
-        const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
-        const uploadTask = uploadBytesResumable(imageRef, imageFile);
-        uploadTask.on('state_changed', null, null, async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDocumentNonBlocking(housingRef, { imageUrl: downloadURL });
+        if (isEditing) {
+            const dataToUpdate = { ...data, surfaceArea: data.surfaceArea, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
+            await updateDoc(housingRef, dataToUpdate);
+            toast({ title: 'Annonce mise à jour !' });
+        } else {
+             const dataToCreate: Omit<Housing, 'userId'> & { userId: string } = {
+                ...data,
+                surfaceArea: data.surfaceArea,
+                id: housingId,
+                userId: user.uid,
+                createdAt: serverTimestamp() as any,
+                updatedAt: serverTimestamp() as any,
+                coordinates: newCoords,
+                imageHint: "student room",
+                imageUrl,
+             };
+            await setDoc(housingRef, dataToCreate);
+            toast({ title: 'Annonce créée !' });
+        }
+        onClose();
+    } catch (error) {
+        console.error("Error creating/updating housing:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `housings/${housingId}`,
+            operation: isEditing ? 'update' : 'create',
+            requestResourceData: data,
+        }));
+        toast({
+            variant: 'destructive',
+            title: "Erreur",
+            description: `L'annonce n'a pas pu être ${isEditing ? 'mise à jour' : 'créée'}.`
         });
-      }
-
-    } else {
-      const dataToCreate: Omit<Housing, 'userId'> & { userId: string } = {
-          ...data,
-          surfaceArea: data.surfaceArea,
-          id: housingId,
-          userId: user.uid,
-          createdAt: serverTimestamp() as any,
-          updatedAt: serverTimestamp() as any,
-          coordinates: newCoords,
-          imageHint: "student room",
-          imageUrl: previewUrl,
-      };
-      setDocumentNonBlocking(housingRef, dataToCreate, { merge: false });
-
-      if (imageFile) {
-        const imageRef = storageRef(storage, `housings/${housingId}/${imageFile.name}`);
-        const uploadTask = uploadBytesResumable(imageRef, imageFile);
-        uploadTask.on('state_changed', null, null, async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDocumentNonBlocking(housingRef, { imageUrl: downloadURL });
-        });
-      }
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -248,7 +253,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 <Button type="button" variant="secondary">Annuler</Button>
             </DialogClose>
             <Button type="submit" disabled={loading || isUserLoading}>
-              {isEditing ? 'Mettre à jour' : "Créer l'annonce"}
+              {loading ? (isEditing ? 'Mise à jour...' : 'Création...') : (isEditing ? 'Mettre à jour' : "Créer l'annonce")}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -10,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -65,40 +66,47 @@ export default function CreateChallengeForm({ onClose }: CreateChallengeFormProp
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
-    if (!imageFile || !previewUrl) {
+    if (!imageFile) {
         toast({ variant: 'destructive', title: 'Erreur', description: "L'image est requise." });
         return;
     }
     setLoading(true);
-    toast({ title: 'Création...', description: 'Votre défi est en cours de publication.' });
-    onClose();
 
     const newDocRef = doc(collection(firestore, 'challenges'));
         
-    const challengeData = {
-        ...data,
-        id: newDocRef.id,
-        creatorId: user.uid,
-        createdAt: serverTimestamp(),
-        imageUrl: previewUrl, // optimistic
-    };
-    
-    setDocumentNonBlocking(newDocRef, challengeData, { merge: false });
+    try {
+        const imageRef = storageRef(storage, `challenges/${newDocRef.id}/${imageFile.name}`);
+        await uploadBytesResumable(imageRef, imageFile);
+        const downloadURL = await getDownloadURL(imageRef);
 
-    const imageRef = storageRef(storage, `challenges/${newDocRef.id}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(imageRef, imageFile);
+        const challengeData = {
+            ...data,
+            id: newDocRef.id,
+            creatorId: user.uid,
+            createdAt: serverTimestamp(),
+            imageUrl: downloadURL,
+        };
 
-    uploadTask.on('state_changed',
-      () => {},
-      (error) => {
-          updateDocumentNonBlocking(newDocRef, { uploadError: true });
-          toast({ variant: "destructive", title: "Erreur d'envoi", description: "L'image n'a pas pu être envoyée."});
-      },
-      async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          updateDocumentNonBlocking(newDocRef, { imageUrl: downloadURL });
-      }
-    );
+        await setDoc(newDocRef, challengeData);
+
+        toast({ title: 'Défi créé !', description: 'Le défi est maintenant disponible pour la communauté.' });
+        onClose();
+
+    } catch (error) {
+        console.error("Error creating challenge:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `challenges/${newDocRef.id}`,
+            operation: 'create',
+            requestResourceData: data,
+        }));
+        toast({
+            variant: "destructive",
+            title: "Erreur de création",
+            description: "Le défi n'a pas pu être créé. Vérifiez vos permissions et réessayez."
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

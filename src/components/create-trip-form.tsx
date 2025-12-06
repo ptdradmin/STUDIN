@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, Timestamp, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -136,13 +136,12 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<TripFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<TripFormInputs> = async (data) => {
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour proposer un trajet.' });
       return;
     }
     setLoading(true);
-    toast({ title: 'Création...', description: 'Votre trajet est en cours de publication.' });
 
     const newDocRef = doc(collection(firestore, 'carpoolings'));
     
@@ -166,9 +165,25 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         coordinates: newCoords,
     };
     
-    setDocumentNonBlocking(newDocRef, tripData, { merge: false });
-    toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
-    onClose();
+    try {
+        await setDoc(newDocRef, tripData);
+        toast({ title: 'Succès', description: 'Trajet proposé avec succès !' });
+        onClose();
+    } catch (error) {
+        console.error("Error creating trip:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `carpoolings/${newDocRef.id}`,
+            operation: 'create',
+            requestResourceData: tripData,
+        }));
+        toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: "Le trajet n'a pas pu être créé. Veuillez réessayer."
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

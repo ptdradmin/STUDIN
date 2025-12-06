@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp, doc } from 'firebase/firestore';
+import { useAuth, useFirestore, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { staticChallenges } from '@/lib/static-data';
@@ -58,13 +58,12 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
   const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
-  const onSubmit: SubmitHandler<TutorFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<TutorFormInputs> = async (data) => {
     if (!user || !firestore || !userProfile) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
     }
     setLoading(true);
-    toast({ title: 'Création...', description: 'Votre profil de tuteur est en cours de création.' });
     
     const newDocRef = doc(collection(firestore, 'tutorings'));
 
@@ -87,11 +86,25 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
         coordinates: newCoords,
     };
 
-    setDocumentNonBlocking(newDocRef, tutorData, { merge: false });
-    
-    toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
-    onClose();
-    setLoading(false);
+    try {
+        await setDoc(newDocRef, tutorData);
+        toast({ title: 'Succès', description: 'Votre profil de tuteur a été créé !' });
+        onClose();
+    } catch (error) {
+        console.error("Error creating tutor profile:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `tutorings/${newDocRef.id}`,
+            operation: 'create',
+            requestResourceData: tutorData,
+        }));
+        toast({
+            variant: 'destructive',
+            title: 'Erreur',
+            description: "Le profil de tuteur n'a pas pu être créé. Veuillez réessayer."
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -10,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
+import { useAuth, useFirestore, useStorage, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { collection, serverTimestamp, doc, Timestamp, setDoc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -84,7 +85,7 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     }
   };
 
-  const onSubmit: SubmitHandler<EventFormInputs> = (data) => {
+  const onSubmit: SubmitHandler<EventFormInputs> = async (data) => {
     if (!user || !firestore || !storage) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté.' });
       return;
@@ -94,8 +95,6 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
         return;
     }
     setLoading(true);
-    toast({ title: 'Création...', description: 'Votre événement est en cours de publication.' });
-    onClose();
 
     const newDocRef = doc(collection(firestore, 'events'));
     const baseChallenge = staticChallenges[Math.floor(Math.random() * staticChallenges.length)];
@@ -106,41 +105,48 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
     
     const startDateTimestamp = Timestamp.fromDate(data.startDate);
 
-    const eventData = {
-        ...data,
-        id: newDocRef.id,
-        organizerId: user.uid,
-        startDate: startDateTimestamp,
-        endDate: startDateTimestamp, // Simplified, can be extended
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        attendeeIds: [],
-        locationName: data.address,
-        coordinates: newCoords,
-        imageHint: "student event",
-        imageUrl: previewUrl,
-        latitude: newCoords[0],
-        longitude: newCoords[1],
-    };
-    
-    setDocumentNonBlocking(newDocRef, eventData, { merge: false });
-    
-    const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
-    const uploadTask = uploadBytesResumable(imageRef, imageFile);
+    try {
+        const imageRef = storageRef(storage, `events/${newDocRef.id}/${imageFile.name}`);
+        await uploadBytesResumable(imageRef, imageFile);
+        const downloadURL = await getDownloadURL(imageRef);
 
-    uploadTask.on('state_changed', 
-        () => {},
-        (error) => {
-            console.error("Upload error:", error);
-            updateDocumentNonBlocking(newDocRef, { uploadError: true });
-        },
-        async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            updateDocumentNonBlocking(newDocRef, {
-                imageUrl: downloadURL,
-            });
-        }
-    );
+        const eventData = {
+            ...data,
+            id: newDocRef.id,
+            organizerId: user.uid,
+            startDate: startDateTimestamp,
+            endDate: startDateTimestamp, // Simplified, can be extended
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            attendeeIds: [],
+            locationName: data.address,
+            coordinates: newCoords,
+            imageHint: "student event",
+            imageUrl: downloadURL,
+            latitude: newCoords[0],
+            longitude: newCoords[1],
+        };
+        
+        await setDoc(newDocRef, eventData);
+        
+        toast({ title: 'Événement créé !', description: 'Votre événement est maintenant visible par la communauté.' });
+        onClose();
+
+    } catch (error) {
+        console.error("Error creating event:", error);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `events/${newDocRef.id}`,
+            operation: 'create',
+            requestResourceData: data,
+        }));
+        toast({
+            variant: 'destructive',
+            title: "Erreur de création",
+            description: "L'événement n'a pas pu être créé. Veuillez réessayer."
+        });
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
