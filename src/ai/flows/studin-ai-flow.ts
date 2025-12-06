@@ -106,7 +106,7 @@ const studinAiFlow = ai.defineFlow(
         ],
     });
 
-    const textResponse = llmResponse.text();
+    const textResponse = llmResponse.text;
     const toolResponses = llmResponse.toolRequest()?.responses();
 
     if (!textResponse && !toolResponses) {
