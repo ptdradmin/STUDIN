@@ -1,8 +1,6 @@
-
-
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, useStorage, setDocumentNonBlocking, updateDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
@@ -186,7 +184,6 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
   
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -232,9 +229,7 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
     onClose();
 
     const newDocRef = doc(collection(firestore, 'reels'));
-    
-    // Non-blocking UI update
-    setDocumentNonBlocking(newDocRef, {
+    const reelData = {
         ...data,
         id: newDocRef.id,
         userId: user.uid,
@@ -244,20 +239,27 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
         likes: [],
         comments: [],
         videoUrl: previewUrl, // temporary local URL for optimistic UI
-    }, { merge: false });
+    };
+    
+    // Non-blocking UI update
+    setDocumentNonBlocking(newDocRef, reelData, { merge: false });
     
     const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
     const uploadTask = uploadBytesResumable(videoRef, videoFile);
 
     uploadTask.on('state_changed',
         (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             // You can use this progress to show a more detailed loader if needed
         },
         (error) => {
             setLoading(false);
             updateDocumentNonBlocking(newDocRef, { uploadError: true });
             toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée."});
+             errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: newDocRef.path,
+                operation: 'create',
+                requestResourceData: reelData,
+            }));
         },
         async () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
