@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper, BadgeCheck, Loader2 } from 'lucide-react';
-import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import type { Post, UserProfile, Housing, Trip, Tutor, Event, Favorite, Book } from '@/lib/types';
@@ -100,6 +99,7 @@ export default function CurrentUserProfilePage() {
     }, [firestore, user, userPosts, isLoadingMore]);
 
     useEffect(() => {
+        // Wait until loading is completely finished before checking for user
         if (!isUserLoading && !user) {
             router.push('/login?from=/profile');
         }
@@ -148,7 +148,7 @@ export default function CurrentUserProfilePage() {
         )
     }
 
-    if (!user || !userProfile) {
+    if (!isUserLoading && !profileLoading && !userProfile) {
         return (
             <div className="flex min-h-screen w-full bg-background">
                 <SocialSidebar />
@@ -181,6 +181,7 @@ export default function CurrentUserProfilePage() {
                 </header>
                 <main className="flex-1 overflow-y-auto">
                     <div className="container mx-auto px-4 py-8">
+                      {userProfile && user ? (
                         <div className="mx-auto max-w-4xl">
                             <div className="p-4 md:p-6">
                                 <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
@@ -276,6 +277,7 @@ export default function CurrentUserProfilePage() {
                                 </TabsContent>
                             </Tabs>
                         </div>
+                      ) : null }
                     </div>
                 </main>
             </div>
