@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard, Sparkles, BadgeCheck, Newspaper } from 'lucide-react';
+import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquare, BookOpen, Target, Trophy, LayoutDashboard, Sparkles, BadgeCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar, getInitials } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
@@ -32,7 +32,6 @@ const mainNavItems = [
   { href: "/ai-chat", label: "Alice", icon: Sparkles, roles: ['student', 'institution', 'admin'] },
   { href: "/challenges", label: "Défis", icon: Target, roles: ['student', 'institution', 'admin'] },
   { href: "/leaderboard", label: "Classement", icon: Trophy, roles: ['student', 'institution', 'admin'] },
-  { href: "/news", label: "Infos", icon: Newspaper, roles: ['student', 'institution', 'admin'] },
   { href: "/dashboard", label: "Tableau de bord", icon: LayoutDashboard, roles: ['institution', 'admin'] },
   { href: "/housing", label: "Logements", icon: Bed, roles: ['student'] },
   { href: "/carpooling", label: "Covoiturage", icon: Car, roles: ['student'] },

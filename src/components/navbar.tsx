@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -13,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, GraduationCap, Target, Newspaper } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, User, LogOut, Settings, Menu, GraduationCap, Target } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from "./ui/sheet";
@@ -29,7 +28,6 @@ const navLinks = [
   { href: "/books", label: "Marché aux livres", icon: <BookOpen className="mr-2 h-4 w-4" /> },
   { href: "/events", label: "Événements", icon: <PartyPopper className="mr-2 h-4 w-4" /> },
   { href: "/challenges", label: "Défis", icon: <Target className="mr-2 h-4 w-4" /> },
-  { href: "/news", label: "Infos", icon: <Newspaper className="mr-2 h-4 w-4" /> },
 ];
 
 export default function Navbar() {

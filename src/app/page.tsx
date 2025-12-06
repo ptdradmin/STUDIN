@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -9,11 +8,6 @@ import { Bed, Car, PartyPopper, BookOpen, Target, ArrowRight, Sparkles, Check, U
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { useFirestore } from '@/firebase';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import type { Article } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
-import ArticleCard from '@/components/article-card';
 
 const services = [
     {
@@ -63,84 +57,6 @@ const howItWorksSteps = [
     description: "Contactez directement d'autres étudiants via la messagerie sécurisée pour vous organiser."
   }
 ];
-
-function LatestNews() {
-    const firestore = useFirestore();
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchArticles = async () => {
-            if (!firestore) return;
-            setIsLoading(true);
-            try {
-                const q = query(
-                    collection(firestore, 'articles'),
-                    where('isPublished', '==', true),
-                    orderBy('createdAt', 'desc'),
-                    limit(3)
-                );
-                const querySnapshot = await getDocs(q);
-                const fetchedArticles = querySnapshot.docs.map(doc => doc.data() as Article);
-                setArticles(fetchedArticles);
-            } catch (error) {
-                console.error("Error fetching latest articles:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchArticles();
-    }, [firestore]);
-    
-    if (isLoading) {
-        return (
-             <section className="py-16 md:py-24 bg-background">
-                <div className="container mx-auto px-4">
-                    <div className="mx-auto mb-12 max-w-3xl text-center">
-                        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Dernières Actualités</h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                           <Card key={i} className="overflow-hidden">
-                                <Skeleton className="aspect-video w-full" />
-                                <CardContent className="p-4 space-y-2">
-                                    <Skeleton className="h-5 w-20" />
-                                    <Skeleton className="h-6 w-full" />
-                                    <Skeleton className="h-4 w-5/6" />
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        );
-    }
-    
-    if (articles.length === 0) {
-        return null; // Do not render section if there are no articles
-    }
-
-    return (
-        <section className="py-16 md:py-24 bg-background">
-            <div className="container mx-auto px-4">
-                <div className="mx-auto mb-12 max-w-3xl text-center">
-                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Dernières Actualités</h2>
-                    <p className="mt-4 text-lg text-muted-foreground">Conseils, actualités et informations pour la vie étudiante.</p>
-                </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {articles.map(article => (
-                        <ArticleCard key={article.id} article={article} />
-                    ))}
-                </div>
-                <div className="text-center mt-12">
-                    <Button asChild variant="outline">
-                        <Link href="/news">Voir toutes les actualités <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
-                </div>
-            </div>
-        </section>
-    )
-}
 
 export default function HomePage() {
 
@@ -203,8 +119,6 @@ export default function HomePage() {
                     </div>
                   </div>
                 </section>
-
-                <LatestNews />
 
                 {/* Features Section */}
                 <section id="features" className="py-16 md:py-24 bg-muted/40">
