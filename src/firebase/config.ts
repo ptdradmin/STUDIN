@@ -1,4 +1,3 @@
-
 // This file is the single source of truth for Firebase initialization.
 // It is designed to be used in a client-side context.
 
@@ -52,12 +51,14 @@ export function getFirebaseServices(): FirebaseServices {
     }
     
     if (reCaptchaKey) {
-        initializeAppCheck(app, {
-          provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
-          // Set to 'true' to only allow valid App Check tokens.
-          // Set to 'false' to allow requests without a valid token, but with a warning.
-          isTokenAutoRefreshEnabled: true 
-        });
+        try {
+            initializeAppCheck(app, {
+              provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
+              isTokenAutoRefreshEnabled: true 
+            });
+        } catch(e) {
+            console.warn("App Check initialization failed. This may happen in some environments like service workers.", e);
+        }
     }
   }
 

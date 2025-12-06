@@ -81,10 +81,10 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         return new Date();
     }, []);
 
-    const [timeAgo, setTimeAgo] = useState(() => format(getSafeDate(post.createdAt), 'PP', { locale: fr }));
+    const [timeAgo, setTimeAgo] = useState(() => post.createdAt ? format(getSafeDate(post.createdAt), 'PP', { locale: fr }) : '');
 
     useEffect(() => {
-        if (isClient) {
+        if (isClient && post.createdAt) {
             const date = getSafeDate(post.createdAt);
             const update = () => setTimeAgo(formatDistanceToNow(date, { addSuffix: true, locale: fr }));
             update();
@@ -439,7 +439,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                             <p className="text-xs text-muted-foreground uppercase mt-2 px-2 cursor-default">{timeAgo}</p>
                         </TooltipTrigger>
                         <TooltipContent>
-                            <p>{format(getSafeDate(post.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: fr })}</p>
+                            <p>{post.createdAt ? format(getSafeDate(post.createdAt), "d MMMM yyyy 'à' HH:mm", { locale: fr }) : '...'}</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>

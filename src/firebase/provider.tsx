@@ -8,10 +8,6 @@ import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firest
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { generateAvatar } from '@/lib/avatars';
-import type { UserProfile } from '@/lib/types';
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
-
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -75,8 +71,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null });
-
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => {
@@ -88,7 +82,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth, firestore]);
+  }, [auth]);
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth && storage);
@@ -173,11 +167,19 @@ export const useUser = (): UserHookResult => {
  * @returns The memoized value, or null if Firebase services are not available.
  */
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | null {
-    const { areServicesAvailable } = useFirebase();
+    const context = useContext(FirebaseContext);
+    
+    if (context === undefined) {
+        throw new Error('useMemoFirebase must be used within a FirebaseProvider.');
+    }
+
+    const { areServicesAvailable } = context;
 
     // The factory function is only called when the dependencies change,
     // and the result is memoized.
-    const memoizedValue = useMemo(factory, deps);
+    // We add areServicesAvailable to the dependency array to ensure that
+    // the memo is recalculated when services become available.
+    const memoizedValue = useMemo(factory, [...deps, areServicesAvailable]);
 
     // We only return the memoized value if Firebase services are ready.
     // This prevents components from trying to use Firestore queries or references

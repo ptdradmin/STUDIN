@@ -3,7 +3,7 @@
 
 import React, { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { getFirebaseServices } from '@/firebase/config';
+import { initializeFirebase } from '@/firebase';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -11,8 +11,7 @@ interface FirebaseClientProviderProps {
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => {
-    const { firebaseApp, auth, firestore, storage } = getFirebaseServices();
-    return { firebaseApp, auth, firestore, storage };
+    return initializeFirebase();
   }, []);
 
   return (
