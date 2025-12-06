@@ -108,7 +108,7 @@ const createCheckoutSessionFlow = ai.defineFlow(
             cancel_url: `${appUrl}/subscription`,
         });
 
-        return { sessionId: session.id, url: session.url };
+        return { sessionId: session.id, url: session.url || undefined };
 
     } catch (e: any) {
         console.error("Stripe session creation failed:", e);
