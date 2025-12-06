@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -10,9 +9,8 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -89,10 +87,8 @@ export default function RegisterInstitutionForm() {
             description: "Votre compte partenaire a été créé avec succès.",
         });
         router.push('/social');
-        router.refresh();
 
     } catch (error: any) {
-        console.error("Registration error:", error);
         let description = "Impossible de créer le compte. Veuillez réessayer.";
         
           switch (error.code) {
@@ -108,6 +104,14 @@ export default function RegisterInstitutionForm() {
             case 'auth/network-request-failed':
                 description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
                 break;
+             case 'permission-denied':
+                 const permissionError = new FirestorePermissionError({
+                    path: `users/${auth.currentUser?.uid}`, // Approximate path for context
+                    operation: 'create',
+                    requestResourceData: { role: 'institution', email: data.email },
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                return; // Stop execution
             default:
                 description = `Une erreur inattendue est survenue. (${error.code})`;
           }

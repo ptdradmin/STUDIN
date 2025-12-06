@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -11,15 +10,14 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { generateAvatar } from '@/lib/avatars';
 import { isUsernameUnique } from '@/lib/user-actions';
 import { schoolsList } from '@/lib/static-data';
+import { generateAvatar } from '@/lib/avatars';
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
@@ -90,47 +88,53 @@ export default function RegisterForm() {
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       const newPhotoURL = generateAvatar(userCredential.user.email || userCredential.user.uid);
       await updateProfile(userCredential.user, { displayName: newDisplayName, photoURL: newPhotoURL });
-      
-      // The user document creation is now handled by the onAuthStateChanged listener in FirebaseProvider
 
+      // NOTE: The creation of the user document is now handled by the onAuthStateChanged
+      // listener in FirebaseProvider. We only need to create the auth user here.
+      
       toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
       });
 
-      // The redirection will be handled by the auth state listener
-      // which waits for the user object to be fully available.
       router.push('/social');
-      router.refresh();
 
     } catch (error: any) {
-      console.error("Registration error:", error);
-      let description = "Impossible de créer le compte. Veuillez réessayer.";
-      
-      switch (error.code) {
-          case 'auth/email-already-in-use':
-          description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
-          break;
-          case 'auth/weak-password':
-          description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
-          break;
-          case 'auth/invalid-email':
-          description = "L'adresse e-mail n'est pas valide.";
-          break;
-          case 'auth/network-request-failed':
-              description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
-              break;
-          default:
-              description = `Une erreur inattendue est survenue. (${error.code})`;
-      }
+        let description = "Impossible de créer le compte. Veuillez réessayer.";
 
-      toast({
-          variant: "destructive",
-          title: "Erreur d'inscription",
-          description: description,
-      });
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
+                break;
+            case 'auth/weak-password':
+                description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
+                break;
+            case 'auth/invalid-email':
+                description = "L'adresse e-mail n'est pas valide.";
+                break;
+            case 'auth/network-request-failed':
+                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+                break;
+            case 'permission-denied':
+                 // This is where we create and emit the contextual error.
+                 const permissionError = new FirestorePermissionError({
+                    path: `users/${auth.currentUser?.uid}`, // Approximate path for context
+                    operation: 'create',
+                    requestResourceData: { role: 'student', email: data.email }, // Example of relevant data
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                // We don't show a toast here because the listener will throw the error.
+                return; // Stop execution
+            default:
+                description = `Une erreur inattendue est survenue. (${error.code})`;
+        }
+        toast({
+            variant: "destructive",
+            title: "Erreur d'inscription",
+            description: description,
+        });
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
 
