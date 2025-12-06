@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useUser, useCollection, useDoc, useStorage } from "@/firebase";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Paperclip, X, FileIcon, Image as ImageIcon, Video, Mic, StopCircle, Trash2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { FormEvent, useState, useRef, useEffect, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createNotification } from "@/lib/actions";
@@ -144,7 +145,7 @@ export default function ConversationPage() {
     }
 
     const handleDeleteMessage = async (messageId: string) => {
-        if (!firestore || !conversationId) return;
+        if (!firestore || !conversationId || isUserLoading || !user) return;
         const messageRef = doc(firestore, 'conversations', conversationId, 'messages', messageId);
         try {
             await deleteDoc(messageRef);

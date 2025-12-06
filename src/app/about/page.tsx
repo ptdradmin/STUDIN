@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Car, BookOpen, PartyPopper, Target, ShoppingCart } from "lucide-react";
+import { Home, Car, BookOpen, PartyPopper, Target, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
@@ -26,7 +26,7 @@ const features = [
     href: "/tutoring",
   },
     {
-    icon: <ShoppingCart className="h-8 w-8" />,
+    icon: <ShoppingBag className="h-8 w-8" />,
     title: 'Marché aux Livres',
     description: "Achetez et vendez vos livres de cours d'occasion entre étudiants.",
     href: "/books",

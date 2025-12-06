@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare, GraduationCap, Car, AlertCircle } from "lucide-react";
+import { MapPin, Users, LayoutGrid, Map, Plus, Star, MessageSquare, Car } from "lucide-react";
 import Image from "next/image";
 import { Trip, UserProfile } from "@/lib/types";
 import dynamic from "next/dynamic";
@@ -353,6 +353,7 @@ export default function CarpoolingPage() {
                   {!isLoading && filteredTrips && filteredTrips.length === 0 && (
                     <Card className="text-center py-20">
                       <CardContent>
+                        <Car className="h-16 w-16 mx-auto text-muted-foreground mb-4" strokeWidth={1}/>
                         <h3 className="text-xl font-semibold">Aucun trajet ne correspond à votre recherche</h3>
                         <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer un trajet !</p>
                       </CardContent>
