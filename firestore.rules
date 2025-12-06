@@ -30,6 +30,24 @@ service cloud.firestore {
     }
     
     // ============================================
+    // POSTS - Signed-in read, Owner write
+    // ============================================
+    match /posts/{postId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+    
+    // ============================================
+    // REELS - Signed-in read, Owner write
+    // ============================================
+    match /reels/{reelId} {
+      allow read: if isSignedIn();
+      allow create, update: if request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================
     // HOUSINGS - Public read, Owner write
     // ============================================
     match /housings/{housingId} {
@@ -45,9 +63,8 @@ service cloud.firestore {
     match /carpoolings/{carpoolId} {
       allow read: if true;
       allow create: if isSignedIn() && request.resource.data.driverId == request.auth.uid;
-      // Allow booking by any signed-in user (not the driver)
       allow update: if (isSignedIn() && resource.data.driverId == request.auth.uid) || 
-                       (isSignedIn() && request.resource.data.seatsAvailable == resource.data.seatsAvailable - 1 && request.auth.uid in request.resource.data.passengerIds && !(request.auth.uid in resource.data.passengerIds));
+                       (isSignedIn() && request.resource.data.passengerIds == resource.data.passengerIds.concat([request.auth.uid]));
       allow delete: if isSignedIn() && resource.data.driverId == request.auth.uid;
 
       // Bookings subcollection
@@ -81,9 +98,8 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true;
       allow create: if isSignedIn() && request.resource.data.organizerId == request.auth.uid;
-      // Allow attending by any signed-in user
       allow update: if (isSignedIn() && resource.data.organizerId == request.auth.uid) || 
-                       (isSignedIn() && request.auth.uid in request.resource.data.attendeeIds && !(request.auth.uid in resource.data.attendeeIds));
+                       (isSignedIn() && request.resource.data.attendeeIds == resource.data.attendeeIds.concat([request.auth.uid]));
       allow delete: if isSignedIn() && resource.data.organizerId == request.auth.uid;
     }
 
@@ -99,6 +115,16 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
+    }
+
+    // ============================================
+    // ARTICLES - Public read, Admin/Partner write
+    // ============================================
+    match /articles/{articleId} {
+      allow get: if true;
+      allow list: if true;
+      // Only allow creation/update if user has 'institution' or 'admin' role
+      allow write: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['institution', 'admin'];
     }
 
     // ============================================
