@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for creating a Stripe Checkout Session for subscriptions.
+ * @fileOverview A Genkit tool for creating a Stripe Checkout Session for subscriptions.
  */
 
 import { ai } from '@/ai/genkit';
@@ -18,8 +18,7 @@ const CreateCheckoutSessionInputSchema = z.object({
 export type CreateCheckoutSessionInput = z.infer<typeof CreateCheckoutSessionInputSchema>;
 
 const CreateCheckoutSessionOutputSchema = z.object({
-  sessionId: z.string().optional(),
-  url: z.string().optional(),
+  url: z.string().url().describe("The Stripe Checkout Session URL."),
 });
 export type CreateCheckoutSessionOutput = z.infer<typeof CreateCheckoutSessionOutputSchema>;
 
@@ -59,14 +58,10 @@ async function getOrCreatePrice(productId: string): Promise<Stripe.Price> {
 }
 
 
-export async function createCheckoutSession(input: CreateCheckoutSessionInput): Promise<CreateCheckoutSessionOutput> {
-  return createCheckoutSessionFlow(input);
-}
-
-
-const createCheckoutSessionFlow = ai.defineFlow(
+export const createCheckoutSessionTool = ai.defineTool(
   {
-    name: 'createCheckoutSessionFlow',
+    name: 'createCheckoutSessionTool',
+    description: "Creates a Stripe Checkout Session for a user to subscribe to Alice Pro. Use this when the user expresses intent to subscribe, upgrade, or pay for the Pro plan.",
     inputSchema: CreateCheckoutSessionInputSchema,
     outputSchema: CreateCheckoutSessionOutputSchema,
   },
@@ -108,7 +103,11 @@ const createCheckoutSessionFlow = ai.defineFlow(
             cancel_url: `${appUrl}/subscription`,
         });
 
-        return { sessionId: session.id, url: session.url || undefined };
+        if (!session.url) {
+            throw new Error("Stripe session URL is missing.");
+        }
+
+        return { url: session.url };
 
     } catch (e: any) {
         console.error("Stripe session creation failed:", e);

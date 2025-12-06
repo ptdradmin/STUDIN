@@ -5,7 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2, Gem } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -103,6 +103,22 @@ function AssignmentResultCard({ assignments }: { assignments: AssignmentForTool[
   );
 }
 
+function CheckoutResultCard({ url }: { url: string }) {
+    return (
+        <div className="w-full max-w-xs bg-card p-4 rounded-lg border space-y-3">
+            <h3 className="font-bold text-base">Devenez membre Alice Pro</h3>
+            <p className="text-sm text-muted-foreground">
+                Cliquez sur le bouton ci-dessous pour finaliser votre abonnement et débloquer toutes les fonctionnalités premium.
+            </p>
+            <Button asChild className="w-full mt-2">
+                <Link href={url}>
+                    <Gem className="mr-2 h-4 w-4" /> Passer à Pro
+                </Link>
+            </Button>
+        </div>
+    );
+}
+
 
 function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?: (id: string) => void }) {
     const { user } = useUser();
@@ -155,6 +171,11 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     {message.toolData?.manageAssignmentsTool?.assignments && (
                         <div className="flex flex-col gap-2 p-2">
                            <AssignmentResultCard assignments={message.toolData.manageAssignmentsTool.assignments} />
+                        </div>
+                    )}
+                    {message.toolData?.createCheckoutSessionTool?.url && (
+                        <div className="flex flex-col gap-2 p-2">
+                            <CheckoutResultCard url={message.toolData.createCheckoutSessionTool.url} />
                         </div>
                     )}
                 </div>

@@ -19,6 +19,7 @@ import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
 import { searchEventsTool } from '@/ai/tools/search-events-tool';
 import { saveUserPreferenceTool } from '@/ai/tools/save-user-preference-tool';
 import { manageAssignmentsTool } from '@/ai/tools/manage-assignments-tool';
+import { createCheckoutSessionTool } from '@/ai/flows/create-checkout-session-flow';
 import { stream } from 'genkit/flow';
 
 export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
@@ -150,7 +151,7 @@ export const studinAiFlow = ai.defineFlow(
         const llmResponse = await ai.generate({
             model: conversationModel,
             system: dynamicSystemPrompt,
-            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool, manageAssignmentsTool],
+            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool, manageAssignmentsTool, createCheckoutSessionTool],
             prompt: conversationPrompt,
             streamingCallback: (chunk) => {
                 chunkCallback({ text: chunk.text });
