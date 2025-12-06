@@ -9,7 +9,7 @@ import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { generateAvatar } from '@/lib/avatars';
 import type { UserProfile } from '@/lib/types';
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
+import { errorEmitter, FirestorePermissionError, setDocumentNonBlocking } from '@/firebase';
 
 
 interface FirebaseProviderProps {
@@ -112,7 +112,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                         createdAt: serverTimestamp(),
                         updatedAt: serverTimestamp(),
                     };
-                    await setDoc(userDocRef, userData);
+                    
+                    // USE NON-BLOCKING WRITE
+                    setDocumentNonBlocking(userDocRef, userData, { merge: false });
                 }
             } catch (e) {
                 console.error("[FirebaseProvider] Error ensuring user document exists:", e);
