@@ -291,7 +291,7 @@ export default function AiChatPage() {
             
             mediaRecorderRef.current.onstop = () => {
                 const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                const audioFile = new File([audioBlob], 'recording.webm');
+                const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
                 setFileToSend(audioFile);
                 setPreviewUrl(URL.createObjectURL(audioBlob));
                 stream.getTracks().forEach(track => track.stop());
@@ -389,6 +389,8 @@ export default function AiChatPage() {
                             <div className="flex items-center gap-2 overflow-hidden">
                                 {fileToSend.type.startsWith('image/') ? (
                                     <Image src={previewUrl} alt="Preview" width={20} height={20} className="object-cover rounded-sm" />
+                                ) : fileToSend.type.startsWith('audio/') ? (
+                                    <audio src={previewUrl} controls className="h-8" />
                                 ) : (
                                     <Paperclip className="h-5 w-5 flex-shrink-0"/>
                                 )}
@@ -438,5 +440,7 @@ export default function AiChatPage() {
         </div>
     );
 }
+
+    
 
     
