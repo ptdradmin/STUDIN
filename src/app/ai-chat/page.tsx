@@ -204,8 +204,8 @@ export default function AiChatPage() {
         const historyForAi: StudinAiInput['history'] = messages
             .filter(m => m.id !== aiResponsePlaceholder.id) // Exclude previous placeholders
             .slice(1) // Remove initial welcome message
-            .map(({ senderId, text, imageUrl, audioUrl }) => ({
-                role: senderId === user?.uid ? 'user' : 'model', 
+            .map(({ role, text, imageUrl, audioUrl }) => ({
+                role, 
                 text, 
                 imageUrl, 
                 audioUrl
@@ -471,3 +471,5 @@ export default function AiChatPage() {
         </div>
     );
 }
+
+    

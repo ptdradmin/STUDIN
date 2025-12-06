@@ -21,45 +21,7 @@ import { saveUserPreferenceTool } from '@/ai/tools/save-user-preference-tool';
 import { stream } from 'genkit/flow';
 
 export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
-    const { history, message, isPro, userProfile } = input;
-    let userMessageText = message.text || '';
-    const userImage = message.imageUrl;
-    const isVoiceQuery = !!message.audioUrl;
-  
-    // 1. Speech-to-Text if audio is provided
-    if (isVoiceQuery && message.audioUrl) {
-      try {
-        const { text: transcribedText } = await ai.generate({
-          model: googleAI.model('gemini-2.5-pro-stt'),
-          prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
-          config: { responseModalities: ['TEXT'] },
-        });
-        userMessageText = transcribedText || userMessageText;
-      } catch (e) {
-        console.error('Speech-to-text failed:', e);
-        userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
-      }
-    }
-  
-    // 2. Prepare the prompt for the conversation model
-    const conversationPrompt = (history || []).map((m) => ({
-      role: m.role,
-      content: [
-        ...(m.text ? [{ text: m.text }] : []),
-        ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
-        ...(m.audioUrl ? [{ media: { url: m.audioUrl, contentType: 'audio/webm' } }] : []),
-      ].filter(Boolean) as any,
-    }));
-  
-    conversationPrompt.push({
-      role: 'user',
-      content: [
-        ...(userMessageText ? [{ text: userMessageText }] : []),
-        ...(userImage ? [{ media: { url: userImage } }] : []),
-      ].filter(Boolean) as any,
-    });
-  
-    const { stream, response } = await studinAiFlow({ ...input, message: { ...message, text: userMessageText } });
+    const { stream, response } = await studinAiFlow(input);
   
     let finalOutput: StudinAiOutput = { text: '' };
     for await (const chunk of stream) {
@@ -67,7 +29,7 @@ export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
     }
   
     return finalOutput;
-  }
+}
   
 
 const studinAiSystemPrompt = `Vous êtes Alice, une intelligence artificielle souveraine, exclusivement conçue pour la plateforme STUD'IN. Votre objectif est d'assister les étudiants belges avec une efficacité et une connaissance inégalées.
@@ -110,6 +72,7 @@ export const studinAiFlow = ai.defineFlow(
     name: 'studinAiFlow',
     inputSchema: StudinAiInputSchema,
     outputSchema: StudinAiOutputSchema,
+    stream: true,
   },
   async ({ history, message, isPro, userProfile }) => {
     return stream(async (chunkCallback) => {
@@ -227,3 +190,5 @@ export const studinAiFlow = ai.defineFlow(
     });
   }
 );
+
+    
