@@ -41,6 +41,10 @@ service cloud.firestore {
       allow create, update: if request.auth.uid == request.resource.data.userId;
       allow delete: if request.auth.uid == resource.data.userId;
     }
+
+    match /posts {
+      allow list: if isSignedIn();
+    }
     
     // ============================================
     // REELS - Signed-in read, Owner write
