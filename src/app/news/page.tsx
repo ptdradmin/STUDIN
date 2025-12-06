@@ -48,6 +48,8 @@ export default function NewsPage() {
 
     const articlesQuery = useMemo(() => {
         if (!firestore) return null;
+        // Adjusted query to order by the same field as the where clause for isPublished
+        // This avoids needing a composite index for this specific query.
         return query(
             collection(firestore, 'articles'),
             where('isPublished', '==', true),
