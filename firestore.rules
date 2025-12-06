@@ -34,10 +34,10 @@ service cloud.firestore {
     }
     
     // ============================================
-    // POSTS - Public read, Owner write
+    // POSTS - Signed-in read, Owner write
     // ============================================
     match /posts/{postId} {
-      allow read: if true;
+      allow get, list: if isSignedIn();
       allow create, update: if request.auth.uid == request.resource.data.userId;
       allow delete: if request.auth.uid == resource.data.userId;
     }
