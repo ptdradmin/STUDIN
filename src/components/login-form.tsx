@@ -30,8 +30,9 @@ export default function LoginForm() {
         description: `Bienvenue, ${user.displayName || user.email} !`,
       });
       
+      // The onAuthStateChanged listener in the provider will handle the user state.
+      // We just need to redirect. The destination page will handle the loading state.
       const from = searchParams.get('from') || '/social';
-      
       router.push(from);
       router.refresh();
   }
@@ -79,12 +80,12 @@ export default function LoginForm() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Let onAuthStateChanged handle the user state update, then redirect
       handleSuccess(userCredential.user);
     } catch (error: any) {
       handleError(error);
-    } finally {
-      setLoading(false);
-    }
+    } 
+    // Do not set loading to false here, as we are navigating away on success
   }
 
   const buttonsDisabled = loading || isUserLoading;

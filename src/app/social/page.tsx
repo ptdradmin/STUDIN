@@ -108,10 +108,10 @@ export default function SocialPage() {
     
     
     useEffect(() => {
-        if (!profileLoading) {
+        if (user && !profileLoading) {
             fetchPosts();
         }
-    }, [profileLoading, fetchPosts]);
+    }, [user, profileLoading, fetchPosts]);
 
     useEffect(() => {
         if (isInView && hasMore && !isLoading) {
@@ -120,6 +120,11 @@ export default function SocialPage() {
     }, [isInView, hasMore, isLoading, lastVisible, fetchPosts]);
     
     if (isUserLoading || (isLoading && posts.length === 0)) {
+      return <PageSkeleton />;
+    }
+
+    if (!user) {
+      // This part will be briefly visible while the redirect from useEffect is happening.
       return <PageSkeleton />;
     }
 

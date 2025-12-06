@@ -184,7 +184,7 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
                 <Input id="course" {...register('course')} placeholder="Ex: CHIM-F-101" />
             </div>
              <div>
-                <Label htmlFor="university">Université / Haute École</Label>
+                <Label htmlFor="university">Université / École</Label>
                 <Input id="university" {...register('university')} placeholder="Ex: UNamur" />
             </div>
            </FormSection>
