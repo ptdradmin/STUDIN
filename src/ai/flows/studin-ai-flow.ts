@@ -68,7 +68,6 @@ const studinAiFlow = ai.defineFlow(
     let userMessageText = message.text || '';
     const userImage = message.imageUrl;
     const isVoiceQuery = !!message.audioUrl;
-    const userFile = message.fileUrl;
     
     // 1. Enrich System Prompt with Dynamic Context (RAG)
     let dynamicSystemPrompt = studinAiSystemPrompt;
@@ -113,7 +112,6 @@ Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utili
           ...(m.text ? [{ text: m.text }] : []),
           ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
           ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
-          ...(m.fileUrl ? [{ media: { url: m.fileUrl, contentType: m.fileType } }] : []),
         ].filter(Boolean) as any,
     }));
     
@@ -121,8 +119,7 @@ Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utili
         role: 'user',
         content: [
             ...(userMessageText ? [{text: userMessageText}] : []),
-            ...(userImage ? [{media: {url: userImage}}] : []),
-            ...(userFile ? [{media: {url: userFile, contentType: message.fileType}}] : [])
+            ...(userImage ? [{media: {url: userImage}}] : [])
         ].filter(Boolean) as any
     });
     
@@ -179,3 +176,5 @@ Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utili
     return { text: textResponse, toolData: toolResponses };
   }
 );
+
+    

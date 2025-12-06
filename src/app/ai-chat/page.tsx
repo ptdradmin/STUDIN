@@ -18,7 +18,6 @@ import Image from "next/image";
 import type { ChatMessage, UserProfile } from "@/lib/types";
 import { doc } from 'firebase/firestore';
 import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
-import HousingCard from "@/components/housing-card";
 import { getInitials } from "@/lib/avatars";
 import type { Housing as HousingType } from '@/lib/types';
 import type { Event as EventType } from '@/lib/types';
@@ -47,7 +46,7 @@ function MessagesHeader() {
     )
 }
 
-function HousingResultCard({ housing }: { housing: HousingType }) {
+function HousingResultCard({ housing }: { housing: any }) {
     // This is a simplified card for display in the chat.
     // It doesn't have all the interactions of the main HousingCard.
     return (
@@ -67,7 +66,7 @@ function HousingResultCard({ housing }: { housing: HousingType }) {
     );
 }
 
-function EventResultCard({ event }: { event: EventType }) {
+function EventResultCard({ event }: { event: any }) {
   return (
     <div className="w-full max-w-xs bg-card p-3 rounded-lg border">
       <div className="relative aspect-video mb-2">
@@ -117,7 +116,7 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     )}
                     {message.text && <div className="prose prose-sm dark:prose-invert prose-p:my-0 px-2"><Markdown>{message.text}</Markdown></div>}
                     {message.audioUrl && (
-                        <audio src={message.audioUrl} controls className={cn("w-full h-10", message.text && "mt-2")} />
+                        <audio src={message.audioUrl} controls autoPlay className={cn("w-full h-10", message.text && "mt-2")} />
                     )}
                     {message.toolData?.searchHousingsTool && (
                         <div className="flex flex-col gap-2 p-2">
@@ -184,7 +183,6 @@ export default function AiChatPage() {
         const userMessageText = newMessage.trim();
         const currentFile = fileToSend;
         
-        // This is a new change - if we have a preview from a file, we should use it
         const currentPreviewUrl = previewUrl;
 
         setNewMessage('');
@@ -209,13 +207,9 @@ export default function AiChatPage() {
             });
 
              if (currentFile.type.startsWith('image/')) {
-                // Here is the fix: use the previewURL for the optimistic update
                 userMessage.imageUrl = currentPreviewUrl || undefined;
             } else if (currentFile.type.startsWith('audio/')) {
                 userMessage.audioUrl = currentPreviewUrl || undefined;
-            } else {
-                 userMessage.fileUrl = currentPreviewUrl || undefined;
-                 userMessage.fileType = currentFile.type;
             }
         }
         
@@ -224,7 +218,7 @@ export default function AiChatPage() {
         try {
             const historyForAi: StudinAiInput['history'] = messages
                 .slice(1) // Remove initial welcome message
-                .map(({id, senderId, createdAt, role, text, imageUrl, audioUrl, fileUrl, fileType }) => ({role, text, imageUrl, audioUrl, fileUrl, fileType}));
+                .map(({id, senderId, createdAt, role, text, imageUrl, audioUrl }) => ({role, text, imageUrl, audioUrl}));
 
             const messageToSend: StudinAiInput['message'] = { role: 'user' };
             if (userMessageText) messageToSend.text = userMessageText;
@@ -234,9 +228,6 @@ export default function AiChatPage() {
                     messageToSend.imageUrl = fileDataUri;
                 } else if (currentFile.type.startsWith('audio/')) {
                     messageToSend.audioUrl = fileDataUri;
-                } else {
-                    messageToSend.fileUrl = fileDataUri;
-                    messageToSend.fileType = currentFile.type;
                 }
             }
             
@@ -392,7 +383,7 @@ export default function AiChatPage() {
                 </div>
                 
                  <div className="p-4 border-t bg-card sticky bottom-0">
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,application/pdf,text/*,audio/*"/>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,audio/*"/>
                     {previewUrl && fileToSend && (
                         <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
                             <div className="flex items-center gap-2 overflow-hidden">
@@ -447,3 +438,5 @@ export default function AiChatPage() {
         </div>
     );
 }
+
+    

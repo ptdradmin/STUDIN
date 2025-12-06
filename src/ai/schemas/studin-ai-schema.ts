@@ -27,8 +27,6 @@ const StudinAiMessageSchema = z.object({
   text: z.string().optional(),
   imageUrl: z.string().optional(),
   audioUrl: z.string().optional(),
-  fileUrl: z.string().optional(),
-  fileType: z.string().optional(),
 });
 export type StudinAiMessage = z.infer<typeof StudinAiMessageSchema>;
 
@@ -48,3 +46,5 @@ export const StudinAiOutputSchema = z.object({
   toolData: z.any().optional().describe("Data returned from any tools the AI used."),
 });
 export type StudinAiOutput = z.infer<typeof StudinAiOutputSchema>;
+
+    

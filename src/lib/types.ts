@@ -202,8 +202,6 @@ export type ChatMessage = {
     text?: string;
     imageUrl?: string;
     audioUrl?: string;
-    fileUrl?: string;
-    fileType?: string;
     toolData?: any;
 };
 
@@ -271,6 +269,8 @@ export type ChallengeSubmission = {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
 };
+
+    
 
     
 
