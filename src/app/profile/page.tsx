@@ -1,154 +1,29 @@
+
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper, BadgeCheck } from 'lucide-react';
+import { Grid3x3, Bookmark, LogOut, Search, Package, CalendarClock, Car, Bed, BookOpen, PartyPopper, BadgeCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useUser, useAuth, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import type { Post, UserProfile } from '@/lib/types';
+import type { Post, UserProfile, Housing, Trip, Tutor, Event, Favorite, Book } from '@/lib/types';
 import EditProfileForm from '@/components/edit-profile-form';
 import FollowListModal from '@/components/follow-list-modal';
-import { collection, doc, query, where, limit, orderBy, QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, doc, query, where, limit, orderBy, QueryDocumentSnapshot, documentId } from 'firebase/firestore';
 import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
-import { generateAvatar } from '@/lib/avatars';
-const ProfileGrid = ({ posts, isLoading, hasMore, onLoadMore, isLoadingMore }: { posts: Post[], isLoading?: boolean, hasMore?: boolean, onLoadMore?: () => void, isLoadingMore?: boolean }) => {
-    if (isLoading) {
-        return (
-            <div className="grid grid-cols-3 gap-1 mt-1">
-                <Skeleton className="aspect-square" />
-                <Skeleton className="aspect-square" />
-                <Skeleton className="aspect-square" />
-            </div>
-        )
-    }
+import { generateAvatar, getInitials } from '@/lib/avatars';
+import ProfileGrid from '@/components/profile-grid';
+import MyListings from '@/components/my-listings';
+import MyActivities from '@/components/my-activities';
+import MySavedItems from '@/components/my-saved-items';
 
-    if (posts.length === 0) {
-        return (
-            <div className="text-center p-10">
-                <h3 className="text-lg font-semibold">Aucune publication</h3>
-                <p className="text-muted-foreground text-sm">Les publications apparaîtront ici.</p>
-            </div>
-        )
-    }
-
-    return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-1">
-                {posts.map(post => (
-                    <div key={post.id} className="relative aspect-square bg-muted cursor-pointer hover:opacity-90 transition-opacity">
-                        {post.imageUrl && (
-                            <Image
-                                src={post.imageUrl}
-                                alt="User post"
-                                fill
-                                className="object-cover"
-                                sizes="(max-width: 768px) 33vw, 25vw"
-                            />
-                        )}
-                    </div>
-                ))}
-            </div>
-            {hasMore && (
-                <div className="flex justify-center p-4">
-                    <Button variant="ghost" onClick={onLoadMore} disabled={isLoadingMore}>
-                        {isLoadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : "Charger plus"}
-                    </Button>
-                </div>
-            )}
-        </div>
-    );
-};
-
-const MyListings = ({ user, isActive }: { user: import('firebase/auth').User, isActive: boolean }) => {
-    const firestore = useFirestore();
-
-    const housingQuery = useMemo(() => !isActive ? null : query(collection(firestore!, 'housings'), where('userId', '==', user.uid)), [firestore, user.uid, isActive]);
-    const carpoolQuery = useMemo(() => !isActive ? null : query(collection(firestore!, 'carpoolings'), where('driverId', '==', user.uid)), [firestore, user.uid, isActive]);
-    const tutorQuery = useMemo(() => !isActive ? null : query(collection(firestore!, 'tutorings'), where('tutorId', '==', user.uid)), [firestore, user.uid, isActive]);
-    const eventQuery = useMemo(() => !isActive ? null : query(collection(firestore!, 'events'), where('organizerId', '==', user.uid)), [firestore, user.uid, isActive]);
-
-    const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
-    const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
-    const { data: tutorings, isLoading: l3 } = useCollection<Tutor>(tutorQuery);
-    const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
-
-    const isLoading = l1 || l2 || l3 || l4;
-    const allListings = [...(housings || []), ...(carpools || []), ...(tutorings || []), ...(events || [])];
-
-    if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
-    if (allListings.length === 0) return <div className="text-center p-10"><p className="text-muted-foreground">Vous n'avez aucune annonce active.</p></div>
-
-    return (
-        <div className="p-4 space-y-4">
-            {housings?.map(h => <HousingCard key={h.id} housing={h} />)}
-            {/* Add other listing cards here */}
-        </div>
-    )
-}
-
-const MyActivities = ({ user, isActive }: { user: import('firebase/auth').User, isActive: boolean }) => {
-    const firestore = useFirestore();
-
-    const carpoolBookingsQuery = useMemo(() =>
-        !firestore || !isActive ? null : query(collection(firestore, 'carpoolings'), where('passengerIds', 'array-contains', user.uid)),
-        [firestore, user.uid, isActive]
-    );
-    const { data: bookedCarpools, isLoading: l1 } = useCollection<Trip>(carpoolBookingsQuery);
-
-    const attendedEventsQuery = useMemo(() =>
-        !firestore || !isActive ? null : query(collection(firestore, 'events'), where('attendeeIds', 'array-contains', user.uid)),
-        [firestore, user.uid, isActive]
-    );
-    const { data: attendedEvents, isLoading: l2 } = useCollection<Event>(attendedEventsQuery);
-
-
-    const isLoading = l1 || l2;
-
-    if (isLoading) return <div className="p-4"><Skeleton className="h-24 w-full" /></div>
-    if (!isLoading && bookedCarpools?.length === 0 && attendedEvents?.length === 0) return <div className="text-center p-10"><p className="text-muted-foreground">Vous n'avez aucune activité à venir.</p></div>
-
-    return (
-        <div className="space-y-4 p-4">
-            {bookedCarpools?.map(c => (
-                <Link href="/carpooling" key={c.id}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <Car className="h-5 w-5 text-secondary-foreground" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Covoiturage réservé</p>
-                                <p className="font-semibold">{c.departureCity} à {c.arrivalCity}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-            ))}
-            {attendedEvents?.map(e => (
-                <Link href="/events" key={e.id}>
-                    <Card className="hover:bg-muted/50 transition-colors">
-                        <CardContent className="p-4 flex items-center gap-4">
-                            <PartyPopper className="h-5 w-5 text-secondary-foreground" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Événement</p>
-                                <p className="font-semibold">{e.title}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-            ))}
-        </div>
-    )
-}
-
-const MySavedItems = ({ user, isActive }: { user: import('firebase/auth').User, isActive: boolean }) => {
-    return <div className="p-10 text-center text-muted-foreground">Fonctionnalité en cours de développement</div>
-}
 
 function ProfilePageSkeleton() {
     return (
@@ -201,7 +76,7 @@ export default function CurrentUserProfilePage() {
     const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-    const userRef = useMemo(() => {
+    const userRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
@@ -217,52 +92,6 @@ export default function CurrentUserProfilePage() {
         );
     }, [firestore, user]);
     const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
-
-    const userFavoritesQuery = useMemo(() => {
-        if (!user || !firestore) return null;
-        return query(collection(firestore, `users/${user.uid}/favorites`), limit(50));
-    }, [user, firestore]);
-    const { data: favoriteItems, isLoading: favoritesLoading } = useCollection<Favorite>(userFavoritesQuery);
-
-    const favoritedIds = useMemo(() => {
-        const ids: { [key in Favorite['itemType']]?: Set<string> } = { housing: new Set(), event: new Set(), tutor: new Set(), post: new Set(), book: new Set() };
-        favoriteItems?.forEach(fav => {
-            if (ids[fav.itemType]) {
-                ids[fav.itemType]!.add(fav.itemId);
-            }
-        });
-        return ids;
-    }, [favoriteItems]);
-
-    const savedPostsQuery = useMemo(() => {
-        if (!firestore || !favoritedIds.post || favoritedIds.post.size === 0) return null;
-        return query(collection(firestore, 'posts'), where(documentId(), 'in', Array.from(favoritedIds.post).slice(0, 30)));
-    }, [firestore, favoritedIds.post]);
-    const { data: savedPosts, isLoading: savedPostsLoading } = useCollection<Post>(savedPostsQuery);
-
-    const savedHousingsQuery = useMemo(() => {
-        if (!firestore || !favoritedIds.housing || favoritedIds.housing.size === 0) return null;
-        return query(collection(firestore, 'housings'), where(documentId(), 'in', Array.from(favoritedIds.housing).slice(0, 30)));
-    }, [firestore, favoritedIds.housing]);
-    const { data: savedHousings, isLoading: savedHousingsLoading } = useCollection<Housing>(savedHousingsQuery);
-
-    const savedEventsQuery = useMemo(() => {
-        if (!firestore || !favoritedIds.event || favoritedIds.event.size === 0) return null;
-        return query(collection(firestore, 'events'), where(documentId(), 'in', Array.from(favoritedIds.event).slice(0, 30)));
-    }, [firestore, favoritedIds.event]);
-    const { data: savedEvents, isLoading: savedEventsLoading } = useCollection<Event>(savedEventsQuery);
-
-    const savedTutorsQuery = useMemo(() => {
-        if (!firestore || !favoritedIds.tutor || favoritedIds.tutor.size === 0) return null;
-        return query(collection(firestore, 'tutorings'), where(documentId(), 'in', Array.from(favoritedIds.tutor).slice(0, 30)));
-    }, [firestore, favoritedIds.tutor]);
-    const { data: savedTutors, isLoading: savedTutorsLoading } = useCollection<Tutor>(savedTutorsQuery);
-
-    const savedBooksQuery = useMemo(() => {
-        if (!firestore || !favoritedIds.book || favoritedIds.book.size === 0) return null;
-        return query(collection(firestore, 'books'), where(documentId(), 'in', Array.from(favoritedIds.book).slice(0, 30)));
-    }, [firestore, favoritedIds.book]);
-    const { data: savedBooks, isLoading: savedBooksLoading } = useCollection<Book>(savedBooksQuery);
 
     // Load more posts
     const handleLoadMore = useCallback(async () => {
@@ -286,16 +115,7 @@ export default function CurrentUserProfilePage() {
             router.push('/');
         }
     }
-
-    const getInitials = useCallback((email?: string | null) => {
-        if (!email) return '..';
-        const parts = email.split('@')[0].replace('.', ' ').split(' ');
-        if (parts.length > 1 && parts[0] && parts[1]) {
-            return (parts[0][0] + parts[1][0]).toUpperCase();
-        }
-        return email.substring(0, 2).toUpperCase();
-    }, []);
-
+    
     const loading = isUserLoading || profileLoading;
 
     const followersCount = userProfile?.followerIds?.length || 0;
@@ -466,3 +286,5 @@ export default function CurrentUserProfilePage() {
         </div>
     );
 }
+
+    
