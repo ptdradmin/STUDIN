@@ -10,45 +10,45 @@ import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import Link from 'next/link';
 import { useDoc, useFirestore, useUser, useCollection } from '@/firebase';
 import { UserProfile } from '@/lib/types';
-import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, where } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PodiumCard = ({ user, rank }: { user: UserProfile, rank: number }) => {
-  const rankColors: {[key: number]: string} = {
-    1: 'from-amber-400 to-yellow-500',
-    2: 'from-slate-300 to-gray-400',
-    3: 'from-amber-600 to-orange-700',
-  };
+    const rankColors: { [key: number]: string } = {
+        1: 'from-amber-400 to-yellow-500',
+        2: 'from-slate-300 to-gray-400',
+        3: 'from-amber-600 to-orange-700',
+    };
 
-  return (
-    <div className={`relative flex flex-col items-center rounded-xl p-6 bg-gradient-to-br ${rankColors[rank]} text-white shadow-lg`}>
-        <div className="absolute -top-8">
-             <Trophy className={`h-12 w-12 drop-shadow-lg ${rank === 1 ? 'text-yellow-300' : rank === 2 ? 'text-gray-200' : 'text-orange-400'}`} />
+    return (
+        <div className={`relative flex flex-col items-center rounded-xl p-6 bg-gradient-to-br ${rankColors[rank]} text-white shadow-lg`}>
+            <div className="absolute -top-8">
+                <Trophy className={`h-12 w-12 drop-shadow-lg ${rank === 1 ? 'text-yellow-300' : rank === 2 ? 'text-gray-200' : 'text-orange-400'}`} />
+            </div>
+            <Avatar className="h-20 w-20 border-4 border-white/50 mt-4">
+                <AvatarImage src={user.profilePicture} />
+                <AvatarFallback>{user.username.substring(0, 2)}</AvatarFallback>
+            </Avatar>
+            <p className="font-bold text-xl mt-3 drop-shadow-sm">{user.username}</p>
+            <p className="font-extrabold text-2xl drop-shadow-md">{user.points || 0} pts</p>
         </div>
-        <Avatar className="h-20 w-20 border-4 border-white/50 mt-4">
-            <AvatarImage src={user.profilePicture} />
-            <AvatarFallback>{user.username.substring(0,2)}</AvatarFallback>
-        </Avatar>
-        <p className="font-bold text-xl mt-3 drop-shadow-sm">{user.username}</p>
-        <p className="font-extrabold text-2xl drop-shadow-md">{user.points || 0} pts</p>
-    </div>
-  );
+    );
 };
 
 function PageSkeleton() {
-     return (
+    return (
         <div className="flex min-h-screen w-full bg-background">
             <SocialSidebar />
             <div className="flex flex-col flex-1 p-6">
@@ -68,9 +68,9 @@ export default function LeaderboardPage() {
     const { user: authUser, isUserLoading } = useUser();
     const firestore = useFirestore();
 
-    const usersQuery = React.useMemo(() => !firestore ? null : query(collection(firestore, 'users'), orderBy('points', 'desc'), limit(50)), [firestore]);
+    const usersQuery = React.useMemo(() => !firestore ? null : query(collection(firestore, 'users'), where('role', '==', 'student'), orderBy('points', 'desc'), limit(50)), [firestore]);
     const { data: leaderboardData, isLoading: areUsersLoading } = useCollection<UserProfile>(usersQuery);
-    
+
     const userProfileRef = React.useMemo(() => {
         if (!authUser || !firestore) return null;
         return doc(firestore, 'users', authUser.uid);
@@ -110,9 +110,9 @@ export default function LeaderboardPage() {
                                 {isPartner ? "Analysez la participation à vos défis." : "Qui sont les maîtres de la ville ?"}
                             </p>
                         </div>
-                        
+
                         {isPartner && (
-                             <Card className="mb-6">
+                            <Card className="mb-6">
                                 <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end">
                                     <div>
                                         <Label htmlFor="challenge-filter">Défi</Label>
@@ -149,7 +149,7 @@ export default function LeaderboardPage() {
                                 </CardContent>
                             </Card>
                         )}
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 mb-10 mt-16">
                             {topThree[1] && <div className="md:mt-6"><PodiumCard user={topThree[1]} rank={2} /></div>}
                             {topThree[0] && <div><PodiumCard user={topThree[0]} rank={1} /></div>}
@@ -172,13 +172,13 @@ export default function LeaderboardPage() {
                                             <TableRow key={user.id}>
                                                 <TableCell className="font-bold text-center text-muted-foreground">{index + 4}</TableCell>
                                                 <TableCell>
-                                                     <Link href={`/profile/${user.id}`} className="flex items-center gap-3 group">
+                                                    <Link href={`/profile/${user.id}`} className="flex items-center gap-3 group">
                                                         <Avatar className="h-9 w-9">
                                                             <AvatarImage src={user.profilePicture} />
-                                                            <AvatarFallback>{user.username.substring(0,2)}</AvatarFallback>
+                                                            <AvatarFallback>{user.username.substring(0, 2)}</AvatarFallback>
                                                         </Avatar>
                                                         <span className="font-medium group-hover:text-primary transition-colors">{user.username}</span>
-                                                     </Link>
+                                                    </Link>
                                                 </TableCell>
                                                 <TableCell className="text-right text-muted-foreground">{user.challengesCompleted || 0}</TableCell>
                                                 <TableCell className="text-right font-bold">{user.points || 0}</TableCell>
@@ -192,13 +192,13 @@ export default function LeaderboardPage() {
                 </main>
                 {currentUserRanking !== undefined && currentUserRanking > -1 && !isPartner && leaderboardData && (
                     <footer className="sticky bottom-16 md:bottom-0 bg-secondary/95 backdrop-blur border-t p-3">
-                         <div className="max-w-4xl mx-auto">
+                        <div className="max-w-4xl mx-auto">
                             <div className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-3">
                                     <span className="font-bold w-10 text-center">{currentUserRanking + 1}</span>
-                                     <Avatar className="h-9 w-9">
+                                    <Avatar className="h-9 w-9">
                                         <AvatarImage src={leaderboardData[currentUserRanking].profilePicture} />
-                                        <AvatarFallback>{leaderboardData[currentUserRanking].username.substring(0,2)}</AvatarFallback>
+                                        <AvatarFallback>{leaderboardData[currentUserRanking].username.substring(0, 2)}</AvatarFallback>
                                     </Avatar>
                                     <span className="font-bold">Vous</span>
                                 </div>

@@ -37,7 +37,8 @@ service cloud.firestore {
     // POSTS - Public read, Owner write
     // ============================================
     match /posts/{postId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       allow create, update: if request.auth.uid == request.resource.data.userId;
       allow delete: if request.auth.uid == resource.data.userId;
     }

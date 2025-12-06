@@ -73,7 +73,10 @@ export default function SocialFeedSuggestions() {
                 const q = query(challengesRef, limit(1)); // Fetch one random-ish challenge
                 const snapshot = await getDocs(q);
                 if (!snapshot.empty) {
-                    setFeaturedChallenge(snapshot.docs[0].data() as Challenge);
+                    const challengeData = snapshot.docs[0].data() as Challenge;
+                    // Force Belgian sports image if missing (or always, per user request)
+                    challengeData.imageUrl = "https://images.unsplash.com/photo-1552674605-469555942be2?q=80&w=800&auto=format&fit=crop";
+                    setFeaturedChallenge(challengeData);
                 }
             } catch (e) {
                 console.error("Failed to fetch featured challenge", e);
