@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -22,7 +21,6 @@ import { Home, Bed, Car, PartyPopper, User, Settings, LogOut, Film, MessageSquar
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar, getInitials } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
-import { useState, useEffect, useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
 
 const mainNavItems = [
@@ -52,7 +50,7 @@ function NavLink({ item, pathname }: { item: { href?: string, label: string, ico
         aria-label={label} 
         className={`justify-start items-center gap-4 h-12 w-full text-base ${isActive ? 'font-bold' : 'font-normal text-foreground/80 hover:text-foreground'}`}
       >
-        <Icon className={`h-6 w-6`} strokeWidth={isActive ? 2.5 : 2} />
+        <Icon className={`h-6 w-6 flex-shrink-0`} strokeWidth={isActive ? 2.5 : 2} />
         <span className="truncate">{label}</span>
       </Button>
     </Link>
@@ -114,6 +112,8 @@ export default function SocialSidebar() {
     }
 
     if (!user) {
+        // This case should ideally not be hit if the component is used on protected routes,
+        // but it's a good safeguard.
         return null;
     }
 
