@@ -13,8 +13,8 @@ service cloud.firestore {
     // USERS - Public read, Owner write
     // ============================================
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
+      allow get: if true;
+      allow list: if true;
       // Allow user to create their own profile document if the user ID matches
       allow create: if request.auth.uid == userId;
       // Allow user to update/delete their own profile

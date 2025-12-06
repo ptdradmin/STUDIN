@@ -9,6 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { doc } from 'firebase/firestore';
 import UserCard from './user-card';
+import type { Challenge } from '@/lib/types';
+import ChallengeCard from '@/components/challenge-card';
 
 
 function SuggestionsSkeleton() {
@@ -23,6 +25,7 @@ function SuggestionsSkeleton() {
                     </div>
                 </div>
             ))}
+            <Skeleton className="h-48 w-full rounded-xl mt-6" />
         </div>
     )
 }
@@ -39,6 +42,7 @@ export default function SocialFeedSuggestions() {
 
     const [suggestions, setSuggestions] = useState<UserProfile[]>([]);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true);
+    const [featuredChallenge, setFeaturedChallenge] = useState<Challenge | null>(null);
 
     useEffect(() => {
         const fetchSuggestions = async () => {
@@ -62,10 +66,25 @@ export default function SocialFeedSuggestions() {
             }
         };
 
-        if(currentUserProfile) {
+        const fetchFeaturedChallenge = async () => {
+            if (!firestore) return;
+            try {
+                const challengesRef = collection(firestore, 'challenges');
+                const q = query(challengesRef, limit(1)); // Fetch one random-ish challenge
+                const snapshot = await getDocs(q);
+                if (!snapshot.empty) {
+                    setFeaturedChallenge(snapshot.docs[0].data() as Challenge);
+                }
+            } catch (e) {
+                console.error("Failed to fetch featured challenge", e);
+            }
+        }
+
+        if (currentUserProfile) {
             fetchSuggestions();
+            fetchFeaturedChallenge();
         } else if (!isProfileLoading) {
-             setIsLoadingSuggestions(false);
+            setIsLoadingSuggestions(false);
         }
 
     }, [firestore, user, currentUserProfile, isProfileLoading]);
@@ -80,8 +99,8 @@ export default function SocialFeedSuggestions() {
             {isLoading ? (
                 <>
                     <div className="flex items-center gap-3">
-                         <Skeleton className="h-14 w-14 rounded-full" />
-                         <div className="flex-grow space-y-2">
+                        <Skeleton className="h-14 w-14 rounded-full" />
+                        <div className="flex-grow space-y-2">
                             <Skeleton className="h-4 w-24" />
                             <Skeleton className="h-3 w-32" />
                         </div>
@@ -89,25 +108,37 @@ export default function SocialFeedSuggestions() {
                     <SuggestionsSkeleton />
                 </>
             ) : currentUserProfile && (
-                 <>
+                <>
                     <UserCard userProfile={currentUserProfile} />
 
                     {suggestions.length > 0 && (
-                         <div>
+                        <div>
                             <div className="flex justify-between items-center mb-3">
                                 <h3 className="text-sm font-semibold text-muted-foreground">Suggestions pour vous</h3>
                                 <Link href="/search" className="text-xs font-semibold hover:underline">Voir tout</Link>
                             </div>
                             <div className="max-h-96 overflow-y-auto space-y-4">
                                 {suggestions.map(profile => (
-                                     <UserCard key={profile.id} userProfile={profile} isSuggestion />
+                                    <UserCard key={profile.id} userProfile={profile} isSuggestion />
                                 ))}
                             </div>
                         </div>
                     )}
-                 </>
+
+                    {featuredChallenge && (
+                        <div className="mt-6">
+                            <div className="flex justify-between items-center mb-3">
+                                <h3 className="text-sm font-semibold text-muted-foreground">Défi du moment</h3>
+                                <Link href="/challenges" className="text-xs font-semibold hover:underline">Voir tout</Link>
+                            </div>
+                            <div className="h-64">
+                                <ChallengeCard challenge={featuredChallenge} />
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
-            
+
             <footer className="text-xs text-muted-foreground space-x-2">
                 <Link href="/about" className="hover:underline">À propos</Link><span>&middot;</span>
                 <Link href="/help" className="hover:underline">Aide</Link><span>&middot;</span>
