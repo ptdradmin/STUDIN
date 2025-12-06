@@ -44,19 +44,21 @@ export function getFirebaseServices(): FirebaseServices {
   // Initialize App Check
   if (typeof window !== 'undefined') {
     // Pass the reCAPTCHA Enterprise site key.
-    const reCaptchaKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
+    const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
     
     // Assign the debug token to a variable.
     if(process.env.NODE_ENV !== 'production') {
       (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN;
     }
     
-    initializeAppCheck(app, {
-      provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
-      // Set to 'true' to only allow valid App Check tokens.
-      // Set to 'false' to allow requests without a valid token, but with a warning.
-      isTokenAutoRefreshEnabled: true 
-    });
+    if (reCaptchaKey) {
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
+          // Set to 'true' to only allow valid App Check tokens.
+          // Set to 'false' to allow requests without a valid token, but with a warning.
+          isTokenAutoRefreshEnabled: true 
+        });
+    }
   }
 
   const auth = getAuth(app);
