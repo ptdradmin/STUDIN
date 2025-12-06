@@ -157,6 +157,8 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
         departureTime: finalDepartureTime,
         id: newDocRef.id,
         driverId: user.uid,
+        username: user.displayName,
+        userAvatarUrl: user.photoURL,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         passengerIds: [],

@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Grid3x3, Package, PartyPopper, BadgeCheck } from 'lucide-react';
 import Image from 'next/image';
-import { useUser, useCollection, useDoc, useFirestore } from '@/firebase';
+import { useUser, useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Post, UserProfile, Housing, Trip, Tutor, Event } from '@/lib/types';
 import FollowListModal from '@/components/follow-list-modal';
 import { collection, doc, query, where, limit } from 'firebase/firestore';
@@ -23,46 +23,8 @@ import { getOrCreateConversation } from '@/lib/conversations';
 import ProfileListingsTab from '@/components/profile-listings-tab';
 import { generateAvatar, getInitials } from '@/lib/avatars';
 import { cn } from '@/lib/utils';
+import ProfileGrid from '@/components/profile-grid';
 
-
-const ProfileGrid = ({ posts, isLoading }: { posts: Post[], isLoading?: boolean }) => {
-    if (isLoading) {
-        return (
-            <div className="grid grid-cols-3 gap-1 mt-1">
-                <Skeleton className="aspect-square" />
-                <Skeleton className="aspect-square" />
-                <Skeleton className="aspect-square" />
-            </div>
-        )
-    }
-
-    if (posts.length === 0) {
-        return (
-            <div className="text-center p-10">
-                <h3 className="text-lg font-semibold">Aucune publication</h3>
-                <p className="text-muted-foreground text-sm">Cet utilisateur n'a encore rien publié.</p>
-            </div>
-        )
-    }
-
-    return (
-        <div className="grid grid-cols-3 gap-1">
-            {posts.map(post => (
-                <div key={post.id} className="relative aspect-square bg-muted">
-                    {post.imageUrl && (
-                        <Image 
-                            src={post.imageUrl}
-                            alt="User post"
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 33vw, 25vw"
-                        />
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-};
 
 function ProfilePageSkeleton() {
     return (
@@ -120,23 +82,23 @@ export default function UserProfilePage() {
   }, [user, profileId, router, isUserLoading]);
 
 
-  const userRef = useMemo(() => {
+  const userRef = useMemoFirebase(() => {
     if (!profileId || !firestore) return null;
     return doc(firestore, 'users', profileId);
   }, [profileId, firestore]);
   const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userRef);
 
-  const userPostsQuery = useMemo(() => {
+  const userPostsQuery = useMemoFirebase(() => {
     if (!firestore || !profileId) return null;
     return query(collection(firestore, 'posts'), where('userId', '==', profileId), limit(30));
   }, [firestore, profileId]);
   const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
   
   // Queries for the new tabs
-    const housingQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'housings'), where('userId', '==', profileId)), [firestore, profileId]);
-    const carpoolQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'carpoolings'), where('driverId', '==', profileId)), [firestore, profileId]);
-    const tutorQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'tutorings'), where('tutorId', '==', profileId)), [firestore, profileId]);
-    const eventQuery = useMemo(() => !firestore || !profileId ? null : query(collection(firestore, 'events'), where('organizerId', '==', profileId)), [firestore, profileId]);
+    const housingQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'housings'), where('userId', '==', profileId)), [firestore, profileId]);
+    const carpoolQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'carpoolings'), where('driverId', '==', profileId)), [firestore, profileId]);
+    const tutorQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'tutorings'), where('tutorId', '==', profileId)), [firestore, profileId]);
+    const eventQuery = useMemoFirebase(() => !firestore || !profileId ? null : query(collection(firestore, 'events'), where('organizerId', '==', profileId)), [firestore, profileId]);
 
     const { data: housings, isLoading: l1 } = useCollection<Housing>(housingQuery);
     const { data: carpools, isLoading: l2 } = useCollection<Trip>(carpoolQuery);
@@ -144,7 +106,7 @@ export default function UserProfilePage() {
     const { data: events, isLoading: l4 } = useCollection<Event>(eventQuery);
 
     const { data: currentUserProfile } = useDoc<UserProfile>(
-        useMemo(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore])
+        useMemoFirebase(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore])
       );
 
     const isLoading = isUserLoading || profileLoading;
@@ -184,11 +146,6 @@ export default function UserProfilePage() {
     }
   }
   
-  const getInitials = (firstName?: string) => {
-    if (!firstName) return '..';
-    return firstName.substring(0, 2).toUpperCase();
-  }
-
   const followersCount = userProfile?.followerIds?.length || 0;
   const followingCount = userProfile?.followingIds?.length || 0;
   const isFollowing = !!(currentUserProfile && currentUserProfile.followingIds?.includes(profileId));
@@ -210,7 +167,7 @@ export default function UserProfilePage() {
                 </div>
             </header>
             <main className="flex-1 overflow-y-auto">
-                <div className="container mx-auto px-4 py-8">
+                <div className="container mx-auto px-0 md:px-4 py-8">
                     {isLoading || !userProfile ? <ProfilePageSkeleton /> : (
                         <div className="mx-auto max-w-4xl">
                             <div className="p-4 md:p-6">

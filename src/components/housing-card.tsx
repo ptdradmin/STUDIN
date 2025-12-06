@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bed, Home, MapPin, MoreHorizontal, User as UserIcon, Bookmark, MessageSquare } from "lucide-react";
-import { useUser, useFirestore, deleteDocumentNonBlocking, useDoc } from "@/firebase";
+import { useUser, useFirestore, deleteDocumentNonBlocking, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -49,7 +49,7 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
     const router = useRouter();
     const [isSaved, setIsSaved] = useState(isFavorited);
 
-    const ownerRef = useMemo(() => firestore ? doc(firestore, 'users', housing.userId) : null, [firestore, housing.userId]);
+    const ownerRef = useMemoFirebase(() => firestore ? doc(firestore, 'users', housing.userId) : null, [firestore, housing.userId]);
     const { data: ownerProfile } = useDoc<UserProfile>(ownerRef);
 
     useEffect(() => {

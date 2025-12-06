@@ -11,7 +11,7 @@ import { MapPin, Users, LayoutGrid, Map, Plus, Star, Search, MessageSquare, Grad
 import Image from "next/image";
 import { Trip, UserProfile } from "@/lib/types";
 import dynamic from "next/dynamic";
-import { useCollection, useUser, useFirestore, updateDocumentNonBlocking, useDoc } from "@/firebase";
+import { useCollection, useUser, useFirestore, updateDocumentNonBlocking, useDoc, useMemoFirebase } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { collection, serverTimestamp, doc, writeBatch, Timestamp, arrayUnion, collectionGroup, getDocs, runTransaction, increment } from "firebase/firestore";
 import CreateTripForm from "@/components/create-trip-form";
@@ -167,7 +167,7 @@ export default function CarpoolingPage() {
   const [arrivalFilter, setArrivalFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   
-  const tripsCollection = useMemo(() => {
+  const tripsCollection = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'carpoolings');
   }, [firestore]);

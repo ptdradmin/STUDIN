@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -109,7 +109,7 @@ export default function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [universities, setUniversities] = useState<string[]>([]);
   
-  const eventsCollection = useMemo(() => {
+  const eventsCollection = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'events');
   }, [firestore]);
@@ -122,7 +122,7 @@ export default function EventsPage() {
   }, [user, firestore]);
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
-  const favoritesQuery = useMemo(() => {
+  const favoritesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'event'));
   }, [user, firestore]);

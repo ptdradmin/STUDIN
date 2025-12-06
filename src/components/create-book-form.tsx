@@ -84,7 +84,7 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
         await uploadBytesResumable(imageRef, imageFile);
         const downloadURL = await getDownloadURL(imageRef);
 
-        const bookData: Omit<Book, 'sellerName'> = {
+        const bookData: Book = {
             ...data,
             id: newDocRef.id,
             sellerId: user.uid,
