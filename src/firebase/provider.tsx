@@ -81,34 +81,42 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         if (firebaseUser) {
             // User is signed in. Check if their profile document exists in Firestore.
             const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
+            
+            try {
+                const userDocSnap = await getDoc(userDocRef);
 
-            if (!userDocSnap.exists()) {
-                // User document doesn't exist, this is a new user. Create it.
-                const username = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
-                const userData: UserProfile = {
-                    id: firebaseUser.uid,
-                    role: 'student', // Default role
-                    email: firebaseUser.email || '',
-                    username: username,
-                    firstName: firebaseUser.displayName?.split(' ')[0] || '',
-                    lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
-                    postalCode: '',
-                    city: '',
-                    university: '',
-                    fieldOfStudy: '',
-                    bio: '',
-                    profilePicture: firebaseUser.photoURL || generateAvatar(firebaseUser.email || firebaseUser.uid),
-                    followerIds: [],
-                    followingIds: [],
-                    isVerified: false,
-                    isPro: false,
-                    points: 0,
-                    challengesCompleted: 0,
-                    createdAt: serverTimestamp() as any,
-                    updatedAt: serverTimestamp() as any,
-                };
-                await setDoc(userDocRef, userData);
+                if (!userDocSnap.exists()) {
+                    // User document doesn't exist, this is a new user. Create it.
+                    const username = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
+                    const userData: UserProfile = {
+                        id: firebaseUser.uid,
+                        role: 'student', // Default role
+                        email: firebaseUser.email || '',
+                        username: username,
+                        firstName: firebaseUser.displayName?.split(' ')[0] || '',
+                        lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+                        postalCode: '',
+                        city: '',
+                        university: '',
+                        fieldOfStudy: '',
+                        bio: '',
+                        profilePicture: firebaseUser.photoURL || generateAvatar(firebaseUser.email || firebaseUser.uid),
+                        followerIds: [],
+                        followingIds: [],
+                        isVerified: false,
+                        isPro: false,
+                        points: 0,
+                        challengesCompleted: 0,
+                        createdAt: serverTimestamp() as any,
+                        updatedAt: serverTimestamp() as any,
+                    };
+                    await setDoc(userDocRef, userData);
+                }
+            } catch (e) {
+                // This catch block will handle permission errors during getDoc or setDoc
+                console.error("Error creating or checking user document:", e);
+                // We will still set the user, but the profile might be incomplete.
+                // The error will be caught and displayed by the error handling system.
             }
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });

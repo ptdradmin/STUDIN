@@ -121,11 +121,15 @@ export const updateUserPosts = async (firestore: Firestore, userId: string, upda
       return; // Nothing to update
     }
 
-    const querySnapshot = await getDocs(postsQuery);
-    querySnapshot.forEach(doc => {
-        const postRef = doc.ref;
-        batch.update(postRef, updatedData);
-    });
+    try {
+        const querySnapshot = await getDocs(postsQuery);
+        querySnapshot.forEach(doc => {
+            const postRef = doc.ref;
+            batch.update(postRef, updatedData);
+        });
+    } catch(e) {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({ path: 'posts', operation: 'list' }));
+    }
 };
 
 export const toggleFavorite = async (
@@ -139,10 +143,14 @@ export const toggleFavorite = async (
     if (isCurrentlyFavorited) {
         // Un-favorite: find and delete the favorite document
         const q = query(favoritesColRef, where("itemId", "==", item.id));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            const favDoc = querySnapshot.docs[0];
-            deleteDocumentNonBlocking(favDoc.ref);
+        try {
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const favDoc = querySnapshot.docs[0];
+                deleteDocumentNonBlocking(favDoc.ref);
+            }
+        } catch(e) {
+             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: `users/${userId}/favorites`, operation: 'list' }));
         }
     } else {
         // Favorite: add a new favorite document
