@@ -84,15 +84,19 @@ export default function RegisterForm() {
         return;
       }
 
+      // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
       
+      // 2. Update Auth user profile (displayName, photoURL)
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       const newPhotoURL = generateAvatar(user.email || user.uid);
       await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-      // The FirebaseProvider will now handle creating the Firestore document.
-      
+      // NOTE: The creation of the Firestore document for the user is now
+      // handled exclusively by the onAuthStateChanged listener in FirebaseProvider.
+      // We do NOT write to Firestore from here.
+
       toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
