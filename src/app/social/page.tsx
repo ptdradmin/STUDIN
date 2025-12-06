@@ -32,7 +32,7 @@ export default function SocialPage() {
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const loadMoreRef = useRef(null);
-    const isInView = useInView(loadMoreRef, { once: true, margin: "200px" });
+    const isInView = useInView(loadMoreRef, { once: false, margin: "200px" });
 
     const userProfileRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
@@ -63,7 +63,7 @@ export default function SocialPage() {
     }, [isUserLoading, user, router]);
 
     const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
-        if (!firestore || !user || profileLoading) return;
+        if (!firestore || !user || profileLoading || !hasMore) return;
         
         setIsLoading(true);
 
@@ -103,7 +103,7 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
-    }, [firestore, user, currentUserProfile, profileLoading]);
+    }, [firestore, user, currentUserProfile, profileLoading, hasMore]);
     
     useEffect(() => {
         if (user && !profileLoading) {
@@ -112,13 +112,13 @@ export default function SocialPage() {
             setHasMore(true);
             fetchPosts();
         }
-    }, [user, profileLoading]); // Removed fetchPosts from here
+    }, [user, profileLoading, fetchPosts]);
 
     useEffect(() => {
-        if (isInView && hasMore && !isLoading && lastVisible) {
+        if (isInView && hasMore && !isLoading) {
             fetchPosts(lastVisible);
         }
-    }, [isInView, hasMore, isLoading, lastVisible]); // Removed fetchPosts from here
+    }, [isInView, hasMore, isLoading, lastVisible, fetchPosts]);
     
     if (isUserLoading || profileLoading || (isLoading && posts.length === 0)) {
       return <PageSkeleton />;
