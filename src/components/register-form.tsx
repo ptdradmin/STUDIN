@@ -11,7 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -93,9 +93,9 @@ export default function RegisterForm() {
       const newPhotoURL = generateAvatar(user.email || user.uid);
       await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-      // 3. The FirebaseProvider's onAuthStateChanged listener will now automatically
-      //    handle creating the Firestore document for this new user.
-
+      // The FirebaseProvider's onAuthStateChanged listener will now automatically
+      // handle creating the Firestore document for this new user.
+      
       toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
@@ -120,27 +120,16 @@ export default function RegisterForm() {
         case 'auth/network-request-failed':
           description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
           break;
-        case 'permission-denied':
-          // This is where we create and emit the contextual error.
-          const permissionError = new FirestorePermissionError({
-            path: `users/${auth.currentUser?.uid}`, // Approximate path for context
-            operation: 'create',
-            requestResourceData: { role: 'student', email: data.email }, // Example of relevant data
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          // Don't show a generic toast, let the dev overlay handle it.
-          description = "Une erreur de permission s'est produite lors de la création de votre profil.";
-          break;
         default:
           description = `Une erreur inattendue est survenue. (${error.code})`;
       }
-      if (error.code !== 'permission-denied') {
-        toast({
-          variant: "destructive",
-          title: "Erreur d'inscription",
-          description: description,
-        });
-      }
+
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description: description,
+      });
+      
     } finally {
       setLoading(false);
     }
