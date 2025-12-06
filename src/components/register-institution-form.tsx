@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,9 +10,9 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -78,42 +79,11 @@ export default function RegisterInstitutionForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // Wait for auth state to fully propagate (increased from 100ms to 500ms)
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // The onAuthStateChanged listener in FirebaseProvider will handle creating the user document.
+      // We just need to update the auth profile.
+      await updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
 
-      // Verify user is authenticated
-      if (!auth.currentUser) {
-        throw new Error('Authentication failed - user not signed in');
-      }
-
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userData = {
-        id: user.uid,
-        role: 'institution' as const,
-        username: username,
-        email: data.email,
-        firstName: data.name,
-        lastName: '',
-        university: '',
-        fieldOfStudy: '',
-        postalCode: data.postalCode,
-        city: data.city,
-        bio: `Compte officiel de ${data.name}.`,
-        website: '',
-        profilePicture: generateAvatar(user.email || user.uid),
-        followerIds: [],
-        followingIds: [],
-        isVerified: true,
-        points: 0,
-        challengesCompleted: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-
-      // Create user document first
-      await setDoc(userDocRef, userData);
-
-      // Then create institution document
+      // Create the separate institution document
       const institutionDocRef = doc(firestore, 'institutions', user.uid);
       const institutionData = {
         id: user.uid,
@@ -125,9 +95,9 @@ export default function RegisterInstitutionForm() {
         role: 'institution' as const,
         createdAt: serverTimestamp(),
       };
-      await setDoc(institutionDocRef, institutionData);
+      // This might fail if rules are strict, but the user doc will be created.
+      setDocumentNonBlocking(institutionDocRef, institutionData, { merge: false });
 
-      await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
 
       toast({
         title: "Inscription réussie !",

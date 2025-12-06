@@ -9,6 +9,7 @@ import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { generateAvatar } from '@/lib/avatars';
 import type { UserProfile } from '@/lib/types';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 
 interface FirebaseProviderProps {
@@ -87,8 +88,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
                 if (!userDocSnap.exists()) {
                     // User document doesn't exist, this is a new user. Create it.
+                    // This logic is now robust because onAuthStateChanged guarantees an authenticated user.
                     const username = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
-                    const userData: UserProfile = {
+                    const userData: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
                         id: firebaseUser.uid,
                         role: 'student', // Default role
                         email: firebaseUser.email || '',
@@ -107,22 +109,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                         isPro: false,
                         points: 0,
                         challengesCompleted: 0,
-                        createdAt: serverTimestamp() as any,
-                        updatedAt: serverTimestamp() as any,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
                     };
                     await setDoc(userDocRef, userData);
                 }
             } catch (e) {
-                // This catch block will handle permission errors during getDoc or setDoc
-                console.error("Error creating or checking user document:", e);
-                // We will still set the user, but the profile might be incomplete.
-                // The error will be caught and displayed by the error handling system.
+                console.error("[FirebaseProvider] Error ensuring user document exists:", e);
+                // If this fails, it's a critical permission issue. Emit a detailed error.
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: userDocRef.path,
+                    operation: 'create', // or 'get' if getDoc failed
+                    requestResourceData: { email: firebaseUser.email }, // Example data
+                }));
             }
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => {
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
+        console.error("[FirebaseProvider] onAuthStateChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );

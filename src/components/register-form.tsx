@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +11,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -83,48 +84,17 @@ export default function RegisterForm() {
         return;
       }
 
+      // 1. Create the authentication user
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
-
-      // Wait for auth state to fully propagate (increased from 100ms to 500ms)
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Verify user is authenticated
-      if (!auth.currentUser) {
-        throw new Error('Authentication failed - user not signed in');
-      }
-
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userData = {
-        id: user.uid,
-        role: 'student' as const,
-        email: data.email,
-        username: data.username,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        postalCode: data.postalCode,
-        city: data.city,
-        university: data.university,
-        fieldOfStudy: data.fieldOfStudy,
-        bio: '',
-        website: '',
-        profilePicture: generateAvatar(user.email || user.uid),
-        followerIds: [],
-        followingIds: [],
-        isVerified: false,
-        points: 0,
-        challengesCompleted: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-      await setDoc(userDocRef, userData);
-
+      
+      // 2. Update their auth profile (displayName, photoURL)
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
-      const newPhotoURL = generateAvatar(userCredential.user.email || userCredential.user.uid);
-      await updateProfile(userCredential.user, { displayName: newDisplayName, photoURL: newPhotoURL });
+      const newPhotoURL = generateAvatar(user.email || user.uid);
+      await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-      // NOTE: The creation of the user document is now handled by the onAuthStateChanged
-      // listener in FirebaseProvider. We only need to create the auth user here.
+      // 3. The FirebaseProvider's onAuthStateChanged listener will now automatically
+      //    handle creating the Firestore document for this new user.
 
       toast({
         title: "Inscription réussie!",
@@ -132,6 +102,7 @@ export default function RegisterForm() {
       });
 
       router.push('/social');
+      router.refresh();
 
     } catch (error: any) {
       let description = "Impossible de créer le compte. Veuillez réessayer.";
@@ -149,16 +120,6 @@ export default function RegisterForm() {
         case 'auth/network-request-failed':
           description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
           break;
-        case 'permission-denied':
-          // This is where we create and emit the contextual error.
-          const permissionError = new FirestorePermissionError({
-            path: `users/${auth.currentUser?.uid}`, // Approximate path for context
-            operation: 'create',
-            requestResourceData: { role: 'student', email: data.email }, // Example of relevant data
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          // We don't show a toast here because the listener will throw the error.
-          return; // Stop execution
         default:
           description = `Une erreur inattendue est survenue. (${error.code})`;
       }
