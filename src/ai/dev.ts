@@ -8,3 +8,4 @@ import './flows/generate-caption-flow';
 import './flows/studin-ai-flow';
 import './flows/create-checkout-session-flow';
 import './tools/search-housings-tool';
+import './tools/search-events-tool';

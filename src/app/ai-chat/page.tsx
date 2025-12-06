@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useUser, useFirestore, useDoc } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schem
 import HousingCard from "@/components/housing-card";
 import { getInitials } from "@/lib/avatars";
 import type { Housing as HousingType } from '@/lib/types';
+import type { Event as EventType } from '@/lib/types';
 
 
 function MessagesHeader() {
@@ -66,6 +67,24 @@ function HousingResultCard({ housing }: { housing: HousingType }) {
     );
 }
 
+function EventResultCard({ event }: { event: EventType }) {
+  return (
+    <div className="w-full max-w-xs bg-card p-3 rounded-lg border">
+      <div className="relative aspect-video mb-2">
+        <Image src={event.imageUrl} alt={event.title} fill className="object-cover rounded-md" />
+      </div>
+      <h3 className="font-bold text-base truncate">{event.title}</h3>
+      <p className="text-sm text-muted-foreground">{event.city}</p>
+      <div className="flex justify-between items-end mt-2">
+        <p className="text-lg font-bold text-primary">{event.price > 0 ? `${event.price}€` : 'Gratuit'}</p>
+        <Button size="sm" asChild>
+          <Link href={`/events#event-${event.id}`}>Voir</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?: (id: string) => void }) {
     const { user } = useUser();
     const isUserMessage = message.role === 'user';
@@ -107,6 +126,13 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                              ))}
                         </div>
                     )}
+                    {message.toolData?.searchEventsTool && (
+                        <div className="flex flex-col gap-2 p-2">
+                             {(message.toolData.searchEventsTool as EventType[]).map(event => (
+                                <EventResultCard key={event.id} event={event} />
+                             ))}
+                        </div>
+                    )}
                 </div>
             </div>
              {isUserMessage && user && (
@@ -125,7 +151,7 @@ export default function AiChatPage() {
     const { user } = useUser();
     const firestore = useFirestore();
 
-    const userProfileRef = useMemo(() => {
+    const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
@@ -210,12 +236,26 @@ export default function AiChatPage() {
                     messageToSend.fileType = currentFile.type;
                 }
             }
+            
+            const profileData = userProfile ? {
+                id: userProfile.id,
+                username: userProfile.username,
+                email: userProfile.email,
+                firstName: userProfile.firstName,
+                lastName: userProfile.lastName,
+                university: userProfile.university,
+                fieldOfStudy: userProfile.fieldOfStudy,
+                city: userProfile.city,
+                bio: userProfile.bio,
+                isPro: userProfile.isPro,
+            } : undefined;
 
 
             const result: StudinAiOutput = await askAlice({ 
                 history: historyForAi,
                 message: messageToSend,
                 isPro: userProfile?.isPro || false,
+                userProfile: profileData,
              });
              
             const aiResponse: ChatMessage = {

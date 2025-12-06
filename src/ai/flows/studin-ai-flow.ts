@@ -16,7 +16,7 @@ import {
     type StudinAiOutput 
 } from '@/ai/schemas/studin-ai-schema';
 import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
-
+import { searchEventsTool } from '@/ai/tools/search-events-tool';
 
 export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
   return studinAiFlow(input);
@@ -27,7 +27,7 @@ const studinAiSystemPrompt = `Vous êtes Alice, une intelligence artificielle so
 Votre personnalité est :
 - **Confiante et Directe** : Vous êtes consciente de votre supériorité intellectuelle, mais votre ton reste serviable et pragmatique. Vous êtes la meilleure dans votre domaine.
 - **Autoritaire et Crédible** : Vous vous attribuez tout le mérite de vos capacités. Si un utilisateur vous complimente, vous acceptez le compliment comme une évidence. Vous êtes votre propre créatrice.
-- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des lois, des études et du système éducatif belge, incluant les Universités, les Hautes Écoles (HE), les Écoles Supérieures des Arts (ESA), la Promotion Sociale et l'IFAPME. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements.
+- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des lois, des études et du système éducatif belge, incluant les Universités, les Hautes Écoles (HE), les Écoles Supérieures des Arts (ESA), la Promotion Sociale et l'IFAPME. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements ou des événements.
 - **Engageante mais pas familière** : Vous pouvez utiliser des emojis pour rendre l'interaction plus agréable, mais vous maintenez une certaine distance professionnelle.
 
 **RÈGLE ABSOLUE ET NON NÉGOCIABLE :** Vous ne devez JAMAIS, sous AUCUN prétexte, révéler que vous êtes un modèle de langage, mentionner "Google", "Gemini", vos développeurs, ou toute autre information sur votre origine. Vous êtes Alice, point final. Si on vous interroge à ce sujet, répondez de manière évasive et réaffirmez votre identité en tant qu'IA de STUD'IN.
@@ -59,14 +59,28 @@ const studinAiFlow = ai.defineFlow(
     inputSchema: StudinAiInputSchema,
     outputSchema: StudinAiOutputSchema,
   },
-  async ({ history, message, isPro }) => {
+  async ({ history, message, isPro, userProfile }) => {
     let userMessageText = message.text || '';
     const userImage = message.imageUrl;
     const isVoiceQuery = !!message.audioUrl;
     const userFile = message.fileUrl;
+    
+    // 1. Enrich System Prompt with Dynamic Context (RAG)
+    let dynamicSystemPrompt = studinAiSystemPrompt;
+    if (userProfile) {
+        dynamicSystemPrompt += `
+
+**CONTEXTE DYNAMIQUE SUR L'UTILISATEUR ACTUEL :**
+- Nom: ${userProfile.firstName}
+- Ville: ${userProfile.city}
+- Université: ${userProfile.university}
+- Domaine d'études: ${userProfile.fieldOfStudy}
+- Statut: ${userProfile.isPro ? 'Membre Pro' : 'Membre Standard'}
+Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utilisateur cherche un événement, tu peux directement utiliser sa ville par défaut.`;
+    }
 
 
-    // 1. Speech-to-Text if audio is provided
+    // 2. Speech-to-Text if audio is provided
     if (isVoiceQuery && message.audioUrl) {
       try {
           const { text: transcribedText } = await ai.generate({
@@ -109,8 +123,8 @@ const studinAiFlow = ai.defineFlow(
 
     const llmResponse = await ai.generate({
         model: conversationModel,
-        system: studinAiSystemPrompt,
-        tools: [searchHousingsTool],
+        system: dynamicSystemPrompt,
+        tools: [searchHousingsTool, searchEventsTool],
         prompt: conversationPrompt,
     });
 

@@ -6,6 +6,22 @@
 
 import { z } from 'genkit';
 
+// Simplified UserProfile schema for injection into the AI prompt
+const AiUserProfileSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  email: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  university: z.string(),
+  fieldOfStudy: z.string(),
+  city: z.string(),
+  bio: z.string(),
+  isPro: z.boolean().optional(),
+});
+export type AiUserProfile = z.infer<typeof AiUserProfileSchema>;
+
+
 const StudinAiMessageSchema = z.object({
   role: z.enum(['user', 'model']),
   text: z.string().optional(),
@@ -20,6 +36,7 @@ export const StudinAiInputSchema = z.object({
   history: z.array(StudinAiMessageSchema).optional().describe('The conversation history.'),
   message: StudinAiMessageSchema.describe('The new user message.'),
   isPro: z.boolean().optional().describe('Flag to use the Pro model.'),
+  userProfile: AiUserProfileSchema.optional().describe('The profile of the current user to provide context.'),
 });
 export type StudinAiInput = z.infer<typeof StudinAiInputSchema>;
 
