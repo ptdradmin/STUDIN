@@ -212,10 +212,10 @@ export default function DashboardPage() {
                                             <CardContent className="p-4 flex items-center gap-4">
                                                 <div className="flex-grow">
                                                     <h3 className="font-semibold">{event.title}</h3>
-                                                    <p className="text-sm text-muted-foreground">{new Date(event.startDate).toLocaleDateString('fr-BE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                    <p className="text-sm text-muted-foreground">{event.startDate.toDate().toLocaleDateString('fr-BE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                                 </div>
                                                 <Badge variant={(event.attendeeIds?.length || 0) > 0 ? 'default' : 'secondary'} className="flex items-center gap-2">
-                                                    <Users className="h-4 w-4" />
+                                                    {/* <Users className="h-4 w-4" /> */}
                                                     {event.attendeeIds?.length || 0} participant(s)
                                                 </Badge>
                                                 <Button size="sm" variant="outline" disabled={(event.attendeeIds?.length || 0) === 0}>

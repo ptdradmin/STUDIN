@@ -3,7 +3,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App, credential } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { credential } from 'firebase-admin';
 
 let adminApp: App | null = null;
 
@@ -42,11 +43,11 @@ export const saveUserPreferenceTool = ai.defineTool(
     async ({ userId, key, value }) => {
         initializeAdminApp();
         if (!adminApp) {
-             const message = "Firebase Admin SDK not initialized. Cannot save preference.";
-             console.error(message);
-             return { success: false, message };
+            const message = "Firebase Admin SDK not initialized. Cannot save preference.";
+            console.error(message);
+            return { success: false, message };
         }
-        
+
         try {
             const db = getFirestore(adminApp);
             const userRef = db.collection('users').doc(userId);
@@ -56,7 +57,7 @@ export const saveUserPreferenceTool = ai.defineTool(
             await userRef.update({
                 [preferenceKey]: value
             });
-            
+
             return { success: true, message: `Préférence '${key}' sauvegardée pour l'utilisateur ${userId}.` };
         } catch (error: any) {
             console.error(`Failed to save preference for user ${userId}:`, error);

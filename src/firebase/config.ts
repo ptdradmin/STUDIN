@@ -45,7 +45,7 @@ export function getFirebaseServices(): FirebaseServices {
   if (typeof window !== 'undefined') {
     // Pass the reCAPTCHA Enterprise site key.
     // Use hardcoded key for local dev confidence, fallback to env var
-    const reCaptchaKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS" || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+    const reCaptchaKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
 
     // Assign the debug token to a variable.
     if (process.env.NODE_ENV !== 'production') {

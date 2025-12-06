@@ -3,7 +3,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App, credential } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { credential } from 'firebase-admin';
 import type { Event } from '@/lib/types';
 
 
@@ -34,13 +35,13 @@ const SearchEventsInputSchema = z.object({
 type SearchEventsInput = z.infer<typeof SearchEventsInputSchema>;
 
 const EventSchemaForTool = z.object({
-  id: z.string(),
-  title: z.string(),
-  city: z.string(),
-  startDate: z.any(),
-  category: z.string(),
-  price: z.number(),
-  imageUrl: z.string(),
+    id: z.string(),
+    title: z.string(),
+    city: z.string(),
+    startDate: z.any(),
+    category: z.string(),
+    price: z.number(),
+    imageUrl: z.string(),
 });
 export type EventForTool = z.infer<typeof EventSchemaForTool>;
 
@@ -54,10 +55,10 @@ export const searchEventsTool = ai.defineTool(
     async (input: SearchEventsInput) => {
         initializeAdminApp();
         if (!adminApp) {
-             console.error("Firebase Admin SDK not initialized. Cannot search events.");
+            console.error("Firebase Admin SDK not initialized. Cannot search events.");
             return [];
         }
-        
+
         const db = getFirestore(adminApp);
         let query: FirebaseFirestore.Query = db.collection('events');
 
@@ -77,7 +78,7 @@ export const searchEventsTool = ai.defineTool(
         if (snapshot.empty) {
             return [];
         }
-        
+
         const results: EventForTool[] = [];
         snapshot.forEach(doc => {
             const data = doc.data() as Event;
@@ -91,7 +92,7 @@ export const searchEventsTool = ai.defineTool(
                 imageUrl: data.imageUrl,
             });
         });
-        
+
         return results;
     }
 );

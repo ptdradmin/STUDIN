@@ -3,7 +3,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App, credential } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { credential } from 'firebase-admin';
 import type { Assignment } from '@/lib/types';
 import { parse, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -29,25 +30,25 @@ function initializeAdminApp() {
 }
 
 const ManageAssignmentsInputSchema = z.object({
-  userId: z.string().describe("L'ID de l'utilisateur pour lequel gérer les tâches."),
-  action: z.enum(['add', 'list', 'update', 'remove']).describe("L'action à effectuer."),
-  assignment: z.object({
-    id: z.string().optional().describe("L'ID de la tâche à mettre à jour ou supprimer."),
-    title: z.string().optional().describe("Le titre de la tâche ou de l'examen."),
-    subject: z.string().optional().describe("La matière concernée."),
-    dueDate: z.string().optional().describe("La date d'échéance au format 'yyyy-MM-dd'."),
-    status: z.enum(['todo', 'in-progress', 'done']).optional().describe("Le statut de la tâche."),
-  }).optional(),
+    userId: z.string().describe("L'ID de l'utilisateur pour lequel gérer les tâches."),
+    action: z.enum(['add', 'list', 'update', 'remove']).describe("L'action à effectuer."),
+    assignment: z.object({
+        id: z.string().optional().describe("L'ID de la tâche à mettre à jour ou supprimer."),
+        title: z.string().optional().describe("Le titre de la tâche ou de l'examen."),
+        subject: z.string().optional().describe("La matière concernée."),
+        dueDate: z.string().optional().describe("La date d'échéance au format 'yyyy-MM-dd'."),
+        status: z.enum(['todo', 'in-progress', 'done']).optional().describe("Le statut de la tâche."),
+    }).optional(),
 });
 type ManageAssignmentsInput = z.infer<typeof ManageAssignmentsInputSchema>;
 
 
 const AssignmentSchemaForTool = z.object({
-  id: z.string(),
-  title: z.string(),
-  subject: z.string(),
-  dueDate: z.string().describe("Date au format 'Mardi 28 mai'"),
-  status: z.enum(['todo', 'in-progress', 'done']),
+    id: z.string(),
+    title: z.string(),
+    subject: z.string(),
+    dueDate: z.string().describe("Date au format 'Mardi 28 mai'"),
+    status: z.enum(['todo', 'in-progress', 'done']),
 });
 export type AssignmentForTool = z.infer<typeof AssignmentSchemaForTool>;
 
@@ -65,11 +66,11 @@ export const manageAssignmentsTool = ai.defineTool(
     async ({ userId, action, assignment }) => {
         initializeAdminApp();
         if (!adminApp) {
-             const message = "Firebase Admin SDK not initialized.";
-             console.error(message);
-             return { success: false, message };
+            const message = "Firebase Admin SDK not initialized.";
+            console.error(message);
+            return { success: false, message };
         }
-        
+
         const db = getFirestore(adminApp);
         const assignmentsCol = db.collection('users').doc(userId).collection('assignments');
 
@@ -85,9 +86,9 @@ export const manageAssignmentsTool = ai.defineTool(
                         userId,
                         title: assignment.title,
                         subject: assignment.subject || 'Général',
-                        dueDate: Timestamp.fromDate(parse(assignment.dueDate, 'yyyy-MM-dd', new Date())),
+                        dueDate: Timestamp.fromDate(parse(assignment.dueDate, 'yyyy-MM-dd', new Date())) as any,
                         status: 'todo',
-                        createdAt: Timestamp.now(),
+                        createdAt: Timestamp.now() as any,
                     };
                     await newDocRef.set(newAssignment);
                     return { success: true, message: `"${assignment.title}" a été ajouté à votre agenda.` };
@@ -105,16 +106,16 @@ export const manageAssignmentsTool = ai.defineTool(
                         };
                     });
                     return { success: true, message: "Voici vos prochaines échéances.", assignments };
-                
+
                 case 'update':
-                     if (!assignment?.id || !assignment.status) {
+                    if (!assignment?.id || !assignment.status) {
                         return { success: false, message: "L'ID de la tâche et le nouveau statut sont requis." };
                     }
                     await assignmentsCol.doc(assignment.id).update({ status: assignment.status });
                     return { success: true, message: "La tâche a été mise à jour." };
-                
+
                 case 'remove':
-                     if (!assignment?.id) {
+                    if (!assignment?.id) {
                         return { success: false, message: "L'ID de la tâche est requis pour la suppression." };
                     }
                     await assignmentsCol.doc(assignment.id).delete();

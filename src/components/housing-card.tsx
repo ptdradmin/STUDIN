@@ -12,20 +12,21 @@ import { useUser, useFirestore, deleteDocumentNonBlocking, useDoc, useMemoFireba
 import { doc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -55,7 +56,7 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
     useEffect(() => {
         setIsSaved(isFavorited);
     }, [isFavorited]);
-    
+
     const isOwner = user && user.uid === housing.userId;
 
     const handleDelete = async () => {
@@ -71,12 +72,12 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
             return;
         }
         if (onClick) {
-          onClick();
+            onClick();
         } else {
-          router.push(`/housing/${housing.id}`);
+            router.push(`/housing/${housing.id}`);
         }
     }
-    
+
     const handleContact = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!user || !firestore) {
@@ -84,7 +85,7 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
             return;
         }
         if (user.uid === housing.userId) {
-            toast({title: "C'est votre annonce", description: "Vous ne pouvez pas vous contacter vous-même."});
+            toast({ title: "C'est votre annonce", description: "Vous ne pouvez pas vous contacter vous-même." });
             router.push(`/messages`);
             return;
         }
@@ -104,7 +105,7 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
             return;
         }
         const wasSaved = isSaved;
-        setIsSaved(!wasSaved); 
+        setIsSaved(!wasSaved);
         try {
             await toggleFavorite(firestore, user.uid, { id: housing.id, type: 'housing' }, wasSaved);
             toast({ title: wasSaved ? 'Retiré des favoris' : 'Ajouté aux favoris' });
@@ -119,7 +120,7 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
         <Card onClick={handleCardClick} className="overflow-hidden shadow-md transition-shadow hover:shadow-xl flex flex-col h-full cursor-pointer group">
             <div className="relative aspect-[4/3] w-full bg-muted">
                 {housing.imageUrl ? (
-                     <Image src={housing.imageUrl || '/placeholder.svg'} alt={housing.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={housing.imageHint} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"/>
+                    <Image src={housing.imageUrl || '/placeholder.svg'} alt={housing.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={housing.imageHint} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
                 ) : (
                     <div className="flex items-center justify-center h-full">
                         <Bed className="h-12 w-12 text-muted-foreground" />
@@ -128,14 +129,14 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
                 <Badge variant="secondary" className="absolute top-2 right-2 capitalize bg-white/80 text-foreground hover:bg-white">
                     {housing.type}
                 </Badge>
-                
-                 {user && !isOwner && (
+
+                {user && !isOwner && (
                     <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full absolute top-2 left-2" onClick={handleFavoriteClick}>
                         <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
                     </Button>
                 )}
 
-                 {isOwner && (
+                {isOwner && (
                     <div className="absolute top-1 left-1">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -170,22 +171,22 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
                 )}
             </div>
             <CardContent className="p-4 flex flex-col flex-grow">
-                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Avatar className="h-6 w-6">
                         <AvatarImage src={ownerProfile?.profilePicture} alt={ownerProfile?.username} />
                         <AvatarFallback>{getInitials(ownerProfile?.username)}</AvatarFallback>
                     </Avatar>
                     <span>{ownerProfile?.username || '...'}</span>
-                 </div>
+                </div>
                 <h3 className="text-lg font-semibold leading-tight truncate mt-2">{housing.title}</h3>
                 <p className="text-sm text-muted-foreground mt-1 flex items-center">
                     <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                     {housing.city}
                 </p>
-                
+
                 <div className="flex items-center text-sm text-muted-foreground gap-4 mt-3">
-                    <span className="flex items-center"><Bed className="h-4 w-4 mr-1"/> {housing.bedrooms} ch.</span>
-                    <span className="flex items-center"><Home className="h-4 w-4 mr-1"/> {housing.surfaceArea}m²</span>
+                    <span className="flex items-center"><Bed className="h-4 w-4 mr-1" /> {housing.bedrooms} ch.</span>
+                    <span className="flex items-center"><Home className="h-4 w-4 mr-1" /> {housing.surfaceArea}m²</span>
                 </div>
 
                 <div className="flex items-end justify-between mt-auto pt-4 border-t mt-4">
@@ -194,12 +195,12 @@ export default function HousingCard({ housing, onEdit, isFavorited = false, onCl
                         <p className="text-xs text-muted-foreground -mt-1">/mois</p>
                     </div>
                     {user && !isOwner ? (
-                         <Button onClick={handleContact}>
+                        <Button onClick={handleContact}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Contacter
                         </Button>
                     ) : !user ? (
-                        <Button onClick={(e) => { e.stopPropagation(); router.push(`/login?from=/housing/${housing.id}`)}}>
+                        <Button onClick={(e) => { e.stopPropagation(); router.push(`/login?from=/housing/${housing.id}`) }}>
                             <MessageSquare className="mr-2 h-4 w-4" />
                             Contacter
                         </Button>

@@ -8,30 +8,30 @@ import { useUser, useFirestore, useDoc, updateDocumentNonBlocking } from "@/fire
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { LogoIcon } from "@/components/logo-icon";
 import Link from "next/link";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createCheckoutSession } from "@/ai/flows/create-checkout-session-flow";
 
-export default function SubscriptionPage() {
+const SubscriptionContent = () => {
     const { user } = useUser();
     const firestore = useFirestore();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
-    
+
     const userProfileRef = useMemo(() => {
         if (!user || !firestore) return null;
         return doc(firestore, 'users', user.uid);
@@ -39,7 +39,7 @@ export default function SubscriptionPage() {
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const isPro = userProfile?.isPro || false; 
+    const isPro = userProfile?.isPro || false;
 
     useEffect(() => {
         const sessionId = searchParams.get('session_id');
@@ -59,7 +59,7 @@ export default function SubscriptionPage() {
 
     const handleSubscription = async (subscribe: boolean) => {
         if (!userProfileRef) return;
-        
+
         setIsProcessing(true);
         try {
             updateDocumentNonBlocking(userProfileRef, { isPro: subscribe });
@@ -77,10 +77,10 @@ export default function SubscriptionPage() {
             setIsProcessing(false);
         }
     }
-    
+
     const handleRedirectToCheckout = async () => {
         if (!user || !user.email) {
-            toast({ variant: 'destructive', title: "Erreur", description: "Vous devez être connecté pour vous abonner."});
+            toast({ variant: 'destructive', title: "Erreur", description: "Vous devez être connecté pour vous abonner." });
             router.push('/login?from=/subscription');
             return;
         }
@@ -105,9 +105,9 @@ export default function SubscriptionPage() {
             {user && <SocialSidebar />}
             <div className="flex flex-col flex-1">
                 <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                     <Link href={user ? "/social" : "/"} className="flex items-center gap-2 text-xl font-bold">
-                       <LogoIcon />
-                       <span className="font-headline hidden sm:inline">STUD'IN</span>
+                    <Link href={user ? "/social" : "/"} className="flex items-center gap-2 text-xl font-bold">
+                        <LogoIcon />
+                        <span className="font-headline hidden sm:inline">STUD'IN</span>
                     </Link>
                 </header>
                 <main className="flex-1 overflow-y-auto">
@@ -120,22 +120,22 @@ export default function SubscriptionPage() {
                         </div>
                     </div>
                     <div className="container mx-auto max-w-4xl px-4 py-8">
-                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                             {/* Free Card */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Free Card */}
                             <Card className="flex flex-col">
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-2xl">
-                                        <Sparkles className="text-muted-foreground"/>
+                                        <Sparkles className="text-muted-foreground" />
                                         Alice
                                     </CardTitle>
                                     <CardDescription>Le forfait de base pour tous les étudiants.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex-grow space-y-4">
-                                   <p className="text-3xl font-bold">Gratuit</p>
+                                    <p className="text-3xl font-bold">Gratuit</p>
                                     <ul className="space-y-2 text-sm text-muted-foreground">
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle rapide pour des réponses instantanées.</li>
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Conversation multimodale (Texte, Voix).</li>
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse d'images simple.</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Modèle rapide pour des réponses instantanées.</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Conversation multimodale (Texte, Voix).</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Analyse d'images simple.</li>
                                     </ul>
                                 </CardContent>
                                 <CardFooter>
@@ -150,23 +150,23 @@ export default function SubscriptionPage() {
                                 <div className="absolute top-0 right-0 py-1 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-bl-lg">LE PLUS PUISSANT</div>
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2 text-2xl">
-                                        <Gem className="text-primary"/>
+                                        <Gem className="text-primary" />
                                         Alice Pro
                                     </CardTitle>
                                     {isPro && (
                                         <CardDescription className="text-green-500 font-semibold flex items-center gap-2">
-                                            <Check className="h-4 w-4"/> FORFAIT ACTIF
+                                            <Check className="h-4 w-4" /> FORFAIT ACTIF
                                         </CardDescription>
                                     )}
                                 </CardHeader>
                                 <CardContent className="flex-grow space-y-4">
-                                   <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
+                                    <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
                                     <ul className="space-y-2 text-sm">
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage le plus avancé</li>
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos posts</li>
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité</li>
-                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" /><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Modèle de langage le plus avancé</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Génération de légendes IA pour vos posts</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Génération d'images haute qualité</li>
+                                        <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />Analyse et aide à la rédaction</li>
                                     </ul>
                                 </CardContent>
                                 <CardFooter>
@@ -203,5 +203,13 @@ export default function SubscriptionPage() {
                 </main>
             </div>
         </div>
+    );
+}
+
+export default function SubscriptionPage() {
+    return (
+        <Suspense fallback={<div>Chargement...</div>}>
+            <SubscriptionContent />
+        </Suspense>
     );
 }

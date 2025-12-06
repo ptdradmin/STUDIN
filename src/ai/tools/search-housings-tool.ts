@@ -3,7 +3,8 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App, credential } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { credential } from 'firebase-admin';
 import type { Housing } from '@/lib/types';
 
 
@@ -36,15 +37,15 @@ const SearchHousingsInputSchema = z.object({
 type SearchHousingsInput = z.infer<typeof SearchHousingsInputSchema>;
 
 const HousingSchemaForTool = z.object({
-  id: z.string(),
-  title: z.string(),
-  city: z.string(),
-  price: z.number(),
-  bedrooms: z.number(),
-  surfaceArea: z.number(),
-  type: z.enum(['kot', 'studio', 'colocation']),
-  imageUrl: z.string(),
-  description: z.string(),
+    id: z.string(),
+    title: z.string(),
+    city: z.string(),
+    price: z.number(),
+    bedrooms: z.number(),
+    surfaceArea: z.number(),
+    type: z.enum(['kot', 'studio', 'colocation']),
+    imageUrl: z.string(),
+    description: z.string(),
 });
 export type HousingForTool = z.infer<typeof HousingSchemaForTool>;
 
@@ -52,16 +53,16 @@ export const searchHousingsTool = ai.defineTool(
     {
         name: 'searchHousingsTool',
         description: 'Searches for student housing listings based on criteria. Use this tool when a user asks to find housing, kots, studios, or colocations.',
-        input: { schema: SearchHousingsInputSchema },
-        output: { schema: z.array(HousingSchemaForTool) },
+        inputSchema: SearchHousingsInputSchema,
+        outputSchema: z.array(HousingSchemaForTool),
     },
     async (input: SearchHousingsInput) => {
         initializeAdminApp();
         if (!adminApp) {
-             console.error("Firebase Admin SDK not initialized. Cannot perform search.");
+            console.error("Firebase Admin SDK not initialized. Cannot perform search.");
             return [];
         }
-        
+
         const db = getFirestore(adminApp);
         let query: FirebaseFirestore.Query = db.collection('housings');
 
@@ -79,7 +80,7 @@ export const searchHousingsTool = ai.defineTool(
         if (snapshot.empty) {
             return [];
         }
-        
+
         const results: HousingForTool[] = [];
         snapshot.forEach(doc => {
             const data = doc.data() as Housing; // Cast to your full Housing type
@@ -95,7 +96,7 @@ export const searchHousingsTool = ai.defineTool(
                 description: data.description,
             });
         });
-        
+
         return results;
     }
 );

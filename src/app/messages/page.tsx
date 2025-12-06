@@ -15,20 +15,20 @@ import { useParams } from "next/navigation";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +62,7 @@ function ConversationList() {
         });
     }, [conversations]);
 
-    const handleDeleteClick = (e: React.MouseEvent, convId: string) => {
+    const handleDeleteClick = (e: any, convId: string) => {
         e.preventDefault();
         e.stopPropagation();
         setConversationToDelete(convId);
@@ -71,7 +71,7 @@ function ConversationList() {
 
     const confirmDelete = async () => {
         if (!conversationToDelete || !firestore) return;
-        
+
         try {
             await deleteDoc(doc(firestore, "conversations", conversationToDelete));
             toast({ title: "Conversation supprimée", description: "La conversation a été supprimée avec succès." });
@@ -112,18 +112,18 @@ function ConversationList() {
             </div>
         )
     }
-    
+
     const getInitials = (name?: string) => {
         if (!name) return '??';
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     }
-    
+
     return (
         <div className="flex-grow overflow-y-auto">
             {/* Alice Assistant */}
             <Link href="/ai-chat">
                 <div className={cn("p-4 flex items-start gap-3 hover:bg-muted/50 cursor-pointer border-b bg-gradient-to-r from-primary/10 to-card")}>
-                     <Avatar className="h-12 w-12 border-2 border-primary/50">
+                    <Avatar className="h-12 w-12 border-2 border-primary/50">
                         <div className="h-full w-full flex items-center justify-center bg-primary/20">
                             <Sparkles className="h-6 w-6 text-primary" />
                         </div>
@@ -134,7 +134,7 @@ function ConversationList() {
                             <Badge variant="secondary" className="text-xs">Assistante</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground truncate">
-                           Votre assistante pour la vie étudiante.
+                            Votre assistante pour la vie étudiante.
                         </p>
                     </div>
                 </div>
@@ -166,14 +166,14 @@ function ConversationList() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <p className={cn("text-sm text-muted-foreground truncate", isUnread && "font-bold text-foreground")}>
-                                        {lastMessage?.senderId === user?.uid && "Vous: "}{lastMessage?.text || "..."}
+                                            {lastMessage?.senderId === user?.uid && "Vous: "}{lastMessage?.text || "..."}
                                         </p>
                                         {isUnread && <span className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 ml-2"></span>}
                                     </div>
                                 </div>
                             </div>
                         </Link>
-                         <div className="absolute top-1/2 -translate-y-1/2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute top-1/2 -translate-y-1/2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
@@ -181,8 +181,8 @@ function ConversationList() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                     <DropdownMenuItem onSelect={(e) => handleDeleteClick(e, conv.id)} className="text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4"/>
+                                    <DropdownMenuItem onSelect={(e) => handleDeleteClick(e, conv.id)} className="text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
                                         Supprimer la conversation
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -191,17 +191,17 @@ function ConversationList() {
                     </div>
                 );
             })}
-             <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cette conversation ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Cette action est irréversible. Tous les messages de cette conversation seront définitivement supprimés.
-                    </AlertDialogDescription>
+                        <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cette conversation ?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Cette action est irréversible. Tous les messages de cette conversation seront définitivement supprimés.
+                        </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setConversationToDelete(null)}>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
+                        <AlertDialogCancel onClick={() => setConversationToDelete(null)}>Annuler</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -217,9 +217,9 @@ export default function MessagesPage() {
             <div className="flex-1 grid grid-cols-1 md:grid-cols-[350px_1fr]">
                 <aside className="border-r flex flex-col h-screen">
                     <div className="p-4 border-b">
-                         <h1 className="text-2xl font-bold">Messages</h1>
+                        <h1 className="text-2xl font-bold">Messages</h1>
                     </div>
-                   <ConversationList />
+                    <ConversationList />
                 </aside>
                 <main className="hidden md:flex flex-col items-center justify-center text-center p-8 bg-muted/50">
                     <MessageSquare className="h-24 w-24 text-muted-foreground" strokeWidth={1} />

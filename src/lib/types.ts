@@ -3,23 +3,23 @@
 import type { Timestamp } from 'firebase/firestore';
 
 export type Housing = {
-  id: string;
-  userId: string;
-  username: string;
-  userAvatarUrl?: string;
-  title: string;
-  description: string;
-  type: 'kot' | 'studio' | 'colocation';
-  price: number;
-  address: string;
-  city: string;
-  bedrooms: number;
-  surfaceArea: number;
-  imageUrl: string;
-  imageHint: string;
-  coordinates: [number, number];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+    id: string;
+    userId: string;
+    username: string;
+    userAvatarUrl?: string;
+    title: string;
+    description: string;
+    type: 'kot' | 'studio' | 'colocation';
+    price: number;
+    address: string;
+    city: string;
+    bedrooms: number;
+    surfaceArea: number;
+    imageUrl: string;
+    imageHint: string;
+    coordinates: [number, number];
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 };
 
 export type Post = {
@@ -113,14 +113,14 @@ export type Tutor = {
 };
 
 export type TutoringReview = {
-  id: string;
-  tutoringId: string;
-  studentId: string;
-  studentName: string;
-  studentAvatar?: string;
-  rating: number;
-  comment: string;
-  createdAt: Timestamp;
+    id: string;
+    tutoringId: string;
+    studentId: string;
+    studentName: string;
+    studentAvatar?: string;
+    rating: number;
+    comment: string;
+    createdAt: Timestamp;
 };
 
 export type Trip = {
@@ -160,12 +160,12 @@ export interface Book {
 }
 
 export type CarpoolBooking = {
-  id: string;
-  carpoolId: string;
-  passengerId: string;
-  seatsBooked: number;
-  status: string;
-  createdAt: Timestamp;
+    id: string;
+    carpoolId: string;
+    passengerId: string;
+    seatsBooked: number;
+    status: string;
+    createdAt: Timestamp;
 };
 
 export type UserProfile = {
@@ -211,12 +211,14 @@ export type ChatMessage = {
     role: 'user' | 'model';
     text?: string;
     imageUrl?: string;
+    videoUrl?: string;
     audioUrl?: string;
+    fileType?: 'image' | 'video' | 'audio';
     toolData?: any;
 };
 
 export type Conversation = {
-    id:string;
+    id: string;
     participantIds: string[];
     participants: { [key: string]: { username: string; profilePicture?: string } };
     lastMessage?: {
@@ -230,18 +232,18 @@ export type Conversation = {
 };
 
 export type Notification = {
-  id: string;
-  type: 'new_follower' | 'like' | 'comment' | 'new_message' | 'carpool_booking' | 'event_attendance';
-  senderId: string;
-  senderProfile: {
-      username: string;
-      profilePicture: string;
-  };
-  recipientId: string;
-  relatedId?: string;
-  message?: string;
-  read: boolean;
-  createdAt: Timestamp;
+    id: string;
+    type: 'new_follower' | 'like' | 'comment' | 'new_message' | 'carpool_booking' | 'event_attendance';
+    senderId: string;
+    senderProfile: {
+        username: string;
+        profilePicture: string;
+    };
+    recipientId: string;
+    relatedId?: string;
+    message?: string;
+    read: boolean;
+    createdAt: Timestamp;
 };
 
 export type Favorite = {
@@ -280,7 +282,7 @@ export type ChallengeSubmission = {
     createdAt: Timestamp;
 };
 
-    
 
-    
+
+
 
