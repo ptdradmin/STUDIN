@@ -273,5 +273,3 @@ export type ChallengeSubmission = {
     
 
     
-
-    
