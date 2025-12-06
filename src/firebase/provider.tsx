@@ -84,14 +84,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             
             getDoc(userDocRef).then(userDocSnap => {
                 if (!userDocSnap.exists()) {
-                    const username = firebaseUser.displayName?.split(' ')[0].toLowerCase() || firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
+                    // Use only reliable data available right after creation
+                    const emailUsername = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
+                    const displayName = firebaseUser.displayName || emailUsername;
+                    const firstName = firebaseUser.displayName?.split(' ')[0] || '';
+                    const lastName = firebaseUser.displayName?.split(' ').slice(1).join(' ') || '';
+
                     const userData: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
                         id: firebaseUser.uid,
                         role: 'student',
                         email: firebaseUser.email || '',
-                        username: username,
-                        firstName: firebaseUser.displayName?.split(' ')[0] || '',
-                        lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+                        username: emailUsername,
+                        firstName: firstName,
+                        lastName: lastName,
                         postalCode: '',
                         city: '',
                         university: '',
