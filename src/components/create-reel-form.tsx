@@ -105,7 +105,10 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
     };
     
     useEffect(() => {
-        audioRef.current = new Audio();
+        const audio = new Audio();
+        audio.preload = 'metadata';
+        audioRef.current = audio;
+
         const handleEnded = () => setCurrentlyPlaying(null);
         audioRef.current.addEventListener('ended', handleEnded);
         

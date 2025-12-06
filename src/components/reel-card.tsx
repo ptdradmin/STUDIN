@@ -52,11 +52,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         if (video.paused) {
             video.play().catch(e => console.error("Video play failed:", e));
             if(audio) audio.play().catch(e => console.error("Audio play failed:", e));
-            setIsPlaying(true);
         } else {
             video.pause();
             if(audio) audio.pause();
-            setIsPlaying(false);
         }
     }, []);
 
@@ -101,13 +99,9 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     }, []);
 
     useEffect(() => {
-        if(audioRef.current) {
-            audioRef.current.muted = isMuted;
-        }
-        if (videoRef.current) {
-            videoRef.current.muted = reel.audioUrl ? true : isMuted;
-        }
-    }, [isMuted, reel.audioUrl]);
+        if(videoRef.current) videoRef.current.muted = isMuted;
+        if(audioRef.current) audioRef.current.muted = isMuted;
+    }, [isMuted]);
 
     
     const handleLike = () => {
