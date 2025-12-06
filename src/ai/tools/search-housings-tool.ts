@@ -1,12 +1,11 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { initializeApp, getApps, App, credential } from 'firebase-admin/app';
 import type { Housing } from '@/lib/types';
-import { credential } from "firebase-admin";
+
 
 let adminApp: App | null = null;
 
@@ -15,11 +14,12 @@ function initializeAdminApp() {
         adminApp = getApps()[0];
         return;
     }
-    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_STUD_IN_A033B;
-    if (serviceAccount) {
+    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_STUD_IN_A033B;
+    if (serviceAccountString) {
         try {
+            const serviceAccount = JSON.parse(serviceAccountString);
             adminApp = initializeApp({
-                credential: credential.cert(JSON.parse(serviceAccount))
+                credential: credential.cert(serviceAccount)
             });
         } catch (e) {
             console.error("Failed to initialize Firebase Admin SDK:", e);
