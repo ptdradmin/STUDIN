@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, BookOpen, MessageSquare, Loader2 } from "lucide-react";
+import { Plus, Search, BookOpen, MessageSquare, Loader2, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import type { Book } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase";
@@ -243,7 +243,7 @@ export default function BookMarketPage() {
              {!isLoading && books.length === 0 && (
                 <Card className="text-center py-20 col-span-full">
                     <CardContent>
-                        <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" strokeWidth={1}/>
+                        <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" strokeWidth={1}/>
                         <h3 className="text-xl font-semibold">Aucun livre ne correspond à votre recherche</h3>
                         <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à vendre un livre !</p>
                     </CardContent>
