@@ -115,6 +115,18 @@ export const studinAiFlow = ai.defineFlow(
         
         // Choose model based on 'isPro' flag
         const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash');
+
+        // 3. Image Generation if requested
+        if (isPro && userMessageText.toLowerCase().match(/\b(génère|dessine|crée)\s(une\s|un\s)?image\b/)) {
+            const { media } = await ai.generate({
+                model: googleAI.model('imagen-4.0-fast-generate-001'),
+                prompt: userMessageText,
+            });
+            return {
+                text: "Voici l'image que vous avez demandée.",
+                imageUrl: media?.url,
+            };
+        }
     
         const conversationPrompt = (history || []).map(m => ({
             role: m.role,
@@ -190,5 +202,3 @@ export const studinAiFlow = ai.defineFlow(
     });
   }
 );
-
-    

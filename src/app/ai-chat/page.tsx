@@ -156,7 +156,7 @@ export default function AiChatPage() {
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
     const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: String(Date.now()), role: 'model', senderId: 'alice-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Vous pouvez me demander de trouver un logement, me poser des questions, ou m'envoyer une image ou un message vocal." }
+        { id: String(Date.now()), role: 'model', senderId: 'alice-ai', createdAt: new Date() as any, text: "Bonjour ! Je suis Alice. Comment puis-je vous aider aujourd'hui ? Vous pouvez me demander de trouver un logement, de générer une image, ou m'envoyer une image ou un message vocal." }
     ]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -281,8 +281,10 @@ export default function AiChatPage() {
                                 : msg
                             ));
                          }
+                         // Store non-streamed data to be applied at the end
                          if(parsedChunk.audio) fullResponse.audio = parsedChunk.audio;
                          if(parsedChunk.toolData) fullResponse.toolData = parsedChunk.toolData;
+                         if(parsedChunk.imageUrl) fullResponse.imageUrl = parsedChunk.imageUrl;
                     }
                 } catch (e) {
                      // Sometimes the stream might end with a partial JSON object, we can ignore it.
@@ -290,10 +292,10 @@ export default function AiChatPage() {
                 }
             }
 
-            // Final update with non-streamed data (audio, tools)
+            // Final update with non-streamed data (audio, tools, images)
              setMessages(prev => prev.map(msg => 
                 msg.id === aiResponsePlaceholder.id 
-                ? { ...msg, audioUrl: fullResponse.audio, toolData: fullResponse.toolData }
+                ? { ...msg, audioUrl: fullResponse.audio, toolData: fullResponse.toolData, imageUrl: fullResponse.imageUrl }
                 : msg
             ));
 
@@ -471,5 +473,3 @@ export default function AiChatPage() {
         </div>
     );
 }
-
-    
