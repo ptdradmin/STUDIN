@@ -7,7 +7,7 @@ import type { Post } from "@/lib/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2, Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { Heart, MessageCircle, Send, MoreHorizontal, AlertCircle, UserX, Bookmark, Trash2, Music, Loader2, Play, Pause, Volume2, VolumeX, ImageIcon } from "lucide-react";
 import { formatDistanceToNow, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useUser, useFirestore, updateDocumentNonBlocking } from "@/firebase";
@@ -369,7 +369,11 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                         placeholder="blur"
                         blurDataURL={BLUR_DATA_URL}
                     />
-                ) : null}
+                ) : (
+                    <div className="flex items-center justify-center h-full w-full">
+                        <ImageIcon className="h-24 w-24 text-muted-foreground/50" strokeWidth={1} />
+                    </div>
+                )}
             </div>
 
             <div className="p-3 flex flex-col items-start">
