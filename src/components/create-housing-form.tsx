@@ -45,16 +45,6 @@ interface CreateHousingFormProps {
 export default function CreateHousingForm({ onClose, housingToEdit }: CreateHousingFormProps) {
   const { register, handleSubmit, control, formState: { errors }, reset } = useForm<HousingFormInputs>({
     resolver: zodResolver(housingSchema),
-    defaultValues: housingToEdit ? {
-        title: housingToEdit.title,
-        description: housingToEdit.description,
-        type: housingToEdit.type,
-        price: housingToEdit.price,
-        address: housingToEdit.address,
-        city: housingToEdit.city,
-        bedrooms: housingToEdit.bedrooms,
-        surfaceArea: housingToEdit.surfaceArea,
-    } : undefined
   });
   
   const [loading, setLoading] = useState(false);
@@ -121,7 +111,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
         }
 
         if (isEditing) {
-            const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
+            const dataToUpdate = { ...data, surfaceArea: data.surfaceArea, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
             await updateDoc(housingRef, dataToUpdate);
             toast({ title: 'Annonce mise à jour !' });
         } else {
@@ -135,6 +125,7 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
                 coordinates: newCoords,
                 imageHint: "student room",
                 imageUrl,
+                surfaceArea: data.surfaceArea,
              };
             await setDoc(housingRef, dataToCreate);
             toast({ title: 'Annonce créée !' });

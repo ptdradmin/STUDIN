@@ -19,6 +19,7 @@ import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/navbar';
+import { Slider } from '@/components/ui/slider';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
   ssr: false,
@@ -51,17 +52,7 @@ export default function HousingPage() {
 
   const { data: favorites } = useCollection<Favorite>(favoritesQuery as any);
   const favoritedIds = useMemo(() => new Set(favorites?.map(f => f.itemId)), [favorites]);
-
-  const filteredHousings = useMemo(() => {
-    if (!housings) return [];
-    return housings.filter(housing => {
-      const cityMatch = cityFilter ? housing.city.toLowerCase().includes(cityFilter.toLowerCase()) : true;
-      const typeMatch = typeFilter && typeFilter !== 'all' ? housing.type === typeFilter : true;
-      const priceMatch = housing.price <= priceFilter;
-      return cityMatch && typeMatch && priceMatch;
-    });
-  }, [housings, cityFilter, typeFilter, priceFilter]);
-
+  
   const fetchHousings = useCallback(async (reset = false) => {
     if (!firestore) return;
     if (reset) {
@@ -103,6 +94,16 @@ export default function HousingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const filteredHousings = useMemo(() => {
+    if (!housings) return [];
+    return housings.filter(housing => {
+      const cityMatch = cityFilter ? housing.city.toLowerCase().includes(cityFilter.toLowerCase()) : true;
+      const typeMatch = typeFilter && typeFilter !== 'all' ? housing.type === typeFilter : true;
+      const priceMatch = housing.price <= priceFilter;
+      return cityMatch && typeMatch && priceMatch;
+    });
+  }, [housings, cityFilter, typeFilter, priceFilter]);
+
 
   const handleEdit = (housing: Housing) => {
     setEditingHousing(housing);
@@ -112,6 +113,7 @@ export default function HousingPage() {
   const handleCloseForm = () => {
     setShowCreateForm(false);
     setEditingHousing(null);
+    fetchHousings(true); // Refetch to see changes
   };
 
   const handleCreateClick = () => {
@@ -174,7 +176,7 @@ export default function HousingPage() {
                             </div>
                             <div className="space-y-2">
                                     <Label htmlFor="price">Prix maximum: {priceFilter}€</Label>
-                                    <Input id="price" type="range" min="100" max="1000" step="25" value={priceFilter} onChange={e => setPriceFilter(Number(e.target.value))} />
+                                    <Slider id="price" min={100} max={1000} step={25} value={[priceFilter]} onValueChange={(value) => setPriceFilter(value[0])} />
                             </div>
                         </form>
                     </CardContent>
