@@ -170,8 +170,8 @@ export default function SettingsPage() {
                         </p>
                     </div>
                 </div>
-                <div className="container mx-auto px-4 py-8">
-                <Card className="mx-auto max-w-2xl">
+                <div className="container mx-auto max-w-2xl px-4 py-8">
+                <Card>
                     <CardContent className="p-0">
                     <Accordion type="single" collapsible className="w-full" value={defaultAccordion} onValueChange={setDefaultAccordion}>
 
@@ -371,7 +371,7 @@ export default function SettingsPage() {
                             </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-6">
-                            <SettingsItem title="Version de l’application" action={<span className="text-sm text-muted-foreground">3.0.0</span>} />
+                            <SettingsItem title="Version de l’application" action={<span className="text-sm text-muted-foreground">3.1.2</span>} />
                             <SettingsLink title="Conditions d'utilisation" href="/terms" />
                             <SettingsLink title="Politique de Confidentialité" href="/privacy" />
                         </AccordionContent>
