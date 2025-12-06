@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,12 +11,12 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, FirestorePermissionError, errorEmitter, setDocumentNonBlocking } from '@/firebase';
+import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { generateAvatar } from '@/lib/avatars';
 import { isUsernameUnique } from '@/lib/user-actions';
 import { schoolsList } from '@/lib/static-data';
@@ -112,7 +113,7 @@ export default function RegisterForm() {
         updatedAt: serverTimestamp(),
       };
       
-      setDocumentNonBlocking(userDocRef, userData, { merge: false });
+      await setDoc(userDocRef, userData);
 
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
