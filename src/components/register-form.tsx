@@ -19,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Link from 'next/link';
 import { schoolsList } from '@/lib/static-data';
 import { generateAvatar } from '@/lib/avatars';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc, runTransaction } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -87,40 +87,41 @@ export default function RegisterForm() {
       const newPhotoURL = generateAvatar(user.email || user.uid);
       await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-      // 3. Create user document in Firestore
+      // 3. Create user document in Firestore within a transaction
       const userDocRef = doc(firestore, 'users', user.uid);
-      const newUserProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
-          id: user.uid,
-          role: 'student',
-          email: data.email,
-          username: data.username,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          postalCode: data.postalCode,
-          city: data.city,
-          university: data.university,
-          fieldOfStudy: data.fieldOfStudy,
-          bio: '',
-          profilePicture: newPhotoURL,
-          followerIds: [],
-          followingIds: [],
-          isVerified: false,
-          isPro: false,
-          points: 0,
-          challengesCompleted: 0,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-      };
       
-      // Use a blocking write to ensure profile creation before redirecting.
-      await setDoc(userDocRef, newUserProfile);
+      await runTransaction(firestore, async (transaction) => {
+        const newUserProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
+            id: user.uid,
+            role: 'student',
+            email: data.email,
+            username: data.username,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            postalCode: data.postalCode,
+            city: data.city,
+            university: data.university,
+            fieldOfStudy: data.fieldOfStudy,
+            bio: '',
+            profilePicture: newPhotoURL,
+            followerIds: [],
+            followingIds: [],
+            isVerified: false,
+            isPro: false,
+            points: 0,
+            challengesCompleted: 0,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        };
+        transaction.set(userDocRef, newUserProfile);
+      });
 
       toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
       });
       
-      router.push('/profile');
+      router.push('/social');
       router.refresh();
 
 
