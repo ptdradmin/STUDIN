@@ -80,12 +80,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       async (firebaseUser) => {
         if (firebaseUser) {
-            // User is signed in. Check if their profile document exists in Firestore.
             const userDocRef = doc(firestore, 'users', firebaseUser.uid);
             
             getDoc(userDocRef).then(userDocSnap => {
                 if (!userDocSnap.exists()) {
-                    // User document doesn't exist, this is a new user. Create it.
                     const username = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
                     const userData: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
                         id: firebaseUser.uid,
@@ -113,13 +111,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                     setDocumentNonBlocking(userDocRef, userData, { merge: false });
                 }
             }).catch(e => {
-                 console.error("[FirebaseProvider] Error ensuring user document exists:", e);
-                 const permissionError = new FirestorePermissionError({
+                 console.error("[FirebaseProvider] Error checking user document:", e);
+                 const contextualError = new FirestorePermissionError({
                     path: userDocRef.path,
                     operation: 'get',
-                    requestResourceData: { uid: firebaseUser.uid }
                  });
-                 errorEmitter.emit('permission-error', permissionError);
+                 errorEmitter.emit('permission-error', contextualError);
             });
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
