@@ -46,21 +46,21 @@ export default function BottomNavbar() {
     '/who-we-are', '/press', '/terms', '/privacy', '/help', '/contact',
     '/faq', '/community-rules'
   ];
-  
+
   const isLoading = isUserLoading || isProfileLoading;
   const hideNavbar = !isClient || !user || publicPages.some(page => pathname === page) || pathname.startsWith('/reels');
-  
+
   if (isLoading && !hideNavbar) {
     return (
-        <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40">
-            <div className="flex justify-around items-center h-full">
-                <Skeleton className="h-6 w-6" />
-                <Skeleton className="h-6 w-6" />
-                <Skeleton className="h-6 w-6" />
-                <Skeleton className="h-6 w-6" />
-                <Skeleton className="h-7 w-7 rounded-full" />
-            </div>
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t md:hidden z-40">
+        <div className="flex justify-around items-center h-full">
+          <Skeleton className="h-6 w-6" />
+          <Skeleton className="h-6 w-6" />
+          <Skeleton className="h-6 w-6" />
+          <Skeleton className="h-6 w-6" />
+          <Skeleton className="h-7 w-7 rounded-full" />
         </div>
+      </div>
     );
   }
 
@@ -91,9 +91,8 @@ export default function BottomNavbar() {
               return (
                 <Link href={item.href || '#'} key={index}>
                   <Avatar
-                    className={`h-7 w-7 transition-all ${
-                      isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
-                    }`}
+                    className={`h-7 w-7 transition-all ${isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
+                      }`}
                   >
                     <AvatarImage src={userProfile.profilePicture || generateAvatar(user.email || user.uid)} />
                     <AvatarFallback>{getInitials(userProfile.username)}</AvatarFallback>
@@ -102,15 +101,14 @@ export default function BottomNavbar() {
               );
             }
 
-            const Icon = item.icon;
+            const Icon = item.icon as any;
             const isActive = pathname === item.href;
 
             return (
               <Link href={item.href || '#'} key={index}>
                 <Icon
-                  className={`h-6 w-6 transition-colors ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  }`}
+                  className={`h-6 w-6 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'
+                    }`}
                   strokeWidth={isActive ? 2.5 : 2}
                 />
               </Link>

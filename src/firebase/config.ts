@@ -43,14 +43,16 @@ export function getFirebaseServices(): FirebaseServices {
   // Initialize App Check
   if (typeof window !== 'undefined') {
     // Pass the reCAPTCHA Enterprise site key.
-    const reCaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-    
+    // Use hardcoded key for local dev confidence, fallback to env var
+    const reCaptchaKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
+
     // Assign the debug token to a variable.
-    if(process.env.NODE_ENV !== 'production') {
-      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN;
+    if (process.env.NODE_ENV !== 'production') {
+      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = "e481d300-fa1d-4245-952e-4b9026564ae2";
     }
-    
+
     if (reCaptchaKey) {
+<<<<<<< HEAD
         try {
             initializeAppCheck(app, {
               provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
@@ -59,6 +61,14 @@ export function getFirebaseServices(): FirebaseServices {
         } catch(e) {
             console.warn("App Check initialization failed. This may happen in some environments like service workers.", e);
         }
+=======
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
+        // Set to 'true' to only allow valid App Check tokens.
+        // Set to 'false' to allow requests without a valid token, but with a warning.
+        isTokenAutoRefreshEnabled: true
+      });
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
     }
   }
 

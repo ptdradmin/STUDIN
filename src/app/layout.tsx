@@ -81,12 +81,19 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={`${inter.variable} ${poppins.variable} dark`}>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased" suppressHydrationWarning>
         <FirebaseClientProvider>
           <SettingsProvider>
             <LanguageProvider>
+<<<<<<< HEAD
               {children}
               <BottomNavbar />
+=======
+              <div className="app-wrapper relative flex flex-col min-h-screen">
+                {children}
+                <BottomNavbar />
+              </div>
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
             </LanguageProvider>
           </SettingsProvider>
           <Toaster />

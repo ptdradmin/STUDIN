@@ -18,7 +18,7 @@ export default function ReelsPage() {
     const firestore = useFirestore();
     const { user, isUserLoading } = useUser();
     const router = useRouter();
-    
+
     const [showCreateReel, setShowCreateReel] = useState(false);
     const [allReels, setAllReels] = useState<Reel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -29,23 +29,23 @@ export default function ReelsPage() {
 
     const fetchNextReels = useCallback(async () => {
         if (!firestore || !lastVisible || !hasMore) return;
-        
+
         setIsLoading(true);
         let q = query(
-            collection(firestore, 'reels'), 
-            orderBy('createdAt', 'desc'), 
+            collection(firestore, 'reels'),
+            orderBy('createdAt', 'desc'),
             startAfter(lastVisible),
             limit(3)
         );
-        
+
         try {
             const documentSnapshots = await getDocs(q);
             const newReels = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reel));
-            
+
             setAllReels(prevReels => [...prevReels, ...newReels]);
-            
+
             const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
-            setLastVisible(lastDoc || null);
+            setLastVisible((lastDoc as any) || null);
 
             if (documentSnapshots.docs.length < 3) {
                 setHasMore(false);
@@ -56,38 +56,38 @@ export default function ReelsPage() {
             setIsLoading(false);
         }
     }, [firestore, lastVisible, hasMore]);
-    
+
     useEffect(() => {
         const fetchInitialReels = async () => {
-             if (!firestore) return;
-             setIsLoading(true);
-             setHasMore(true);
+            if (!firestore) return;
+            setIsLoading(true);
+            setHasMore(true);
 
-             const q = query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(3));
-             try {
+            const q = query(collection(firestore, 'reels'), orderBy('createdAt', 'desc'), limit(3));
+            try {
                 const documentSnapshots = await getDocs(q);
                 const initialReels = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reel));
                 setAllReels(initialReels);
-                
+
                 const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
-                setLastVisible(lastDoc || null);
+                setLastVisible((lastDoc as any) || null);
 
                 if (documentSnapshots.docs.length < 3) {
                     setHasMore(false);
                 }
-             } catch (error) {
-                 console.error("Error fetching initial reels:", error);
-             } finally {
-                 setIsLoading(false);
-             }
+            } catch (error) {
+                console.error("Error fetching initial reels:", error);
+            } finally {
+                setIsLoading(false);
+            }
         };
         fetchInitialReels();
     }, [firestore]);
 
-    const lastReelElementRef = useCallback(node => {
+    const lastReelElementRef = useCallback((node: any) => {
         if (isLoading) return;
         if (observer.current) observer.current.disconnect();
-        
+
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
                 fetchNextReels();
@@ -95,11 +95,11 @@ export default function ReelsPage() {
         });
         if (node) observer.current.observe(node);
     }, [isLoading, hasMore, fetchNextReels]);
-    
+
     const handleDeleteReel = (id: string) => {
         setAllReels(prevReels => prevReels.filter(r => r.id !== id));
     }
-    
+
     const handleCreateClick = () => {
         if (!user) {
             router.push('/login?from=/reels');
@@ -111,17 +111,17 @@ export default function ReelsPage() {
     return (
         <div className="flex h-screen w-full bg-black">
             <SocialSidebar />
-             {showCreateReel && <CreateReelForm onClose={() => setShowCreateReel(false)} />}
+            {showCreateReel && <CreateReelForm onClose={() => setShowCreateReel(false)} />}
             <div className="flex-1 flex flex-col justify-center items-center overflow-hidden">
                 <div className="absolute top-4 right-4 z-10">
-                     <Button onClick={handleCreateClick}>
+                    <Button onClick={handleCreateClick}>
                         <Plus className="mr-2 h-4 w-4" /> Créer un Reel
                     </Button>
                 </div>
                 <div className="h-full w-full max-w-sm flex-shrink-0 snap-y snap-mandatory overflow-y-scroll scrollbar-hide" id="reels-container">
                     {(isLoading && allReels.length === 0) && (
                         <div className="h-full w-full flex items-center justify-center snap-start">
-                             <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
+                            <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
                         </div>
                     )}
                     {allReels.map((reel, index) => (
@@ -134,13 +134,13 @@ export default function ReelsPage() {
                             <ReelCard reel={reel} onDelete={handleDeleteReel} />
                         </div>
                     ))}
-                     {isLoading && allReels.length > 0 && (
+                    {isLoading && allReels.length > 0 && (
                         <div className="h-full w-full flex items-center justify-center snap-start">
                             <Skeleton className="h-[95%] w-[95%] rounded-2xl" />
                         </div>
                     )}
-                     {!isLoading && allReels.length === 0 && (
-                         <div className="flex flex-col items-center justify-center text-center p-8 h-full text-white">
+                    {!isLoading && allReels.length === 0 && (
+                        <div className="flex flex-col items-center justify-center text-center p-8 h-full text-white">
                             <Film className="h-24 w-24 text-muted-foreground" strokeWidth={1} />
                             <h1 className="text-2xl font-bold mt-4">Aucun Reel pour le moment</h1>
                             <p className="text-muted-foreground mt-2 max-w-sm">

@@ -112,7 +112,7 @@ export default function CurrentUserProfilePage() {
             router.push('/');
         }
     }
-    
+
     const isLoading = isUserLoading || profileLoading;
 
     const followersCount = userProfile?.followerIds?.length || 0;
@@ -182,103 +182,103 @@ export default function CurrentUserProfilePage() {
                 </header>
                 <main className="flex-1 overflow-y-auto">
                     <div className="container mx-auto px-4 py-8">
-                      {userProfile && user ? (
-                        <div className="mx-auto max-w-4xl">
-                            <div className="p-4 md:p-6">
-                                <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
-                                    <Avatar className="h-24 w-24 md:h-36 md:w-36 flex-shrink-0">
-                                        <AvatarImage src={userProfile.profilePicture || generateAvatar(user.email || user.uid)} />
-                                        <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="space-y-4 text-center sm:text-left">
-                                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                                            <div className="flex items-center gap-2">
-                                                <h2 className="text-2xl font-light">{userProfile?.username || user.email?.split('@')[0]}</h2>
-                                                {userProfile.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />}
+                        {userProfile && user ? (
+                            <div className="mx-auto max-w-4xl">
+                                <div className="p-4 md:p-6">
+                                    <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-8">
+                                        <Avatar className="h-24 w-24 md:h-36 md:w-36 flex-shrink-0">
+                                            <AvatarImage src={userProfile.profilePicture || generateAvatar(user.email || user.uid)} />
+                                            <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="space-y-4 text-center sm:text-left">
+                                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                                <div className="flex items-center gap-2">
+                                                    <h2 className="text-2xl font-light">{userProfile?.username || user.email?.split('@')[0]}</h2>
+                                                    {userProfile.isVerified && <BadgeCheck className="h-6 w-6 text-primary" />}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button variant="secondary" size="sm" onClick={() => setShowEditForm(true)}>Modifier le profil</Button>
+                                                    <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9">
+                                                        <LogOut className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button variant="secondary" size="sm" onClick={() => setShowEditForm(true)}>Modifier le profil</Button>
-                                                <Button variant="ghost" size="icon" onClick={handleLogout} className="h-9 w-9">
-                                                    <LogOut className="h-4 w-4" />
-                                                </Button>
+                                            <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
+                                                <p><span className="font-semibold">{userPosts?.length || 0}</span> publications</p>
+                                                <button onClick={() => setModalContent({ title: "Abonnés", userIds: userProfile.followerIds || [] })} className="cursor-pointer hover:underline" disabled={(userProfile.followerIds || []).length === 0}>
+                                                    <span className="font-semibold">{followersCount}</span> abonnés
+                                                </button>
+                                                <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline" disabled={(userProfile.followingIds || []).length === 0}>
+                                                    <span className="font-semibold">{followingCount}</span> abonnements
+                                                </button>
                                             </div>
-                                        </div>
-                                        <div className="flex justify-center sm:justify-start gap-4 md:gap-8 text-sm">
-                                            <p><span className="font-semibold">{userPosts?.length || 0}</span> publications</p>
-                                            <button onClick={() => setModalContent({ title: "Abonnés", userIds: userProfile.followerIds || [] })} className="cursor-pointer hover:underline" disabled={(userProfile.followerIds || []).length === 0}>
-                                                <span className="font-semibold">{followersCount}</span> abonnés
-                                            </button>
-                                            <button onClick={() => setModalContent({ title: "Abonnements", userIds: userProfile.followingIds || [] })} className="cursor-pointer hover:underline" disabled={(userProfile.followingIds || []).length === 0}>
-                                                <span className="font-semibold">{followingCount}</span> abonnements
-                                            </button>
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold">{userProfile?.firstName} {userProfile?.lastName}</p>
-                                            <p className="text-muted-foreground text-sm">{userProfile?.university || 'Université non spécifiée'}</p>
-                                            <p className="text-sm mt-1">{userProfile?.bio}</p>
+                                            <div>
+                                                <p className="font-semibold">{userProfile?.firstName} {userProfile?.lastName}</p>
+                                                <p className="text-muted-foreground text-sm">{userProfile?.university || 'Université non spécifiée'}</p>
+                                                <p className="text-sm mt-1">{userProfile?.bio}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {showEditForm && userProfile && (
-                                <EditProfileForm
-                                    user={user}
-                                    userProfile={userProfile}
-                                    onClose={() => setShowEditForm(false)}
-                                />
-                            )}
-
-                            {modalContent && (
-                                <FollowListModal
-                                    key={modalContent.title + modalContent.userIds.length}
-                                    title={modalContent.title}
-                                    userIds={modalContent.userIds}
-                                    onClose={() => setModalContent(null)}
-                                />
-                            )}
-
-
-                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                                <TabsList className="grid w-full grid-cols-4 rounded-none border-y">
-                                    <TabsTrigger value="posts" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
-                                        <Grid3x3 className="h-5 w-5" />
-                                        <span className="hidden md:inline ml-2">Publications</span>
-                                    </TabsTrigger>
-                                    <TabsTrigger value="listings" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
-                                        <Package className="h-5 w-5" />
-                                        <span className="hidden md:inline ml-2">Mes Annonces</span>
-                                    </TabsTrigger>
-                                    <TabsTrigger value="activities" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
-                                        <CalendarClock className="h-5 w-5" />
-                                        <span className="hidden md:inline ml-2">Mes Activités</span>
-                                    </TabsTrigger>
-                                    <TabsTrigger value="saved" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
-                                        <Bookmark className="h-5 w-5" />
-                                        <span className="hidden md:inline ml-2">Enregistrés</span>
-                                    </TabsTrigger>
-                                </TabsList>
-                                <TabsContent value="posts">
-                                    <ProfileGrid
-                                        posts={userPosts || []}
-                                        isLoading={postsLoading}
-                                        hasMore={userPosts && userPosts.length >= 12}
-                                        onLoadMore={handleLoadMore}
-                                        isLoadingMore={isLoadingMore}
+                                {showEditForm && userProfile && (
+                                    <EditProfileForm
+                                        user={user}
+                                        userProfile={userProfile}
+                                        onClose={() => setShowEditForm(false)}
                                     />
-                                </TabsContent>
-                                <TabsContent value="listings">
-                                    <MyListings user={user} isActive={activeTab === 'listings'} />
-                                </TabsContent>
-                                <TabsContent value="activities">
-                                    <MyActivities user={user} isActive={activeTab === 'activities'} />
-                                </TabsContent>
-                                <TabsContent value="saved">
-                                    <MySavedItems user={user} isActive={activeTab === 'saved'} />
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-                      ) : null }
+                                )}
+
+                                {modalContent && (
+                                    <FollowListModal
+                                        key={modalContent.title + modalContent.userIds.length}
+                                        title={modalContent.title}
+                                        userIds={modalContent.userIds}
+                                        onClose={() => setModalContent(null)}
+                                    />
+                                )}
+
+
+                                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                    <TabsList className="grid w-full grid-cols-4 rounded-none border-y">
+                                        <TabsTrigger value="posts" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                            <Grid3x3 className="h-5 w-5" />
+                                            <span className="hidden md:inline ml-2">Publications</span>
+                                        </TabsTrigger>
+                                        <TabsTrigger value="listings" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                            <Package className="h-5 w-5" />
+                                            <span className="hidden md:inline ml-2">Mes Annonces</span>
+                                        </TabsTrigger>
+                                        <TabsTrigger value="activities" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                            <CalendarClock className="h-5 w-5" />
+                                            <span className="hidden md:inline ml-2">Mes Activités</span>
+                                        </TabsTrigger>
+                                        <TabsTrigger value="saved" className="rounded-none shadow-none data-[state=active]:border-t-2 border-primary data-[state=active]:shadow-none -mt-px">
+                                            <Bookmark className="h-5 w-5" />
+                                            <span className="hidden md:inline ml-2">Enregistrés</span>
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="posts">
+                                        <ProfileGrid
+                                            posts={userPosts || []}
+                                            isLoading={postsLoading}
+                                            hasMore={!!(userPosts && userPosts.length >= 12)}
+                                            onLoadMore={handleLoadMore}
+                                            isLoadingMore={isLoadingMore}
+                                        />
+                                    </TabsContent>
+                                    <TabsContent value="listings">
+                                        <MyListings user={user} isActive={activeTab === 'listings'} />
+                                    </TabsContent>
+                                    <TabsContent value="activities">
+                                        <MyActivities user={user} isActive={activeTab === 'activities'} />
+                                    </TabsContent>
+                                    <TabsContent value="saved">
+                                        <MySavedItems user={user} isActive={activeTab === 'saved'} />
+                                    </TabsContent>
+                                </Tabs>
+                            </div>
+                        ) : null}
                     </div>
                 </main>
             </div>

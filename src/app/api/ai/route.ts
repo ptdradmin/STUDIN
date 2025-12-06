@@ -1,13 +1,8 @@
 
 
-import { NextRequest, NextResponse } from 'next/server';
-import { streamFlow } from '@genkit-ai/next/server';
+import { appRoute } from '@genkit-ai/next';
 import { studinAiFlow } from '@/ai/flows/studin-ai-flow';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
-export async function POST(req: NextRequest) {
-  const body = await req.json();
-
-  return streamFlow(studinAiFlow, body);
-}
+export const POST = appRoute(studinAiFlow);

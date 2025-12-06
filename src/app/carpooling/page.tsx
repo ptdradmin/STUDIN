@@ -31,17 +31,15 @@ const MapView = dynamic(() => import('@/components/map-view'), {
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse rounded-lg" />,
 });
 
-function TripCard({ trip, onContact, onReserve }: { trip: Trip, onContact: (trip: Trip) => void, onReserve: (trip: Trip) => void}) {
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const router = useRouter();
+function TripCard({ trip, onContact, onReserve }: { trip: Trip, onContact: (trip: Trip) => void, onReserve: (trip: Trip) => void }) {
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const router = useRouter();
 
-    const driverProfileRef = useMemo(() => firestore ? doc(firestore, 'users', trip.driverId) : null, [firestore, trip.driverId]);
-    const { data: driverProfile } = useDoc<UserProfile>(driverProfileRef);
-    
-    const isPassenger = user && (trip.passengerIds || []).includes(user.uid);
-    const isOwner = user && user.uid === trip.driverId;
+  const driverProfileRef = useMemo(() => firestore ? doc(firestore, 'users', trip.driverId) : null, [firestore, trip.driverId]);
+  const { data: driverProfile } = useDoc<UserProfile>(driverProfileRef);
 
+<<<<<<< HEAD
     const departureDate = trip.departureTime instanceof Timestamp ? trip.departureTime.toDate() : new Date();
 
     return (
@@ -84,28 +82,90 @@ function TripCard({ trip, onContact, onReserve }: { trip: Trip, onContact: (trip
                           )}
                     </div>
                 </div>
+=======
+  const isPassenger = !!(user && (trip.passengerIds || []).includes(user.uid));
+  const isOwner = !!(user && user.uid === trip.driverId);
 
-                <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
-                    <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
-                    {user ? (
-                      <>
-                          <Button size="sm" onClick={(e) => {e.stopPropagation(); onReserve(trip);}} disabled={isOwner || trip.seatsAvailable <= 0 || isPassenger}>
-                              {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={(e) => {e.stopPropagation(); onContact(trip);}} disabled={isOwner}>
-                              <MessageSquare className="h-4 w-4" />
-                          </Button>
-                      </>
-                    ) : (
-                      <Button size="sm" onClick={(e) => {e.stopPropagation(); router.push('/login?from=/carpooling');}}>
-                          Réserver
-                      </Button>
-                    )}
-                </div>
+  const getSafeDate = useCallback((dateValue: any): Date => {
+    if (!dateValue) return new Date();
+    if (dateValue instanceof Timestamp) {
+      return dateValue.toDate();
+    }
+    if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+      return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+    }
+    if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    return new Date();
+  }, []);
 
-            </CardContent>
-        </Card>
-    );
+  return (
+    <Card className={cn("transition-shadow hover:shadow-md")}>
+      <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Image src={driverProfile?.profilePicture || `https://api.dicebear.com/7.x/micah/svg?seed=${trip.driverId}`} alt={driverProfile?.username || "conducteur"} width={48} height={48} className="rounded-full" />
+        </div>
+        <div className="hidden sm:flex flex-col items-center">
+          <p className="font-semibold text-sm">{driverProfile?.username || 'Utilisateur'}</p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500 fill-yellow-500" /> 4.9</p>
+        </div>
+        <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            <div>
+              <p className="font-medium text-sm text-muted-foreground">Départ</p>
+              <p className="font-semibold">{trip.departureCity}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-secondary" />
+            <div>
+              <p className="font-medium text-sm text-muted-foreground">Arrivée</p>
+              <p className="font-semibold">{trip.arrivalCity}</p>
+            </div>
+          </div>
+          <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+            <div className="text-center">
+              <p className="font-medium text-sm text-muted-foreground">{getSafeDate(trip.departureTime).toLocaleDateString()}</p>
+              <p className="font-semibold">{getSafeDate(trip.departureTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+            {trip.seatsAvailable > 0 ? (
+              <Badge variant="outline" className="flex items-center gap-1">
+                {/* <Users className="h-4 w-4" /> */}
+                {trip.seatsAvailable}
+              </Badge>
+            ) : (
+              <Badge variant="destructive">Complet</Badge>
+            )}
+          </div>
+        </div>
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
+
+        <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+          <p className="text-xl font-bold">{trip.pricePerSeat}€</p>
+          {user ? (
+            <>
+              <Button size="sm" onClick={(e) => { e.stopPropagation(); onReserve(trip); }} disabled={isOwner || trip.seatsAvailable <= 0 || isPassenger}>
+                {isPassenger ? 'Réservé' : (trip.seatsAvailable > 0 ? 'Réserver' : 'Complet')}
+              </Button>
+              <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onContact(trip); }} disabled={isOwner}>
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" onClick={(e) => { e.stopPropagation(); router.push('/login?from=/carpooling'); }}>
+              Réserver
+            </Button>
+          )}
+        </div>
+
+      </CardContent>
+    </Card>
+  );
 }
 
 function TripListSkeleton() {
@@ -117,18 +177,18 @@ function TripListSkeleton() {
             <div className="flex items-center gap-3">
               <Skeleton className="h-12 w-12 rounded-full" />
             </div>
-             <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center w-full">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-5 w-24" />
-                <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
-                   <Skeleton className="h-5 w-20" />
-                   <Skeleton className="h-5 w-8" />
-                </div>
-             </div>
-             <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
-                <Skeleton className="h-8 w-16" />
-                <Skeleton className="h-9 w-20" />
-             </div>
+            <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 gap-4 items-center w-full">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-24" />
+              <div className="col-span-2 sm:col-span-1 flex justify-between sm:justify-end items-center gap-4">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-8" />
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-2 border-l pl-4 ml-4">
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-9 w-20" />
+            </div>
           </div>
         </Card>
       ))}
@@ -142,7 +202,7 @@ export default function CarpoolingPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
@@ -150,41 +210,61 @@ export default function CarpoolingPage() {
   const [departureFilter, setDepartureFilter] = useState('');
   const [arrivalFilter, setArrivalFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
-  
+
   const tripsCollection = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'carpoolings');
   }, [firestore]);
 
-  const {data: trips, isLoading } = useCollection<Trip>(tripsCollection);
-  
+  const { data: trips, isLoading } = useCollection<Trip>(tripsCollection);
+
   const [clientTrips, setClientTrips] = useState<Trip[] | null>(null);
-  
+
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+<<<<<<< HEAD
+=======
+  const getSafeDate = useCallback((dateValue: any): Date => {
+    if (!dateValue) return new Date();
+    if (dateValue instanceof Timestamp) {
+      return dateValue.toDate();
+    }
+    if (typeof dateValue === 'object' && 'seconds' in dateValue && 'nanoseconds' in dateValue) {
+      return new Timestamp(dateValue.seconds, dateValue.nanoseconds).toDate();
+    }
+    if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    return new Date();
+  }, []);
+
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
   useEffect(() => {
     if (trips && isClient) {
-        // Generate random coordinates only on the client-side
-        const tripsWithArrivalCoords = trips.map(trip => ({
-            ...trip,
-            arrivalCoordinates: [
-              (trip.coordinates[0] || 50.46) + (Math.random() - 0.5) * 0.5,
-              (trip.coordinates[1] || 4.87) + (Math.random() - 0.5) * 0.5,
-            ]
-        }));
-        setClientTrips(tripsWithArrivalCoords);
+      // Generate random coordinates only on the client-side
+      const tripsWithArrivalCoords = trips.map(trip => ({
+        ...trip,
+        arrivalCoordinates: [
+          (trip.coordinates[0] || 50.46) + (Math.random() - 0.5) * 0.5,
+          (trip.coordinates[1] || 4.87) + (Math.random() - 0.5) * 0.5,
+        ] as [number, number]
+      }));
+      setClientTrips(tripsWithArrivalCoords);
     } else {
-        setClientTrips(trips);
+      setClientTrips(trips);
     }
   }, [trips, isClient]);
 
 
   const filteredTrips = useMemo(() => {
     if (!clientTrips) return [];
-    
+
     return clientTrips.filter(trip => {
       const departureMatch = departureFilter ? trip.departureCity.toLowerCase().includes(departureFilter.toLowerCase()) : true;
       const arrivalMatch = arrivalFilter ? trip.arrivalCity.toLowerCase().includes(arrivalFilter.toLowerCase()) : true;
@@ -196,72 +276,72 @@ export default function CarpoolingPage() {
   const handleContact = async (trip: Trip) => {
     if (isUserLoading) return;
     if (!user || !firestore) {
-        router.push('/login?from=/carpooling');
-        return;
+      router.push('/login?from=/carpooling');
+      return;
     }
     if (trip.driverId === user.uid) {
-        toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas vous contacter vous-même." });
-        return;
+      toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas vous contacter vous-même." });
+      return;
     }
 
     const conversationId = await getOrCreateConversation(firestore, user.uid, trip.driverId);
     if (conversationId) {
-        router.push(`/messages/${conversationId}`);
+      router.push(`/messages/${conversationId}`);
     } else {
-        toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
+      toast({ title: "Erreur", description: "Impossible de démarrer la conversation.", variant: "destructive" });
     }
   };
 
   const handleReserve = async (trip: Trip) => {
-      if (!user || !firestore) {
-          router.push('/login?from=/carpooling');
-          return;
-      }
-      if (trip.driverId === user.uid) {
-          toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas réserver votre propre trajet." });
-          return;
-      }
-      if (trip.passengerIds.includes(user.uid)) {
-          toast({ title: "Déjà réservé", description: "Vous avez déjà une place pour ce trajet." });
-          return;
-      }
-      if (trip.seatsAvailable <= 0) {
-          toast({ variant: "destructive", title: "Complet", description: "Ce trajet est malheureusement complet." });
-          return;
-      }
+    if (!user || !firestore) {
+      router.push('/login?from=/carpooling');
+      return;
+    }
+    if (trip.driverId === user.uid) {
+      toast({ variant: "destructive", title: "Action impossible", description: "Vous ne pouvez pas réserver votre propre trajet." });
+      return;
+    }
+    if (trip.passengerIds.includes(user.uid)) {
+      toast({ title: "Déjà réservé", description: "Vous avez déjà une place pour ce trajet." });
+      return;
+    }
+    if (trip.seatsAvailable <= 0) {
+      toast({ variant: "destructive", title: "Complet", description: "Ce trajet est malheureusement complet." });
+      return;
+    }
 
-      const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
+    const carpoolingRef = doc(firestore, 'carpoolings', trip.id);
 
-      updateDocumentNonBlocking(carpoolingRef, {
-          seatsAvailable: increment(-1),
-          passengerIds: arrayUnion(user.uid)
-      });
-      
-      toast({
-          title: "Réservation en cours...",
-          description: `Votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est en cours de traitement.`,
-      });
+    updateDocumentNonBlocking(carpoolingRef, {
+      seatsAvailable: increment(-1),
+      passengerIds: arrayUnion(user.uid)
+    });
 
-      // We can create the notification non-blockingly as well
-      createNotification(firestore, {
-          type: 'carpool_booking',
-          senderId: user.uid,
-          recipientId: trip.driverId,
-          message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
-          relatedId: trip.id,
-      });
+    toast({
+      title: "Réservation en cours...",
+      description: `Votre demande pour le trajet ${trip.departureCity} - ${trip.arrivalCity} est en cours de traitement.`,
+    });
+
+    // We can create the notification non-blockingly as well
+    createNotification(firestore, {
+      type: 'carpool_booking',
+      senderId: user.uid,
+      recipientId: trip.driverId,
+      message: `a réservé une place pour votre trajet ${trip.departureCity} - ${trip.arrivalCity}.`,
+      relatedId: trip.id,
+    });
   };
-  
+
   const handleSelectTrip = (trip: Trip) => {
-      setSelectedTrip(trip);
-      setViewMode('map');
+    setSelectedTrip(trip);
+    setViewMode('map');
   }
 
   const handleCreateClick = () => {
     if (isUserLoading) return;
     if (!user) {
-        router.push('/login?from=/carpooling');
-        return;
+      router.push('/login?from=/carpooling');
+      return;
     }
     setShowCreateForm(true);
   }
@@ -271,25 +351,25 @@ export default function CarpoolingPage() {
       {user && <SocialSidebar />}
       <div className="flex flex-col flex-1">
         {showCreateForm && <CreateTripForm onClose={() => setShowCreateForm(false)} />}
-        
+
         {user ? (
-            <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex-1 max-w-md">
-                    <GlobalSearch />
-                </div>
-                <div className="flex items-center gap-2">
-                    <NotificationsDropdown />
-                </div>
-            </header>
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex-1 max-w-md">
+              <GlobalSearch />
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationsDropdown />
+            </div>
+          </header>
         ) : (
-            <Navbar />
+          <Navbar />
         )}
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
-           <div className="mb-8">
-             <h1 className="text-3xl font-bold tracking-tight">Covoiturage</h1>
-             <p className="text-muted-foreground mt-1">Partagez vos trajets, économisez et rencontrez d'autres étudiants.</p>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">Covoiturage</h1>
+            <p className="text-muted-foreground mt-1">Partagez vos trajets, économisez et rencontrez d'autres étudiants.</p>
+          </div>
 
           <Card className="mb-6">
             <CardHeader>
@@ -297,18 +377,18 @@ export default function CarpoolingPage() {
             </CardHeader>
             <CardContent>
               <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end" onSubmit={e => e.preventDefault()}>
-                  <div className="space-y-2">
-                      <Label htmlFor="departure">Lieu de départ</Label>
-                      <Input id="departure" placeholder="Ex: Bruxelles" value={departureFilter} onChange={e => setDepartureFilter(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="arrival">Lieu d'arrivée</Label>
-                      <Input id="arrival" placeholder="Ex: Namur" value={arrivalFilter} onChange={e => setArrivalFilter(e.target.value)}/>
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="date">Date</Label>
-                      <Input id="date" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="departure">Lieu de départ</Label>
+                  <Input id="departure" placeholder="Ex: Bruxelles" value={departureFilter} onChange={e => setDepartureFilter(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="arrival">Lieu d'arrivée</Label>
+                  <Input id="arrival" placeholder="Ex: Namur" value={arrivalFilter} onChange={e => setArrivalFilter(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input id="date" type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)} />
+                </div>
               </form>
             </CardContent>
           </Card>
@@ -343,6 +423,7 @@ export default function CarpoolingPage() {
             </div>
 
             {viewMode === 'list' ? (
+<<<<<<< HEAD
                 <div className="space-y-4">
                   {isLoading && <TripListSkeleton />}
                   {!isLoading && filteredTrips && filteredTrips.map(trip => (
@@ -360,11 +441,29 @@ export default function CarpoolingPage() {
                     </Card>
                   )}
                 </div>
+=======
+              <div className="space-y-4">
+                {isLoading && <TripListSkeleton />}
+                {!isLoading && filteredTrips && filteredTrips.map(trip => (
+                  <div key={trip.id} onClick={() => handleSelectTrip(trip)} className="cursor-pointer">
+                    <TripCard trip={trip} onContact={handleContact} onReserve={handleReserve} />
+                  </div>
+                ))}
+                {!isLoading && filteredTrips && filteredTrips.length === 0 && (
+                  <Card className="text-center py-20">
+                    <CardContent>
+                      <h3 className="text-xl font-semibold">Aucun trajet ne correspond à votre recherche</h3>
+                      <p className="text-muted-foreground mt-2">Essayez d'élargir vos critères ou soyez le premier à proposer un trajet !</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
             ) : (
               <Card>
                 <CardContent className="p-2">
                   {isClient && <div className="h-[600px] w-full rounded-md overflow-hidden">
-                      <MapView items={filteredTrips || []} itemType="trip" selectedItem={selectedTrip} onMarkerClick={setSelectedTrip} />
+                    <MapView items={filteredTrips || []} itemType="trip" selectedItem={selectedTrip} onMarkerClick={setSelectedTrip} />
                   </div>}
                 </CardContent>
               </Card>

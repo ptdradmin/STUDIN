@@ -61,6 +61,11 @@
   }
 }
 
+.app-wrapper {
+  @apply min-h-screen bg-background border-x border-border/50 shadow-2xl mx-auto max-w-[1920px]; /* Max width 1920px for large monitors */
+}
+
+
 .leaflet-popup-content-wrapper {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

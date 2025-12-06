@@ -21,15 +21,15 @@ import { getInitials } from '@/lib/avatars';
 
 
 const reelSchema = z.object({
-  caption: z.string().min(1, 'La légende est requise'),
-  songTitle: z.string().optional(),
-  audioUrl: z.string().optional(),
+    caption: z.string().min(1, 'La légende est requise'),
+    songTitle: z.string().optional(),
+    audioUrl: z.string().optional(),
 });
 
 type ReelFormInputs = z.infer<typeof reelSchema>;
 
 interface CreateReelFormProps {
-  onClose: () => void;
+    onClose: () => void;
 }
 
 const pixabayMusic = [
@@ -39,7 +39,7 @@ const pixabayMusic = [
     { title: "Powerful Electro", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2022/01/24/audio_33fa8130aa.mp3?filename=powerful-electro-by-penguinmusic-from-pixabay.mp3" },
     { title: "Electronic Rock", artist: "AlexGrohl", url: "https://cdn.pixabay.com/download/audio/2022/08/02/audio_130d7b9c9b.mp3?filename=electronic-rock-king-around-here-by-alex-grohl-from-pixabay.mp3" },
     { title: "Cyber-Attack", artist: "SoundGallery", url: "https://cdn.pixabay.com/download/audio/2023/04/18/audio_70e8832a8a.mp3?filename=cyber-attack-by-soundgallery-by-pixabay.mp3" },
-    
+
     // Hip Hop / Rap / Trap
     { title: "The Urban Groove", artist: "SoulProdMusic", url: "https://cdn.pixabay.com/download/audio/2023/04/24/audio_b72bccc038.mp3?filename=the-urban-groove-by-soulprodmusic-from-pixabay.mp3" },
     { title: "No-Copyright-Rap", artist: "The R-Man", url: "https://cdn.pixabay.com/download/audio/2023/08/03/audio_a167da9142.mp3?filename=no-copyright-rap-by-the-r-man-from-pixabay.mp3" },
@@ -53,9 +53,9 @@ const pixabayMusic = [
     // Lo-fi and Chill
     { title: "Lofi Chill", artist: "FASSounds", url: "https://cdn.pixabay.com/download/audio/2023/08/03/audio_54b28f363c.mp3?filename=lofi-chill-173895.mp3" },
     { title: "The Beat of Nature", artist: "Olexy", url: "https://cdn.pixabay.com/download/audio/2022/10/11/audio_14f3b4dce5.mp3?filename=the-beat-of-nature-122841.mp3" },
-    { title: "Modern Vlog", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2023/03/10/audio_51a2935041.mp3?filename=modern-vlog-140795.mp3"},
+    { title: "Modern Vlog", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2023/03/10/audio_51a2935041.mp3?filename=modern-vlog-140795.mp3" },
     { title: "Chill Abstract", artist: "Coma-Media", url: "https://cdn.pixabay.com/download/audio/2022/01/21/audio_873dff0b23.mp3?filename=chill-abstract-intention-12099.mp3" },
-    
+
     // Hardcore / Rock
     { title: "Metal", artist: "AlexGrohl", url: "https://cdn.pixabay.com/download/audio/2022/08/02/audio_99b5963a78.mp3?filename=metal-by-alex-grohl-from-pixabay.mp3" },
     { title: "At the Top", artist: "ItsAGun", url: "https://cdn.pixabay.com/download/audio/2022/08/04/audio_33593a236f.mp3?filename=at-the-top-by-itsagundont-worry-from-pixabay.mp3" },
@@ -91,7 +91,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
                 await audioRef.current.play();
                 setCurrentlyPlaying(song.url);
             } catch (error) {
-                 if (error instanceof DOMException && error.name === 'AbortError') {
+                if (error instanceof DOMException && error.name === 'AbortError') {
                     // This can happen on rapid clicks, safely ignore.
                 } else {
                     console.error("Audio play error:", error);
@@ -100,7 +100,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
             }
         }
     };
-    
+
     useEffect(() => {
         const audio = new Audio();
         audio.preload = 'metadata';
@@ -108,7 +108,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
         const handleEnded = () => setCurrentlyPlaying(null);
         audioRef.current.addEventListener('ended', handleEnded);
-        
+
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -119,13 +119,13 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
     const filterSongs = (songs: typeof pixabayMusic) => {
         if (!searchQuery) return songs;
-        return songs.filter(song => 
+        return songs.filter(song =>
             song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             song.artist.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }
 
-    const renderSongList = (songs: {title: string, artist: string, url: string}[]) => (
+    const renderSongList = (songs: { title: string, artist: string, url: string }[]) => (
         <div className="space-y-2">
             {songs.map(song => (
                 <div key={song.url} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
@@ -147,9 +147,9 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
                 <DialogHeader>
                     <DialogTitle>Choisir un son</DialogTitle>
                 </DialogHeader>
-                 <div className="relative">
+                <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input 
+                    <Input
                         placeholder="Rechercher une musique..."
                         className="pl-10"
                         value={searchQuery}
@@ -169,7 +169,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
                     </TabsContent>
                 </Tabs>
                 <DialogFooter>
-                     <Button variant="secondary" onClick={onClose}>Fermer</Button>
+                    <Button variant="secondary" onClick={onClose}>Fermer</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -178,6 +178,7 @@ function MusicSelectionDialog({ onSelectSong, onClose }: { onSelectSong: (song: 
 
 
 export default function CreateReelForm({ onClose }: CreateReelFormProps) {
+<<<<<<< HEAD
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReelFormInputs>({
     resolver: zodResolver(reelSchema),
   });
@@ -267,71 +268,159 @@ export default function CreateReelForm({ onClose }: CreateReelFormProps) {
             updateDocumentNonBlocking(newDocRef, {
                 videoUrl: downloadURL
             });
+=======
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReelFormInputs>({
+        resolver: zodResolver(reelSchema),
+    });
+
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const { toast } = useToast();
+    const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
+    const storage = useStorage();
+    const [videoFile, setVideoFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [showMusicSelection, setShowMusicSelection] = useState(false);
+    const [selectedSong, setSelectedSong] = useState<{ title: string, url: string } | null>(null);
+
+    const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setVideoFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                    setPreviewUrl(reader.result);
+                }
+            };
+            reader.readAsDataURL(file);
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
         }
-    );
-  };
+    };
 
-  return (
-    <>
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md p-0">
-        <DialogHeader className="p-4 pb-0 border-b text-center">
-           <DialogTitle className="text-base font-semibold">Créer un nouveau Reel</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-           <div className="p-4 space-y-4">
-                <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-4">
-                    {previewUrl ? (
-                         <div className="relative w-full h-full">
-                            <video src={previewUrl} controls className="w-full h-full rounded-md" />
+    const handleSelectSong = (song: { title: string, url: string }) => {
+        setSelectedSong(song);
+        setValue('songTitle', song.title);
+        setValue('audioUrl', song.url);
+        setShowMusicSelection(false);
+    };
+
+    const onSubmit: SubmitHandler<ReelFormInputs> = async (data) => {
+        if (!user || !firestore || !storage) {
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Vous devez être connecté pour publier.' });
+            return;
+        }
+        if (!videoFile) {
+            toast({ variant: 'destructive', title: 'Erreur', description: "Une vidéo est requise." });
+            return;
+        }
+
+        setLoading(true);
+        toast({ title: 'Publication...', description: 'Votre Reel est en cours de téléversement.' });
+        onClose();
+
+        const newDocRef = doc(collection(firestore, 'reels'));
+
+        // Non-blocking UI update
+        setDocumentNonBlocking(newDocRef, {
+            ...data,
+            id: newDocRef.id,
+            userId: user.uid,
+            username: user.displayName?.split(' ')[0] || user.email?.split('@')[0],
+            userAvatarUrl: user.photoURL,
+            createdAt: serverTimestamp(),
+            likes: [],
+            comments: [],
+            videoUrl: previewUrl, // temporary local URL for optimistic UI
+        }, { merge: true });
+
+        const videoRef = storageRef(storage, `reels/${newDocRef.id}/${videoFile.name}`);
+        const uploadTask = uploadBytesResumable(videoRef, videoFile);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                // You can use this progress to show a more detailed loader if needed
+            },
+            (error) => {
+                setLoading(false);
+                updateDoc(newDocRef, { uploadError: true });
+                toast({ variant: "destructive", title: "Erreur de téléversement", description: "La vidéo n'a pas pu être envoyée." });
+            },
+            async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                // Finalize the document with the real URL
+                await updateDoc(newDocRef, {
+                    videoUrl: downloadURL
+                });
+                // setLoading(false); // No need as we close the dialog instantly
+            }
+        );
+    };
+
+    return (
+        <>
+            <Dialog open={true} onOpenChange={onClose}>
+                <DialogContent className="sm:max-w-md p-0">
+                    <DialogHeader className="p-4 pb-0 border-b text-center">
+                        <DialogTitle className="text-base font-semibold">Créer un nouveau Reel</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <div className="p-4 space-y-4">
+                            <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-4">
+                                {previewUrl ? (
+                                    <div className="relative w-full h-full">
+                                        <video src={previewUrl} controls className="w-full h-full rounded-md" />
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-muted-foreground">
+                                        <Film className="h-16 w-16 mx-auto" strokeWidth={1} />
+                                        <p className="mt-2 text-sm">Téléchargez une vidéo</p>
+                                        <Button type="button" variant="link" asChild className="mt-1">
+                                            <Label htmlFor="video-upload" className="cursor-pointer">
+                                                Sélectionner depuis l'ordinateur
+                                            </Label>
+                                        </Button>
+                                        <Input id="video-upload" type="file" accept="video/*" className="sr-only" onChange={handleVideoUpload} />
+                                    </div>
+                                )}
+                            </div>
+
+                            {user && (
+                                <div className="flex items-start gap-3">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarImage src={user.photoURL ?? undefined} />
+                                        <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+                                    </Avatar>
+                                    <Textarea
+                                        id="caption"
+                                        {...register('caption')}
+                                        placeholder="Écrivez une légende..."
+                                        className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[60px]"
+                                    />
+                                </div>
+                            )}
+                            {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
+
+                            <div className="border-t pt-4">
+                                <Button variant="ghost" className="w-full justify-start p-0" type="button" onClick={() => setShowMusicSelection(true)}>
+                                    <Music className="h-4 w-4 mr-2" />
+                                    {selectedSong ? selectedSong.title : 'Ajouter de la musique'}
+                                </Button>
+                            </div>
+
                         </div>
-                    ) : (
-                        <div className="text-center text-muted-foreground">
-                            <Film className="h-16 w-16 mx-auto" strokeWidth={1} />
-                            <p className="mt-2 text-sm">Téléchargez une vidéo</p>
-                             <Button type="button" variant="link" asChild className="mt-1">
-                                <Label htmlFor="video-upload" className="cursor-pointer">
-                                    Sélectionner depuis l'ordinateur
-                                </Label>
+                        <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
+                            <Button type="submit" disabled={loading || isUserLoading || !videoFile} className="w-full">
+                                {loading ? 'Publication...' : 'Partager'}
                             </Button>
-                            <Input id="video-upload" type="file" accept="video/*" className="sr-only" onChange={handleVideoUpload} />
-                        </div>
-                    )}
-                </div>
-
-                {user && (
-                    <div className="flex items-start gap-3">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={user.photoURL ?? undefined} />
-                            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
-                        </Avatar>
-                         <Textarea
-                            id="caption"
-                            {...register('caption')}
-                            placeholder="Écrivez une légende..."
-                            className="text-base border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 shadow-none min-h-[60px]"
-                        />
-                    </div>
-                )}
-                {errors.caption && <p className="text-xs text-destructive mt-2">{errors.caption.message}</p>}
-                
-                <div className="border-t pt-4">
-                    <Button variant="ghost" className="w-full justify-start p-0" type="button" onClick={() => setShowMusicSelection(true)}>
-                        <Music className="h-4 w-4 mr-2" />
-                        {selectedSong ? selectedSong.title : 'Ajouter de la musique'}
-                    </Button>
-                </div>
-
-           </div>
-          <DialogFooter className="p-4 flex justify-end items-center bg-background border-t">
-            <Button type="submit" disabled={loading || isUserLoading || !videoFile} className="w-full">
-              {loading ? 'Publication...' : 'Partager'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-    {showMusicSelection && <MusicSelectionDialog onSelectSong={handleSelectSong} onClose={() => setShowMusicSelection(false)} />}
-    </>
-  );
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+            {showMusicSelection && <MusicSelectionDialog onSelectSong={handleSelectSong} onClose={() => setShowMusicSelection(false)} />}
+        </>
+    );
 }

@@ -17,10 +17,20 @@ service cloud.firestore {
     // write: owner only
     //------------------------------------------------------------
     match /users/{userId} {
+<<<<<<< HEAD
       allow read: if isSignedIn();
       allow write: if isOwner(userId);
 
       // Subcollections
+=======
+      allow get: if true;
+      allow list: if true;
+      // Allow user to create their own profile document if the user ID matches
+      allow create: if request.auth.uid == userId;
+      // Allow user to update/delete their own profile
+      allow update, delete: if isOwner(userId);
+      
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
       match /favorites/{favoriteId} {
         allow read, write: if isOwner(userId);
       }
@@ -38,9 +48,16 @@ service cloud.firestore {
     // write: owner only
     //------------------------------------------------------------
     match /posts/{postId} {
+<<<<<<< HEAD
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+=======
+      allow get: if true;
+      allow list: if true;
+      allow create, update: if request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth.uid == resource.data.userId;
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
     }
 
     //------------------------------------------------------------

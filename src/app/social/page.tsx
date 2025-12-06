@@ -1,7 +1,7 @@
 
 'use client';
 
-import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, QueryConstraint } from 'firebase/firestore';
 import type { Post, Favorite, UserProfile } from '@/lib/types';
 import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
@@ -26,7 +26,7 @@ export default function SocialPage() {
     const router = useRouter();
     const firestore = useFirestore();
     const [showCreatePost, setShowCreatePost] = useState(false);
-    
+
     const [posts, setPosts] = useState<Post[]>([]);
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [hasMore, setHasMore] = useState(true);
@@ -45,7 +45,7 @@ export default function SocialPage() {
         return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
     }, [firestore, user]);
     const { data: favoriteItems } = useCollection<Favorite>(userFavoritesQuery);
-    
+
     const savedPostMap = useMemo(() => {
         const map = new Map<string, string>();
         if (favoriteItems) {
@@ -64,13 +64,17 @@ export default function SocialPage() {
 
     const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
         if (!firestore) return;
+<<<<<<< HEAD
         
         // Don't fetch if a fetch is already in progress, unless it's the initial fetch
         if (isLoading && lastDoc) return;
+=======
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
 
         setIsLoading(true);
 
         const baseQuery = collection(firestore, 'posts');
+<<<<<<< HEAD
         let constraints = [];
         
         // If user follows people, get their posts. Otherwise, get latest public posts.
@@ -80,14 +84,24 @@ export default function SocialPage() {
         
         constraints.push(orderBy('createdAt', 'desc'));
         
+=======
+        let constraints: QueryConstraint[] = [
+            orderBy('createdAt', 'desc'),
+            limit(POST_BATCH_SIZE)
+        ];
+
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
         if (lastDoc) {
             constraints.push(startAfter(lastDoc));
         }
 
+<<<<<<< HEAD
         constraints.push(limit(POST_BATCH_SIZE));
         
+=======
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
         const postQuery = query(baseQuery, ...constraints);
-        
+
         try {
             const documentSnapshots = await getDocs(postQuery);
             const newPosts = documentSnapshots.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
@@ -102,6 +116,7 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
+<<<<<<< HEAD
     }, [firestore, currentUserProfile, isLoading]);
     
     useEffect(() => {
@@ -111,87 +126,96 @@ export default function SocialPage() {
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUserProfile]);
+=======
+    }, [firestore]);
+
+    useEffect(() => {
+        // Initial fetch
+        fetchPosts();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
 
     useEffect(() => {
         if (isInView && hasMore && !isLoading && lastVisible) {
             fetchPosts(lastVisible);
         }
     }, [isInView, hasMore, isLoading, lastVisible, fetchPosts]);
-    
+
     if (isUserLoading || profileLoading || (isLoading && posts.length === 0)) {
-      return <PageSkeleton />;
+        return <PageSkeleton />;
     }
 
     if (!user) {
-      return <PageSkeleton />;
+        return <PageSkeleton />;
     }
 
     const noPostsToShow = posts.length === 0 && !isLoading;
     const isNewUser = !currentUserProfile?.followingIds || currentUserProfile.followingIds.length === 0;
 
     return (
-       <div className="flex h-screen w-full bg-background">
-        {user && <SocialSidebar />}
-        
-        <div className="flex flex-col flex-1 h-screen">
-          {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
-          
-          <header className="sticky top-0 z-30 flex h-16 flex-shrink-0 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex-1 max-w-md">
-                <GlobalSearch />
-            </div>
+        <div className="flex h-screen w-full bg-background">
+            {user && <SocialSidebar />}
 
-            <div className="flex items-center gap-2">
-                {user && <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Créer
-                </Button>}
-                {user && <NotificationsDropdown />}
-            </div>
-          </header>
-          
-          <div className="flex-1 overflow-hidden">
-            <div className="h-full overflow-y-auto pb-16 md:pb-0">
-               <div className="container mx-auto max-w-6xl p-0 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] lg:gap-10">
-                   {/* Main Feed */}
-                   <div className="space-y-4">
-                      {user && <div className="lg:hidden">
-                          <SuggestedUsersCarousel />
-                      </div>}
-                       {isLoading && posts.length === 0 ? (
-                            <>
-                                {Array.from({length: 3}).map((_, i) => <CardSkeleton key={i} />)}
-                            </>
-                       ) : noPostsToShow ? (
-                         <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
-                              <p className="text-lg font-semibold">{isNewUser ? "Bienvenue sur STUD'IN !" : "Votre fil est vide"}</p>
-                              <p className="text-sm">{isNewUser ? "Suivez des personnes pour voir leurs publications ici." : "Les publications récentes de la communauté apparaîtront ici."}</p>
-                          </div>
-                       ) : (
-                          <>
-                            {posts.map(post => (
-                                <PostCard 
-                                    key={post.id} 
-                                    post={post}
-                                    isInitiallySaved={savedPostMap.has(post.id)}
-                                />
-                            ))}
-                            <div ref={loadMoreRef} className="h-10 text-center">
-                                {isLoading && posts.length > 0 && <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />}
-                                {!hasMore && posts.length > 0 && <p className="text-sm text-muted-foreground">Vous avez tout vu !</p>}
+            <div className="flex flex-col flex-1 h-screen">
+                {showCreatePost && <CreatePostForm onClose={() => setShowCreatePost(false)} />}
+
+                <header className="sticky top-0 z-30 flex h-16 flex-shrink-0 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                    <div className="flex-1 max-w-md">
+                        <GlobalSearch />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        {user && <Button onClick={() => setShowCreatePost(true)} size="sm" className="hidden md:flex items-center gap-2">
+                            <Plus className="h-4 w-4" />
+                            Créer
+                        </Button>}
+                        {user && <NotificationsDropdown />}
+                    </div>
+                </header>
+
+                <div className="flex-1 overflow-hidden">
+                    <div className="h-full overflow-y-auto pb-16 md:pb-0">
+                        <div className="container mx-auto max-w-6xl p-0 md:p-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] lg:gap-10">
+                            {/* Main Feed */}
+                            <div className="space-y-4">
+                                {user && <div className="lg:hidden">
+                                    <SuggestedUsersCarousel />
+                                </div>}
+                                {isLoading && posts.length === 0 ? (
+                                    <>
+                                        {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
+                                    </>
+                                ) : noPostsToShow ? (
+                                    <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
+                                        <p className="text-lg font-semibold">{isNewUser ? "Bienvenue sur STUD'IN !" : "Votre fil est vide"}</p>
+                                        <p className="text-sm">{isNewUser ? "Suivez des personnes pour voir leurs publications ici." : "Les publications récentes de la communauté apparaîtront ici."}</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {posts.map(post => (
+                                            <PostCard
+                                                key={post.id}
+                                                post={post}
+                                                isInitiallySaved={savedPostMap.has(post.id)}
+                                            />
+                                        ))}
+                                        <div ref={loadMoreRef} className="h-10 text-center">
+                                            {isLoading && posts.length > 0 && <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />}
+                                            {!hasMore && posts.length > 0 && <p className="text-sm text-muted-foreground">Vous avez tout vu !</p>}
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                          </>
-                      )}
-                  </div>
 
-                  {/* Right Sidebar */}
-                  {user && <aside className="hidden lg:block">
-                       <SocialFeedSuggestions />
-                  </aside>}
-             </div>
+                            {/* Right Sidebar */}
+                            {user && <aside className="hidden lg:block">
+                                <SocialFeedSuggestions />
+                            </aside>}
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     );
 }

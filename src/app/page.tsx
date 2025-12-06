@@ -42,21 +42,21 @@ const services = [
 ];
 
 const howItWorksSteps = [
-  {
-    icon: <UserPlus className="h-8 w-8" />,
-    title: "1. Créez votre profil",
-    description: "Inscrivez-vous gratuitement en quelques clics et personnalisez votre profil pour rejoindre la communauté."
-  },
-  {
-    icon: <Search className="h-8 w-8" />,
-    title: "2. Explorez les services",
-    description: "Parcourez les annonces de logement, les offres de covoiturage, les tuteurs disponibles et bien plus encore."
-  },
-  {
-    icon: <MessageSquare className="h-8 w-8" />,
-    title: "3. Connectez-vous",
-    description: "Contactez directement d'autres étudiants via la messagerie sécurisée pour vous organiser."
-  }
+    {
+        icon: <UserPlus className="h-8 w-8" />,
+        title: "1. Créez votre profil",
+        description: "Inscrivez-vous gratuitement en quelques clics et personnalisez votre profil pour rejoindre la communauté."
+    },
+    {
+        icon: <Search className="h-8 w-8" />,
+        title: "2. Explorez les services",
+        description: "Parcourez les annonces de logement, les offres de covoiturage, les tuteurs disponibles et bien plus encore."
+    },
+    {
+        icon: <MessageSquare className="h-8 w-8" />,
+        title: "3. Connectez-vous",
+        description: "Contactez directement d'autres étudiants via la messagerie sécurisée pour vous organiser."
+    }
 ];
 
 export default function HomePage() {
@@ -98,27 +98,27 @@ export default function HomePage() {
 
                 {/* How It Works Section */}
                 <section className="py-16 md:py-24 bg-background">
-                  <div className="container mx-auto px-4">
-                    <div className="mx-auto mb-12 max-w-3xl text-center">
-                        <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                            Comment ça marche ?
-                        </h2>
-                        <p className="mt-4 text-lg text-muted-foreground">
-                           Commencez à simplifier votre vie étudiante en 3 étapes faciles.
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      {howItWorksSteps.map((step) => (
-                        <div key={step.title} className="flex flex-col items-center text-center p-6 border border-border/50 rounded-lg">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
-                            {step.icon}
-                          </div>
-                          <h3 className="text-xl font-semibold">{step.title}</h3>
-                          <p className="text-muted-foreground mt-2">{step.description}</p>
+                    <div className="container mx-auto px-4">
+                        <div className="mx-auto mb-12 max-w-3xl text-center">
+                            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                                Comment ça marche ?
+                            </h2>
+                            <p className="mt-4 text-lg text-muted-foreground">
+                                Commencez à simplifier votre vie étudiante en 3 étapes faciles.
+                            </p>
                         </div>
-                      ))}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {howItWorksSteps.map((step) => (
+                                <div key={step.title} className="flex flex-col items-center text-center p-6 border border-border/50 rounded-lg">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                                        {step.icon}
+                                    </div>
+                                    <h3 className="text-xl font-semibold">{step.title}</h3>
+                                    <p className="text-muted-foreground mt-2">{step.description}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                  </div>
                 </section>
 
                 {/* Features Section */}
@@ -134,24 +134,27 @@ export default function HomePage() {
                         </div>
                         <div className="space-y-20">
                             {services.map((service, index) => (
-                                <div key={service.name} className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                                    <div className={`relative aspect-video rounded-xl overflow-hidden shadow-lg transition-transform duration-300 hover:scale-105 ${index % 2 === 0 ? '' : 'md:order-last'}`}>
+                                <div key={service.name} className="group grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+                                    <div className={`relative aspect-video rounded-2xl overflow-hidden shadow-xl transition-all duration-500 group-hover:shadow-2xl group-hover:scale-[1.02] ring-1 ring-border/20 ${index % 2 === 0 ? '' : 'md:order-last'}`}>
                                         <Image
                                             src={service.image}
                                             alt={service.name}
                                             fill
-                                            className="object-cover"
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
                                             sizes="(max-width: 768px) 100vw, 50vw"
                                         />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+                                            <p className="text-white font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">Découvrir {service.name}</p>
+                                        </div>
                                     </div>
-                                    <div className="text-center md:text-left">
-                                        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+                                    <div className="text-center md:text-left space-y-4">
+                                        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-2 transition-colors group-hover:bg-primary group-hover:text-white">
                                             {service.icon}
                                         </div>
-                                        <h3 className="text-2xl font-bold">{service.name}</h3>
-                                        <p className="mt-3 text-muted-foreground">{service.description}</p>
-                                        <Button asChild variant="link" className="mt-4 px-0">
-                                            <Link href={service.href || '#'}>Explorer {service.name} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                                        <h3 className="text-3xl font-bold tracking-tight">{service.name}</h3>
+                                        <p className="text-lg text-muted-foreground leading-relaxed">{service.description}</p>
+                                        <Button asChild variant="link" className="px-0 text-primary font-semibold text-lg group-hover:translate-x-2 transition-transform">
+                                            <Link href={service.href || '#'}>Explorer {service.name} <ArrowRight className="ml-2 h-5 w-5" /></Link>
                                         </Button>
                                     </div>
                                 </div>
@@ -159,21 +162,21 @@ export default function HomePage() {
                         </div>
                     </div>
                 </section>
-                
+
                 {/* Challenges Section */}
                 <section className="relative py-20 md:py-32">
                     <div className="absolute inset-0">
                         <Image
-                            src="https://images.unsplash.com/photo-1574235124952-f2882195642a?q=80&w=2070&auto=format&fit=crop"
-                            alt="Vue urbaine pour les défis"
+                            src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?auto=format&fit=crop&q=80"
+                            alt="Bruxelles Grand Place - Belgique"
                             fill
                             className="object-cover"
-                            data-ai-hint="city exploration"
+                            data-ai-hint="Brussels Belgium city"
                         />
                         <div className="absolute inset-0 bg-black/60"></div>
                     </div>
                     <div className="container mx-auto px-4 relative z-10 text-center text-white">
-                         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/80 text-white mb-6">
+                        <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/80 text-white mb-6">
                             <Target className="h-8 w-8" />
                         </div>
                         <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Transformez votre ville en terrain de jeu</h2>
@@ -186,71 +189,80 @@ export default function HomePage() {
 
                 {/* AI Presentation Section */}
                 <section id="ai-presentation" className="py-16 md:py-24 bg-background">
-                  <div className="container mx-auto px-4">
-                    <div className="mx-auto mb-12 max-w-3xl text-center">
-                       <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-                        Alice, Votre Assistante Personnelle
-                      </h2>
-                      <p className="mt-4 text-lg text-muted-foreground">
-                        Une intelligence artificielle conçue pour vous, intégrée à votre quotidien étudiant.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {/* Alice Free */}
-                        <Card className="flex flex-col">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-2xl">
-                                    <Sparkles className="text-muted-foreground"/>
-                                    Alice
-                                </CardTitle>
-                                <CardDescription>L'assistante rapide et efficace pour tous.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex-grow space-y-4">
-                                <p className="text-3xl font-bold">Gratuit</p>
-                                <ul className="space-y-2 text-sm text-muted-foreground">
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle rapide pour des réponses instantanées.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Conversation multimodale (Texte, Voix, Image).</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse de documents et d'images.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Connaissance de la vie étudiante en Belgique.</li>
-                                </ul>
-                            </CardContent>
-                            <CardFooter>
-                                <Button variant="secondary" className="w-full" asChild>
-                                    <Link href="/subscription">Essayer maintenant</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                    <div className="container mx-auto px-4">
+                        <div className="mx-auto mb-12 max-w-3xl text-center">
+                            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                                Alice, Votre Assistante Personnelle
+                            </h2>
+                            <p className="mt-4 text-lg text-muted-foreground">
+                                Une intelligence artificielle conçue pour vous, intégrée à votre quotidien étudiant.
+                            </p>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                            {/* Alice Free */}
+                            <Card className="flex flex-col border-border/50 shadow-md relative overflow-hidden">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-2 rounded-full bg-secondary">
+                                            <Sparkles className="h-6 w-6 text-foreground" />
+                                        </div>
+                                        <CardTitle className="text-2xl font-bold">Alice</CardTitle>
+                                    </div>
+                                    <CardDescription className="text-base">L'assistante rapide et efficace pour tous.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex-grow space-y-6">
+                                    <div className="space-y-1">
+                                        <p className="text-4xl font-extrabold tracking-tight">Gratuit</p>
+                                    </div>
+                                    <ul className="space-y-3 text-sm text-muted-foreground">
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-secondary p-1 rounded-full"><Check className="h-3 w-3" /></div>Modèle standard rapide</li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-secondary p-1 rounded-full"><Check className="h-3 w-3" /></div>Conversation multimodale</li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-secondary p-1 rounded-full"><Check className="h-3 w-3" /></div>Connaissance vie étudiante</li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-secondary p-1 rounded-full"><Check className="h-3 w-3" /></div>Support de base</li>
+                                    </ul>
+                                </CardContent>
+                                <CardFooter className="pt-4">
+                                    <Button variant="outline" className="w-full h-12 text-lg border-2 hover:bg-secondary/50" asChild>
+                                        <Link href="/subscription">Essayer maintenant</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
 
-                        {/* Alice Pro */}
-                         <Card className="border-primary border-2 flex flex-col relative overflow-hidden">
-                            <div className="absolute top-0 right-0 py-1 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-bl-lg">LE PLUS PUISSANT</div>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-2xl">
-                                    <BadgeCheck className="text-primary"/>
-                                    Alice Pro
-                                </CardTitle>
-                                <CardDescription>Débloquez le potentiel maximal de l'IA.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex-grow space-y-4">
-                               <p className="text-3xl font-bold">4,99 €<span className="text-lg text-muted-foreground">/mois</span></p>
-                                <ul className="space-y-2 text-sm">
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/><strong>Toutes les fonctionnalités gratuites, plus :</strong></li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Modèle de langage avancé pour un raisonnement supérieur.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération de légendes IA pour vos publications.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Génération d'images haute qualité.</li>
-                                    <li className="flex items-start gap-2"><Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0"/>Analyse et aide à la rédaction pour vos annonces.</li>
-                                </ul>
-                            </CardContent>
-                            <CardFooter>
-                                <Button className="w-full" asChild>
-                                    <Link href="/subscription">Passer à Pro</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                            {/* Alice Pro */}
+                            <Card className="border-0 ring-1 ring-primary/50 relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-background z-0"></div>
+                                <div className="absolute top-0 right-0 py-1.5 px-4 bg-primary text-primary-foreground text-xs font-bold rounded-bl-xl shadow-lg z-10">LE PLUS PUISSANT</div>
+                                <CardHeader className="relative z-10 pb-2">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-2 rounded-full bg-primary/10">
+                                            <BadgeCheck className="h-6 w-6 text-primary" />
+                                        </div>
+                                        <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">Alice Pro</CardTitle>
+                                    </div>
+                                    <CardDescription className="text-base">Débloquez le potentiel maximal de l'IA.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="relative z-10 flex-grow space-y-6">
+                                    <div className="space-y-1">
+                                        <p className="text-4xl font-extrabold tracking-tight">4,99 €<span className="text-lg font-medium text-muted-foreground">/mois</span></p>
+                                    </div>
+                                    <ul className="space-y-3 text-sm">
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-primary/20 p-1 rounded-full"><Check className="h-3 w-3 text-primary" /></div><span className="font-medium">Toutes les fonctionnalités gratuites</span></li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-primary/20 p-1 rounded-full"><Check className="h-3 w-3 text-primary" /></div>Modèle de langage avancé (Raisonnement +)</li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-primary/20 p-1 rounded-full"><Check className="h-3 w-3 text-primary" /></div>Génération de légendes IA</li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-primary/20 p-1 rounded-full"><Check className="h-3 w-3 text-primary" /></div>Génération d'images HD</li>
+                                        <li className="flex items-start gap-3"><div className="mt-1 bg-primary/20 p-1 rounded-full"><Check className="h-3 w-3 text-primary" /></div>Analyse avancée de documents</li>
+                                    </ul>
+                                </CardContent>
+                                <CardFooter className="relative z-10 pt-4">
+                                    <Button className="w-full h-12 text-lg font-semibold shadow-primary/25 shadow-lg hover:shadow-primary/40 transition-all" asChild>
+                                        <Link href="/subscription">Passer à Pro</Link>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        </div>
                     </div>
-                  </div>
                 </section>
-                
+
             </main>
             <Footer />
         </div>

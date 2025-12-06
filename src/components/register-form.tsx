@@ -77,16 +77,64 @@ export default function RegisterForm() {
       return;
     }
 
+    // Hoist user variable for access in catch block
+    let user: any = null;
+
     try {
       // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
-      
-      // 2. Update Auth user profile (displayName, photoURL)
+      user = userCredential.user;
+
+      // Force token refresh to ensure Firestore has the latest claims/auth state
+      await user.getIdToken(true);
+
+      // Poll/Wait for global auth state to sync with the new user
+      // We use getAuth() directly to ensure we check the singleton state, bypassing any potential React Context lag
+      const { getAuth } = await import('firebase/auth');
+      const directAuth = getAuth();
+
+      let retries = 0;
+      while (!directAuth.currentUser && retries < 80) { // Wait up to 4 seconds
+        await new Promise(resolve => setTimeout(resolve, 50));
+        retries++;
+      }
+
+      if (!directAuth.currentUser) {
+        throw new Error('AUTH_SYNC_FAILED');
+      }
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const newUserProfile = {
+        id: user.uid,
+        role: 'student' as const,
+        email: data.email,
+        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        postalCode: data.postalCode,
+        city: data.city,
+        university: data.university,
+        fieldOfStudy: data.fieldOfStudy,
+        bio: '',
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: false,
+        isPro: false,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await setDoc(userDocRef, newUserProfile);
+
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       const newPhotoURL = generateAvatar(user.email || user.uid);
       await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
+<<<<<<< HEAD
       // 3. Create user document in Firestore within a transaction
       const userDocRef = doc(firestore, 'users', user.uid);
       
@@ -116,18 +164,29 @@ export default function RegisterForm() {
         transaction.set(userDocRef, newUserProfile);
       });
 
+=======
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
       toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
       });
+<<<<<<< HEAD
       
       router.push('/social');
+=======
+
+      router.push('/profile');
+>>>>>>> 3c48d387fd1e53960e222d6e72c3dbfc2b771be4
       router.refresh();
 
 
     } catch (error: any) {
       // This will now catch both Auth and Firestore errors
       let description = "Impossible de créer le compte. Veuillez réessayer.";
+
+      if (error.message === 'AUTH_SYNC_FAILED') {
+        description = "Erreur de synchronisation de l'authentification. Veuillez réessayer.";
+      }
 
       switch (error.code) {
         case 'auth/email-already-in-use':
@@ -143,16 +202,19 @@ export default function RegisterForm() {
           description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
           break;
         case 'permission-denied':
-            description = "Une erreur de permission s'est produite lors de la création de votre profil. Contactez le support.";
-            // Optionally emit a more detailed error for debugging
-             const permissionError = new FirestorePermissionError({
-                path: `users/${auth.currentUser?.uid}`,
-                operation: 'create',
-             });
-             errorEmitter.emit('permission-error', permissionError);
-            break;
+          // Use the user we captured in the try block
+          const uid = user?.uid || auth?.currentUser?.uid || 'unknown';
+          const permissionError = new FirestorePermissionError({
+            path: `users/${uid}`,
+            operation: 'create',
+            requestResourceData: { role: 'student', email: data.email },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          return;
         default:
-          description = `Une erreur inattendue est survenue. (${error.code || error.name})`;
+          if (error.message !== 'AUTH_SYNC_FAILED') {
+            description = `Une erreur inattendue est survenue. (${error.code || error.message})`;
+          }
       }
 
       toast({
@@ -160,7 +222,7 @@ export default function RegisterForm() {
         title: "Erreur d'inscription",
         description: description,
       });
-      
+
     } finally {
       setLoading(false);
     }
@@ -354,8 +416,8 @@ export default function RegisterForm() {
   );
 }
 
-    
 
-    
 
-    
+
+
+

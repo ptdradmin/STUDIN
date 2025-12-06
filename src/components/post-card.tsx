@@ -260,7 +260,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
         setComment('');
 
         updateDocumentNonBlocking(postRef, { comments: arrayUnion(newComment) });
-        
+
         if (post.userId !== user.uid) {
             createNotification(firestore, {
                 type: 'comment',
@@ -364,6 +364,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                         src={post.imageUrl}
                         alt={`Post by ${post.username}`}
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className="object-cover"
                         data-ai-hint="social media post"
                         placeholder="blur"

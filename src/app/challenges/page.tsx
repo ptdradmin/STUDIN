@@ -23,8 +23,8 @@ import { doc, collection, query, getDocs, limit, startAfter, QueryDocumentSnapsh
 import Navbar from '@/components/navbar';
 
 const MapView = dynamic(() => import('@/components/map-view'), {
-  ssr: false,
-  loading: () => <Skeleton className="h-[600px] w-full" />,
+    ssr: false,
+    loading: () => <Skeleton className="h-[600px] w-full" />,
 });
 
 export default function ChallengesPage() {
@@ -74,7 +74,7 @@ export default function ChallengesPage() {
             const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
             setChallenges(prev => reset ? newChallenges : [...prev, ...newChallenges]);
-            setLastVisible(lastDoc || null);
+            setLastVisible((lastDoc as any) || null);
             if (documentSnapshots.docs.length < 6) {
                 setHasMore(false);
             }
@@ -99,16 +99,16 @@ export default function ChallengesPage() {
     const { data: userProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const challengesWithCoords = challenges?.filter(c => c.latitude && c.longitude) || [];
-    
+
     // Defer check until mounted on client
     const canCreateChallenge = isMounted && !isUserLoading && !profileLoading && !!userProfile && (userProfile.role === 'institution' || userProfile.role === 'admin');
 
     return (
         <div className="flex min-h-screen w-full bg-background">
             {user && <SocialSidebar />}
-             {showCreateForm && <CreateChallengeForm onClose={() => setShowCreateForm(false)} />}
+            {showCreateForm && <CreateChallengeForm onClose={() => setShowCreateForm(false)} />}
             <div className="flex flex-col flex-1">
-                 {user ? (
+                {user ? (
                     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                         <div className="flex-1 max-w-md">
                             <GlobalSearch />
@@ -122,17 +122,17 @@ export default function ChallengesPage() {
                 )}
                 <main className="flex-1 overflow-y-auto p-4 md:p-6">
                     <div className="mb-8">
-                       <div className="flex items-center justify-between">
-                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Défis</h1>
-                            <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
-                         </div>
-                         {canCreateChallenge && (
-                            <Button onClick={() => setShowCreateForm(true)}>
-                                <Plus className="mr-2 h-4 w-4" /> Créer un défi
-                            </Button>
-                         )}
-                       </div>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold tracking-tight">Défis</h1>
+                                <p className="text-muted-foreground mt-1">Transformez votre ville en terrain de jeu. Relevez les défis !</p>
+                            </div>
+                            {canCreateChallenge && (
+                                <Button onClick={() => setShowCreateForm(true)}>
+                                    <Plus className="mr-2 h-4 w-4" /> Créer un défi
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
                     <Card className="mb-6">
@@ -154,7 +154,7 @@ export default function ChallengesPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                 <div>
+                                <div>
                                     <Label htmlFor="difficulty">Difficulté</Label>
                                     <Select>
                                         <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
@@ -170,7 +170,7 @@ export default function ChallengesPage() {
                                     <Label htmlFor="location">Localité</Label>
                                     <Input id="location" placeholder="Ex: Bruxelles" />
                                 </div>
-                                 <div>
+                                <div>
                                     <Label htmlFor="sort">Trier par</Label>
                                     <Select>
                                         <SelectTrigger><SelectValue placeholder="Les plus récents" /></SelectTrigger>
@@ -187,59 +187,59 @@ export default function ChallengesPage() {
 
                     <div className="flex justify-end mb-4">
                         <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                          <Button
-                            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('list')}
-                            className="px-3"
-                          >
-                            <LayoutGrid className="h-5 w-5" />
-                          </Button>
-                          <Button
-                            variant={viewMode === 'map' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('map')}
-                            className="px-3"
-                          >
-                            <Map className="h-5 w-5" />
-                          </Button>
+                            <Button
+                                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('list')}
+                                className="px-3"
+                            >
+                                <LayoutGrid className="h-5 w-5" />
+                            </Button>
+                            <Button
+                                variant={viewMode === 'map' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('map')}
+                                className="px-3"
+                            >
+                                <Map className="h-5 w-5" />
+                            </Button>
                         </div>
                     </div>
 
 
                     {isLoading ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
+                            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
                         </div>
                     ) : viewMode === 'list' && challenges ? (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {challenges.map(challenge => (
-                                <ChallengeCard key={challenge.id} challenge={challenge} />
-                            ))}
-                        </div>
-                        {!isLoading && hasMore && (
-                            <div className="text-center mt-8">
-                                <Button onClick={() => fetchChallenges(challengesQuery)} disabled={isLoadingMore}>
-                                    {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                    Charger plus
-                                </Button>
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {challenges.map(challenge => (
+                                    <ChallengeCard key={challenge.id} challenge={challenge} />
+                                ))}
                             </div>
-                        )}
-                      </>
+                            {!isLoading && hasMore && (
+                                <div className="text-center mt-8">
+                                    <Button onClick={() => fetchChallenges(challengesQuery)} disabled={isLoadingMore}>
+                                        {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Charger plus
+                                    </Button>
+                                </div>
+                            )}
+                        </>
                     ) : viewMode === 'map' ? (
-                       <Card>
-                          <CardContent className="p-2">
-                            <div className="h-[600px] w-full rounded-md overflow-hidden">
-                                <MapView items={challengesWithCoords} itemType="challenge" onMarkerClick={(item) => router.push(`/challenges/${item.id}`)} />
-                            </div>
-                          </CardContent>
+                        <Card>
+                            <CardContent className="p-2">
+                                <div className="h-[600px] w-full rounded-md overflow-hidden">
+                                    <MapView items={challengesWithCoords} itemType="challenge" onMarkerClick={(item) => router.push(`/challenges/${item.id}`)} />
+                                </div>
+                            </CardContent>
                         </Card>
                     ) : null}
 
 
                     {!isLoading && challenges?.length === 0 && (
-                         <Card className="text-center py-20 col-span-full">
+                        <Card className="text-center py-20 col-span-full">
                             <CardContent>
                                 <h3 className="text-xl font-semibold">Aucun défi pour le moment</h3>
                                 <p className="text-muted-foreground mt-2">Revenez bientôt pour de nouvelles aventures !</p>

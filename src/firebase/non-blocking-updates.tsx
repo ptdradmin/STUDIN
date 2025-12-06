@@ -1,5 +1,5 @@
 'use client';
-    
+
 import {
   setDoc,
   addDoc,
@@ -10,7 +10,7 @@ import {
   SetOptions,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import {FirestorePermissionError} from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Initiates a setDoc operation for a document reference.
@@ -22,7 +22,7 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
       'permission-error',
       new FirestorePermissionError({
         path: docRef.path,
-        operation: options.merge ? 'update' : 'create',
+        operation: (options as any).merge ? 'update' : 'create',
         requestResourceData: data,
       })
     )
