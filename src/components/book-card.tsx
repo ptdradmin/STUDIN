@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import Image from "next/image";
@@ -43,7 +42,3 @@ export function BookCard({ book, onContact }: BookCardProps) {
         </Card>
     );
 }
-
-    
-
-    

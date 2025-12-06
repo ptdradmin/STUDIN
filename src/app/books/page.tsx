@@ -21,35 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import CreateBookForm from '@/components/create-book-form';
 import { getOrCreateConversation } from '@/lib/conversations';
 import Navbar from '@/components/navbar';
+import { BookCard } from '@/components/book-card';
 
-function BookCard({ book, onContact }: { book: Book, onContact: (sellerId: string) => void }) {
-    const { user } = useUser();
-    const isOwner = user?.uid === book.sellerId;
-    return (
-        <Card className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col">
-            <div className="relative aspect-square w-full">
-                <Image src={book.imageUrl} alt={book.title} fill className="object-cover" />
-            </div>
-            <CardContent className="p-4 flex flex-col flex-grow">
-                <div className="flex-grow">
-                    <Badge variant="outline">{book.condition}</Badge>
-                    <h3 className="text-lg font-bold mt-2 leading-tight">{book.title}</h3>
-                    <p className="text-sm text-muted-foreground">de {book.author}</p>
-                    {book.university && <p className="text-xs text-muted-foreground mt-1">{book.university}</p>}
-                    {book.course && <p className="text-xs text-muted-foreground">{book.course}</p>}
-                </div>
-                <div className="flex justify-between items-end mt-4 pt-4 border-t">
-                    <p className="text-2xl font-bold text-primary">{book.price}€</p>
-                    {!isOwner && (
-                        <Button size="sm" onClick={() => onContact(book.sellerId)}>
-                            <MessageSquare className="mr-2 h-4 w-4" /> Contacter
-                        </Button>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
 
 function BookListSkeleton() {
   return (
