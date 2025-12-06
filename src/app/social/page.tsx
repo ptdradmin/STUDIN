@@ -63,15 +63,18 @@ export default function SocialPage() {
     }, [isUserLoading, user, router]);
 
     const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
-        if (!firestore || !currentUserProfile) return;
+        if (!firestore) return;
         
+        // Don't fetch if a fetch is already in progress, unless it's the initial fetch
+        if (isLoading && lastDoc) return;
+
         setIsLoading(true);
 
         const baseQuery = collection(firestore, 'posts');
         let constraints = [];
         
         // If user follows people, get their posts. Otherwise, get latest public posts.
-        if (currentUserProfile.followingIds && currentUserProfile.followingIds.length > 0) {
+        if (currentUserProfile && currentUserProfile.followingIds && currentUserProfile.followingIds.length > 0) {
             constraints.push(where('userId', 'in', currentUserProfile.followingIds));
         }
         
@@ -99,10 +102,10 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
-    }, [firestore, currentUserProfile]);
+    }, [firestore, currentUserProfile, isLoading]);
     
     useEffect(() => {
-        // Initial fetch when profile is loaded
+        // Initial fetch only when profile is loaded
         if (currentUserProfile) {
             fetchPosts();
         }

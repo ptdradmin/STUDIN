@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
     default: "STUD'IN - La plateforme pour la vie étudiante",
-    template: "%s | STUD'IN",
+    template: "%s - STUD'IN",
   },
   description: "STUD'IN est la plateforme tout-en-un pour les étudiants en Belgique : logement, covoiturage, tutorat, marché aux livres, événements et défis. Simplifiez votre vie étudiante.",
   keywords: [

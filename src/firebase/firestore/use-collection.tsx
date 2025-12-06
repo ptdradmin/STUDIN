@@ -65,7 +65,7 @@ export function useCollection<T = any>(
   const firestore = useFirestore();
 
   useEffect(() => {
-    if (!firestore || !memoizedTargetRefOrQuery) {
+    if (!memoizedTargetRefOrQuery) {
       setIsLoading(false);
       setData(null);
       return;
