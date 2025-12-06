@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { collection, query, where, orderBy, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, useCollection } from '@/firebase';
 import type { Article } from '@/lib/types';
 import SocialSidebar from '@/components/social-sidebar';
 import GlobalSearch from '@/components/global-search';
@@ -40,16 +40,8 @@ export default function NewsPage() {
     const firestore = useFirestore();
     const { user } = useUser();
     
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [hasMore, setHasMore] = useState(true);
-
     const articlesQuery = useMemo(() => {
         if (!firestore) return null;
-        // Adjusted query to order by the same field as the where clause for isPublished
-        // This avoids needing a composite index for this specific query.
         return query(
             collection(firestore, 'articles'),
             where('isPublished', '==', true),
@@ -57,47 +49,29 @@ export default function NewsPage() {
         );
     }, [firestore]);
 
-    const fetchArticles = useCallback(async (q: any, reset = false) => {
-        if (!q) return;
-        if (reset) {
-            setIsLoading(true);
-            setArticles([]);
-            setLastVisible(null);
-            setHasMore(true);
-        } else {
-            setIsLoadingMore(true);
-        }
+    const { data: articles, isLoading, error } = useCollection<Article>(articlesQuery);
+    
+    // Note: Pagination logic is removed for simplicity with useCollection.
+    // For infinite scroll, a more advanced hook would be needed.
 
-        let finalQuery = q;
-        if (!reset && lastVisible) {
-            finalQuery = query(q, startAfter(lastVisible), limit(6));
-        } else {
-            finalQuery = query(q, limit(6));
-        }
-
-        try {
-            const documentSnapshots = await getDocs(finalQuery);
-            const newArticles = documentSnapshots.docs.map(doc => doc.data() as Article);
-            const lastDoc = documentSnapshots.docs[documentSnapshots.docs.length - 1];
-
-            setArticles(prev => reset ? newArticles : [...prev, ...newArticles]);
-            setLastVisible(lastDoc || null);
-            if (documentSnapshots.docs.length < 6) {
-                setHasMore(false);
-            }
-        } catch (error) {
-            console.error("Error fetching articles:", error);
-        } finally {
-            setIsLoading(false);
-            setIsLoadingMore(false);
-        }
-    }, [lastVisible]);
-
-    useEffect(() => {
-        if (articlesQuery) {
-            fetchArticles(articlesQuery, true);
-        }
-    }, [articlesQuery, fetchArticles]);
+    if (error) {
+        // The error is now thrown by the useCollection hook via the listener,
+        // so we can just display a simple message here.
+        return (
+             <div className="flex min-h-screen w-full bg-background">
+                {user && <SocialSidebar />}
+                <div className="flex flex-col flex-1 items-center justify-center p-4">
+                     <Card className="text-center py-20 col-span-full">
+                        <CardContent>
+                            <Newspaper className="h-16 w-16 mx-auto text-destructive mb-4" strokeWidth={1}/>
+                            <h3 className="text-xl font-semibold">Erreur de chargement</h3>
+                            <p className="text-muted-foreground mt-2">Impossible de charger les articles pour le moment.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -125,21 +99,13 @@ export default function NewsPage() {
                         
                         {isLoading ? (
                             <ArticleListSkeleton />
-                        ) : articles.length > 0 ? (
+                        ) : articles && articles.length > 0 ? (
                             <>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {articles.map(article => (
                                         <ArticleCard key={article.id} article={article} />
                                     ))}
                                 </div>
-                                {!isLoading && hasMore && (
-                                    <div className="text-center mt-8">
-                                        <Button onClick={() => fetchArticles(articlesQuery)} disabled={isLoadingMore}>
-                                            {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                            Charger plus
-                                        </Button>
-                                    </div>
-                                )}
                             </>
                         ) : (
                             <Card className="text-center py-20">
