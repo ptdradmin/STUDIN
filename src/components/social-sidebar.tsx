@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateAvatar, getInitials } from '@/lib/avatars';
 import { LogoIcon } from './logo-icon';
 import { Skeleton } from './ui/skeleton';
+import { ScrollArea } from './ui/scroll-area';
 
 const mainNavItems = [
   { href: "/social", label: "Accueil", icon: Home, roles: ['student', 'institution', 'admin'] },
@@ -112,8 +113,6 @@ export default function SocialSidebar() {
     }
 
     if (!user) {
-        // This case should ideally not be hit if the component is used on protected routes,
-        // but it's a good safeguard.
         return null;
     }
 
@@ -121,23 +120,24 @@ export default function SocialSidebar() {
     const isPro = userProfile?.isPro || false;
     const visibleNavItems = mainNavItems.filter(item => item.roles.includes(userRole));
 
-
     return (
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
-          <div className="mb-8 px-2 pt-3">
+        <aside className="hidden md:flex flex-col h-screen w-64 border-r bg-card p-3 transition-all">
+          <div className="mb-4 px-2 pt-3">
              <Link href="/social" className="flex items-center gap-2 text-2xl font-bold">
                 <LogoIcon />
                 <span className="font-headline">STUD'IN</span>
             </Link>
           </div>
 
-          <nav className="flex flex-col gap-2 flex-grow">
-            {visibleNavItems.map((item) => (
-              <NavLink key={item.label} item={item} pathname={pathname}/>
-            ))}
-          </nav>
+          <ScrollArea className="flex-grow">
+            <nav className="flex flex-col gap-1 pr-3">
+                {visibleNavItems.map((item) => (
+                <NavLink key={item.label} item={item} pathname={pathname}/>
+                ))}
+            </nav>
+          </ScrollArea>
           
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-4 pt-2 border-t">
              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
