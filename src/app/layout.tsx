@@ -1,4 +1,5 @@
 
+
 import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 
@@ -6,6 +7,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
+import { SettingsProvider } from '@/contexts/settings-context';
 import BottomNavbar from '@/components/bottom-navbar';
 
 const inter = Inter({
@@ -81,10 +83,12 @@ export default function RootLayout({
     <html lang="fr" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <LanguageProvider>
-            {children}
-            <BottomNavbar />
-          </LanguageProvider>
+            <SettingsProvider>
+              <LanguageProvider>
+                {children}
+                <BottomNavbar />
+              </LanguageProvider>
+            </SettingsProvider>
           <Toaster />
         </FirebaseClientProvider>
       </body>

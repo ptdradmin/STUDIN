@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useInView } from 'framer-motion';
 import { getInitials } from "@/lib/avatars";
+import { useSettings } from "@/contexts/settings-context";
 
 interface ReelCardProps {
     reel: Reel;
@@ -29,10 +30,11 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
     const { user } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { settings } = useSettings();
     
     const [optimisticLikes, setOptimisticLikes] = useState(reel.likes || []);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [isMuted, setIsMuted] = useState(true);
+    const [isMuted, setIsMuted] = useState(settings.defaultReelSound === 'muted');
     const [isVisible, setIsVisible] = useState(true);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -70,7 +72,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
         video.addEventListener('play', handleVideoPlay);
         video.addEventListener('pause', handleVideoPause);
 
-        if (isInView) {
+        if (isInView && settings.autoPlayReels) {
             const playPromise = video.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
@@ -78,7 +80,6 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
                         audio.play().catch(e => console.error("Audio play failed:", e));
                     }
                 }).catch(e => {
-                    // Autoplay was prevented, user interaction needed.
                     setIsPlaying(false);
                 });
             }
@@ -91,7 +92,7 @@ export default function ReelCard({ reel, onDelete }: ReelCardProps) {
              video.removeEventListener('play', handleVideoPlay);
              video.removeEventListener('pause', handleVideoPause);
         }
-    }, [isInView]);
+    }, [isInView, settings.autoPlayReels]);
 
     const toggleMute = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();

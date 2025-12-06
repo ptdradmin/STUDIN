@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
   Bell,
@@ -31,7 +31,7 @@ import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +46,7 @@ import {
 import SocialSidebar from "@/components/social-sidebar";
 import GlobalSearch from "@/components/global-search";
 import NotificationsDropdown from "@/components/notifications-dropdown";
+import { useSettings } from "@/contexts/settings-context";
 
 const SettingsItem = ({
   icon,
@@ -98,11 +99,7 @@ export default function SettingsPage() {
   const { auth } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
-  const [isPrivateProfile, setIsPrivateProfile] = useState(false);
-  const [pauseAllNotifications, setPauseAllNotifications] = useState(false);
-  const [autoPlayReels, setAutoPlayReels] = useState(true);
-  const [defaultReelSound, setDefaultReelSound] = useState(false);
+  const { settings, updateSetting } = useSettings();
   
   const [defaultAccordion, setDefaultAccordion] = useState("account");
 
@@ -214,10 +211,10 @@ export default function SettingsPage() {
                         </AccordionTrigger>
                         <AccordionContent className="px-6">
                             <SettingsItem
-                            icon={<User className="h-5 w-5"/>}
-                            title="Profil privé"
-                            description="Seuls les abonnés que vous approuvez peuvent voir votre profil."
-                            action={<Switch id="private-profile" checked={isPrivateProfile} onCheckedChange={setIsPrivateProfile} />}
+                                icon={<User className="h-5 w-5"/>}
+                                title="Profil privé"
+                                description="Seuls les abonnés que vous approuvez peuvent voir votre profil."
+                                action={<Switch id="private-profile" checked={settings.isPrivateProfile} onCheckedChange={(checked) => updateSetting('isPrivateProfile', checked)} />}
                             />
                             <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -296,7 +293,7 @@ export default function SettingsPage() {
                             <SettingsItem
                             icon={<Bell className="h-5 w-5"/>}
                             title="Tout mettre en pause"
-                            action={<Switch id="pause-notifications" checked={pauseAllNotifications} onCheckedChange={setPauseAllNotifications} />}
+                            action={<Switch id="pause-notifications" checked={settings.pauseAllNotifications} onCheckedChange={(checked) => updateSetting('pauseAllNotifications', checked)} />}
                             />
                             <SettingsLink title="Notifications générales (Posts, Commentaires...)" href="#" />
                             <SettingsLink title="Notifications de Messages" href="#" />
@@ -340,11 +337,11 @@ export default function SettingsPage() {
                         <AccordionContent className="px-6">
                             <SettingsItem
                                 title="Lecture automatique des Reels"
-                                action={<Switch checked={autoPlayReels} onCheckedChange={setAutoPlayReels} />}
+                                action={<Switch checked={settings.autoPlayReels} onCheckedChange={(checked) => updateSetting('autoPlayReels', checked)} />}
                             />
                             <SettingsItem
                                 title="Son des Reels par défaut"
-                                action={<Switch checked={defaultReelSound} onCheckedChange={setDefaultReelSound} />}
+                                action={<Switch checked={settings.defaultReelSound === 'unmuted'} onCheckedChange={(checked) => updateSetting('defaultReelSound', checked ? 'unmuted' : 'muted')} />}
                             />
                         </AccordionContent>
                         </AccordionItem>

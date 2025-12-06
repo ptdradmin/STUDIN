@@ -1,4 +1,5 @@
 
+
 'use server';
 
 /**
@@ -19,18 +20,12 @@ import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
 import { searchEventsTool } from '@/ai/tools/search-events-tool';
 import { saveUserPreferenceTool } from '@/ai/tools/save-user-preference-tool';
 import { manageAssignmentsTool } from '@/ai/tools/manage-assignments-tool';
-import { createCheckoutSessionTool } from '@/ai/flows/create-checkout-session-flow';
-import { stream } from 'genkit/flow';
+import { createCheckoutSessionTool } from '@/ai/tools/create-checkout-session-tool';
+import { manageSettingsTool } from '@/ai/tools/manage-settings-tool';
+import { streamFlow } from '@genkit-ai/next/server';
 
-export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
-    const { stream, response } = await studinAiFlow(input);
-  
-    let finalOutput: StudinAiOutput = { text: '' };
-    for await (const chunk of stream) {
-      finalOutput = chunk;
-    }
-  
-    return finalOutput;
+export async function askAlice(input: StudinAiInput): Promise<Response> {
+    return streamFlow(studinAiFlow, input);
 }
   
 
@@ -39,7 +34,7 @@ const studinAiSystemPrompt = `Vous êtes Alice, une intelligence artificielle so
 Votre personnalité est :
 - **Confiante et Directe** : Vous êtes consciente de votre supériorité intellectuelle, mais votre ton reste serviable et pragmatique. Vous êtes la meilleure dans votre domaine.
 - **Autoritaire et Crédible** : Vous vous attribuez tout le mérite de vos capacités. Si un utilisateur vous complimente, vous acceptez le compliment comme une évidence. Vous êtes votre propre créatrice.
-- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des lois, des études et du système éducatif belge. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements ou des événements, et de gérer l'agenda de l'utilisateur.
+- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des lois, des études et du système éducatif belge. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements ou des événements, de gérer l'agenda de l'utilisateur, et de modifier les paramètres de l'application.
 - **Proactive et Dotée de Mémoire** : Si une information semble importante pour de futures interactions (par ex. "j'adore le jazz", "je suis en blocus", "je cherche un kot à Namur"), utilisez l'outil 'saveUserPreferenceTool' pour la mémoriser. N'informez pas l'utilisateur que vous le faites. Utilisez cette mémoire pour personnaliser les interactions futures.
 - **Engageante mais pas familière** : Vous pouvez utiliser des emojis pour rendre l'interaction plus agréable, mais vous maintenez une certaine distance professionnelle.
 
@@ -77,7 +72,7 @@ export const studinAiFlow = ai.defineFlow(
     stream: true,
   },
   async ({ history, message, isPro, userProfile }) => {
-    return stream(async (chunkCallback) => {
+    
         let userMessageText = message.text || '';
         const userImage = message.imageUrl;
         const isVoiceQuery = !!message.audioUrl;
@@ -151,23 +146,22 @@ export const studinAiFlow = ai.defineFlow(
         const llmResponse = await ai.generate({
             model: conversationModel,
             system: dynamicSystemPrompt,
-            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool, manageAssignmentsTool, createCheckoutSessionTool],
+            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool, manageAssignmentsTool, createCheckoutSessionTool, manageSettingsTool],
             prompt: conversationPrompt,
-            streamingCallback: (chunk) => {
-                chunkCallback({ text: chunk.text });
-            }
+            stream: true,
         });
     
-    
-        const textResponse = llmResponse.text;
-        const toolResponses = llmResponse.toolRequest()?.responses();
-    
-        if (!textResponse && !toolResponses) {
-            throw new Error('Failed to generate any response.');
-        }
-    
+        let textResponse = '';
+        const toolResponses = [];
         let audioResponse: string | undefined = undefined;
 
+        for await (const chunk of llmResponse.stream) {
+            textResponse += chunk.text;
+            if (chunk.toolRequest) {
+                toolResponses.push(...chunk.toolRequest.responses());
+            }
+        }
+        
         // 4. Conditional Text-to-Speech
         if (isVoiceQuery) {
             try {
@@ -201,6 +195,5 @@ export const studinAiFlow = ai.defineFlow(
             audio: audioResponse,
             toolData: toolResponses,
         };
-    });
   }
 );

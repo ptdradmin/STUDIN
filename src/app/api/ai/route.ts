@@ -1,5 +1,6 @@
 
-import { NextRequest } from 'next/server';
+
+import { NextRequest, NextResponse } from 'next/server';
 import { streamFlow } from '@genkit-ai/next/server';
 import { studinAiFlow } from '@/ai/flows/studin-ai-flow';
 
@@ -10,5 +11,3 @@ export async function POST(req: NextRequest) {
 
   return streamFlow(studinAiFlow, body);
 }
-
-    
