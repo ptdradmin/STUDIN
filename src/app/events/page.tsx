@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import type { Event, Favorite, UserProfile } from "@/lib/types";
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useUser, useFirestore, useDoc, updateDocumentNonBlocking } from '@/firebase';
+import { useCollection, useUser, useFirestore, useDoc, updateDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { collection, doc, arrayUnion, serverTimestamp, query, where, Timestamp } from 'firebase/firestore';
 import CreateEventForm from '@/components/create-event-form';
 import { useToast } from '@/hooks/use-toast';
@@ -116,7 +116,7 @@ export default function EventsPage() {
 
   const { data: events, isLoading } = useCollection<Event>(eventsCollection);
 
-  const userProfileRef = useMemo(() => {
+  const userProfileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
   }, [user, firestore]);
@@ -409,3 +409,5 @@ export default function EventsPage() {
     </div>
   );
 }
+
+    

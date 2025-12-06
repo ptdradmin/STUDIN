@@ -48,3 +48,4 @@ export const StudinAiOutputSchema = z.object({
 export type StudinAiOutput = z.infer<typeof StudinAiOutputSchema>;
 
     
+    
