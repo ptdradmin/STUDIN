@@ -141,11 +141,11 @@ service cloud.firestore {
     // CONVERSATIONS & MESSAGES
     // ============================================
     match /conversations/{conversationId} {
-      allow get, update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+      allow read, update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participantIds;
       allow delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       // Allow a user to query for conversations they are a part of.
-      allow list: if isSignedIn() && request.auth.uid in request.query.where.value;
+      allow list: if isSignedIn() && request.query.filters[0].value == request.auth.uid;
       
       match /messages/{messageId} {
         allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
