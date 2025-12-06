@@ -63,8 +63,8 @@ export default function SocialPage() {
         }
     }, [isUserLoading, user, router]);
 
-    const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
-        if (!firestore || (lastDoc === null && posts.length > 0)) return; // Don't refetch initial if already loaded
+    const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null, reset = false) => {
+        if (!firestore) return;
         
         setIsLoading(true);
 
@@ -95,7 +95,7 @@ export default function SocialPage() {
             const newPosts = documentSnapshots.docs.map(doc => doc.data() as Post);
             const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
-            setPosts(prev => lastDoc ? [...prev, ...newPosts] : newPosts);
+            setPosts(prev => (lastDoc && !reset) ? [...prev, ...newPosts] : newPosts);
             setLastVisible(newLastVisible || null);
             setHasMore(documentSnapshots.docs.length === POST_BATCH_SIZE);
         } catch (error) {
@@ -104,12 +104,12 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
-    }, [firestore, user, currentUserProfile, posts.length]);
+    }, [firestore, user, currentUserProfile]);
     
     
     useEffect(() => {
         if (user && !profileLoading) {
-            fetchPosts();
+            fetchPosts(null, true);
         }
     }, [user, profileLoading, fetchPosts]);
 
@@ -161,7 +161,9 @@ export default function SocialPage() {
                           <SuggestedUsersCarousel />
                       </div>}
                        {isLoading && posts.length === 0 ? (
-                          Array.from({length: 3}).map((_, i) => <CardSkeleton key={`skeleton-${i}`}/>)
+                            <>
+                                {Array.from({length: 3}).map((_, i) => <CardSkeleton key={i} />)}
+                            </>
                        ) : noPostsToShow ? (
                          <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
                               <p className="text-lg font-semibold">{isNewUser ? "Bienvenue sur STUD'IN !" : "Votre fil est vide"}</p>
