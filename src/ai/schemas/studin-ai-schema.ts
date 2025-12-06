@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Zod schemas and TypeScript types for the studinAiFlow.
  * This file separates data definitions from server-side logic.
@@ -18,6 +17,7 @@ const AiUserProfileSchema = z.object({
   city: z.string(),
   bio: z.string(),
   isPro: z.boolean().optional(),
+  aiPreferences: z.record(z.any()).optional().describe("A key-value store for user's long-term preferences."),
 });
 export type AiUserProfile = z.infer<typeof AiUserProfileSchema>;
 

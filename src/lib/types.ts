@@ -189,6 +189,7 @@ export type UserProfile = {
     followingIds: string[];
     points?: number;
     challengesCompleted?: number;
+    aiPreferences?: Record<string, any>;
     createdAt: Timestamp;
     updatedAt: Timestamp;
 };

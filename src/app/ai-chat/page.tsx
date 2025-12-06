@@ -248,6 +248,7 @@ export default function AiChatPage() {
                 city: userProfile.city,
                 bio: userProfile.bio,
                 isPro: userProfile.isPro,
+                aiPreferences: userProfile.aiPreferences,
             } : undefined;
 
 
