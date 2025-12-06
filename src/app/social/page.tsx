@@ -81,7 +81,7 @@ export default function SocialPage() {
         
         try {
             const documentSnapshots = await getDocs(postQuery);
-            const newPosts = documentSnapshots.docs.map(doc => doc.data() as Post);
+            const newPosts = documentSnapshots.docs.map(doc => ({ ...doc.data(), id: doc.id } as Post));
             const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
             setPosts(prev => lastDoc ? [...prev, ...newPosts] : newPosts);
