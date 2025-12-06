@@ -37,40 +37,40 @@ interface CreateReelFormProps {
 
 const pixabayMusic = [
     // Electro / Techno / House
-    { title: "Let's Go", artist: "AlexiAction", url: "https://archive.org/download/lets-go-by-alexiaction-from-pixabay/let_s-go-by-alexiaction-from-pixabay.mp3" },
-    { title: "Wake Up", artist: "MBB", url: "https://archive.org/download/wake-up-by-mbb-from-pixabay/wake-up-by-mbb-from-pixabay.mp3" },
-    { title: "Powerful Electro", artist: "penguinmusic", url: "https://archive.org/download/powerful-electro-by-penguinmusic-from-pixabay/powerful-electro-by-penguinmusic-from-pixabay.mp3" },
-    { title: "Electronic Rock", artist: "AlexGrohl", url: "https://archive.org/download/electronic-rock-king-around-here-by-alex-grohl-from-pixabay/electronic-rock-king-around-here-by-alex-grohl-from-pixabay.mp3" },
-    { title: "Cyber-Attack", artist: "SoundGallery", url: "https://archive.org/download/cyber-attack-by-soundgallery-by-pixabay/cyber-attack-by-soundgallery-by-pixabay.mp3" },
+    { title: "Let's Go", artist: "AlexiAction", url: "https://cdn.pixabay.com/download/audio/2022/08/23/audio_82c918b3ab.mp3?filename=lets-go-by-alexiaction-from-pixabay.mp3" },
+    { title: "Wake Up", artist: "MBB", url: "https://cdn.pixabay.com/download/audio/2022/05/23/audio_5539f3630f.mp3?filename=wake-up-by-mbb-from-pixabay.mp3" },
+    { title: "Powerful Electro", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2022/01/24/audio_33fa8130aa.mp3?filename=powerful-electro-by-penguinmusic-from-pixabay.mp3" },
+    { title: "Electronic Rock", artist: "AlexGrohl", url: "https://cdn.pixabay.com/download/audio/2022/08/02/audio_130d7b9c9b.mp3?filename=electronic-rock-king-around-here-by-alex-grohl-from-pixabay.mp3" },
+    { title: "Cyber-Attack", artist: "SoundGallery", url: "https://cdn.pixabay.com/download/audio/2023/04/18/audio_70e8832a8a.mp3?filename=cyber-attack-by-soundgallery-by-pixabay.mp3" },
     
     // Hip Hop / Rap / Trap
-    { title: "The Urban Groove", artist: "SoulProdMusic", url: "https://archive.org/download/the-urban-groove-by-soulprodmusic-from-pixabay/the-urban-groove-by-soulprodmusic-from-pixabay.mp3" },
-    { title: "No-Copyright-Rap", artist: "The R-Man", url: "https://archive.org/download/no-copyright-rap-by-the-r-man-from-pixabay/no-copyright-rap-by-the-r-man-from-pixabay.mp3" },
-    { title: "Trap Powerful", artist: "AlexiAction", url: "https://archive.org/download/trap-powerful-by-alexiaction-from-pixabay/trap-powerful-by-alexiaction-from-pixabay.mp3" },
-    { title: "Boom Bap", artist: "Leva", url: "https://archive.org/download/boom-bap-by-leva-from-pixabay/boom-bap-by-leva-from-pixabay.mp3" },
+    { title: "The Urban Groove", artist: "SoulProdMusic", url: "https://cdn.pixabay.com/download/audio/2023/04/24/audio_b72bccc038.mp3?filename=the-urban-groove-by-soulprodmusic-from-pixabay.mp3" },
+    { title: "No-Copyright-Rap", artist: "The R-Man", url: "https://cdn.pixabay.com/download/audio/2023/08/03/audio_a167da9142.mp3?filename=no-copyright-rap-by-the-r-man-from-pixabay.mp3" },
+    { title: "Trap Powerful", artist: "AlexiAction", url: "https://cdn.pixabay.com/download/audio/2022/10/26/audio_415f3cc283.mp3?filename=trap-powerful-by-alexiaction-from-pixabay.mp3" },
+    { title: "Boom Bap", artist: "Leva", url: "https://cdn.pixabay.com/download/audio/2022/12/26/audio_987d395815.mp3?filename=boom-bap-by-leva-from-pixabay.mp3" },
 
     // Reggae
-    { title: "Reggae Fun", artist: "Lesfm", url: "https://archive.org/download/reggae-fun-by-lesfm-from-pixabay/reggae-fun-by-lesfm-from-pixabay.mp3" },
-    { title: "Reggae Style", artist: "prazkhanal", url: "https://archive.org/download/reggae-style-by-prazkhanal-from-pixabay/reggae-style-by-prazkhanal-from-pixabay.mp3" },
+    { title: "Reggae Fun", artist: "Lesfm", url: "https://cdn.pixabay.com/download/audio/2022/08/04/audio_a84a86dc31.mp3?filename=reggae-fun-by-lesfm-from-pixabay.mp3" },
+    { title: "Reggae Style", artist: "prazkhanal", url: "https://cdn.pixabay.com/download/audio/2022/04/09/audio_653594833a.mp3?filename=reggae-style-by-prazkhanal-from-pixabay.mp3" },
 
     // Lo-fi and Chill
-    { title: "Lofi Chill", artist: "FASSounds", url: "https://archive.org/download/lofi-chill-173895/lofi-chill-173895.mp3" },
-    { title: "The Beat of Nature", artist: "Olexy", url: "https://archive.org/download/the-beat-of-nature-122841/the-beat-of-nature-122841.mp3" },
-    { title: "Modern Vlo-fi", artist: "penguinmusic", url: "https://archive.org/download/modern-vlog-140795/modern-vlog-140795.mp3"},
-    { title: "Chill Abstract", artist: "Coma-Media", url: "https://archive.org/download/chill-abstract-intention-12099/chill-abstract-intention-12099.mp3" },
+    { title: "Lofi Chill", artist: "FASSounds", url: "https://cdn.pixabay.com/download/audio/2023/08/03/audio_54b28f363c.mp3?filename=lofi-chill-173895.mp3" },
+    { title: "The Beat of Nature", artist: "Olexy", url: "https://cdn.pixabay.com/download/audio/2022/10/11/audio_14f3b4dce5.mp3?filename=the-beat-of-nature-122841.mp3" },
+    { title: "Modern Vlog", artist: "penguinmusic", url: "https://cdn.pixabay.com/download/audio/2023/03/10/audio_51a2935041.mp3?filename=modern-vlog-140795.mp3"},
+    { title: "Chill Abstract", artist: "Coma-Media", url: "https://cdn.pixabay.com/download/audio/2022/01/21/audio_873dff0b23.mp3?filename=chill-abstract-intention-12099.mp3" },
     
     // Hardcore / Rock
-    { title: "Metal", artist: "AlexGrohl", url: "https://archive.org/download/metal-by-alex-grohl-from-pixabay/metal-by-alex-grohl-from-pixabay.mp3" },
-    { title: "At the Top", artist: "ItsAGun", url: "https://archive.org/download/at-the-top-by-itsagundont-worry-from-pixabay/at-the-top-by-itsagundont-worry-from-pixabay.mp3" },
+    { title: "Metal", artist: "AlexGrohl", url: "https://cdn.pixabay.com/download/audio/2022/08/02/audio_99b5963a78.mp3?filename=metal-by-alex-grohl-from-pixabay.mp3" },
+    { title: "At the Top", artist: "ItsAGun", url: "https://cdn.pixabay.com/download/audio/2022/08/04/audio_33593a236f.mp3?filename=at-the-top-by-itsagundont-worry-from-pixabay.mp3" },
 
 ];
 
 const pixabaySoundEffects = [
-    { title: "Whoosh", artist: "Pixabay", url: "https://archive.org/download/whoosh-sound-effect-152869/whoosh-sound-effect-152869.mp3" },
-    { title: "Applaudissements", artist: "Pixabay", url: "https://archive.org/download/small-crowd-applause-6695/small-crowd-applause-6695.mp3" },
-    { title: "Goutte d'eau", artist: "Pixabay", url: "https://archive.org/download/water-drop-sound-effect-6047/water-drop-sound-effect-6047.mp3" },
-    { title: "Notification", artist: "Pixabay", url: "https://archive.org/download/cute-level-up-3-189853/cute-level-up-3-189853.mp3" },
-    { title: "Rire", artist: "Pixabay", url: "https://archive.org/download/medium-crowd-laugh-40110/medium-crowd-laugh-40110.mp3" }
+    { title: "Whoosh", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2023/05/11/audio_24f63459e9.mp3?filename=whoosh-sound-effect-152869.mp3" },
+    { title: "Applaudissements", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_bb63044100.mp3?filename=small-crowd-applause-6695.mp3" },
+    { title: "Goutte d'eau", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_370377259b.mp3?filename=water-drop-sound-effect-6047.mp3" },
+    { title: "Notification", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2024/01/17/audio_404c0d2966.mp3?filename=cute-level-up-3-189853.mp3" },
+    { title: "Rire", artist: "Pixabay", url: "https://cdn.pixabay.com/download/audio/2022/04-20/audio_5159072566.mp3?filename=medium-crowd-laugh-40110.mp3" }
 ];
 
 
