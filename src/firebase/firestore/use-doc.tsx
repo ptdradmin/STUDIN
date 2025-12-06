@@ -32,9 +32,7 @@ export interface UseDocResult<T> {
  * Handles nullable references.
  * 
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *
+ * use useMemoFirebase to memoize it.
  *
  * @template T Optional type for document data. Defaults to any.
  * @param {DocumentReference<DocumentData> | null | undefined} docRef -
@@ -47,14 +45,14 @@ export function useDoc<T = any>(
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with loading true
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-  const firestore = useFirestore(); // Get firestore instance
+  const firestore = useFirestore();
 
   useEffect(() => {
-    // Wait until both firestore and the doc ref are available
     if (!firestore || !memoizedDocRef) {
-      setIsLoading(false); // Not loading if we don't have what we need
+      setIsLoading(false);
+      setData(null);
       return;
     }
 

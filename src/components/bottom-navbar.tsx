@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, MessageSquare, PlusSquare, Sparkles, User } from 'lucide-react';
 import { Button } from './ui/button';
-import { useUser, useFirestore, useDoc } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useState, useEffect, useMemo } from 'react';
 import CreatePostForm from './create-post-form';
@@ -27,8 +27,8 @@ export default function BottomNavbar() {
     setIsClient(true);
   }, []);
 
-  const userProfileRef = useMemo(
-    () => (user ? doc(firestore!, 'users', user.uid) : null),
+  const userProfileRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
     [user, firestore]
   );
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);

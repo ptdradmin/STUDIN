@@ -17,4 +17,4 @@ export * from './errors';
 export * from './error-emitter';
 
 // Explicitly re-exporting from provider to avoid conflicts.
-export { useUser } from './provider';
+export { useUser, useMemoFirebase } from './provider';

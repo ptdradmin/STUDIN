@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -146,12 +147,13 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     batch.update(userDocRef, dataToUpdate);
 
     if (isInstitution) {
-        const institutionDocRef = doc(firestore, 'institutions', user.uid);
-        batch.update(institutionDocRef, {
-            name: data.firstName,
-            postalCode: (data as InstitutionProfileInputs).postalCode,
-            city: (data as InstitutionProfileInputs).city
-        });
+        // This collection does not seem to exist, but if it did, this would be the logic.
+        // const institutionDocRef = doc(firestore, 'institutions', user.uid);
+        // batch.update(institutionDocRef, {
+        //     name: data.firstName,
+        //     postalCode: (data as InstitutionProfileInputs).postalCode,
+        //     city: (data as InstitutionProfileInputs).city
+        // });
     }
 
     const hasProfileChanged = data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture;

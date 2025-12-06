@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, DependencyList } from 'react';
@@ -156,3 +157,26 @@ export const useUser = (): UserHookResult => {
   const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };
 };
+
+/**
+ * A custom hook that memoizes a value but only if the `areServicesAvailable`
+ * flag from `useFirebase` is true. If services are not available, it returns null.
+ * This is crucial for memoizing Firestore queries/references that depend on a
+ * logged-in user or other dynamic data.
+ *
+ * @param factory A function that creates the value to be memoized.
+ * @param deps The dependency array for the `useMemo` hook.
+ * @returns The memoized value, or null if Firebase services are not available.
+ */
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | null {
+    const { areServicesAvailable } = useFirebase();
+
+    // The factory function is only called when the dependencies change,
+    // and the result is memoized.
+    const memoizedValue = useMemo(factory, deps);
+
+    // We only return the memoized value if Firebase services are ready.
+    // This prevents components from trying to use Firestore queries or references
+    // before the Firebase context is fully initialized, which could lead to errors.
+    return areServicesAvailable ? memoizedValue : null;
+}

@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useFirestore, useUser, useDoc } from '@/firebase';
+import { useFirestore, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, query, limit, getDocs } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { useState, useEffect, useMemo } from 'react';

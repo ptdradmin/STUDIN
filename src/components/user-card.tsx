@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { UserProfile } from '@/lib/types';
@@ -39,8 +40,8 @@ export default function UserCard({ userProfile, isSuggestion = false }: UserCard
                     <Link href={`/profile/${userProfile.id}`}>Suivre</Link>
                 </Button>
             ) : (
-                <Button variant="link" size="sm" className="text-xs p-0 h-auto" asChild>
-                    <Link href="/settings">Changer</Link>
+                 <Button variant="link" size="sm" className="text-xs p-0 h-auto" asChild>
+                    <Link href="/profile">Changer</Link>
                 </Button>
             )}
         </div>

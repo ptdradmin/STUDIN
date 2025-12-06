@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, setDocumentNonBlocking, useDoc } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking, useDoc, useMemoFirebase } from '@/firebase';
 import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -55,7 +55,7 @@ export default function CreateTutorForm({ onClose }: CreateTutorFormProps) {
   const { user, isUserLoading } = useAuth();
   const firestore = useFirestore();
 
-  const userProfileRef = useMemo(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
+  const userProfileRef = useMemoFirebase(() => !user || !firestore ? null : doc(firestore, 'users', user.uid), [firestore, user]);
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const onSubmit: SubmitHandler<TutorFormInputs> = (data) => {
