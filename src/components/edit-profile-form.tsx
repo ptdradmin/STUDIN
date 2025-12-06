@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -130,57 +129,54 @@ export default function EditProfileForm({ user, userProfile, onClose }: EditProf
     }
     setLoading(true);
     
-    try {
-        let newPhotoURL = userProfile.profilePicture;
-        if (profilePictureFile) {
-            const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
-            await uploadBytes(fileRef, profilePictureFile);
-            newPhotoURL = await getDownloadURL(fileRef);
-        } else if (previewUrl && previewUrl !== userProfile.profilePicture) {
-            newPhotoURL = previewUrl;
-        }
+    let newPhotoURL = userProfile.profilePicture;
 
-        const batch = writeBatch(firestore);
-        
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const dataToUpdate = { ...data, profilePicture: newPhotoURL, updatedAt: serverTimestamp() };
-        batch.update(userDocRef, dataToUpdate);
+    if (profilePictureFile) {
+        const fileRef = storageRef(storage, `users/${user.uid}/profile.jpg`);
+        await uploadBytes(fileRef, profilePictureFile);
+        newPhotoURL = await getDownloadURL(fileRef);
+    } else if (previewUrl && previewUrl !== userProfile.profilePicture) {
+        newPhotoURL = previewUrl;
+    }
 
-        if (isInstitution) {
-            const institutionDocRef = doc(firestore, 'institutions', user.uid);
-            batch.update(institutionDocRef, {
-                name: data.firstName,
-                postalCode: (data as InstitutionProfileInputs).postalCode,
-                city: (data as InstitutionProfileInputs).city
-            });
-        }
-        
-        const hasProfileChanged = data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture;
-        if (firestore && hasProfileChanged) {
-             await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL }, batch);
-        }
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const dataToUpdate = { ...data, profilePicture: newPhotoURL, updatedAt: serverTimestamp() };
+    const batch = writeBatch(firestore);
 
-        await batch.commit();
-        
-        const displayName = isInstitution ? data.firstName : `${data.firstName} ${(data as StudentProfileInputs).lastName}`;
+    batch.update(userDocRef, dataToUpdate);
+
+    if (isInstitution) {
+        const institutionDocRef = doc(firestore, 'institutions', user.uid);
+        batch.update(institutionDocRef, {
+            name: data.firstName,
+            postalCode: (data as InstitutionProfileInputs).postalCode,
+            city: (data as InstitutionProfileInputs).city
+        });
+    }
+
+    const hasProfileChanged = data.username !== userProfile.username || newPhotoURL !== userProfile.profilePicture;
+    if (hasProfileChanged) {
+        await updateUserPosts(firestore, user.uid, { username: data.username, userAvatarUrl: newPhotoURL }, batch);
+    }
+    
+    batch.commit().then(async () => {
+         const displayName = isInstitution ? data.firstName : `${data.firstName} ${(data as StudentProfileInputs).lastName}`;
         const currentUser = auth.currentUser;
         if (currentUser && (currentUser.displayName !== displayName || currentUser.photoURL !== newPhotoURL)) {
             await updateProfile(currentUser, { displayName, photoURL: newPhotoURL });
         }
-
         toast({ title: 'Succès', description: 'Profil mis à jour !' });
         onClose();
-
-    } catch (error: any) {
+        setLoading(false);
+    }).catch((error) => {
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}`,
             operation: 'update',
-            requestResourceData: data,
+            requestResourceData: dataToUpdate,
         });
         errorEmitter.emit('permission-error', permissionError);
-    } finally {
         setLoading(false);
-    }
+    });
   };
 
   const studentErrors = errors as z.ZodError<StudentProfileInputs>['formErrors']['fieldErrors'];
