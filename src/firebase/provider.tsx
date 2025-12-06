@@ -1,13 +1,15 @@
 
-
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, DependencyList } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { generateAvatar } from '@/lib/avatars';
+import type { UserProfile } from '@/lib/types';
+
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -65,7 +67,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
-  useEffect(() => {
+   useEffect(() => {
     if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
@@ -75,7 +77,40 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser) => {
+      async (firebaseUser) => {
+        if (firebaseUser) {
+            // User is signed in. Check if their profile document exists in Firestore.
+            const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (!userDocSnap.exists()) {
+                // User document doesn't exist, this is a new user. Create it.
+                const username = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
+                const userData: UserProfile = {
+                    id: firebaseUser.uid,
+                    role: 'student', // Default role
+                    email: firebaseUser.email || '',
+                    username: username,
+                    firstName: firebaseUser.displayName?.split(' ')[0] || '',
+                    lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+                    postalCode: '',
+                    city: '',
+                    university: '',
+                    fieldOfStudy: '',
+                    bio: '',
+                    profilePicture: firebaseUser.photoURL || generateAvatar(firebaseUser.email || firebaseUser.uid),
+                    followerIds: [],
+                    followingIds: [],
+                    isVerified: false,
+                    isPro: false,
+                    points: 0,
+                    challengesCompleted: 0,
+                    createdAt: serverTimestamp() as any,
+                    updatedAt: serverTimestamp() as any,
+                };
+                await setDoc(userDocRef, userData);
+            }
+        }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
       (error) => {
@@ -84,7 +119,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, firestore]);
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth && storage);
@@ -161,7 +196,7 @@ export const useUser = (): UserHookResult => {
 /**
  * A custom hook that memoizes a value but only if the `areServicesAvailable`
  * flag from `useFirebase` is true. If services are not available, it returns null.
- * This is crucial for memoizing Firestore queries/references that depend on a
+ * This is crucial for memoizing Firestore queries or references that depend on a
  * logged-in user or other dynamic data.
  *
  * @param factory A function that creates the value to be memoized.

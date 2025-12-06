@@ -77,37 +77,12 @@ export default function RegisterInstitutionForm() {
         }
 
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const user = userCredential.user;
-
-        const newDisplayName = data.name;
-        const newPhotoURL = generateAvatar(user.email || user.uid);
-        await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
-
-        const userDocRef = doc(firestore, 'users', user.uid);
-        const userData = {
-            id: user.uid,
-            role: 'institution' as const,
-            email: data.email,
-            username: username,
-            firstName: data.name,
-            lastName: '',
-            university: data.name,
-            fieldOfStudy: 'Partenaire',
-            postalCode: data.postalCode,
-            city: data.city,
-            bio: `Compte officiel de ${data.name}.`,
-            website: '',
-            profilePicture: newPhotoURL,
-            followerIds: [],
-            followingIds: [],
-            isVerified: false,
-            points: 0,
-            challengesCompleted: 0,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
         
-        await setDoc(userDocRef, userData);
+        const newDisplayName = data.name;
+        const newPhotoURL = generateAvatar(userCredential.user.email || userCredential.user.uid);
+        await updateProfile(userCredential.user, { displayName: newDisplayName, photoURL: newPhotoURL });
+        
+        // The user document creation is now handled by the onAuthStateChanged listener in FirebaseProvider
         
         toast({
             title: "Compte créé !",

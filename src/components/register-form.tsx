@@ -86,42 +86,20 @@ export default function RegisterForm() {
       }
 
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
-
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userData = {
-        id: user.uid,
-        role: 'student' as const,
-        email: data.email,
-        username: data.username,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        postalCode: data.postalCode,
-        city: data.city,
-        university: data.university,
-        fieldOfStudy: data.fieldOfStudy,
-        bio: '',
-        website: '',
-        profilePicture: generateAvatar(user.email || user.uid),
-        followerIds: [],
-        followingIds: [],
-        isVerified: false,
-        isPro: false,
-        points: 0,
-        challengesCompleted: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
       
-      await setDoc(userDocRef, userData);
-
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
-      await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
+      const newPhotoURL = generateAvatar(userCredential.user.email || userCredential.user.uid);
+      await updateProfile(userCredential.user, { displayName: newDisplayName, photoURL: newPhotoURL });
+      
+      // The user document creation is now handled by the onAuthStateChanged listener in FirebaseProvider
 
       toast({
         title: "Inscription réussie!",
-        description: "Bienvenue sur STUD'IN. Vous êtes maintenant connecté.",
+        description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
       });
+
+      // The redirection will be handled by the auth state listener
+      // which waits for the user object to be fully available.
       router.push('/social');
       router.refresh();
 
