@@ -3,7 +3,7 @@
 
 import { collection, query, orderBy, limit, where, startAfter, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import type { Post, Favorite, UserProfile } from '@/lib/types';
-import { useFirestore, useCollection, useUser, useDoc } from '@/firebase';
+import { useFirestore, useCollection, useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { PageSkeleton, CardSkeleton } from '@/components/page-skeleton';
 import PostCard from '@/components/post-card';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
@@ -34,14 +34,13 @@ export default function SocialPage() {
     const loadMoreRef = useRef(null);
     const isInView = useInView(loadMoreRef, { once: true, margin: "200px" });
 
-
-    const userProfileRef = useMemo(() => {
+    const userProfileRef = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return doc(firestore, 'users', user.uid);
     }, [firestore, user]);
     const { data: currentUserProfile, isLoading: profileLoading } = useDoc<UserProfile>(userProfileRef);
 
-    const userFavoritesQuery = useMemo(() => {
+    const userFavoritesQuery = useMemoFirebase(() => {
         if (!firestore || !user) return null;
         return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'post'));
     }, [firestore, user]);
@@ -63,39 +62,39 @@ export default function SocialPage() {
         }
     }, [isUserLoading, user, router]);
 
-    const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null, reset = false) => {
-        if (!firestore) return;
+    const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
+        if (!firestore || !user || profileLoading) return;
         
         setIsLoading(true);
 
         let postQuery;
         const followingIds = currentUserProfile?.followingIds;
-        const hasFollowing = user && followingIds && followingIds.length > 0;
-
+        const hasFollowing = followingIds && followingIds.length > 0;
+        
+        const baseQuery = collection(firestore, 'posts');
+        let constraints = [];
+        
         if (hasFollowing) {
             const idsForQuery = [...followingIds, user.uid].slice(0, 30);
-            postQuery = query(
-                collection(firestore, 'posts'),
-                where('userId', 'in', idsForQuery),
-                orderBy('createdAt', 'desc'),
-                ...(lastDoc ? [startAfter(lastDoc)] : []),
-                limit(POST_BATCH_SIZE)
-            );
-        } else {
-             postQuery = query(
-                collection(firestore, 'posts'),
-                orderBy('createdAt', 'desc'),
-                ...(lastDoc ? [startAfter(lastDoc)] : []),
-                limit(POST_BATCH_SIZE)
-            );
+            constraints.push(where('userId', 'in', idsForQuery));
         }
+        
+        constraints.push(orderBy('createdAt', 'desc'));
+        
+        if (lastDoc) {
+            constraints.push(startAfter(lastDoc));
+        }
+        
+        constraints.push(limit(POST_BATCH_SIZE));
+        
+        postQuery = query(baseQuery, ...constraints);
         
         try {
             const documentSnapshots = await getDocs(postQuery);
             const newPosts = documentSnapshots.docs.map(doc => doc.data() as Post);
             const newLastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
-            setPosts(prev => (lastDoc && !reset) ? [...prev, ...newPosts] : newPosts);
+            setPosts(prev => lastDoc ? [...prev, ...newPosts] : newPosts);
             setLastVisible(newLastVisible || null);
             setHasMore(documentSnapshots.docs.length === POST_BATCH_SIZE);
         } catch (error) {
@@ -104,27 +103,28 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
-    }, [firestore, user, currentUserProfile]);
-    
+    }, [firestore, user, currentUserProfile, profileLoading]);
     
     useEffect(() => {
         if (user && !profileLoading) {
-            fetchPosts(null, true);
+            setPosts([]);
+            setLastVisible(null);
+            setHasMore(true);
+            fetchPosts();
         }
-    }, [user, profileLoading, fetchPosts]);
+    }, [user, profileLoading]); // Removed fetchPosts from here
 
     useEffect(() => {
-        if (isInView && hasMore && !isLoading) {
+        if (isInView && hasMore && !isLoading && lastVisible) {
             fetchPosts(lastVisible);
         }
-    }, [isInView, hasMore, isLoading, lastVisible, fetchPosts]);
+    }, [isInView, hasMore, isLoading, lastVisible]); // Removed fetchPosts from here
     
-    if (isUserLoading || (isLoading && posts.length === 0)) {
+    if (isUserLoading || profileLoading || (isLoading && posts.length === 0)) {
       return <PageSkeleton />;
     }
 
     if (!user) {
-      // This part will be briefly visible while the redirect from useEffect is happening.
       return <PageSkeleton />;
     }
 
