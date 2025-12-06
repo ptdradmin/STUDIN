@@ -25,9 +25,12 @@ function MessagesHeader({ conversation }: { conversation: Conversation | null })
 
     if (!conversation || !user) {
         return (
-             <div className="p-4 border-b flex items-center gap-3">
+             <div className="p-4 border-b flex items-center gap-3 bg-card sticky top-0 z-10">
                 <Skeleton className="h-10 w-10 rounded-full" />
-                <Skeleton className="h-5 w-32" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                </div>
             </div>
         );
     }
@@ -51,7 +54,7 @@ function MessagesHeader({ conversation }: { conversation: Conversation | null })
     )
 }
 
-function MessageBubble({ message, isOwnMessage, onDelete }: { message: ChatMessage, isOwnMessage: boolean, onDelete: (messageId: string) => void }) {
+const MessageBubble = memo(function MessageBubble({ message, isOwnMessage, onDelete }: { message: ChatMessage, isOwnMessage: boolean, onDelete: (messageId: string) => void }) {
     const [isHovered, setIsHovered] = useState(false);
 
     const content = () => {
@@ -83,10 +86,10 @@ function MessageBubble({ message, isOwnMessage, onDelete }: { message: ChatMessa
              </div>
         </div>
     )
-}
+});
 
 export default function ConversationPage() {
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
     const storage = useStorage();
     const params = useParams();
@@ -331,17 +334,23 @@ export default function ConversationPage() {
                 <MessagesHeader conversation={conversation} />
 
                 <div className="flex-grow p-4 overflow-y-auto space-y-4">
-                     {(isConversationLoading || areMessagesLoading) && (
+                     {(isConversationLoading || areMessagesLoading) && !messages ? (
                         <div className="space-y-4">
-                            <Skeleton className="h-12 w-2/3 rounded-lg" />
-                            <Skeleton className="h-16 w-1/2 rounded-lg self-end ml-auto" />
-                            <Skeleton className="h-8 w-1/3 rounded-lg" />
+                            <Skeleton className="h-12 w-2/3 rounded-lg self-end ml-auto" />
+                            <Skeleton className="h-16 w-1/2 rounded-lg" />
+                            <Skeleton className="h-8 w-1/3 rounded-lg self-end ml-auto" />
+                            <Skeleton className="h-12 w-3/4 rounded-lg" />
                         </div>
+                    ) : (
+                        messages && messages.map(msg => (
+                            <MessageBubble 
+                                key={msg.id} 
+                                message={msg} 
+                                isOwnMessage={msg.senderId === user?.uid} 
+                                onDelete={() => handleDeleteMessage(msg.id)}
+                            />
+                        ))
                     )}
-                    
-                    {messages && messages.map(msg => (
-                        <MessageBubble key={msg.id} message={msg} isOwnMessage={msg.senderId === user?.uid} onDelete={handleDeleteMessage} />
-                    ))}
                     <div ref={messagesEndRef} />
                 </div>
                 

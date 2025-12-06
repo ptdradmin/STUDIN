@@ -35,7 +35,7 @@ import { Badge } from "@/components/ui/badge";
 
 
 function ConversationList() {
-    const { user } = useUser();
+    const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
     const params = useParams();
     const { toast } = useToast();
@@ -51,7 +51,7 @@ function ConversationList() {
         );
     }, [firestore, user]);
 
-    const { data: conversations, isLoading } = useCollection<Conversation>(conversationsQuery);
+    const { data: conversations, isLoading: areConversationsLoading } = useCollection<Conversation>(conversationsQuery);
 
     const sortedConversations = useMemo(() => {
         if (!conversations) return [];
@@ -84,6 +84,7 @@ function ConversationList() {
         }
     };
 
+    const isLoading = isUserLoading || areConversationsLoading;
 
     if (isLoading) {
         return (
@@ -142,11 +143,12 @@ function ConversationList() {
 
 
             {sortedConversations.map(conv => {
-                const otherParticipantId = conv.participantIds.find(id => id !== user?.uid);
+                if (!user) return null;
+                const otherParticipantId = conv.participantIds.find(id => id !== user.uid);
                 const otherParticipant = otherParticipantId ? conv.participants[otherParticipantId] : null;
                 const lastMessage = conv.lastMessage;
                 const timeAgo = lastMessage?.timestamp ? formatDistanceToNow(lastMessage.timestamp.toDate(), { addSuffix: true, locale: fr }) : '';
-                const isUnread = conv.unread && lastMessage?.senderId !== user?.uid;
+                const isUnread = conv.unread && lastMessage?.senderId !== user.uid;
                 const isActive = currentConversationId === conv.id;
 
                 if (!otherParticipant) return null;
@@ -166,7 +168,7 @@ function ConversationList() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <p className={cn("text-sm text-muted-foreground truncate", isUnread && "font-bold text-foreground")}>
-                                        {lastMessage?.senderId === user?.uid && "Vous: "}{lastMessage?.text || "..."}
+                                        {lastMessage?.senderId === user.uid && "Vous: "}{lastMessage?.text || "..."}
                                         </p>
                                         {isUnread && <span className="h-2.5 w-2.5 rounded-full bg-primary flex-shrink-0 ml-2"></span>}
                                     </div>
