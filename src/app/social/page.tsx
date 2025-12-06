@@ -63,31 +63,21 @@ export default function SocialPage() {
     }, [isUserLoading, user, router]);
 
     const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
-        if (!firestore || !user || profileLoading || !hasMore) return;
+        if (!firestore) return;
         
         setIsLoading(true);
 
-        let postQuery;
-        const followingIds = currentUserProfile?.followingIds;
-        const hasFollowing = followingIds && followingIds.length > 0;
-        
         const baseQuery = collection(firestore, 'posts');
-        let constraints = [];
-        
-        if (hasFollowing) {
-            const idsForQuery = [...followingIds, user.uid].slice(0, 30);
-            constraints.push(where('userId', 'in', idsForQuery));
-        }
-        
-        constraints.push(orderBy('createdAt', 'desc'));
+        let constraints = [
+            orderBy('createdAt', 'desc'),
+            limit(POST_BATCH_SIZE)
+        ];
         
         if (lastDoc) {
             constraints.push(startAfter(lastDoc));
         }
         
-        constraints.push(limit(POST_BATCH_SIZE));
-        
-        postQuery = query(baseQuery, ...constraints);
+        const postQuery = query(baseQuery, ...constraints);
         
         try {
             const documentSnapshots = await getDocs(postQuery);
@@ -103,19 +93,16 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
-    }, [firestore, user, currentUserProfile, profileLoading, hasMore]);
+    }, [firestore]);
     
     useEffect(() => {
-        if (user && !profileLoading) {
-            setPosts([]);
-            setLastVisible(null);
-            setHasMore(true);
-            fetchPosts();
-        }
-    }, [user, profileLoading, fetchPosts]);
+        // Initial fetch
+        fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
-        if (isInView && hasMore && !isLoading) {
+        if (isInView && hasMore && !isLoading && lastVisible) {
             fetchPosts(lastVisible);
         }
     }, [isInView, hasMore, isLoading, lastVisible, fetchPosts]);
@@ -167,7 +154,7 @@ export default function SocialPage() {
                        ) : noPostsToShow ? (
                          <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
                               <p className="text-lg font-semibold">{isNewUser ? "Bienvenue sur STUD'IN !" : "Votre fil est vide"}</p>
-                              <p className="text-sm">{isNewUser ? "Suivez des personnes pour voir leurs publications ici." : "Les publications de vos amis apparaîtront ici."}</p>
+                              <p className="text-sm">{isNewUser ? "Suivez des personnes pour voir leurs publications ici." : "Les publications récentes de la communauté apparaîtront ici."}</p>
                           </div>
                        ) : (
                           <>
