@@ -47,10 +47,9 @@ export function getFirebaseServices(): FirebaseServices {
     const reCaptchaKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
     
     // Assign the debug token to a variable.
-    const debugToken = process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN || 'e481d300-fa1d-4245-952e-4b9026564ae2';
-    
-    // Make the debug token available globally for easy access in the developer console.
-    (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
+    if(process.env.NODE_ENV !== 'production') {
+      (window as any).FIREBASE_APPCHECK_DEBUG_TOKEN = process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN;
+    }
     
     initializeAppCheck(app, {
       provider: new ReCaptchaEnterpriseProvider(reCaptchaKey),
@@ -68,3 +67,4 @@ export function getFirebaseServices(): FirebaseServices {
 
   return services;
 }
+
