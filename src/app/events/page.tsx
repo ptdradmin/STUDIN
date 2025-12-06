@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -40,7 +41,7 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
     useEffect(() => {
         if (userProfile && events.length > 0) {
             setIsLoading(true);
-            const futureEvents = events.filter(event => event.startDate.toDate() > new Date());
+            const futureEvents = events.filter(event => (event.startDate as Timestamp).toDate() > new Date());
             recommendEvents({ userProfile, allEvents: futureEvents })
                 .then(setRecommendations)
                 .catch(err => {
@@ -79,7 +80,7 @@ function RecommendedEvents({ events, userProfile }: { events: Event[], userProfi
                                     <Badge className="absolute top-3 right-3">{event.category}</Badge>
                                 </div>
                                 <CardContent className="p-4 flex flex-col flex-grow">
-                                    <p className="font-semibold text-primary">{event.startDate.toDate().toLocaleDateString()}</p>
+                                    <p className="font-semibold text-primary">{(event.startDate as Timestamp).toDate().toLocaleDateString()}</p>
                                     <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
                                     <p className="text-sm text-muted-foreground flex items-center mt-2">
                                         <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
@@ -254,6 +255,7 @@ export default function EventsPage() {
               const isAttending = user && (event.attendeeIds || []).includes(user.uid);
               const isFavorited = favoritedIds.has(event.id);
               const isOwner = user?.uid === event.organizerId;
+              const startDate = (event.startDate as Timestamp).toDate();
               return (
                 <Card key={event.id} id={`event-${event.id}`} className="overflow-hidden transition-shadow hover:shadow-xl flex flex-col group">
                     <div className="relative aspect-video">
@@ -266,7 +268,7 @@ export default function EventsPage() {
                         )}
                     </div>
                     <CardContent className="p-4 flex flex-col flex-grow">
-                        <p className="font-semibold text-primary">{event.startDate.toDate().toLocaleDateString()}</p>
+                        <p className="font-semibold text-primary">{startDate.toLocaleDateString()}</p>
                         <h3 className="text-lg font-bold mt-1 flex-grow">{event.title}</h3>
                         <p className="text-sm text-muted-foreground flex items-center mt-2">
                             <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
@@ -299,13 +301,13 @@ export default function EventsPage() {
     }
 
     return (
-        <Card>
-          <CardContent className="p-2">
-            <div className="h-[600px] w-full rounded-md overflow-hidden">
-                <MapView items={filteredEvents} itemType="event" />
-            </div>
-          </CardContent>
-        </Card>
+      <Card>
+        <CardContent className="p-2">
+          <div className="h-[600px] w-full rounded-md overflow-hidden">
+              <MapView items={filteredEvents} itemType="event" />
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
