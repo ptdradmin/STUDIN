@@ -42,8 +42,8 @@ export default function NewsPage() {
     
     const articlesQuery = useMemo(() => {
         if (!firestore) return null;
-        // Simplified query to avoid composite index requirement.
-        // We will filter for 'isPublished' on the client side.
+        // Tri par date uniquement pour éviter l'index composite.
+        // Le filtrage se fait côté client.
         return query(
             collection(firestore, 'articles'),
             orderBy('createdAt', 'desc')
@@ -53,6 +53,7 @@ export default function NewsPage() {
     const { data: rawArticles, isLoading, error } = useCollection<Article>(articlesQuery);
 
     const articles = useMemo(() => {
+        // Filtrage côté client pour n'afficher que les articles publiés.
         return rawArticles?.filter(article => article.isPublished) || null;
     }, [rawArticles]);
     
