@@ -27,6 +27,7 @@ const StudinAiMessageSchema = z.object({
   text: z.string().optional(),
   imageUrl: z.string().optional(),
   audioUrl: z.string().optional(),
+  toolData: z.any().optional(),
 });
 export type StudinAiMessage = z.infer<typeof StudinAiMessageSchema>;
 

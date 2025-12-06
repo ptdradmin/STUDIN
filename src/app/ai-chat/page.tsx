@@ -7,19 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2, Gem } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
+import { FormEvent, useState, useRef, useEffect, useCallback, memo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import type { ChatMessage, UserProfile, Housing as HousingType, Event as EventType, Assignment } from "@/lib/types";
+import type { ChatMessage, UserProfile, Housing as HousingType, Event as EventType, Assignment as AssignmentType } from "@/lib/types";
 import { doc, collection, addDoc, deleteDoc, Timestamp, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
 import { getInitials } from "@/lib/avatars";
 import type { AssignmentForTool } from '@/ai/tools/manage-assignments-tool';
 import { Badge } from "@/components/ui/badge";
+import type { HousingForTool } from "@/ai/tools/search-housings-tool";
+import type { EventForTool } from "@/ai/tools/search-events-tool";
 
 
 function MessagesHeader() {
@@ -45,7 +47,7 @@ function MessagesHeader() {
     )
 }
 
-function HousingResultCard({ housing }: { housing: any }) {
+const HousingResultCard = memo(({ housing }: { housing: HousingForTool }) => {
     return (
         <div className="w-full max-w-xs bg-card p-3 rounded-lg border">
             <div className="relative aspect-video mb-2">
@@ -61,9 +63,10 @@ function HousingResultCard({ housing }: { housing: any }) {
             </div>
         </div>
     );
-}
+});
+HousingResultCard.displayName = 'HousingResultCard';
 
-function EventResultCard({ event }: { event: any }) {
+const EventResultCard = memo(({ event }: { event: EventForTool }) => {
   return (
     <div className="w-full max-w-xs bg-card p-3 rounded-lg border">
       <div className="relative aspect-video mb-2">
@@ -79,9 +82,11 @@ function EventResultCard({ event }: { event: any }) {
       </div>
     </div>
   );
-}
+});
+EventResultCard.displayName = 'EventResultCard';
 
-function AssignmentResultCard({ assignments }: { assignments: AssignmentForTool[] }) {
+
+const AssignmentResultCard = memo(({ assignments }: { assignments: AssignmentForTool[] }) => {
   return (
     <div className="w-full max-w-xs bg-card p-4 rounded-lg border space-y-3">
         <h3 className="font-bold text-base">Prochaines échéances</h3>
@@ -92,14 +97,15 @@ function AssignmentResultCard({ assignments }: { assignments: AssignmentForTool[
                     <Badge variant={item.status === 'done' ? 'secondary' : 'default'}>{item.status}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">{item.subject}</p>
-                <p className="text-xs font-medium text-primary mt-1">{item.dueDate}</p>
+                <p className="text-xs font-medium text-primary mt-1">{(item.dueDate as any)?.toDate().toLocaleDateString()}</p>
             </div>
         ))}
     </div>
   );
-}
+});
+AssignmentResultCard.displayName = 'AssignmentResultCard';
 
-function CheckoutResultCard({ url }: { url: string }) {
+const CheckoutResultCard = memo(({ url }: { url: string }) => {
     return (
         <div className="w-full max-w-xs bg-card p-4 rounded-lg border space-y-3">
             <h3 className="font-bold text-base">Devenez membre Alice Pro</h3>
@@ -113,7 +119,9 @@ function CheckoutResultCard({ url }: { url: string }) {
             </Button>
         </div>
     );
-}
+});
+CheckoutResultCard.displayName = 'CheckoutResultCard';
+
 
 const MessageBubble = ({ message, onClientAction, isActionLoading }: { message: ChatMessage, onClientAction: (results: any) => void, isActionLoading: boolean }) => {
     const { user } = useUser();
@@ -133,18 +141,18 @@ const MessageBubble = ({ message, onClientAction, isActionLoading }: { message: 
                     let q = query(collection(firestore, 'housings'), limit(3));
                     if (payload.city) q = query(q, where('city', '==', payload.city));
                     const snapshot = await getDocs(q);
-                    resultData = { searchHousingsTool: { results: snapshot.docs.map(d => d.data()) } };
+                    resultData = { searchHousingsTool: { results: snapshot.docs.map(d => ({...d.data(), id: d.id})) } };
                 } else if (type === 'SEARCH_EVENTS') {
                     let q = query(collection(firestore, 'events'), limit(3));
                      if (payload.city) q = query(q, where('city', '==', payload.city));
                     const snapshot = await getDocs(q);
-                    resultData = { searchEventsTool: { results: snapshot.docs.map(d => d.data()) } };
+                    resultData = { searchEventsTool: { results: snapshot.docs.map(d => ({...d.data(), id: d.id})) } };
                 } else if (type === 'MANAGE_ASSIGNMENTS') {
                     const assignmentsCol = collection(firestore, 'users', user.uid, 'assignments');
                     if (payload.action === 'list') {
                         const q = query(assignmentsCol, where('status', '!=', 'done'), orderBy('status'), orderBy('dueDate', 'asc'), limit(10));
                         const snapshot = await getDocs(q);
-                        resultData = { manageAssignmentsTool: { results: snapshot.docs.map(d => d.data()) } };
+                        resultData = { manageAssignmentsTool: { results: snapshot.docs.map(d => ({...d.data(), id: d.id})) } };
                     } else if (payload.action === 'add' && payload.assignment) {
                         const newDocRef = doc(assignmentsCol);
                         const newAssignment = { ...payload.assignment, id: newDocRef.id, userId: user.uid, createdAt: Timestamp.now(), dueDate: Timestamp.fromDate(new Date(payload.assignment.dueDate)) };
@@ -175,6 +183,43 @@ const MessageBubble = ({ message, onClientAction, isActionLoading }: { message: 
         }
     }, [message.toolData, firestore, user, onClientAction]);
 
+    const renderToolResults = () => {
+        if (!message.toolData) return null;
+
+        const { searchHousingsTool, searchEventsTool, manageAssignmentsTool, createCheckoutSessionTool } = message.toolData;
+
+        if (searchHousingsTool?.results?.length > 0) {
+            return (
+                <div className="flex flex-col gap-2 p-2">
+                    {searchHousingsTool.results.map((h: HousingForTool) => <HousingResultCard key={h.id} housing={h} />)}
+                </div>
+            );
+        }
+        if (searchEventsTool?.results?.length > 0) {
+            return (
+                <div className="flex flex-col gap-2 p-2">
+                    {searchEventsTool.results.map((e: EventForTool) => <EventResultCard key={e.id} event={e} />)}
+                </div>
+            );
+        }
+        if (manageAssignmentsTool?.results?.length > 0) {
+            return (
+                 <div className="p-2">
+                    <AssignmentResultCard assignments={manageAssignmentsTool.results} />
+                </div>
+            );
+        }
+        if (createCheckoutSessionTool?.url) {
+            return (
+                <div className="p-2">
+                    <CheckoutResultCard url={createCheckoutSessionTool.url} />
+                </div>
+            );
+        }
+
+        return null;
+    }
+
     return (
         <div 
             className={cn("flex items-start gap-2 group", isUserMessage && "justify-end")}
@@ -198,13 +243,8 @@ const MessageBubble = ({ message, onClientAction, isActionLoading }: { message: 
                         <audio src={message.audioUrl} controls autoPlay className={cn("w-full h-10", message.text && "mt-2")} />
                     )}
                     
-                    {/* These are results of client actions that are displayed in the UI but NOT passed back to the AI */}
-                    {message.toolData?.clientAction?.payload.action !== 'list' && message.toolData?.createCheckoutSessionTool?.url && (
-                        <div className="flex flex-col gap-2 p-2">
-                            <CheckoutResultCard url={message.toolData.createCheckoutSessionTool.url} />
-                        </div>
-                    )}
-
+                    {renderToolResults()}
+                    
                     {isActionLoading && <div className="flex items-center gap-2 p-2"><Loader2 className="h-4 w-4 animate-spin" /> <span className="text-xs text-muted-foreground">Exécution...</span></div>}
 
                 </div>
@@ -287,8 +327,12 @@ export default function AiChatPage() {
         const historyForAi: StudinAiInput['history'] = currentMessages
             .slice(1) // Remove initial welcome message
             .map(({ role, text, imageUrl, audioUrl, toolData }) => ({
-                role, text, imageUrl, audioUrl, toolData
-            }));
+                role: role,
+                text,
+                imageUrl,
+                audioUrl,
+                toolData
+            } as any)); // Use `any` to match expected stream type
             
         const messageToSend: StudinAiInput['message'] = { role: 'user' };
         if (userMessage.text) messageToSend.text = userMessage.text;

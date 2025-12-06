@@ -212,7 +212,9 @@ export type ChatMessage = {
     role: 'user' | 'model';
     text?: string;
     imageUrl?: string;
+    videoUrl?: string;
     audioUrl?: string;
+    fileType?: 'image' | 'video' | 'audio';
     toolData?: any;
 };
 
