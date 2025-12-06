@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, DependencyList } from 'react';
@@ -121,7 +120,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 // If this fails, it's a critical permission issue. Emit a detailed error.
                 errorEmitter.emit('permission-error', new FirestorePermissionError({
                     path: userDocRef.path,
-                    operation: 'create', // or 'get' if getDoc failed
+                    operation: 'get', // or 'create' if getDoc failed
                     requestResourceData: { email: firebaseUser.email }, // Example data
                 }));
             }
