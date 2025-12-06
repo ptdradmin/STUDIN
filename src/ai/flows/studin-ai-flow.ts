@@ -105,13 +105,12 @@ Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utili
     // Choose model based on 'isPro' flag
     const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash');
 
-    // Combine history and current message into a single prompt array
     const conversationPrompt = (history || []).map(m => ({
         role: m.role,
         content: [
           ...(m.text ? [{ text: m.text }] : []),
           ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
-          ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
+          ...(m.audioUrl ? [{ media: { url: m.audioUrl, contentType: 'audio/webm' } }] : []),
         ].filter(Boolean) as any,
     }));
     
@@ -147,7 +146,7 @@ Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utili
               config: {
                 responseModalities: ['AUDIO'],
                 speechConfig: {
-                  voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Algenib' } },
+                  voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Polaris' } },
                 },
               },
               prompt: textResponse || "Voici les résultats de votre recherche.",
@@ -176,7 +175,5 @@ Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utili
     return { text: textResponse, toolData: toolResponses };
   }
 );
-
-    
 
     
