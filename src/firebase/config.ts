@@ -67,4 +67,3 @@ export function getFirebaseServices(): FirebaseServices {
 
   return services;
 }
-
