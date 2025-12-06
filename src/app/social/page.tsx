@@ -161,7 +161,7 @@ export default function SocialPage() {
                           <SuggestedUsersCarousel />
                       </div>}
                        {isLoading && posts.length === 0 ? (
-                          Array.from({length: 3}).map((_, i) => <CardSkeleton key={i}/>)
+                          Array.from({length: 3}).map((_, i) => <CardSkeleton key={`skeleton-${i}`}/>)
                        ) : noPostsToShow ? (
                          <div className="text-center p-10 text-muted-foreground bg-card md:border rounded-lg mt-4">
                               <p className="text-lg font-semibold">{isNewUser ? "Bienvenue sur STUD'IN !" : "Votre fil est vide"}</p>
