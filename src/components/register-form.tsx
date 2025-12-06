@@ -114,7 +114,6 @@ export default function RegisterForm() {
       
       setDocumentNonBlocking(userDocRef, userData, { merge: false });
 
-
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       await updateProfile(user, { displayName: newDisplayName, photoURL: userData.profilePicture });
 
@@ -129,8 +128,15 @@ export default function RegisterForm() {
       console.error("Registration error:", error);
       let description = "Impossible de créer le compte. Veuillez réessayer.";
       
-      // Only show a toast if it's NOT a permission error, which is handled globally
-      if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
+      if(error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+              path: `users/${auth.currentUser?.uid}`, // Approximate path
+              operation: 'create',
+              requestResourceData: { role: 'student', email: data.email },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          // Don't show a toast here, the global handler will show the error overlay
+      } else {
         switch (error.code) {
             case 'auth/email-already-in-use':
             description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";

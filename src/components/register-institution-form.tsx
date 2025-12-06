@@ -148,8 +148,14 @@ export default function RegisterInstitutionForm() {
     } catch (error: any) {
         let description = "Impossible de créer le compte. Veuillez réessayer.";
         
-        // Only show a toast if it's not a permission error, which is handled globally
-        if (error.name !== 'FirebaseError' || error.code !== 'permission-denied') {
+        if(error.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: `users/${auth.currentUser?.uid}`, // Approximate path
+                operation: 'create',
+                requestResourceData: { role: 'institution', email: data.email },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
           switch (error.code) {
             case 'auth/email-already-in-use':
               description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
