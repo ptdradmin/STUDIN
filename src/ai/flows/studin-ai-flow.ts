@@ -150,17 +150,25 @@ export const studinAiFlow = ai.defineFlow(
         });
     
         let textResponse = '';
-        const toolResponses = [];
-        let audioResponse: string | undefined = undefined;
+        let finalToolData: any = undefined;
 
         for await (const chunk of llmResponse.stream) {
-            textResponse += chunk.text;
+            if (chunk.text) {
+              textResponse += chunk.text;
+            }
             if (chunk.toolRequest) {
-                toolResponses.push(...chunk.toolRequest.responses());
+                // The tool response itself is now just a confirmation.
+                // The client action is what matters.
+                const toolResponses = chunk.toolRequest.responses();
+                const clientAction = toolResponses[0]?.clientAction;
+                if(clientAction) {
+                    finalToolData = { clientAction: clientAction };
+                }
             }
         }
         
         // 4. Conditional Text-to-Speech
+        let audioResponse: string | undefined = undefined;
         if (isVoiceQuery) {
             try {
                 const { media } = await ai.generate({
@@ -191,7 +199,7 @@ export const studinAiFlow = ai.defineFlow(
         return {
             text: textResponse,
             audio: audioResponse,
-            toolData: toolResponses,
+            toolData: finalToolData,
         };
   }
 );

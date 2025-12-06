@@ -1,25 +1,23 @@
 
 'use client';
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { useUser, useFirestore, useDoc, useMemoFirebase, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2, Gem } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect } from "react";
+import { FormEvent, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
-import type { ChatMessage, UserProfile } from "@/lib/types";
-import { doc } from 'firebase/firestore';
+import type { ChatMessage, UserProfile, Housing as HousingType, Event as EventType, Assignment } from "@/lib/types";
+import { doc, collection, addDoc, deleteDoc, Timestamp, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schema';
 import { getInitials } from "@/lib/avatars";
-import type { Housing as HousingType } from '@/lib/types';
-import type { Event as EventType } from '@/lib/types';
 import type { AssignmentForTool } from '@/ai/tools/manage-assignments-tool';
 import { Badge } from "@/components/ui/badge";
 
@@ -48,8 +46,6 @@ function MessagesHeader() {
 }
 
 function HousingResultCard({ housing }: { housing: any }) {
-    // This is a simplified card for display in the chat.
-    // It doesn't have all the interactions of the main HousingCard.
     return (
         <div className="w-full max-w-xs bg-card p-3 rounded-lg border">
             <div className="relative aspect-video mb-2">
@@ -125,6 +121,64 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
     const isUserMessage = message.role === 'user';
     const [isHovered, setIsHovered] = useState(false);
     
+    const [clientActionResults, setClientActionResults] = useState<any>(null);
+    const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
+    const firestore = useFirestore();
+
+    useEffect(() => {
+        const executeClientAction = async () => {
+            if (!message.toolData?.clientAction || !firestore || !user) return;
+
+            setIsActionLoading(true);
+            const { type, payload } = message.toolData.clientAction;
+
+            try {
+                let resultData: any = null;
+                if (type === 'SEARCH_HOUSINGS') {
+                    let q = query(collection(firestore, 'housings'), limit(3));
+                    if (payload.city) q = query(q, where('city', '==', payload.city));
+                    const snapshot = await getDocs(q);
+                    resultData = { searchHousingsTool: snapshot.docs.map(d => d.data()) };
+                } else if (type === 'SEARCH_EVENTS') {
+                    let q = query(collection(firestore, 'events'), limit(3));
+                     if (payload.city) q = query(q, where('city', '==', payload.city));
+                    const snapshot = await getDocs(q);
+                    resultData = { searchEventsTool: snapshot.docs.map(d => d.data()) };
+                } else if (type === 'MANAGE_ASSIGNMENTS') {
+                    const assignmentsCol = collection(firestore, 'users', user.uid, 'assignments');
+                    if (payload.action === 'list') {
+                        const q = query(assignmentsCol, where('status', '!=', 'done'), orderBy('status'), orderBy('dueDate', 'asc'), limit(10));
+                        const snapshot = await getDocs(q);
+                        resultData = { manageAssignmentsTool: { assignments: snapshot.docs.map(d => d.data()) } };
+                    } else if (payload.action === 'add' && payload.assignment) {
+                        const newDocRef = doc(assignmentsCol);
+                        const newAssignment = { ...payload.assignment, id: newDocRef.id, userId: user.uid, createdAt: Timestamp.now(), dueDate: Timestamp.fromDate(new Date(payload.assignment.dueDate)) };
+                        setDocumentNonBlocking(newDocRef, newAssignment, {});
+                    } else if (payload.action === 'update' && payload.assignment?.id) {
+                        const docRef = doc(assignmentsCol, payload.assignment.id);
+                        updateDocumentNonBlocking(docRef, { status: payload.assignment.status });
+                    } else if (payload.action === 'remove' && payload.assignment?.id) {
+                         const docRef = doc(assignmentsCol, payload.assignment.id);
+                         deleteDoc(docRef);
+                    }
+                } else if (type === 'SAVE_PREFERENCE') {
+                    const userRef = doc(firestore, 'users', user.uid);
+                    updateDocumentNonBlocking(userRef, { [`aiPreferences.${payload.key}`]: payload.value });
+                }
+
+                if (resultData) {
+                    setClientActionResults(resultData);
+                }
+            } catch (error) {
+                console.error("Client action failed:", error);
+            } finally {
+                setIsActionLoading(false);
+            }
+        };
+
+        executeClientAction();
+    }, [message.toolData, firestore, user]);
+
     return (
         <div 
             className={cn("flex items-start gap-2 group", isUserMessage && "justify-end")}
@@ -154,25 +208,29 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     {message.audioUrl && (
                         <audio src={message.audioUrl} controls autoPlay className={cn("w-full h-10", message.text && "mt-2")} />
                     )}
-                    {message.toolData?.searchHousingsTool && (
+
+                    {isActionLoading && <Loader2 className="h-5 w-5 animate-spin mx-auto" />}
+
+                    {clientActionResults?.searchHousingsTool && (
                         <div className="flex flex-col gap-2 p-2">
-                             {(message.toolData.searchHousingsTool as HousingType[]).map(housing => (
+                            {(clientActionResults.searchHousingsTool as HousingType[]).map(housing => (
                                 <HousingResultCard key={housing.id} housing={housing} />
-                             ))}
+                            ))}
                         </div>
                     )}
-                    {message.toolData?.searchEventsTool && (
+                    {clientActionResults?.searchEventsTool && (
                         <div className="flex flex-col gap-2 p-2">
-                             {(message.toolData.searchEventsTool as EventType[]).map(event => (
+                            {(clientActionResults.searchEventsTool as EventType[]).map(event => (
                                 <EventResultCard key={event.id} event={event} />
-                             ))}
+                            ))}
                         </div>
                     )}
-                    {message.toolData?.manageAssignmentsTool?.assignments && (
+                    {clientActionResults?.manageAssignmentsTool?.assignments && (
                         <div className="flex flex-col gap-2 p-2">
-                           <AssignmentResultCard assignments={message.toolData.manageAssignmentsTool.assignments} />
+                           <AssignmentResultCard assignments={clientActionResults.manageAssignmentsTool.assignments} />
                         </div>
                     )}
+
                     {message.toolData?.createCheckoutSessionTool?.url && (
                         <div className="flex flex-col gap-2 p-2">
                             <CheckoutResultCard url={message.toolData.createCheckoutSessionTool.url} />
@@ -520,5 +578,3 @@ export default function AiChatPage() {
         </div>
     );
 }
-
-    
