@@ -60,19 +60,21 @@ function NavLink({ item, pathname }: { item: { href?: string, label: string, ico
 
 function SidebarSkeleton() {
     return (
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card p-3 transition-all">
-            <div className="mb-8 px-2 pt-3">
+        <aside className="hidden md:flex flex-col h-screen w-64 border-r bg-card p-3 transition-all">
+            <div className="mb-4 px-2 pt-3">
                 <Skeleton className="h-8 w-32" />
             </div>
-            <nav className="flex flex-col gap-2 flex-grow">
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 p-3">
-                        <Skeleton className="h-6 w-6" />
-                        <Skeleton className="h-5 w-32" />
-                    </div>
-                ))}
-            </nav>
-            <div className="flex items-center gap-3 p-2">
+            <ScrollArea className="flex-grow pr-3">
+                <nav className="flex flex-col gap-1">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 p-3 h-12">
+                            <Skeleton className="h-6 w-6" />
+                            <Skeleton className="h-5 w-32" />
+                        </div>
+                    ))}
+                </nav>
+            </ScrollArea>
+            <div className="flex items-center gap-3 p-2 mt-4 pt-4 border-t">
                 <Skeleton className="h-9 w-9 rounded-full" />
                 <div className="flex-grow space-y-1">
                     <Skeleton className="h-4 w-24" />
@@ -129,18 +131,18 @@ export default function SocialSidebar() {
             </Link>
           </div>
 
-          <ScrollArea className="flex-grow">
-            <nav className="flex flex-col gap-1 pr-3">
+          <ScrollArea className="flex-grow pr-3">
+            <nav className="flex flex-col gap-1">
                 {visibleNavItems.map((item) => (
                 <NavLink key={item.label} item={item} pathname={pathname}/>
                 ))}
             </nav>
           </ScrollArea>
           
-          <div className="flex flex-col gap-2 mt-4 pt-2 border-t">
+          <div className="mt-4 pt-2 border-t">
              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="justify-start items-center gap-3 h-14 w-full">
+                    <Button variant="ghost" className="justify-start items-center gap-3 h-auto py-2 w-full">
                         {user && <Avatar className="h-9 w-9">
                             <AvatarImage src={user?.photoURL || generateAvatar(user?.email || user.uid)} />
                             <AvatarFallback>{getInitials(user?.email)}</AvatarFallback>
