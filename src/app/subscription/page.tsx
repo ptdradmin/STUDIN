@@ -1,9 +1,8 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Check, CreditCard, Gem, PartyPopper, Sparkles, Target } from "lucide-react";
+import { Check, CreditCard, Gem, PartyPopper, Sparkles, Target, Loader2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { useUser, useFirestore, useDoc, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from 'firebase/firestore';
@@ -23,26 +22,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { LogoIcon } from "@/components/logo-icon";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useRouter } from 'next/navigation';
+import { createCheckoutSession } from "@/ai/flows/create-checkout-session-flow";
+import { loadStripe } from '@stripe/stripe-js';
 
 
-const VisaIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" fill="none" {...props}>
-        <rect width="38" height="24" rx="4" fill="#0057A0"/>
-        <path d="M23.01 6.5H26.33L23.48 17.5H20.23L23.01 6.5ZM12.23 6.5C11.59 6.5 11.04 6.8 10.75 7.2L7.17 17.5H10.51L11.13 15.9H15.23L15.64 17.5H18.66L15.4 6.5H12.23ZM11.98 13.6L13.21 9.5L14.49 13.6H11.98ZM34.22 11C34.22 9.9 33.13 9.4 32.08 9.4C31.25 9.4 30.58 9.8 30.23 10.2L30.94 6.7H28L25.7 17.5H28.92L29.16 16.4C29.63 17.2 30.59 17.6 31.64 17.6C33.28 17.6 34.22 16.7 34.22 15.4V11ZM31.15 15.2C30.41 15.2 29.84 14.8 29.62 14.1L31.11 10C31.26 9.9 31.55 9.9 31.82 9.9C32.33 9.9 32.56 10.2 32.56 10.7V15.2H31.15Z" fill="white"/>
-    </svg>
-);
-
-const MastercardIcon = (props: React.SVGProps<SVGSVGElement>) => (
-   <svg xmlns="http://www.w3.org/2000/svg" width="38" height="24" viewBox="0 0 38 24" fill="none" {...props}>
-        <rect width="38" height="24" rx="4" fill="#222"/>
-        <circle cx="15" cy="12" r="7" fill="#EB001B"/>
-        <circle cx="23" cy="12" r="7" fill="#F79E1B"/>
-        <path d="M20 12C20 15.866 16.866 19 13 19C9.13401 19 6 15.866 6 12C6 8.13401 9.13401 5 13 5C14.7432 5 16.3312 5.66465 17.5113 6.7461C16.3267 7.83495 15.5 9.3948 15.5 11.1C15.5 11.4132 15.5401 11.7202 15.6163 12.0163C15.0673 11.9402 14.5034 11.9 13.9286 11.9C13.623 11.9 13.3221 11.9213 13.0286 11.962C12.5113 10.785 12.8687 9.35626 13.882 8.34302C13.2598 8.11867 12.6052 8 11.9286 8C10.0337 8 8.41473 9.13401 7.74286 10.7143H20.25Z" fill="#FF5F00" fillOpacity=".8"/>
-    </svg>
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 
 export default function SubscriptionPage() {
@@ -78,6 +63,26 @@ export default function SubscriptionPage() {
                 description: "Une erreur est survenue lors de la mise à jour de votre abonnement.",
             });
         } finally {
+            setIsProcessing(false);
+        }
+    }
+    
+    const handleRedirectToCheckout = async () => {
+        if (!user || !user.email) {
+            toast({ variant: 'destructive', title: "Erreur", description: "Vous devez être connecté pour vous abonner."});
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            const { url } = await createCheckoutSession({ userId: user.uid, email: user.email });
+            if (url) {
+                router.push(url);
+            } else {
+                throw new Error("URL de paiement non reçue.");
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Erreur de paiement', description: 'Impossible de lancer le processus de paiement. Veuillez réessayer.' });
             setIsProcessing(false);
         }
     }
@@ -191,49 +196,10 @@ export default function SubscriptionPage() {
                                             </AlertDialogContent>
                                         </AlertDialog>
                                     ) : (
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button className="w-full" size="lg" disabled={isProcessing}>Passer à Pro</Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Passer à Alice Pro</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Un système de paiement sécurisé sera bientôt intégré. Pour l'instant, ceci est une simulation.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <div className="space-y-4 py-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="card-name">Nom sur la carte</Label>
-                                                        <Input id="card-name" placeholder="John Doe" />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center justify-between">
-                                                            <Label htmlFor="card-number">Numéro de carte</Label>
-                                                            <div className="flex items-center gap-2">
-                                                                <VisaIcon />
-                                                                <MastercardIcon />
-                                                            </div>
-                                                        </div>
-                                                        <Input id="card-number" placeholder="**** **** **** 1234" />
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="expiry-date">Date d'expiration</Label>
-                                                            <Input id="expiry-date" placeholder="MM/AA" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="cvc">CVC</Label>
-                                                            <Input id="cvc" placeholder="123" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleSubscription(true)}>Payer et s'abonner</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                        <Button className="w-full" size="lg" onClick={handleRedirectToCheckout} disabled={isProcessing}>
+                                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Gem className="mr-2 h-4 w-4" />}
+                                            Passer à Pro
+                                        </Button>
                                     )}
                                 </CardFooter>
                             </Card>
@@ -244,4 +210,3 @@ export default function SubscriptionPage() {
         </div>
     );
 }
-
