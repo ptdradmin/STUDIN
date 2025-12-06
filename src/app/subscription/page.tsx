@@ -38,7 +38,6 @@ export default function SubscriptionPage() {
     }, [user, firestore]);
     const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [isFreeActivated, setIsFreeActivated] = useState(false);
 
     const isPro = userProfile?.isPro || false; 
 
@@ -54,7 +53,7 @@ export default function SubscriptionPage() {
                 duration: 5000,
             });
             // Clean the URL to prevent re-triggering this effect
-            router.replace('/subscription', undefined);
+            router.replace('/subscription', { scroll: false });
         }
     }, [searchParams, userProfileRef, router, toast]);
 
@@ -82,6 +81,7 @@ export default function SubscriptionPage() {
     const handleRedirectToCheckout = async () => {
         if (!user || !user.email) {
             toast({ variant: 'destructive', title: "Erreur", description: "Vous devez être connecté pour vous abonner."});
+            router.push('/login?from=/subscription');
             return;
         }
         setIsProcessing(true);
@@ -99,13 +99,6 @@ export default function SubscriptionPage() {
         }
     }
 
-    const handleActivateFree = () => {
-        setIsFreeActivated(true);
-        toast({
-            title: "Activation réussie !",
-            description: "Vous pouvez maintenant utiliser la version gratuite de Alice.",
-        });
-    }
 
     return (
         <div className="flex min-h-screen w-full bg-background">
@@ -135,11 +128,7 @@ export default function SubscriptionPage() {
                                         <Sparkles className="text-muted-foreground"/>
                                         Alice
                                     </CardTitle>
-                                    {isPro || isFreeActivated ? (
-                                        <CardDescription>Le forfait de base inclus.</CardDescription>
-                                    ) : (
-                                        <CardDescription>Gratuit pour tous les étudiants.</CardDescription>
-                                    )}
+                                    <CardDescription>Le forfait de base pour tous les étudiants.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="flex-grow space-y-4">
                                    <p className="text-3xl font-bold">Gratuit</p>
@@ -150,15 +139,9 @@ export default function SubscriptionPage() {
                                     </ul>
                                 </CardContent>
                                 <CardFooter>
-                                    {isFreeActivated || isPro ? (
-                                        <Button variant="secondary" className="w-full" asChild>
-                                            <Link href="/ai-chat">Accéder au Chat</Link>
-                                        </Button>
-                                    ) : (
-                                        <Button variant="outline" className="w-full" onClick={handleActivateFree}>
-                                            Activer l'abonnement gratuit
-                                        </Button>
-                                    )}
+                                    <Button variant="secondary" className="w-full" asChild>
+                                        <Link href="/ai-chat">Accéder au Chat</Link>
+                                    </Button>
                                 </CardFooter>
                             </Card>
 
