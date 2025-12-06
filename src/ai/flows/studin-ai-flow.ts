@@ -86,7 +86,8 @@ const studinAiFlow = ai.defineFlow(
     // Choose model based on 'isPro' flag
     const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash');
 
-    const conversationHistory = (history || []).map(m => ({
+    // Combine history and current message into a single prompt array
+    const conversationPrompt = (history || []).map(m => ({
         role: m.role,
         content: [
           ...(m.text ? [{ text: m.text }] : []),
@@ -96,20 +97,21 @@ const studinAiFlow = ai.defineFlow(
         ].filter(Boolean) as any,
     }));
     
-    const currentMessageContent = [
-        ...(userMessageText ? [{text: userMessageText}] : []),
-        ...(userImage ? [{media: {url: userImage}}] : []),
-        ...(userFile ? [{media: {url: userFile, contentType: message.fileType}}] : [])
-    ];
+    conversationPrompt.push({
+        role: 'user',
+        content: [
+            ...(userMessageText ? [{text: userMessageText}] : []),
+            ...(userImage ? [{media: {url: userImage}}] : []),
+            ...(userFile ? [{media: {url: userFile, contentType: message.fileType}}] : [])
+        ].filter(Boolean) as any
+    });
+    
 
     const llmResponse = await ai.generate({
         model: conversationModel,
         system: studinAiSystemPrompt,
         tools: [searchHousingsTool],
-        prompt: [
-          ...conversationHistory,
-          { role: 'user', content: currentMessageContent }
-        ] as any,
+        prompt: conversationPrompt,
     });
 
 
