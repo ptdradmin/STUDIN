@@ -16,9 +16,8 @@ function LoginPageContent() {
         <Image
           src="https://images.unsplash.com/photo-1541532713592-79a0317b6b77?q=80&w=1974&auto=format&fit=crop"
           alt="Image d'étudiants souriant dans un bar"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-90"
+          fill
+          className="object-cover opacity-90"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/70 to-transparent"></div>
         <div className="absolute bottom-10 left-10 text-white">
