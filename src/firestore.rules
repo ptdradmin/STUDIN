@@ -14,7 +14,7 @@ service cloud.firestore {
     // ============================================
     match /users/{userId} {
       allow get: if isSignedIn();
-      allow list: if false;
+      allow list: if isSignedIn();
       // Allow user to create their own profile document
       allow create: if isOwner(userId);
       // Allow user to update/delete their own profile
@@ -125,7 +125,8 @@ service cloud.firestore {
     // ARTICLES - Public read, Admin/Partner write
     // ============================================
     match /articles/{articleId} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if true;
       // Only allow creation/update if user has 'institution' or 'admin' role
       allow write: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['institution', 'admin'];
     }
