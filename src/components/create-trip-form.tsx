@@ -111,7 +111,7 @@ export default function CreateTripForm({ onClose }: CreateTripFormProps) {
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<TripFormInputs>({
     resolver: zodResolver(tripSchema),
     defaultValues: {
-      departureTime: new Date(),
+      departureTime: setMinutes(setHours(new Date(), new Date().getHours() + 1), 0),
       seatsAvailable: 1,
       pricePerSeat: 5,
     }

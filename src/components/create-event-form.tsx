@@ -49,7 +49,8 @@ export default function CreateEventForm({ onClose }: CreateEventFormProps) {
   const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<EventFormInputs>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-        startDate: new Date(),
+        startDate: setMinutes(setHours(new Date(), new Date().getHours() + 1), 0),
+        price: 0,
     }
   });
 
