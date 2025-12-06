@@ -182,7 +182,7 @@ export default function HousingPage() {
                     </CardContent>
                 </Card>
 
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center my-8">
                   <h2 className="text-2xl font-bold tracking-tight">Annonces récentes</h2>
                   <div className="flex items-center gap-2">
                     <Button onClick={handleCreateClick} disabled={isUserLoading}>

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import 'leaflet/dist/leaflet.css';
@@ -272,7 +271,9 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
           
         if (validCoords.length > 0) {
             const bounds = L.latLngBounds(validCoords as L.LatLngExpression[]);
-            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+            }
         }
     }
 
@@ -308,12 +309,14 @@ export default function MapView({ items, itemType, onMarkerClick, selectedItem }
             show: false, // Hides the itinerary text panel
             addWaypoints: false, // Prevents users from adding more waypoints
             createMarker: function() { return null; } // Prevent default markers
+        }).on('routesfound', function(e) {
+            const routes = e.routes;
+            if(routes.length > 0) {
+                map.fitBounds(routes[0].bounds, { padding: [50, 50] });
+            }
         }).addTo(map);
 
         routeControlRef.current = route;
-        
-        const bounds = L.latLngBounds(waypoints);
-        map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [selectedItem, itemType, isMounted]);
 

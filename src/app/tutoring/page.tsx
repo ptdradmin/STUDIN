@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -250,7 +249,7 @@ export default function TutoringPage() {
             </CardContent>
           </Card>
 
-          <div className="mt-8">
+          <div className="my-8">
             <div className="flex justify-between items-center mb-4 gap-4">
               <h2 className="text-2xl font-bold tracking-tight">Tuteurs disponibles</h2>
               <div className="flex items-center gap-2">
