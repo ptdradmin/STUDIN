@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -73,7 +74,6 @@ export default function CurrentUserProfilePage() {
     const [showEditForm, setShowEditForm] = useState(false);
     const [modalContent, setModalContent] = useState<{ title: string, userIds: string[] } | null>(null);
     const [activeTab, setActiveTab] = useState('posts');
-    const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     const userRef = useMemoFirebase(() => {
@@ -93,13 +93,10 @@ export default function CurrentUserProfilePage() {
     }, [firestore, user]);
     const { data: userPosts, isLoading: postsLoading } = useCollection<Post>(userPostsQuery);
 
-    // Load more posts
     const handleLoadMore = useCallback(async () => {
         if (!firestore || !user || !userPosts || userPosts.length === 0 || isLoadingMore) return;
-
         setIsLoadingMore(true);
-        // This is a simplified version - in production you'd want to properly handle pagination
-        // by storing all loaded posts in state and appending new ones
+        // This is a simplified version for now.
         setIsLoadingMore(false);
     }, [firestore, user, userPosts, isLoadingMore]);
 
@@ -116,7 +113,7 @@ export default function CurrentUserProfilePage() {
         }
     }
     
-    const loading = isUserLoading || profileLoading;
+    const isLoading = isUserLoading || profileLoading;
 
     const followersCount = userProfile?.followerIds?.length || 0;
     const followingCount = userProfile?.followingIds?.length || 0;
@@ -137,7 +134,7 @@ export default function CurrentUserProfilePage() {
         )
     }
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="flex min-h-screen w-full bg-background">
                 <SocialSidebar />

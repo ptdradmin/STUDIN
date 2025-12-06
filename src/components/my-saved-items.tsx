@@ -135,13 +135,13 @@ const MySavedItems = memo(({ user, isActive }: MySavedItemsProps) => {
                     <h3 className="text-sm font-semibold mb-2">Événements ({savedEvents.length})</h3>
                     <div className="space-y-2">
                         {savedEvents.map(e => (
-                            <Link href={`/events`} key={e.id}>
+                            <Link href={`/events#event-${e.id}`} key={e.id}>
                                 <Card className="hover:bg-muted/50 transition-colors">
                                     <CardContent className="p-4 flex items-center gap-4">
                                         <CalendarClock className="h-5 w-5 text-secondary-foreground" />
                                         <div>
                                             <p className="font-semibold">{e.title}</p>
-                                            <p className="text-sm text-muted-foreground">{(e as any).city || 'Lieu non spécifié'}</p>
+                                            <p className="text-sm text-muted-foreground">{e.city || 'Lieu non spécifié'}</p>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -177,15 +177,17 @@ const MySavedItems = memo(({ user, isActive }: MySavedItemsProps) => {
                     <h3 className="text-sm font-semibold mb-2">Livres ({savedBooks.length})</h3>
                     <div className="space-y-2">
                         {savedBooks.map(b => (
-                            <Card key={b.id} className="hover:bg-muted/50 transition-colors">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                    <Package className="h-5 w-5 text-secondary-foreground" />
-                                    <div>
-                                        <p className="font-semibold">{b.title}</p>
-                                        <p className="text-sm text-muted-foreground">{b.author}</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                            <Link href={`/books`} key={b.id}>
+                                <Card className="hover:bg-muted/50 transition-colors">
+                                    <CardContent className="p-4 flex items-center gap-4">
+                                        <Package className="h-5 w-5 text-secondary-foreground" />
+                                        <div>
+                                            <p className="font-semibold">{b.title}</p>
+                                            <p className="text-sm text-muted-foreground">{b.author}</p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
                         ))}
                     </div>
                 </div>
