@@ -86,25 +86,32 @@ const studinAiFlow = ai.defineFlow(
     // Choose model based on 'isPro' flag
     const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash');
 
+    const conversationHistory = (history || []).map(m => ({
+        role: m.role,
+        content: [
+          ...(m.text ? [{ text: m.text }] : []),
+          ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
+          ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
+          ...(m.fileUrl ? [{ media: { url: m.fileUrl, contentType: m.fileType } }] : []),
+        ].filter(Boolean) as any,
+    }));
+    
+    const currentMessageContent = [
+        ...(userMessageText ? [{text: userMessageText}] : []),
+        ...(userImage ? [{media: {url: userImage}}] : []),
+        ...(userFile ? [{media: {url: userFile, contentType: message.fileType}}] : [])
+    ];
+
     const llmResponse = await ai.generate({
         model: conversationModel,
         system: studinAiSystemPrompt,
         tools: [searchHousingsTool],
-        history: (history || []).map(m => ({
-          role: m.role,
-          content: [
-            ...(m.text ? [{ text: m.text }] : []),
-            ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
-            ...(m.audioUrl ? [{ media: { url: m.audioUrl } }] : []),
-            ...(m.fileUrl ? [{ media: { url: m.fileUrl, contentType: m.fileType } }] : []),
-          ].filter(Boolean) as any,
-        })),
         prompt: [
-            ...(userMessageText ? [{text: userMessageText}] : []),
-            ...(userImage ? [{media: {url: userImage}}] : []),
-            ...(userFile ? [{media: {url: userFile, contentType: message.fileType}}] : [])
-        ],
+          ...conversationHistory,
+          { role: 'user', content: currentMessageContent }
+        ] as any,
     });
+
 
     const textResponse = llmResponse.text;
     const toolResponses = llmResponse.toolRequest()?.responses();
