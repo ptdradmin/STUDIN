@@ -48,8 +48,8 @@ export const searchEventsTool = ai.defineTool(
     {
         name: 'searchEventsTool',
         description: "Recherche des événements étudiants en fonction de critères. Utilise cet outil lorsqu'un utilisateur demande quoi faire, cherche une soirée, une conférence, etc.",
-        input: { schema: SearchEventsInputSchema },
-        output: { schema: z.array(EventSchemaForTool) },
+        inputSchema: SearchEventsInputSchema,
+        outputSchema: z.array(EventSchemaForTool),
     },
     async (input: SearchEventsInput) => {
         initializeAdminApp();
