@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, DependencyList } from 'react';
@@ -82,16 +83,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             // User is signed in. Check if their profile document exists in Firestore.
             const userDocRef = doc(firestore, 'users', firebaseUser.uid);
             
-            try {
-                const userDocSnap = await getDoc(userDocRef);
-
+            getDoc(userDocRef).then(userDocSnap => {
                 if (!userDocSnap.exists()) {
                     // User document doesn't exist, this is a new user. Create it.
-                    // This logic is now robust because onAuthStateChanged guarantees an authenticated user.
                     const username = firebaseUser.email?.split('@')[0] || `user${Math.random().toString(36).substring(2, 8)}`;
                     const userData: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
                         id: firebaseUser.uid,
-                        role: 'student', // Default role
+                        role: 'student',
                         email: firebaseUser.email || '',
                         username: username,
                         firstName: firebaseUser.displayName?.split(' ')[0] || '',
@@ -112,18 +110,17 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                         updatedAt: serverTimestamp(),
                     };
                     
-                    // USE NON-BLOCKING WRITE
                     setDocumentNonBlocking(userDocRef, userData, { merge: false });
                 }
-            } catch (e) {
-                console.error("[FirebaseProvider] Error ensuring user document exists:", e);
-                // If this fails, it's a critical permission issue. Emit a detailed error.
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
+            }).catch(e => {
+                 console.error("[FirebaseProvider] Error ensuring user document exists:", e);
+                 const permissionError = new FirestorePermissionError({
                     path: userDocRef.path,
-                    operation: 'get', // or 'create' if getDoc failed
-                    requestResourceData: { email: firebaseUser.email }, // Example data
-                }));
-            }
+                    operation: 'get',
+                    requestResourceData: { uid: firebaseUser.uid }
+                 });
+                 errorEmitter.emit('permission-error', permissionError);
+            });
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
