@@ -42,14 +42,19 @@ export default function NewsPage() {
     
     const articlesQuery = useMemo(() => {
         if (!firestore) return null;
+        // Simplified query to avoid composite index requirement.
+        // We will filter for 'isPublished' on the client side.
         return query(
             collection(firestore, 'articles'),
-            where('isPublished', '==', true),
             orderBy('createdAt', 'desc')
         );
     }, [firestore]);
 
-    const { data: articles, isLoading, error } = useCollection<Article>(articlesQuery);
+    const { data: rawArticles, isLoading, error } = useCollection<Article>(articlesQuery);
+
+    const articles = useMemo(() => {
+        return rawArticles?.filter(article => article.isPublished) || null;
+    }, [rawArticles]);
     
     // Note: Pagination logic is removed for simplicity with useCollection.
     // For infinite scroll, a more advanced hook would be needed.
