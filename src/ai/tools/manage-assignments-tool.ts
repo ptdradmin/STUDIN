@@ -24,7 +24,7 @@ const AssignmentSchemaForTool = z.object({
   id: z.string(),
   title: z.string(),
   subject: z.string(),
-  dueDate: z.string().describe("Date au format 'EEEE d MMMM'"),
+  dueDate: z.any().describe("Date d'échéance"),
   status: z.enum(['todo', 'in-progress', 'done']),
 });
 export type AssignmentForTool = z.infer<typeof AssignmentSchemaForTool>;
@@ -41,7 +41,7 @@ export const manageAssignmentsTool = ai.defineTool(
                 type: z.literal('MANAGE_ASSIGNMENTS'),
                 payload: ManageAssignmentsInputSchema,
             }).optional(),
-            assignments: z.array(AssignmentSchemaForTool).optional().describe("Uniquement pour l'action 'list', sinon vide."),
+            results: z.array(AssignmentSchemaForTool).optional().describe("Uniquement pour l'action 'list', la liste des devoirs retournée par le client."),
         }),
     },
     async ({ userId, action, assignment }) => {

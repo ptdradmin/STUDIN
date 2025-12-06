@@ -1,5 +1,4 @@
 
-
 'use server';
 
 /**
@@ -131,12 +130,16 @@ export const studinAiFlow = ai.defineFlow(
               ...(m.text ? [{ text: m.text }] : []),
               ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
               ...(m.audioUrl ? [{ media: { url: m.audioUrl, contentType: 'audio/webm' } }] : []),
+              // Add tool results to history if they exist
+              ...(m.toolData ? [{ toolResponse: { name: Object.keys(m.toolData)[0], output: m.toolData[Object.keys(m.toolData)[0]] } }] : []),
             ].filter(Boolean) as any,
         }));
         
         const currentMessageContent = [
             ...(userMessageText ? [{text: userMessageText}] : []),
-            ...(userImage ? [{media: {url: userImage}}] : [])
+            ...(userImage ? [{media: {url: userImage}}] : []),
+            // Pass the client action results to the model
+            ...(message.toolData ? [{ toolResponse: { name: Object.keys(message.toolData)[0], output: message.toolData[Object.keys(message.toolData)[0]] } }] : []),
         ].filter(Boolean) as any;
         
     
@@ -157,8 +160,6 @@ export const studinAiFlow = ai.defineFlow(
               textResponse += chunk.text;
             }
             if (chunk.toolRequest) {
-                // The tool response itself is now just a confirmation.
-                // The client action is what matters.
                 const toolResponses = chunk.toolRequest.responses();
                 const clientAction = toolResponses[0]?.clientAction;
                 if(clientAction) {

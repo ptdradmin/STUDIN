@@ -36,7 +36,9 @@ export const searchHousingsTool = ai.defineTool(
             clientAction: z.object({
                 type: z.literal('SEARCH_HOUSINGS'),
                 payload: SearchHousingsInputSchema
-            }).optional()
+            }).optional(),
+            // This allows the tool to receive the results from the client action.
+            results: z.array(HousingSchemaForTool).optional().describe("A list of housing results provided by the client-side execution."),
         }),
     },
     async (input) => {

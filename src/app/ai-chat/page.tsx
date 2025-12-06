@@ -115,21 +115,16 @@ function CheckoutResultCard({ url }: { url: string }) {
     );
 }
 
-
-function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?: (id: string) => void }) {
+const MessageBubble = ({ message, onClientAction, isActionLoading }: { message: ChatMessage, onClientAction: (results: any) => void, isActionLoading: boolean }) => {
     const { user } = useUser();
     const isUserMessage = message.role === 'user';
-    const [isHovered, setIsHovered] = useState(false);
     
-    const [clientActionResults, setClientActionResults] = useState<any>(null);
-    const [isActionLoading, setIsActionLoading] = useState<boolean>(false);
     const firestore = useFirestore();
 
     useEffect(() => {
         const executeClientAction = async () => {
             if (!message.toolData?.clientAction || !firestore || !user) return;
-
-            setIsActionLoading(true);
+            
             const { type, payload } = message.toolData.clientAction;
 
             try {
@@ -138,18 +133,18 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     let q = query(collection(firestore, 'housings'), limit(3));
                     if (payload.city) q = query(q, where('city', '==', payload.city));
                     const snapshot = await getDocs(q);
-                    resultData = { searchHousingsTool: snapshot.docs.map(d => d.data()) };
+                    resultData = { searchHousingsTool: { results: snapshot.docs.map(d => d.data()) } };
                 } else if (type === 'SEARCH_EVENTS') {
                     let q = query(collection(firestore, 'events'), limit(3));
                      if (payload.city) q = query(q, where('city', '==', payload.city));
                     const snapshot = await getDocs(q);
-                    resultData = { searchEventsTool: snapshot.docs.map(d => d.data()) };
+                    resultData = { searchEventsTool: { results: snapshot.docs.map(d => d.data()) } };
                 } else if (type === 'MANAGE_ASSIGNMENTS') {
                     const assignmentsCol = collection(firestore, 'users', user.uid, 'assignments');
                     if (payload.action === 'list') {
                         const q = query(assignmentsCol, where('status', '!=', 'done'), orderBy('status'), orderBy('dueDate', 'asc'), limit(10));
                         const snapshot = await getDocs(q);
-                        resultData = { manageAssignmentsTool: { assignments: snapshot.docs.map(d => d.data()) } };
+                        resultData = { manageAssignmentsTool: { results: snapshot.docs.map(d => d.data()) } };
                     } else if (payload.action === 'add' && payload.assignment) {
                         const newDocRef = doc(assignmentsCol);
                         const newAssignment = { ...payload.assignment, id: newDocRef.id, userId: user.uid, createdAt: Timestamp.now(), dueDate: Timestamp.fromDate(new Date(payload.assignment.dueDate)) };
@@ -167,29 +162,23 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                 }
 
                 if (resultData) {
-                    setClientActionResults(resultData);
+                    onClientAction(resultData);
                 }
             } catch (error) {
                 console.error("Client action failed:", error);
-            } finally {
-                setIsActionLoading(false);
+                onClientAction(null); // Notify that action failed
             }
         };
 
-        executeClientAction();
-    }, [message.toolData, firestore, user]);
+        if (message.toolData?.clientAction) {
+            executeClientAction();
+        }
+    }, [message.toolData, firestore, user, onClientAction]);
 
     return (
         <div 
             className={cn("flex items-start gap-2 group", isUserMessage && "justify-end")}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
         >
-             {isUserMessage && onDelete && (
-                <Button variant="ghost" size="icon" className={cn("h-7 w-7 transition-opacity", isHovered ? 'opacity-100' : 'opacity-0')} onClick={() => onDelete(message.id)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                </Button>
-            )}
             {!isUserMessage && (
                 <Avatar className="h-8 w-8">
                      <div className="h-full w-full flex items-center justify-center rounded-full bg-primary/20">
@@ -208,34 +197,16 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                     {message.audioUrl && (
                         <audio src={message.audioUrl} controls autoPlay className={cn("w-full h-10", message.text && "mt-2")} />
                     )}
-
-                    {isActionLoading && <Loader2 className="h-5 w-5 animate-spin mx-auto" />}
-
-                    {clientActionResults?.searchHousingsTool && (
-                        <div className="flex flex-col gap-2 p-2">
-                            {(clientActionResults.searchHousingsTool as HousingType[]).map(housing => (
-                                <HousingResultCard key={housing.id} housing={housing} />
-                            ))}
-                        </div>
-                    )}
-                    {clientActionResults?.searchEventsTool && (
-                        <div className="flex flex-col gap-2 p-2">
-                            {(clientActionResults.searchEventsTool as EventType[]).map(event => (
-                                <EventResultCard key={event.id} event={event} />
-                            ))}
-                        </div>
-                    )}
-                    {clientActionResults?.manageAssignmentsTool?.assignments && (
-                        <div className="flex flex-col gap-2 p-2">
-                           <AssignmentResultCard assignments={clientActionResults.manageAssignmentsTool.assignments} />
-                        </div>
-                    )}
-
-                    {message.toolData?.createCheckoutSessionTool?.url && (
+                    
+                    {/* These are results of client actions that are displayed in the UI but NOT passed back to the AI */}
+                    {message.toolData?.clientAction?.payload.action !== 'list' && message.toolData?.createCheckoutSessionTool?.url && (
                         <div className="flex flex-col gap-2 p-2">
                             <CheckoutResultCard url={message.toolData.createCheckoutSessionTool.url} />
                         </div>
                     )}
+
+                    {isActionLoading && <div className="flex items-center gap-2 p-2"><Loader2 className="h-4 w-4 animate-spin" /> <span className="text-xs text-muted-foreground">Exécution...</span></div>}
+
                 </div>
             </div>
              {isUserMessage && user && (
@@ -269,6 +240,8 @@ export default function AiChatPage() {
     const [recordingTime, setRecordingTime] = useState(0);
     const [fileToSend, setFileToSend] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isActionLoading, setIsActionLoading] = useState(false);
+
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -279,11 +252,14 @@ export default function AiChatPage() {
      useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
-
-    const handleSendMessage = async (e: FormEvent) => {
-        e.preventDefault();
-        if ((!newMessage.trim() && !fileToSend) || isLoading) return;
-        
+    
+    const handleSendMessage = useCallback(async (
+      text?: string,
+      imageUrl?: string,
+      audioUrl?: string,
+      toolData?: any
+    ) => {
+        if (isLoading) return;
         setIsLoading(true);
 
         const userMessage: ChatMessage = {
@@ -291,9 +267,10 @@ export default function AiChatPage() {
             role: 'user',
             senderId: user?.uid || 'user',
             createdAt: new Date() as any,
-            text: newMessage.trim() || undefined,
-            imageUrl: fileToSend?.type.startsWith('image/') ? previewUrl || undefined : undefined,
-            audioUrl: fileToSend?.type.startsWith('audio/') ? previewUrl || undefined : undefined,
+            text: text || undefined,
+            imageUrl: imageUrl,
+            audioUrl: audioUrl,
+            toolData: toolData,
         };
 
         const aiResponsePlaceholder: ChatMessage = {
@@ -304,33 +281,20 @@ export default function AiChatPage() {
             text: '',
         };
 
-        setMessages(prev => [...prev, userMessage, aiResponsePlaceholder]);
+        const currentMessages = toolData ? messages : [...messages, userMessage];
+        setMessages([...currentMessages, aiResponsePlaceholder]);
 
-        const historyForAi: StudinAiInput['history'] = messages
-            .filter(m => m.id !== aiResponsePlaceholder.id) // Exclude previous placeholders
+        const historyForAi: StudinAiInput['history'] = currentMessages
             .slice(1) // Remove initial welcome message
-            .map(({ role, text, imageUrl, audioUrl }) => ({
-                role, 
-                text, 
-                imageUrl, 
-                audioUrl
+            .map(({ role, text, imageUrl, audioUrl, toolData }) => ({
+                role, text, imageUrl, audioUrl, toolData
             }));
             
         const messageToSend: StudinAiInput['message'] = { role: 'user' };
         if (userMessage.text) messageToSend.text = userMessage.text;
-
-        if (fileToSend) {
-            const fileDataUri = await new Promise<string>(resolve => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsDataURL(fileToSend);
-            });
-            if (fileToSend.type.startsWith('image/')) {
-                messageToSend.imageUrl = fileDataUri;
-            } else if (fileToSend.type.startsWith('audio/')) {
-                messageToSend.audioUrl = fileDataUri;
-            }
-        }
+        if (userMessage.imageUrl) messageToSend.imageUrl = userMessage.imageUrl;
+        if (userMessage.audioUrl) messageToSend.audioUrl = userMessage.audioUrl;
+        if (userMessage.toolData) messageToSend.toolData = userMessage.toolData;
         
         setNewMessage('');
         setFileToSend(null);
@@ -375,7 +339,6 @@ export default function AiChatPage() {
                 done = readerDone;
                 const chunk = decoder.decode(value, { stream: true });
                 try {
-                    // Responses are newline-separated JSON chunks
                     const jsonChunks = chunk.split('\n').filter(c => c.trim());
                     for (const jsonChunk of jsonChunks) {
                          const parsedChunk = JSON.parse(jsonChunk);
@@ -386,24 +349,24 @@ export default function AiChatPage() {
                                 : msg
                             ));
                          }
-                         // Store non-streamed data to be applied at the end
                          if(parsedChunk.audio) fullResponse.audio = parsedChunk.audio;
                          if(parsedChunk.toolData) fullResponse.toolData = parsedChunk.toolData;
                          if(parsedChunk.imageUrl) fullResponse.imageUrl = parsedChunk.imageUrl;
                     }
                 } catch (e) {
-                     // Sometimes the stream might end with a partial JSON object, we can ignore it.
                     console.warn("Could not parse stream chunk:", chunk, e);
                 }
             }
+            
+            if (fullResponse.toolData) {
+                setIsActionLoading(true);
+            }
 
-            // Final update with non-streamed data (audio, tools, images)
              setMessages(prev => prev.map(msg => 
                 msg.id === aiResponsePlaceholder.id 
                 ? { ...msg, audioUrl: fullResponse.audio, toolData: fullResponse.toolData, imageUrl: fullResponse.imageUrl }
                 : msg
             ));
-
 
         } catch (error) {
             console.error("Error asking Alice:", error);
@@ -415,7 +378,39 @@ export default function AiChatPage() {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, [messages, user, userProfile, isLoading]);
+
+    const handleSubmitForm = async (e: FormEvent) => {
+        e.preventDefault();
+        if ((!newMessage.trim() && !fileToSend) || isLoading) return;
+
+        let text = newMessage.trim() || undefined;
+        let imageUrl: string | undefined = undefined;
+        let audioUrl: string | undefined = undefined;
+
+        if (fileToSend) {
+            const fileDataUri = await new Promise<string>(resolve => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.readAsDataURL(fileToSend);
+            });
+            if (fileToSend.type.startsWith('image/')) {
+                imageUrl = fileDataUri;
+            } else if (fileToSend.type.startsWith('audio/')) {
+                audioUrl = fileDataUri;
+            }
+        }
+
+        handleSendMessage(text, imageUrl, audioUrl);
+    };
+
+    const handleClientAction = useCallback((results: any) => {
+        setIsActionLoading(false);
+        if (results) {
+            // Send the results back to the AI
+            handleSendMessage(undefined, undefined, undefined, results);
+        }
+    }, [handleSendMessage]);
     
     const startRecording = async () => {
         try {
@@ -460,10 +455,6 @@ export default function AiChatPage() {
             }
         }
     };
-    
-    const deleteMessage = (id: string) => {
-        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== id));
-    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -499,7 +490,7 @@ export default function AiChatPage() {
 
                 <div className="flex-grow p-4 overflow-y-auto space-y-4">
                     {messages.map(msg => (
-                        <MessageBubble key={msg.id} message={msg} onDelete={msg.role === 'user' ? deleteMessage : undefined}/>
+                        <MessageBubble key={msg.id} message={msg} onClientAction={handleClientAction} isActionLoading={isActionLoading} />
                     ))}
                     {isLoading && messages[messages.length-1].text === '' && (
                         <div className="flex items-start gap-3">
@@ -551,7 +542,7 @@ export default function AiChatPage() {
                             </Button>
                         </div>
                     ) : (
-                        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                        <form onSubmit={handleSubmitForm} className="flex items-center gap-2">
                              <Button type="button" variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isLoading || !!previewUrl}>
                                 <Paperclip className="h-5 w-5" />
                             </Button>

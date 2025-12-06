@@ -32,6 +32,7 @@ export const searchEventsTool = ai.defineTool(
                 type: z.literal('SEARCH_EVENTS'),
                 payload: SearchEventsInputSchema,
             }).optional(),
+            results: z.array(EventSchemaForTool).optional().describe("A list of event results provided by the client-side execution."),
         }),
     },
     async (input) => {
