@@ -415,7 +415,7 @@ export default function PostCard({ post, isInitiallySaved = false }: PostCardPro
                     </Button>
                 )}
 
-                {optimisticComments.length > 0 && (
+                {optimisticComments.length > 0 && showAllComments && (
                     <div className="mt-2 text-sm w-full space-y-1 px-2">
                         {displayedComments.map((comment, index) => (
                             <div key={index} className="flex items-start gap-2">

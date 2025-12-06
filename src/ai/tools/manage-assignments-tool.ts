@@ -1,3 +1,4 @@
+
 'use server';
 
 import { ai } from '@/ai/genkit';
@@ -46,7 +47,7 @@ const AssignmentSchemaForTool = z.object({
   id: z.string(),
   title: z.string(),
   subject: z.string(),
-  dueDate: z.string().describe("Date au format 'Mardi 28 mai'"),
+  dueDate: z.string().describe("Date au format 'EEEE d MMMM'"),
   status: z.enum(['todo', 'in-progress', 'done']),
 });
 export type AssignmentForTool = z.infer<typeof AssignmentSchemaForTool>;
@@ -80,14 +81,14 @@ export const manageAssignmentsTool = ai.defineTool(
                         return { success: false, message: "Le titre et la date d'échéance sont requis pour ajouter une tâche." };
                     }
                     const newDocRef = assignmentsCol.doc();
-                    const newAssignment: Assignment = {
+                    const newAssignment: Omit<Assignment, 'createdAt'> & { createdAt: FieldValue } = {
                         id: newDocRef.id,
                         userId,
                         title: assignment.title,
                         subject: assignment.subject || 'Général',
                         dueDate: Timestamp.fromDate(parse(assignment.dueDate, 'yyyy-MM-dd', new Date())),
                         status: 'todo',
-                        createdAt: Timestamp.now(),
+                        createdAt: serverTimestamp(),
                     };
                     await newDocRef.set(newAssignment);
                     return { success: true, message: `"${assignment.title}" a été ajouté à votre agenda.` };
@@ -100,7 +101,10 @@ export const manageAssignmentsTool = ai.defineTool(
                     const assignments = snapshot.docs.map(doc => {
                         const data = doc.data() as Assignment;
                         return {
-                            ...data,
+                            id: data.id,
+                            title: data.title,
+                            subject: data.subject,
+                            status: data.status,
                             dueDate: format(data.dueDate.toDate(), "EEEE d MMMM", { locale: fr }),
                         };
                     });

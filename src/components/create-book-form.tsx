@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, useStorage, useDoc, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, doc, setDoc, Timestamp } from 'firebase/firestore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -90,7 +90,7 @@ export default function CreateBookForm({ onClose }: CreateBookFormProps) {
             sellerId: user.uid,
             username: userProfile.username,
             userAvatarUrl: userProfile.profilePicture,
-            createdAt: serverTimestamp() as any,
+            createdAt: serverTimestamp() as Timestamp,
             imageUrl: downloadURL,
         };
 
