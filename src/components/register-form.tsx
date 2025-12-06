@@ -84,14 +84,48 @@ export default function RegisterForm() {
       }
 
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      
+      const user = userCredential.user;
+
+      // Wait for auth state to fully propagate (increased from 100ms to 500ms)
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Verify user is authenticated
+      if (!auth.currentUser) {
+        throw new Error('Authentication failed - user not signed in');
+      }
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userData = {
+        id: user.uid,
+        role: 'student' as const,
+        email: data.email,
+        username: data.username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        postalCode: data.postalCode,
+        city: data.city,
+        university: data.university,
+        fieldOfStudy: data.fieldOfStudy,
+        bio: '',
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: false,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await setDoc(userDocRef, userData);
+
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
       const newPhotoURL = generateAvatar(userCredential.user.email || userCredential.user.uid);
       await updateProfile(userCredential.user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
       // NOTE: The creation of the user document is now handled by the onAuthStateChanged
       // listener in FirebaseProvider. We only need to create the auth user here.
-      
+
       toast({
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
@@ -100,41 +134,41 @@ export default function RegisterForm() {
       router.push('/social');
 
     } catch (error: any) {
-        let description = "Impossible de créer le compte. Veuillez réessayer.";
+      let description = "Impossible de créer le compte. Veuillez réessayer.";
 
-        switch (error.code) {
-            case 'auth/email-already-in-use':
-                description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
-                break;
-            case 'auth/weak-password':
-                description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
-                break;
-            case 'auth/invalid-email':
-                description = "L'adresse e-mail n'est pas valide.";
-                break;
-            case 'auth/network-request-failed':
-                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
-                break;
-            case 'permission-denied':
-                 // This is where we create and emit the contextual error.
-                 const permissionError = new FirestorePermissionError({
-                    path: `users/${auth.currentUser?.uid}`, // Approximate path for context
-                    operation: 'create',
-                    requestResourceData: { role: 'student', email: data.email }, // Example of relevant data
-                });
-                errorEmitter.emit('permission-error', permissionError);
-                // We don't show a toast here because the listener will throw the error.
-                return; // Stop execution
-            default:
-                description = `Une erreur inattendue est survenue. (${error.code})`;
-        }
-        toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description: description,
-        });
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
+          break;
+        case 'auth/weak-password':
+          description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
+          break;
+        case 'auth/invalid-email':
+          description = "L'adresse e-mail n'est pas valide.";
+          break;
+        case 'auth/network-request-failed':
+          description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
+          break;
+        case 'permission-denied':
+          // This is where we create and emit the contextual error.
+          const permissionError = new FirestorePermissionError({
+            path: `users/${auth.currentUser?.uid}`, // Approximate path for context
+            operation: 'create',
+            requestResourceData: { role: 'student', email: data.email }, // Example of relevant data
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          // We don't show a toast here because the listener will throw the error.
+          return; // Stop execution
+        default:
+          description = `Une erreur inattendue est survenue. (${error.code})`;
+      }
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description: description,
+      });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 

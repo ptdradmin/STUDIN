@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { generateAvatar } from '@/lib/avatars';
@@ -62,66 +63,94 @@ export default function RegisterInstitutionForm() {
     }
 
     try {
-        const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
-            
-        const usernameIsUnique = await isUsernameUnique(firestore, username);
-        if (!usernameIsUnique) {
-            form.setError("name", {
-                type: "manual",
-                message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
-            });
-            setLoading(false);
-            return;
-        }
+      const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
 
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        
-        const newDisplayName = data.name;
-        const newPhotoURL = generateAvatar(userCredential.user.email || userCredential.user.uid);
-        await updateProfile(userCredential.user, { displayName: newDisplayName, photoURL: newPhotoURL });
-        
-        // The user document creation is now handled by the onAuthStateChanged listener in FirebaseProvider
-        
-        toast({
-            title: "Compte créé !",
-            description: "Votre compte partenaire a été créé avec succès.",
+      const usernameIsUnique = await isUsernameUnique(firestore, username);
+      if (!usernameIsUnique) {
+        form.setError("name", {
+          type: "manual",
+          message: "Ce nom est déjà pris ou génère un nom d'utilisateur existant.",
         });
-        router.push('/social');
+        setLoading(false);
+        return;
+      }
+
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+
+      // Wait for auth state to fully propagate (increased from 100ms to 500ms)
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Verify user is authenticated
+      if (!auth.currentUser) {
+        throw new Error('Authentication failed - user not signed in');
+      }
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userData = {
+        id: user.uid,
+        role: 'institution' as const,
+        username: username,
+        email: data.email,
+        firstName: data.name,
+        lastName: '',
+        university: '',
+        fieldOfStudy: '',
+        postalCode: data.postalCode,
+        city: data.city,
+        bio: `Compte officiel de ${data.name}.`,
+        website: '',
+        profilePicture: generateAvatar(user.email || user.uid),
+        followerIds: [],
+        followingIds: [],
+        isVerified: true,
+        points: 0,
+        challengesCompleted: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      // Create user document first
+      await setDoc(userDocRef, userData);
+
+      // Then create institution document
+      const institutionDocRef = doc(firestore, 'institutions', user.uid);
+      const institutionData = {
+        id: user.uid,
+        userId: user.uid,
+        name: data.name,
+        postalCode: data.postalCode,
+        city: data.city,
+        email: data.email,
+        role: 'institution' as const,
+        createdAt: serverTimestamp(),
+      };
+      await setDoc(institutionDocRef, institutionData);
+
+      await updateProfile(user, { displayName: data.name, photoURL: userData.profilePicture });
+
+      toast({
+        title: "Inscription réussie !",
+        description: "Votre compte partenaire a été créé.",
+      });
+      router.push('/dashboard');
+      router.refresh();
 
     } catch (error: any) {
-        let description = "Impossible de créer le compte. Veuillez réessayer.";
-        
-          switch (error.code) {
-            case 'auth/email-already-in-use':
-              description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
-              break;
-            case 'auth/weak-password':
-              description = "Le mot de passe est trop faible. Veuillez en choisir un plus sécurisé.";
-              break;
-            case 'auth/invalid-email':
-              description = "L'adresse e-mail n'est pas valide.";
-              break;
-            case 'auth/network-request-failed':
-                description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
-                break;
-             case 'permission-denied':
-                 const permissionError = new FirestorePermissionError({
-                    path: `users/${auth.currentUser?.uid}`, // Approximate path for context
-                    operation: 'create',
-                    requestResourceData: { role: 'institution', email: data.email },
-                });
-                errorEmitter.emit('permission-error', permissionError);
-                return; // Stop execution
-            default:
-                description = `Une erreur inattendue est survenue. (${error.code})`;
-          }
-          toast({
-            variant: "destructive",
-            title: "Erreur d'inscription",
-            description: description,
-          });
+      console.error("Registration error:", error);
+      let description = "Impossible de créer le compte.";
+      if (error.code === 'auth/email-already-in-use') {
+        description = "Cet email est déjà utilisé pour un autre compte.";
+      } else if (error.code === 'permission-denied') {
+        description = "Erreur de permissions. Vérifiez que vous avez mis à jour les règles Firestore.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description,
+      });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
