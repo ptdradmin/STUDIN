@@ -9,7 +9,7 @@
     ],
     "frameworksBackend": {
       "region": "us-central1",
-      "memory": "2GiB",
+      "memory": "4GiB",
       "cpu": 2
     }
   }
