@@ -113,6 +113,7 @@ export default function RegisterForm() {
         updatedAt: serverTimestamp(),
       };
       
+      // Use awaited setDoc to ensure document is created before proceeding
       await setDoc(userDocRef, userData);
 
       const newDisplayName = `${data.firstName} ${data.lastName}`.trim();
@@ -129,6 +130,7 @@ export default function RegisterForm() {
       console.error("Registration error:", error);
       let description = "Impossible de créer le compte. Veuillez réessayer.";
       
+      // Keep permission denied error handling for debugging rules
       if(error.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
               path: `users/${auth.currentUser?.uid}`, // Approximate path

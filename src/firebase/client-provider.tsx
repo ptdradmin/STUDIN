@@ -4,7 +4,6 @@
 import React, { useMemo, type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
 import { getFirebaseServices } from '@/firebase/config';
-import { getStorage } from 'firebase/storage';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;

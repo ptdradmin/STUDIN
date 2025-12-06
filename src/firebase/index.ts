@@ -1,10 +1,11 @@
+
 import { getFirebaseServices } from '@/firebase/config';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
-    const { firebaseApp, auth, firestore } = getFirebaseServices();
+    const { firebaseApp, auth, firestore, storage } = getFirebaseServices();
     
-    return { firebaseApp, auth, firestore };
+    return { firebaseApp, auth, firestore, storage };
 }
 
 
