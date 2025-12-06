@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
-import { FormEvent, useState, useRef, useEffect, useMemo } from "react";
+import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { askAlice } from "@/ai/flows/studin-ai-flow";
@@ -183,6 +183,8 @@ export default function AiChatPage() {
 
         const userMessageText = newMessage.trim();
         const currentFile = fileToSend;
+        
+        // This is a new change - if we have a preview from a file, we should use it
         const currentPreviewUrl = previewUrl;
 
         setNewMessage('');
@@ -207,6 +209,7 @@ export default function AiChatPage() {
             });
 
              if (currentFile.type.startsWith('image/')) {
+                // Here is the fix: use the previewURL for the optimistic update
                 userMessage.imageUrl = currentPreviewUrl || undefined;
             } else if (currentFile.type.startsWith('audio/')) {
                 userMessage.audioUrl = currentPreviewUrl || undefined;
@@ -221,7 +224,7 @@ export default function AiChatPage() {
         try {
             const historyForAi: StudinAiInput['history'] = messages
                 .slice(1) // Remove initial welcome message
-                .map(({id, senderId, createdAt, ...rest}) => ({...rest}));
+                .map(({id, senderId, createdAt, role, text, imageUrl, audioUrl, fileUrl, fileType }) => ({role, text, imageUrl, audioUrl, fileUrl, fileType}));
 
             const messageToSend: StudinAiInput['message'] = { role: 'user' };
             if (userMessageText) messageToSend.text = userMessageText;
