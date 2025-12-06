@@ -1,10 +1,11 @@
 
+import type { Metadata } from 'next';
+import { Inter, Poppins } from 'next/font/google';
+
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { Inter, Poppins } from 'next/font/google';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { LanguageProvider } from '@/contexts/language-context';
-import type { Metadata } from 'next';
 import BottomNavbar from '@/components/bottom-navbar';
 
 const inter = Inter({
