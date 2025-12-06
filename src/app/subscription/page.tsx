@@ -2,13 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Check, CreditCard, Gem, PartyPopper, Sparkles, Target, Loader2 } from "lucide-react";
+import { Check, Gem, Sparkles, Loader2 } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { useUser, useFirestore, useDoc, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,18 +22,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { LogoIcon } from "@/components/logo-icon";
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createCheckoutSession } from "@/ai/flows/create-checkout-session-flow";
-import { loadStripe } from '@stripe/stripe-js';
-
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
 
 export default function SubscriptionPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
     
     const userProfileRef = useMemo(() => {
@@ -45,6 +41,22 @@ export default function SubscriptionPage() {
     const [isFreeActivated, setIsFreeActivated] = useState(false);
 
     const isPro = userProfile?.isPro || false; 
+
+    useEffect(() => {
+        const sessionId = searchParams.get('session_id');
+        if (sessionId && userProfileRef) {
+            // This means the user is coming back from a successful Stripe checkout.
+            // We can now update their status to Pro.
+            updateDocumentNonBlocking(userProfileRef, { isPro: true });
+            toast({
+                title: "Paiement réussi !",
+                description: "Félicitations, vous êtes maintenant membre Alice Pro.",
+                duration: 5000,
+            });
+            // Clean the URL to prevent re-triggering this effect
+            router.replace('/subscription', undefined);
+        }
+    }, [searchParams, userProfileRef, router, toast]);
 
     const handleSubscription = async (subscribe: boolean) => {
         if (!userProfileRef) return;
