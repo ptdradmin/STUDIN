@@ -32,12 +32,16 @@ service cloud.firestore {
     // ============================================
     // POSTS - Signed-in read, Owner write
     // ============================================
+    match /posts {
+      allow list: if isSignedIn();
+    }
+    
     match /posts/{postId} {
-      allow read: if isSignedIn();
+      allow get: if isSignedIn();
       allow create, update: if request.auth.uid == request.resource.data.userId;
       allow delete: if request.auth.uid == resource.data.userId;
     }
-
+    
     // ============================================
     // REELS - Signed-in read, Owner write
     // ============================================
