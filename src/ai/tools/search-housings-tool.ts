@@ -4,23 +4,29 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps } from 'firebase-admin/app';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
 import type { Housing } from '@/lib/types';
-import {credential} from "firebase-admin";
+import { credential } from "firebase-admin";
 
-// Ensure the service account environment variable is set.
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_STUD_IN_A033B;
+let adminApp: App | null = null;
 
-if (serviceAccount && !getApps().length) {
-    try {
-        initializeApp({
-            credential: credential.cert(JSON.parse(serviceAccount))
-        });
-    } catch (e) {
-        console.error("Failed to initialize Firebase Admin SDK:", e);
+function initializeAdminApp() {
+    if (getApps().length > 0) {
+        adminApp = getApps()[0];
+        return;
+    }
+    const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_STUD_IN_A033B;
+    if (serviceAccount) {
+        try {
+            adminApp = initializeApp({
+                credential: credential.cert(JSON.parse(serviceAccount))
+            });
+        } catch (e) {
+            console.error("Failed to initialize Firebase Admin SDK:", e);
+        }
     }
 }
-const db = getFirestore();
+
 
 const SearchHousingsInputSchema = z.object({
     city: z.string().optional().describe('The city to search for housing in.'),
@@ -50,11 +56,13 @@ export const searchHousingsTool = ai.defineTool(
         output: { schema: z.array(HousingSchemaForTool) },
     },
     async (input: SearchHousingsInput) => {
-        if (!getApps().length) {
-            console.error("Firebase Admin SDK not initialized. Cannot perform search.");
+        initializeAdminApp();
+        if (!adminApp) {
+             console.error("Firebase Admin SDK not initialized. Cannot perform search.");
             return [];
         }
-
+        
+        const db = getFirestore(adminApp);
         let query: FirebaseFirestore.Query = db.collection('housings');
 
         if (input.city) {
