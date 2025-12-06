@@ -148,7 +148,7 @@ export default function CreatePostForm({ onClose }: CreatePostFormProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
            <div className="p-4 space-y-4">
-                <div className="flex flex-col items-center justify-center aspect-square border rounded-md p-4">
+                <div className="flex flex-col items-center justify-center aspect-video border rounded-md p-4">
                     {previewUrl ? (
                         <div className="relative w-full h-full">
                             <Image src={previewUrl} alt="Aperçu de l'image" layout="fill" objectFit="contain" />
