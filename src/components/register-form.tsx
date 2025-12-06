@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -11,19 +10,18 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
-import { isUsernameUnique } from '@/lib/user-actions';
 import { schoolsList } from '@/lib/static-data';
 import { generateAvatar } from '@/lib/avatars';
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
   lastName: z.string().min(1, 'Le nom est requis'),
-  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères.").regex(/^[a-z0-9_.]+$/, "Nom d'utilisateur invalide. Utilisez uniquement des minuscules, chiffres, points ou underscores.").transform(val => val.toLowerCase()),
+  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères.").regex(/^[a-z0-9_.]+$/, "Caractères non valides. Utilisez uniquement des minuscules, chiffres, points ou underscores.").transform(val => val.toLowerCase()),
   email: z.string().email("L'adresse e-mail n'est pas valide"),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
   confirmPassword: z.string(),
@@ -45,7 +43,6 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { auth } = useAuth();
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -67,23 +64,13 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
 
-    if (!auth || !firestore) {
+    if (!auth) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible. Veuillez réessayer.' });
       setLoading(false);
       return;
     }
 
     try {
-      const usernameIsUnique = await isUsernameUnique(firestore, data.username);
-      if (!usernameIsUnique) {
-        form.setError("username", {
-          type: "manual",
-          message: "Ce nom d'utilisateur est déjà pris.",
-        });
-        setLoading(false);
-        return;
-      }
-
       // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
@@ -93,9 +80,8 @@ export default function RegisterForm() {
       const newPhotoURL = generateAvatar(user.email || user.uid);
       await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-      // NOTE: The creation of the Firestore document for the user is now
-      // handled exclusively by the onAuthStateChanged listener in FirebaseProvider.
-      // We do NOT write to Firestore from here.
+      // The onAuthStateChanged listener in FirebaseProvider will handle creating the Firestore document.
+      // This ensures the user is authenticated before any database write.
 
       toast({
         title: "Inscription réussie!",
