@@ -10,7 +10,6 @@ import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { askAlice } from "@/ai/flows/studin-ai-flow";
 import { cn } from "@/lib/utils";
 import Markdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
@@ -179,15 +178,7 @@ export default function AiChatPage() {
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
         if ((!newMessage.trim() && !fileToSend) || isLoading) return;
-
-        const userMessageText = newMessage.trim();
-        const currentFile = fileToSend;
         
-        const currentPreviewUrl = previewUrl;
-
-        setNewMessage('');
-        setFileToSend(null);
-        setPreviewUrl(null);
         setIsLoading(true);
 
         const userMessage: ChatMessage = {
@@ -195,42 +186,52 @@ export default function AiChatPage() {
             role: 'user',
             senderId: user?.uid || 'user',
             createdAt: new Date() as any,
-            text: userMessageText || undefined,
+            text: newMessage.trim() || undefined,
+            imageUrl: fileToSend?.type.startsWith('image/') ? previewUrl || undefined : undefined,
+            audioUrl: fileToSend?.type.startsWith('audio/') ? previewUrl || undefined : undefined,
         };
 
-        let fileDataUri: string | undefined = undefined;
-        if(currentFile) {
-            fileDataUri = await new Promise(resolve => {
+        const aiResponsePlaceholder: ChatMessage = {
+            id: String(Date.now() + 1),
+            role: 'model',
+            senderId: 'alice-ai',
+            createdAt: new Date() as any,
+            text: '',
+        };
+
+        setMessages(prev => [...prev, userMessage, aiResponsePlaceholder]);
+
+        const historyForAi: StudinAiInput['history'] = messages
+            .filter(m => m.id !== aiResponsePlaceholder.id) // Exclude previous placeholders
+            .slice(1) // Remove initial welcome message
+            .map(({ senderId, text, imageUrl, audioUrl }) => ({
+                role: senderId === user?.uid ? 'user' : 'model', 
+                text, 
+                imageUrl, 
+                audioUrl
+            }));
+            
+        const messageToSend: StudinAiInput['message'] = { role: 'user' };
+        if (userMessage.text) messageToSend.text = userMessage.text;
+
+        if (fileToSend) {
+            const fileDataUri = await new Promise<string>(resolve => {
                 const reader = new FileReader();
                 reader.onloadend = () => resolve(reader.result as string);
-                reader.readAsDataURL(currentFile);
+                reader.readAsDataURL(fileToSend);
             });
-
-             if (currentFile.type.startsWith('image/')) {
-                userMessage.imageUrl = currentPreviewUrl || undefined;
-            } else if (currentFile.type.startsWith('audio/')) {
-                userMessage.audioUrl = currentPreviewUrl || undefined;
+            if (fileToSend.type.startsWith('image/')) {
+                messageToSend.imageUrl = fileDataUri;
+            } else if (fileToSend.type.startsWith('audio/')) {
+                messageToSend.audioUrl = fileDataUri;
             }
         }
         
-        setMessages(prev => [...prev, userMessage]);
-        
+        setNewMessage('');
+        setFileToSend(null);
+        setPreviewUrl(null);
+
         try {
-            const historyForAi: StudinAiInput['history'] = messages
-                .slice(1) // Remove initial welcome message
-                .map(({id, senderId, createdAt, role, text, imageUrl, audioUrl }) => ({role, text, imageUrl, audioUrl}));
-
-            const messageToSend: StudinAiInput['message'] = { role: 'user' };
-            if (userMessageText) messageToSend.text = userMessageText;
-
-            if(fileDataUri && currentFile) {
-                 if (currentFile.type.startsWith('image/')) {
-                    messageToSend.imageUrl = fileDataUri;
-                } else if (currentFile.type.startsWith('audio/')) {
-                    messageToSend.audioUrl = fileDataUri;
-                }
-            }
-            
             const profileData = userProfile ? {
                 id: userProfile.id,
                 username: userProfile.username,
@@ -245,35 +246,65 @@ export default function AiChatPage() {
                 aiPreferences: userProfile.aiPreferences,
             } : undefined;
 
+            const response = await fetch('/api/ai', {
+                method: 'POST',
+                body: JSON.stringify({
+                    history: historyForAi,
+                    message: messageToSend,
+                    isPro: userProfile?.isPro || false,
+                    userProfile: profileData,
+                }),
+            });
 
-            const result: StudinAiOutput = await askAlice({ 
-                history: historyForAi,
-                message: messageToSend,
-                isPro: userProfile?.isPro || false,
-                userProfile: profileData,
-             });
-             
-            const aiResponse: ChatMessage = {
-                id: String(Date.now() + 1),
-                role: 'model',
-                senderId: 'alice-ai',
-                createdAt: new Date() as any,
-                text: result.text,
-                audioUrl: result.audio,
-                imageUrl: result.imageUrl,
-                toolData: result.toolData,
-            };
-            setMessages(prev => [...prev, aiResponse]);
+            if (!response.ok || !response.body) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+            let fullResponse: Partial<StudinAiOutput> = {};
+            
+            while (!done) {
+                const { value, done: readerDone } = await reader.read();
+                done = readerDone;
+                const chunk = decoder.decode(value, { stream: true });
+                try {
+                    // Responses are newline-separated JSON chunks
+                    const jsonChunks = chunk.split('\n').filter(c => c.trim());
+                    for (const jsonChunk of jsonChunks) {
+                         const parsedChunk = JSON.parse(jsonChunk);
+                         if (parsedChunk.text) {
+                            setMessages(prev => prev.map(msg => 
+                                msg.id === aiResponsePlaceholder.id 
+                                ? { ...msg, text: (msg.text || '') + parsedChunk.text }
+                                : msg
+                            ));
+                         }
+                         if(parsedChunk.audio) fullResponse.audio = parsedChunk.audio;
+                         if(parsedChunk.toolData) fullResponse.toolData = parsedChunk.toolData;
+                    }
+                } catch (e) {
+                     // Sometimes the stream might end with a partial JSON object, we can ignore it.
+                    console.warn("Could not parse stream chunk:", chunk, e);
+                }
+            }
+
+            // Final update with non-streamed data (audio, tools)
+             setMessages(prev => prev.map(msg => 
+                msg.id === aiResponsePlaceholder.id 
+                ? { ...msg, audioUrl: fullResponse.audio, toolData: fullResponse.toolData }
+                : msg
+            ));
+
+
         } catch (error) {
             console.error("Error asking Alice:", error);
-            const errorResponse: ChatMessage = {
-                id: String(Date.now() + 1),
-                role: 'model',
-                senderId: 'alice-ai',
-                createdAt: new Date() as any,
-                text: "Désolé, je rencontre un problème pour répondre. Veuillez réessayer plus tard."
-            };
-            setMessages(prev => [...prev, errorResponse]);
+            setMessages(prev => prev.map(msg => 
+                msg.id === aiResponsePlaceholder.id 
+                ? { ...msg, text: "Désolé, je rencontre un problème pour répondre. Veuillez réessayer plus tard." }
+                : msg
+            ));
         } finally {
             setIsLoading(false);
         }
@@ -363,7 +394,7 @@ export default function AiChatPage() {
                     {messages.map(msg => (
                         <MessageBubble key={msg.id} message={msg} onDelete={msg.role === 'user' ? deleteMessage : undefined}/>
                     ))}
-                    {isLoading && (
+                    {isLoading && messages[messages.length-1].text === '' && (
                         <div className="flex items-start gap-3">
                             <Avatar className="h-8 w-8">
                                 <div className="h-full w-full flex items-center justify-center rounded-full bg-primary/20">
@@ -388,7 +419,7 @@ export default function AiChatPage() {
                         <div className="mb-2 p-2 border rounded-lg flex items-center justify-between bg-muted/50">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 {fileToSend.type.startsWith('image/') ? (
-                                    <Image src={previewUrl} alt="Preview" width={20} height={20} className="object-cover rounded-sm" />
+                                    <Image src={previewUrl} alt="Preview" width={40} height={40} className="object-cover rounded-sm" />
                                 ) : fileToSend.type.startsWith('audio/') ? (
                                     <audio src={previewUrl} controls className="h-8" />
                                 ) : (
@@ -440,7 +471,3 @@ export default function AiChatPage() {
         </div>
     );
 }
-
-    
-
-    

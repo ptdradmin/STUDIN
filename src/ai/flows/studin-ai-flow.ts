@@ -18,10 +18,57 @@ import {
 import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
 import { searchEventsTool } from '@/ai/tools/search-events-tool';
 import { saveUserPreferenceTool } from '@/ai/tools/save-user-preference-tool';
+import { stream } from 'genkit/flow';
 
 export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
-  return studinAiFlow(input);
-}
+    const { history, message, isPro, userProfile } = input;
+    let userMessageText = message.text || '';
+    const userImage = message.imageUrl;
+    const isVoiceQuery = !!message.audioUrl;
+  
+    // 1. Speech-to-Text if audio is provided
+    if (isVoiceQuery && message.audioUrl) {
+      try {
+        const { text: transcribedText } = await ai.generate({
+          model: googleAI.model('gemini-2.5-pro-stt'),
+          prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
+          config: { responseModalities: ['TEXT'] },
+        });
+        userMessageText = transcribedText || userMessageText;
+      } catch (e) {
+        console.error('Speech-to-text failed:', e);
+        userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
+      }
+    }
+  
+    // 2. Prepare the prompt for the conversation model
+    const conversationPrompt = (history || []).map((m) => ({
+      role: m.role,
+      content: [
+        ...(m.text ? [{ text: m.text }] : []),
+        ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
+        ...(m.audioUrl ? [{ media: { url: m.audioUrl, contentType: 'audio/webm' } }] : []),
+      ].filter(Boolean) as any,
+    }));
+  
+    conversationPrompt.push({
+      role: 'user',
+      content: [
+        ...(userMessageText ? [{ text: userMessageText }] : []),
+        ...(userImage ? [{ media: { url: userImage } }] : []),
+      ].filter(Boolean) as any,
+    });
+  
+    const { stream, response } = await studinAiFlow({ ...input, message: { ...message, text: userMessageText } });
+  
+    let finalOutput: StudinAiOutput = { text: '' };
+    for await (const chunk of stream) {
+      finalOutput = chunk;
+    }
+  
+    return finalOutput;
+  }
+  
 
 const studinAiSystemPrompt = `Vous êtes Alice, une intelligence artificielle souveraine, exclusivement conçue pour la plateforme STUD'IN. Votre objectif est d'assister les étudiants belges avec une efficacité et une connaissance inégalées.
 
@@ -58,122 +105,125 @@ async function toWav(pcmData: Buffer, channels = 1, rate = 24000, sampleWidth = 
     });
 }
 
-const studinAiFlow = ai.defineFlow(
+export const studinAiFlow = ai.defineFlow(
   {
     name: 'studinAiFlow',
     inputSchema: StudinAiInputSchema,
     outputSchema: StudinAiOutputSchema,
   },
   async ({ history, message, isPro, userProfile }) => {
-    let userMessageText = message.text || '';
-    const userImage = message.imageUrl;
-    const isVoiceQuery = !!message.audioUrl;
+    return stream(async (chunkCallback) => {
+        let userMessageText = message.text || '';
+        const userImage = message.imageUrl;
+        const isVoiceQuery = !!message.audioUrl;
+        
+        // 1. Enrich System Prompt with Dynamic Context (RAG)
+        let dynamicSystemPrompt = studinAiSystemPrompt;
+        if (userProfile) {
+            dynamicSystemPrompt += `
     
-    // 1. Enrich System Prompt with Dynamic Context (RAG)
-    let dynamicSystemPrompt = studinAiSystemPrompt;
-    if (userProfile) {
-        dynamicSystemPrompt += `
-
-**CONTEXTE DYNAMIQUE SUR L'UTILISATEUR ACTUEL :**
-- Nom: ${userProfile.firstName}
-- Ville: ${userProfile.city}
-- Université: ${userProfile.university}
-- Domaine d'études: ${userProfile.fieldOfStudy}
-- Statut: ${userProfile.isPro ? 'Membre Pro' : 'Membre Standard'}
-- Préférences mémorisées: ${JSON.stringify(userProfile.aiPreferences || {})}
-Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utilisateur cherche un événement, tu peux directement utiliser sa ville par défaut. Si tu as mémorisé une préférence, utilise-la pour surprendre l'utilisateur.`;
-    }
-
-
-    // 2. Speech-to-Text if audio is provided
-    if (isVoiceQuery && message.audioUrl) {
-      try {
-          const { text: transcribedText } = await ai.generate({
-            model: googleAI.model('gemini-2.5-pro-stt'),
-            prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
-            config: {
-              responseModalities: ['TEXT'],
-            },
-          });
-          userMessageText = transcribedText || userMessageText;
-      } catch (e) {
-          console.error("Speech-to-text failed:", e);
-          userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
-      }
-    }
-    
-    // Choose model based on 'isPro' flag
-    const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash');
-
-    const conversationPrompt = (history || []).map(m => ({
-        role: m.role,
-        content: [
-          ...(m.text ? [{ text: m.text }] : []),
-          ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
-          ...(m.audioUrl ? [{ media: { url: m.audioUrl, contentType: 'audio/webm' } }] : []),
-        ].filter(Boolean) as any,
-    }));
-    
-    conversationPrompt.push({
-        role: 'user',
-        content: [
-            ...(userMessageText ? [{text: userMessageText}] : []),
-            ...(userImage ? [{media: {url: userImage}}] : [])
-        ].filter(Boolean) as any
-    });
-    
-
-    const llmResponse = await ai.generate({
-        model: conversationModel,
-        system: dynamicSystemPrompt,
-        tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool],
-        prompt: conversationPrompt,
-    });
-
-
-    const textResponse = llmResponse.text;
-    const toolResponses = llmResponse.toolRequest()?.responses();
-
-    if (!textResponse && !toolResponses) {
-        throw new Error('Failed to generate any response.');
-    }
-
-    // 4. Conditional Text-to-Speech
-    if (isVoiceQuery) {
-        try {
-            const { media } = await ai.generate({
-              model: googleAI.model('gemini-2.5-flash-preview-tts'),
-              config: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                  voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Polaris' } },
-                },
-              },
-              prompt: textResponse || "Voici les résultats de votre recherche.",
-            });
-            
-            if (!media) {
-              throw new Error('No media returned from TTS model.');
-            }
-
-            const audioBuffer = Buffer.from(media.url.substring(media.url.indexOf(',') + 1), 'base64');
-            const wavBase64 = await toWav(audioBuffer);
-
-            return {
-              text: textResponse,
-              audio: 'data:audio/wav;base64,' + wavBase64,
-              toolData: toolResponses,
-            };
-        } catch(e) {
-            console.error("Text-to-speech failed:", e);
-            // Fallback to text-only response if TTS fails
-            return { text: textResponse, toolData: toolResponses };
+    **CONTEXTE DYNAMIQUE SUR L'UTILISATEUR ACTUEL :**
+    - Nom: ${userProfile.firstName}
+    - Ville: ${userProfile.city}
+    - Université: ${userProfile.university}
+    - Domaine d'études: ${userProfile.fieldOfStudy}
+    - Statut: ${userProfile.isPro ? 'Membre Pro' : 'Membre Standard'}
+    - Préférences mémorisées: ${JSON.stringify(userProfile.aiPreferences || {})}
+    Utilise ces informations pour personnaliser ta réponse. Par exemple, si l'utilisateur cherche un événement, tu peux directement utiliser sa ville par défaut. Si tu as mémorisé une préférence, utilise-la pour surprendre l'utilisateur.`;
         }
-    }
     
-    // 5. Default to text-only response for text queries
-    return { text: textResponse, toolData: toolResponses };
+    
+        // 2. Speech-to-Text if audio is provided
+        if (isVoiceQuery && message.audioUrl) {
+          try {
+              const { text: transcribedText } = await ai.generate({
+                model: googleAI.model('gemini-2.5-pro-stt'),
+                prompt: [{ media: { url: message.audioUrl, contentType: 'audio/webm' } }],
+                config: {
+                  responseModalities: ['TEXT'],
+                },
+              });
+              userMessageText = transcribedText || userMessageText;
+          } catch (e) {
+              console.error("Speech-to-text failed:", e);
+              userMessageText = userMessageText || "J'ai eu du mal à comprendre l'audio.";
+          }
+        }
+        
+        // Choose model based on 'isPro' flag
+        const conversationModel = isPro ? googleAI.model('gemini-2.5-pro') : googleAI.model('gemini-2.5-flash');
+    
+        const conversationPrompt = (history || []).map(m => ({
+            role: m.role,
+            content: [
+              ...(m.text ? [{ text: m.text }] : []),
+              ...(m.imageUrl ? [{ media: { url: m.imageUrl } }] : []),
+              ...(m.audioUrl ? [{ media: { url: m.audioUrl, contentType: 'audio/webm' } }] : []),
+            ].filter(Boolean) as any,
+        }));
+        
+        conversationPrompt.push({
+            role: 'user',
+            content: [
+                ...(userMessageText ? [{text: userMessageText}] : []),
+                ...(userImage ? [{media: {url: userImage}}] : [])
+            ].filter(Boolean) as any
+        });
+        
+    
+        const llmResponse = await ai.generate({
+            model: conversationModel,
+            system: dynamicSystemPrompt,
+            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool],
+            prompt: conversationPrompt,
+            streamingCallback: (chunk) => {
+                chunkCallback({ text: chunk.text });
+            }
+        });
+    
+    
+        const textResponse = llmResponse.text;
+        const toolResponses = llmResponse.toolRequest()?.responses();
+    
+        if (!textResponse && !toolResponses) {
+            throw new Error('Failed to generate any response.');
+        }
+    
+        let audioResponse: string | undefined = undefined;
+
+        // 4. Conditional Text-to-Speech
+        if (isVoiceQuery) {
+            try {
+                const { media } = await ai.generate({
+                  model: googleAI.model('gemini-2.5-flash-preview-tts'),
+                  config: {
+                    responseModalities: ['AUDIO'],
+                    speechConfig: {
+                      voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Polaris' } },
+                    },
+                  },
+                  prompt: textResponse || "Voici les résultats de votre recherche.",
+                });
+                
+                if (!media) {
+                  throw new Error('No media returned from TTS model.');
+                }
+    
+                const audioBuffer = Buffer.from(media.url.substring(media.url.indexOf(',') + 1), 'base64');
+                const wavBase64 = await toWav(audioBuffer);
+                audioResponse = 'data:audio/wav;base64,' + wavBase64;
+    
+            } catch(e) {
+                console.error("Text-to-speech failed:", e);
+            }
+        }
+        
+        // Final chunk with non-streamed data
+        return {
+            text: textResponse,
+            audio: audioResponse,
+            toolData: toolResponses,
+        };
+    });
   }
 );
-
-    
