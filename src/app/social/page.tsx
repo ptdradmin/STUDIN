@@ -63,19 +63,25 @@ export default function SocialPage() {
     }, [isUserLoading, user, router]);
 
     const fetchPosts = useCallback(async (lastDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
-        if (!firestore) return;
+        if (!firestore || !currentUserProfile) return;
         
         setIsLoading(true);
 
         const baseQuery = collection(firestore, 'posts');
-        let constraints = [
-            orderBy('createdAt', 'desc'),
-            limit(POST_BATCH_SIZE)
-        ];
+        let constraints = [];
+        
+        // If user follows people, get their posts. Otherwise, get latest public posts.
+        if (currentUserProfile.followingIds && currentUserProfile.followingIds.length > 0) {
+            constraints.push(where('userId', 'in', currentUserProfile.followingIds));
+        }
+        
+        constraints.push(orderBy('createdAt', 'desc'));
         
         if (lastDoc) {
             constraints.push(startAfter(lastDoc));
         }
+
+        constraints.push(limit(POST_BATCH_SIZE));
         
         const postQuery = query(baseQuery, ...constraints);
         
@@ -93,13 +99,15 @@ export default function SocialPage() {
             setIsLoading(false);
         }
 
-    }, [firestore]);
+    }, [firestore, currentUserProfile]);
     
     useEffect(() => {
-        // Initial fetch
-        fetchPosts();
+        // Initial fetch when profile is loaded
+        if (currentUserProfile) {
+            fetchPosts();
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [currentUserProfile]);
 
     useEffect(() => {
         if (isInView && hasMore && !isLoading && lastVisible) {

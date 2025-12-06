@@ -121,15 +121,15 @@ export default function CreateHousingForm({ onClose, housingToEdit }: CreateHous
         }
 
         if (isEditing) {
-            const dataToUpdate = { ...data, surfaceArea: data.surfaceArea, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
+            const dataToUpdate = { ...data, updatedAt: serverTimestamp(), imageUrl, coordinates: newCoords };
             await updateDoc(housingRef, dataToUpdate);
             toast({ title: 'Annonce mise à jour !' });
         } else {
-             const dataToCreate: Omit<Housing, 'userId'> & { userId: string } = {
+             const dataToCreate: Omit<Housing, 'userId' | 'username'> & { userId: string, username: string } = {
                 ...data,
-                surfaceArea: data.surfaceArea,
                 id: housingId,
                 userId: user.uid,
+                username: user.displayName || 'Utilisateur',
                 createdAt: serverTimestamp() as any,
                 updatedAt: serverTimestamp() as any,
                 coordinates: newCoords,
