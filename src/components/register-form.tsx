@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,13 +11,16 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import Link from 'next/link';
 import { schoolsList } from '@/lib/static-data';
 import { generateAvatar } from '@/lib/avatars';
+import { doc, serverTimestamp } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 
 const registerSchema = z.object({
   firstName: z.string().min(1, 'Le prénom est requis'),
@@ -43,6 +47,7 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { auth } = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
@@ -64,7 +69,7 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
 
-    if (!auth) {
+    if (!auth || !firestore) {
       toast({ variant: 'destructive', title: 'Erreur', description: 'Le service est indisponible. Veuillez réessayer.' });
       setLoading(false);
       return;
@@ -80,8 +85,31 @@ export default function RegisterForm() {
       const newPhotoURL = generateAvatar(user.email || user.uid);
       await updateProfile(user, { displayName: newDisplayName, photoURL: newPhotoURL });
 
-      // The onAuthStateChanged listener in FirebaseProvider will handle creating the Firestore document.
-      // This ensures the user is authenticated before any database write.
+      // 3. Create user document in Firestore
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const newUserProfile: Omit<UserProfile, 'createdAt' | 'updatedAt'> & { createdAt: any, updatedAt: any } = {
+          id: user.uid,
+          role: 'student',
+          email: data.email,
+          username: data.username,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          postalCode: data.postalCode,
+          city: data.city,
+          university: data.university,
+          fieldOfStudy: data.fieldOfStudy,
+          bio: '',
+          profilePicture: newPhotoURL,
+          followerIds: [],
+          followingIds: [],
+          isVerified: false,
+          points: 0,
+          challengesCompleted: 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+      };
+      // Use non-blocking write for performance
+      setDocumentNonBlocking(userDocRef, newUserProfile, { merge: false });
 
       toast({
         title: "Inscription réussie!",
@@ -309,3 +337,5 @@ export default function RegisterForm() {
     </>
   );
 }
+
+    

@@ -18,6 +18,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
 import { isUsernameUnique } from '@/lib/user-actions';
+import type { UserProfile } from '@/lib/types';
+
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -79,24 +81,32 @@ export default function RegisterInstitutionForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      // The onAuthStateChanged listener in FirebaseProvider will handle creating the user document.
-      // We just need to update the auth profile.
-      await updateProfile(user, { displayName: data.name, photoURL: generateAvatar(user.email || user.uid) });
-
-      // Create the separate institution document
-      const institutionDocRef = doc(firestore, 'institutions', user.uid);
-      const institutionData = {
-        id: user.uid,
-        userId: user.uid,
-        name: data.name,
-        postalCode: data.postalCode,
-        city: data.city,
-        email: data.email,
-        role: 'institution' as const,
-        createdAt: serverTimestamp(),
+      const newPhotoURL = generateAvatar(user.email || user.uid);
+      await updateProfile(user, { displayName: data.name, photoURL: newPhotoURL });
+      
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const newUserProfile: Omit<UserProfile, 'createdAt' | 'updatedAt' | 'lastName' | 'university' | 'fieldOfStudy' > & { createdAt: any, updatedAt: any, lastName: string, university: string, fieldOfStudy: string } = {
+          id: user.uid,
+          role: 'institution',
+          email: data.email,
+          username: username,
+          firstName: data.name, // For institutions, firstName holds the full name
+          lastName: '',
+          postalCode: data.postalCode,
+          city: data.city,
+          university: '',
+          fieldOfStudy: '',
+          bio: '',
+          profilePicture: newPhotoURL,
+          followerIds: [],
+          followingIds: [],
+          isVerified: false,
+          points: 0,
+          challengesCompleted: 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
       };
-      // This might fail if rules are strict, but the user doc will be created.
-      setDocumentNonBlocking(institutionDocRef, institutionData, { merge: false });
+      setDocumentNonBlocking(userDocRef, newUserProfile, { merge: false });
 
 
       toast({
@@ -246,3 +256,5 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+
+    

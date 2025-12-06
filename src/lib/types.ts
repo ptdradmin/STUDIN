@@ -270,3 +270,5 @@ export type ChallengeSubmission = {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: Timestamp;
 };
+
+    
