@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
@@ -8,7 +7,7 @@ import HousingListings from '@/components/housing-listings';
 import { LayoutGrid, Map, Plus, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Housing, Favorite } from '@/lib/types';
 import CreateHousingForm from '@/components/create-housing-form';
 import { collection, query, where, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, orderBy } from 'firebase/firestore';
@@ -45,7 +44,7 @@ export default function HousingPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [priceFilter, setPriceFilter] = useState(1000);
 
-  const favoritesQuery = useMemo(() => {
+  const favoritesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/favorites`), where('itemType', '==', 'housing'));
   }, [user, firestore]);
@@ -101,7 +100,8 @@ export default function HousingPage() {
   
   useEffect(() => {
     fetchHousings(true);
-  }, [fetchHousings]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const handleEdit = (housing: Housing) => {
