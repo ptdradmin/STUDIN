@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirebase } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { User, signInWithEmailAndPassword } from 'firebase/auth';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { LogoIcon } from './logo-icon';
@@ -21,7 +21,7 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { auth, isUserLoading, areServicesAvailable } = useFirebase();
+  const { auth, isUserLoading } = useAuth();
   const { toast } = useToast();
 
   const handleSuccess = (user: User) => {
