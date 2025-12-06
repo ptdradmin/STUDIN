@@ -21,7 +21,7 @@ import GlobalSearch from '@/components/global-search';
 import NotificationsDropdown from '@/components/notifications-dropdown';
 import { getOrCreateConversation } from '@/lib/conversations';
 import ProfileListingsTab from '@/components/profile-listings-tab';
-import { generateAvatar } from '@/lib/avatars';
+import { generateAvatar, getInitials } from '@/lib/avatars';
 import { cn } from '@/lib/utils';
 
 
@@ -114,10 +114,10 @@ export default function UserProfilePage() {
   const [modalContent, setModalContent] = useState<{title: string, userIds: string[]} | null>(null);
 
   useEffect(() => {
-    if (user && profileId === user.uid) {
+    if (!isUserLoading && user && profileId === user.uid) {
         router.replace('/profile');
     }
-  }, [user, profileId, router]);
+  }, [user, profileId, router, isUserLoading]);
 
 
   const userRef = useMemo(() => {
@@ -317,3 +317,6 @@ export default function UserProfilePage() {
     </div>
   );
 }
+
+
+    

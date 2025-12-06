@@ -118,9 +118,10 @@ export default function RegisterForm() {
         title: "Inscription réussie!",
         description: "Bienvenue sur STUD'IN. Vous allez être redirigé.",
       });
-
-      router.push('/social');
+      
+      router.push('/profile');
       router.refresh();
+
 
     } catch (error: any) {
       // This will now catch both Auth and Firestore errors
@@ -350,6 +351,8 @@ export default function RegisterForm() {
     </>
   );
 }
+
+    
 
     
 
