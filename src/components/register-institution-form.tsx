@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,8 +18,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { generateAvatar } from '@/lib/avatars';
 import Link from 'next/link';
 import { isUsernameUnique } from '@/lib/user-actions';
-import { verifyRecaptcha } from '@/ai/flows/verify-recaptcha-flow';
-import Script from 'next/script';
 
 const registerSchema = z.object({
   name: z.string().min(1, "Le nom de l'institution est requis"),
@@ -44,7 +42,6 @@ export default function RegisterInstitutionForm() {
   const { auth } = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [isRecaptchaReady, setIsRecaptchaReady] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -57,24 +54,6 @@ export default function RegisterInstitutionForm() {
       confirmPassword: '',
     },
   });
-  
-  const executeRecaptcha = useCallback(async (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        if (!isRecaptchaReady || !(window as any).grecaptcha) {
-            reject(new Error("reCAPTCHA not ready."));
-            return;
-        }
-        (window as any).grecaptcha.enterprise.ready(async () => {
-            try {
-                const siteKey = "6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS";
-                const token = await (window as any).grecaptcha.enterprise.execute(siteKey, { action: 'REGISTER_INSTITUTION' });
-                resolve(token);
-            } catch (error) {
-                reject(error);
-            }
-        });
-    });
-  }, [isRecaptchaReady]);
 
   const onSubmit = async (data: RegisterFormValues) => {
     setLoading(true);
@@ -85,15 +64,6 @@ export default function RegisterInstitutionForm() {
     }
 
     try {
-        const recaptchaToken = await executeRecaptcha();
-        const recaptchaResult = await verifyRecaptcha({ token: recaptchaToken, expectedAction: 'REGISTER_INSTITUTION' });
-
-        if (!recaptchaResult.isVerified) {
-            setLoading(false);
-            toast({ variant: 'destructive', title: 'Échec de la vérification', description: 'La vérification reCAPTCHA a échoué. Veuillez réessayer.' });
-            return;
-        }
-        
         const username = data.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_.]/g, '').substring(0, 20) || `institution_${new Date().getTime()}`;
             
         const usernameIsUnique = await isUsernameUnique(firestore, username);
@@ -180,12 +150,6 @@ export default function RegisterInstitutionForm() {
 
   return (
     <>
-      <Script
-        src="https://www.google.com/recaptcha/enterprise.js?render=6LcimiAsAAAAAEYqnXn6r1SCpvlUYftwp9nK0wOS"
-        onLoad={() => setIsRecaptchaReady(true)}
-        async
-        defer
-      />
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Compte Partenaire</CardTitle>
         <CardDescription>Inscrivez votre institution sur STUD'IN</CardDescription>
@@ -286,9 +250,9 @@ export default function RegisterInstitutionForm() {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={buttonsDisabled || !isRecaptchaReady}>
+            <Button type="submit" className="w-full" disabled={buttonsDisabled}>
               {buttonsDisabled && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {loading ? "Vérification..." : "S'inscrire"}
+              {loading ? "Création..." : "S'inscrire"}
             </Button>
           </form>
         </Form>
