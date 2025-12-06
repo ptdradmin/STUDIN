@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -147,16 +147,9 @@ export default function RegisterInstitutionForm() {
         router.refresh();
 
     } catch (error: any) {
+        console.error("Registration error:", error);
         let description = "Impossible de créer le compte. Veuillez réessayer.";
         
-        if(error.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: `users/${auth.currentUser?.uid}`, // Approximate path
-                operation: 'create',
-                requestResourceData: { role: 'institution', email: data.email },
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
           switch (error.code) {
             case 'auth/email-already-in-use':
               description = "Cet e-mail est déjà utilisé. Veuillez vous connecter ou utiliser une autre adresse.";
@@ -170,13 +163,14 @@ export default function RegisterInstitutionForm() {
             case 'auth/network-request-failed':
                 description = "Erreur de réseau. Veuillez vérifier votre connexion internet.";
                 break;
+            default:
+                description = `Une erreur inattendue est survenue. (${error.code})`;
           }
           toast({
             variant: "destructive",
             title: "Erreur d'inscription",
             description: description,
           });
-        }
     } finally {
         setLoading(false);
     }
@@ -310,3 +304,5 @@ export default function RegisterInstitutionForm() {
     </>
   );
 }
+
+    
