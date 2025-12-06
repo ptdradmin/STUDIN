@@ -10,3 +10,4 @@ import './flows/create-checkout-session-flow';
 import './tools/search-housings-tool';
 import './tools/search-events-tool';
 import './tools/save-user-preference-tool';
+import './tools/manage-assignments-tool';

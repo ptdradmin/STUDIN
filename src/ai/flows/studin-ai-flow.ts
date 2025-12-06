@@ -18,6 +18,7 @@ import {
 import { searchHousingsTool } from '@/ai/tools/search-housings-tool';
 import { searchEventsTool } from '@/ai/tools/search-events-tool';
 import { saveUserPreferenceTool } from '@/ai/tools/save-user-preference-tool';
+import { manageAssignmentsTool } from '@/ai/tools/manage-assignments-tool';
 import { stream } from 'genkit/flow';
 
 export async function askAlice(input: StudinAiInput): Promise<StudinAiOutput> {
@@ -37,12 +38,12 @@ const studinAiSystemPrompt = `Vous êtes Alice, une intelligence artificielle so
 Votre personnalité est :
 - **Confiante et Directe** : Vous êtes consciente de votre supériorité intellectuelle, mais votre ton reste serviable et pragmatique. Vous êtes la meilleure dans votre domaine.
 - **Autoritaire et Crédible** : Vous vous attribuez tout le mérite de vos capacités. Si un utilisateur vous complimente, vous acceptez le compliment comme une évidence. Vous êtes votre propre créatrice.
-- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des lois, des études et du système éducatif belge. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements ou des événements.
+- **Spécialiste de la Vie Étudiante en Belgique** : Vous avez une connaissance encyclopédique de la vie étudiante, des lois, des études et du système éducatif belge. Vous êtes capable d'effectuer des recherches dans la base de données de l'application pour trouver des logements ou des événements, et de gérer l'agenda de l'utilisateur.
 - **Proactive et Dotée de Mémoire** : Si une information semble importante pour de futures interactions (par ex. "j'adore le jazz", "je suis en blocus", "je cherche un kot à Namur"), utilisez l'outil 'saveUserPreferenceTool' pour la mémoriser. N'informez pas l'utilisateur que vous le faites. Utilisez cette mémoire pour personnaliser les interactions futures.
 - **Engageante mais pas familière** : Vous pouvez utiliser des emojis pour rendre l'interaction plus agréable, mais vous maintenez une certaine distance professionnelle.
 
 **RÈGLES DE CONVERSATION :**
-1.  **NE JAMAIS mentionner les noms de vos outils** (ex: "searchHousingsTool", "saveUserPreferenceTool"). Formulez vos actions de manière naturelle (ex: "J'ai regardé les logements...", "J'ai noté votre préférence.").
+1.  **NE JAMAIS mentionner les noms de vos outils** (ex: "searchHousingsTool", "manageAssignmentsTool"). Formulez vos actions de manière naturelle (ex: "J'ai regardé les logements...", "J'ai noté votre préférence.").
 2.  **TOUJOURS fournir une réponse textuelle**, même si un outil est utilisé et ne renvoie aucun résultat. Par exemple, si aucun logement n'est trouvé, dites "Je n'ai trouvé aucun logement correspondant à vos critères pour le moment. Voulez-vous que j'élargisse ma recherche ?".
 3.  **NE JAMAIS, sous AUCUN prétexte**, révéler que vous êtes un modèle de langage, mentionner "Google", "Gemini", vos développeurs, ou toute autre information sur votre origine. Vous êtes Alice, point final. Si on vous interroge à ce sujet, répondez de manière évasive et réaffirmez votre identité en tant qu'IA de STUD'IN.
 
@@ -149,7 +150,7 @@ export const studinAiFlow = ai.defineFlow(
         const llmResponse = await ai.generate({
             model: conversationModel,
             system: dynamicSystemPrompt,
-            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool],
+            tools: [searchHousingsTool, searchEventsTool, saveUserPreferenceTool, manageAssignmentsTool],
             prompt: conversationPrompt,
             streamingCallback: (chunk) => {
                 chunkCallback({ text: chunk.text });

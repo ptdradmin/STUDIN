@@ -194,6 +194,16 @@ export type UserProfile = {
     updatedAt: Timestamp;
 };
 
+export type Assignment = {
+    id: string;
+    userId: string;
+    title: string;
+    subject: string;
+    dueDate: Timestamp;
+    status: 'todo' | 'in-progress' | 'done';
+    createdAt: Timestamp;
+};
+
 export type ChatMessage = {
     id: string;
     senderId: string;
@@ -273,3 +283,4 @@ export type ChallengeSubmission = {
     
 
     
+

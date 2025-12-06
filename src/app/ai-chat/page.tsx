@@ -5,7 +5,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Mic, StopCircle, Trash2, Paperclip, X, Loader2, Check } from "lucide-react";
 import SocialSidebar from "@/components/social-sidebar";
 import { FormEvent, useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -20,6 +20,8 @@ import type { StudinAiInput, StudinAiOutput } from '@/ai/schemas/studin-ai-schem
 import { getInitials } from "@/lib/avatars";
 import type { Housing as HousingType } from '@/lib/types';
 import type { Event as EventType } from '@/lib/types';
+import type { AssignmentForTool } from '@/ai/tools/manage-assignments-tool';
+import { Badge } from "@/components/ui/badge";
 
 
 function MessagesHeader() {
@@ -83,6 +85,25 @@ function EventResultCard({ event }: { event: any }) {
   );
 }
 
+function AssignmentResultCard({ assignments }: { assignments: AssignmentForTool[] }) {
+  return (
+    <div className="w-full max-w-xs bg-card p-4 rounded-lg border space-y-3">
+        <h3 className="font-bold text-base">Prochaines échéances</h3>
+        {assignments.map(item => (
+            <div key={item.id} className="text-sm border-t pt-2">
+                <div className="flex justify-between">
+                    <p className="font-semibold">{item.title}</p>
+                    <Badge variant={item.status === 'done' ? 'secondary' : 'default'}>{item.status}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{item.subject}</p>
+                <p className="text-xs font-medium text-primary mt-1">{item.dueDate}</p>
+            </div>
+        ))}
+    </div>
+  );
+}
+
+
 function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?: (id: string) => void }) {
     const { user } = useUser();
     const isUserMessage = message.role === 'user';
@@ -129,6 +150,11 @@ function MessageBubble({ message, onDelete }: { message: ChatMessage, onDelete?:
                              {(message.toolData.searchEventsTool as EventType[]).map(event => (
                                 <EventResultCard key={event.id} event={event} />
                              ))}
+                        </div>
+                    )}
+                    {message.toolData?.manageAssignmentsTool?.assignments && (
+                        <div className="flex flex-col gap-2 p-2">
+                           <AssignmentResultCard assignments={message.toolData.manageAssignmentsTool.assignments} />
                         </div>
                     )}
                 </div>
